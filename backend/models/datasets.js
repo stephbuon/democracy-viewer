@@ -31,8 +31,15 @@ class datasets {
         return record[0];
     }
 
+    // Update the metadata of a table
+    async updateMetadata(table_name, params) {
+        const update = await knex(metadata_table).where({ table_name }).update({ ...params });
+        const record = await knex(metadata_table).where({ table_name });
+        return record;
+    }
+
     // Change the data type of the given column in the given table
-    async changeColType (table, column, type) {
+    async changeColType(table, column, type) {
         const update = await knex.raw(`ALTER TABLE ${ table } MODIFY ${ column } ${ type }`);
         return update;
     }
@@ -41,6 +48,12 @@ class datasets {
     async getHead(table, n = 10) {
         const results = await knex(table).limit(n);
         return results;
+    }
+
+    // Get the metadata for the given table
+    async getMetadata(table_name) {
+        const record = await knex(metadata_table).where({ table_name });
+        return record[0];
     }
 }
 

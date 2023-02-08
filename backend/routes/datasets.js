@@ -38,4 +38,16 @@ router.put('/:table', async(req, res, next) => {
     next();
 });
 
+// Route to change dataset metadata
+router.put('/metadata/:table', async(req, res, next) => {
+    try {
+        const result = await control.updateMetadata(req.models.datasets, req.user, req.params.table, req.body);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to update dataset metadata:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 module.exports = router;

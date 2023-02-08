@@ -75,8 +75,24 @@ const changeColType = async(datasets, table, column, type) => {
     return results;
 }
 
+// Update a dataset's metadata
+const updateMetadata = async(datasets, user, table, params) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.user !== user) {
+        throw new Error("Logged in user is not the owner of this dataset");
+    }
+
+    // Update metadata record
+    const record = await datasets.updateMetadata(table, params);
+    return record;
+}
+
 module.exports = {
     createDataset,
     createMetadata,
-    changeColType
+    changeColType,
+    updateMetadata
 };
