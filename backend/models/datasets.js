@@ -21,6 +21,12 @@ class datasets {
         const insert = await knex(name).insert({ ...row });
         return insert;
     }
+
+    // Get the first n rows of a dataset (n = 10 by default)
+    async getHead(name, n = 10) {
+        const results = await knex(name).limit(n);
+        return results;
+    }
 }
 
 module.exports = datasets;

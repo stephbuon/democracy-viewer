@@ -18,7 +18,9 @@ const createDataset = async(datasets, path) => {
         await datasets.addRow(name, data[i]);
     }
 
-    return null;
+    // Return the first 10 rows of the new dataset
+    const results = await datasets.getHead(name);
+    return results;
 }
 
 // Read a csv file
