@@ -8,6 +8,7 @@ const requestLog = require("./middleware/logging");
 const { createModelsMiddleware, disconnectFromDatababaseMiddleware } = require("./middleware/models");
 
 // Import routes
+const datasets = require("./routes/datasets");
 const session = require("./routes/session");
 const users = require('./routes/users');
 
@@ -29,6 +30,7 @@ app.get("/health", (req, res, next) => {
 });
 
 // Use routes
+app.use("/datasets", datasets);
 app.use("/session", session);
 app.use("/users", users);
 
