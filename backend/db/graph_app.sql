@@ -1,4 +1,4 @@
-# CREATE DATABASE graph_app;
+# CREATE DATABASE democracy_viewer_demo;
 
 CREATE TABLE users (
     username VARCHAR(20) PRIMARY KEY,

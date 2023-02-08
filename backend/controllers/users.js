@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
+require('dotenv').config();
 
-const accessTokenSecret = "";
+const accessTokenSecret = process.env.TOKEN_SECRET;
 
 // Authenticate a user
 const authenticateUser = async (user, body) => {
@@ -21,6 +22,7 @@ const createUser = async (user, body) => {
     // Hash the password and send to model
     body.password = bcrypt.hashSync(body.password, 10);
     const result = await user.createNewUser(body);
+    delete result.password;
     return result;
 }
 
