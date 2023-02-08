@@ -1,5 +1,7 @@
 const knex = require("../db/knex");
 
+const metadata_table = "dataset_metadata";
+
 class datasets {
     // Create a table for a new dataset
     async createDataset(name, cols) {
@@ -17,21 +19,28 @@ class datasets {
     }
 
     // Add a row to a dataset
-    async addRow(name, row) {
-        const insert = await knex(name).insert({ ...row });
+    async addRow(table, row) {
+        const insert = await knex(table).insert({ ...row });
         return insert;
     }
 
-    // Get the first n rows of a dataset (n = 10 by default)
-    async getHead(name, n = 10) {
-        const results = await knex(name).limit(n);
-        return results;
+    // Add initial metadata for a table
+    async createMetadata(params) {
+        const insert = await knex(metadata_table).insert({ ...params });
+        const record = await knex(metadata_table).where({ table_name: params.table_name });
+        return record[0];
     }
 
     // Change the data type of the given column in the given table
     async changeColType (table, column, type) {
         const update = await knex.raw(`ALTER TABLE ${ table } MODIFY ${ column } ${ type }`);
         return update;
+    }
+
+    // Get the first n rows of a dataset (n = 10 by default)
+    async getHead(table, n = 10) {
+        const results = await knex(table).limit(n);
+        return results;
     }
 }
 

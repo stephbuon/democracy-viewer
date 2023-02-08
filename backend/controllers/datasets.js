@@ -58,6 +58,14 @@ const readCSV = (path) => {
     return data;
 }
 
+// Create the initial metadata for a dataset
+const createMetadata = async(datasets, user, body) => {
+    // Add username to parameters
+    const params = { ...body, user };
+    const record = await datasets.createMetadata(params);
+    return record;
+}
+
 // Change the data type of a column in a dataset
 const changeColType = async(datasets, table, column, type) => {
     // Change the column in db
@@ -69,5 +77,6 @@ const changeColType = async(datasets, table, column, type) => {
 
 module.exports = {
     createDataset,
+    createMetadata,
     changeColType
 };

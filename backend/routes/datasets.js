@@ -14,6 +14,18 @@ router.post('/', async(req, res, next) => {
     next();
 });
 
+// Route to add dataset metadata
+router.post('/metadata', async(req, res, next) => {
+    try {
+        const result = await control.createMetadata(req.models.datasets, req.user, req.body);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to create dataset metadata:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to change the type of dataset column
 router.put('/:table', async(req, res, next) => {
     try {
