@@ -55,6 +55,12 @@ class datasets {
         const record = await knex(metadata_table).where({ table_name });
         return record[0];
     }
+
+    // Get all records in a dataset
+    async getDataset(table) {
+        const results = await knex(table);
+        return results;
+    }
 }
 
 module.exports = datasets;

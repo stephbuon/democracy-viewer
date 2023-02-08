@@ -30,7 +30,7 @@ app.get("/health", (req, res, next) => {
 });
 
 // Use routes
-app.use("/datasets", authenticateJWT, datasets);
+app.use("/datasets", datasets);
 app.use("/session", session);
 app.use("/users", users);
 
