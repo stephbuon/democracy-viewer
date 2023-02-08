@@ -27,6 +27,12 @@ class datasets {
         const results = await knex(name).limit(n);
         return results;
     }
+
+    // Change the data type of the given column in the given table
+    async changeColType (table, column, type) {
+        const update = await knex.raw(`ALTER TABLE ${ table } MODIFY ${ column } ${ type }`);
+        return update;
+    }
 }
 
 module.exports = datasets;

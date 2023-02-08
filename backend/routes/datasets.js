@@ -14,4 +14,16 @@ router.post('/', async(req, res, next) => {
     next();
 });
 
+// Route to change the type of dataset column
+router.put('/:table', async(req, res, next) => {
+    try {
+        const result = await control.changeColType(req.models.datasets, req.params.table, req.body.column, req.body.type);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to update dataset column type:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 module.exports = router;

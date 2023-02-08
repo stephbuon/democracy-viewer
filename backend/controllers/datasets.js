@@ -58,6 +58,16 @@ const readCSV = (path) => {
     return data;
 }
 
+// Change the data type of a column in a dataset
+const changeColType = async(datasets, table, column, type) => {
+    // Change the column in db
+    await datasets.changeColType(table, column, type);
+    // Get the first 10 rows of the dataset
+    const results = datasets.getHead(table);
+    return results;
+}
+
 module.exports = {
-    createDataset
+    createDataset,
+    changeColType
 };
