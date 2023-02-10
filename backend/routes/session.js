@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const control = require("../controllers/users");
-const auth = require("../middleware/authentication");
+const { authenticateJWT } = require("../middleware/authentication");
 
 // Route to create a session and get access token
 router.post('/', async (req, res, next) => {
@@ -21,10 +21,9 @@ router.post('/', async (req, res, next) => {
 });
   
 // Route to get user data from token
-router.get('/', auth.authenticateJWT, async (req, res, next) => {
+router.get('/', authenticateJWT, async (req, res, next) => {
   try {
-    const username = req.user.username;
-    const result = await control.findUserByUsername(req.models.users, username);
+    const result = await control.findUserByUsername(req.models.users, req.user);
     res.status(200).json(result);
   } catch (err) {
     console.error("Failed to get session:", err);

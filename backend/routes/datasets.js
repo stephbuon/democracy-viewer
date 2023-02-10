@@ -75,4 +75,16 @@ router.get('/:table', async(req, res, next) => {
     next();
 });
 
+// Route to delete a datset and its metadata
+router.delete('/:table', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.deleteDataset(req.models.datasets, req.user, req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset records:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 module.exports = router;

@@ -61,6 +61,18 @@ class datasets {
         const results = await knex(table);
         return results;
     }
+
+    // Delete a dataset table
+    async deleteTable(name) {
+        const del = await knex.schema.dropTable(name);
+        return del;
+    }
+
+    // Delete a dataset's metadata
+    async deleteMetadata(table_name) {
+        const del = await knex(metadata_table).where({ table_name }).delete();
+        return del;
+    }
 }
 
 module.exports = datasets;

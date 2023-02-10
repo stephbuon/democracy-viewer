@@ -90,9 +90,26 @@ const updateMetadata = async(datasets, user, table, params) => {
     return record;
 }
 
+// Delete a dataset and its metadata
+const deleteDataset = async(datasets, user, table) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.user !== user) {
+        throw new Error("Logged in user is not the owner of this dataset");
+    }
+
+    await datasets.deleteTable(table);
+    await datasets.deleteMetadata(table);
+
+    return null;
+}
+
 module.exports = {
     createDataset,
     createMetadata,
     changeColType,
-    updateMetadata
+    updateMetadata,
+    deleteDataset
 };
