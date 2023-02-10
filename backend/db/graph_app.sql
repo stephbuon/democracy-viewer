@@ -23,8 +23,8 @@ CREATE TABLE dataset_metadata (
     private_group BIGINT UNSIGNED,
     title VARCHAR(20),
     description VARCHAR(200),
-    FOREIGN KEY(user) REFERENCES users(username),
-    FOREIGN KEY(private_group) REFERENCES private_groups(id)
+    FOREIGN KEY(user) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
 CREATE TABLE group_members (
@@ -32,15 +32,15 @@ CREATE TABLE group_members (
     private_group BIGINT UNSIGNED,
     member VARCHAR(20),
     member_rank INT,
-    FOREIGN KEY(private_group) REFERENCES private_groups(id),
-    FOREIGN KEY(member) REFERENCES users(username)
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
 );
 
 CREATE TABLE tags (
     id SERIAL PRIMARY KEY,
     tag_name VARCHAR(15),
     table_name VARCHAR(50),
-    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name)
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
 # Additionally tables will be dynamically generated for uploaded datasets
