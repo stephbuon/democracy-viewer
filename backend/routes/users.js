@@ -17,7 +17,7 @@ router.post('/', async(req, res, next) => {
 // Route to update user
 router.put('/:username', async(req, res, next) => {
     try {
-        const result = await req.models.users.updateUser(req.params.username, req.body);
+        const result = await control.updateUser(req.models.users, req.params.username, req.body);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to update account:', err);
@@ -29,7 +29,7 @@ router.put('/:username', async(req, res, next) => {
 // Route to delete a user
 router.delete('/:username', async(req, res, next) => {
     try {
-        const result = await req.models.users.deleteUser(req.params.username);
+        const result = await control.deleteUser(req.models.users, req.params.username);
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete account:', err);

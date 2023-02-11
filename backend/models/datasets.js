@@ -1,6 +1,7 @@
 const knex = require("../db/knex");
 
 const metadata_table = "dataset_metadata";
+const tag_table = "tags";
 
 class datasets {
     // Create a table for a new dataset
@@ -28,6 +29,13 @@ class datasets {
     async createMetadata(params) {
         const insert = await knex(metadata_table).insert({ ...params });
         const record = await knex(metadata_table).where({ table_name: params.table_name });
+        return record[0];
+    }
+
+    // Add a tag for a dataset
+    async addTag(table_name, tag_name) {
+        const insert = await knex(tag_table).insert({ table_name, tag_name });
+        const record = await knex(tag_table).where({ table_name, tag_name });
         return record[0];
     }
 
@@ -62,6 +70,18 @@ class datasets {
         return results;
     }
 
+    // Get all unique tags
+    async getUniqueTags() {
+        const results = await knex(tag_table).select("tag_name").distinct();
+        return results;
+    }
+
+    // Get tags by datset
+    async getTags(table_name) {
+        const results = await knex(tag_table).where({ table_name });
+        return results;
+    }
+
     // Delete a dataset table
     async deleteTable(name) {
         const del = await knex.schema.dropTable(name);
@@ -71,6 +91,12 @@ class datasets {
     // Delete a dataset's metadata
     async deleteMetadata(table_name) {
         const del = await knex(metadata_table).where({ table_name }).delete();
+        return del;
+    }
+
+    // Delete tag on a dataset
+    async deleteTag(table_name, tag_name) {
+        const del = await knex(tag_table).where({ table_name, tag_name }).delete();
         return del;
     }
 }

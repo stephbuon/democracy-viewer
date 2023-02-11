@@ -37,9 +37,9 @@ CREATE TABLE group_members (
 );
 
 CREATE TABLE tags (
-    id SERIAL PRIMARY KEY,
     tag_name VARCHAR(15),
     table_name VARCHAR(50),
+    PRIMARY KEY(tag_name, table_name),
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 

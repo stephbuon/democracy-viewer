@@ -66,6 +66,21 @@ const createMetadata = async(datasets, user, body) => {
     return record;
 }
 
+// Add a tag for a dataset
+const addTag = async(datasets, user, table, tag) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.user !== user) {
+        throw new Error("Logged in user is not the owner of this dataset");
+    }
+
+    // Add tag to db
+    const record = await datasets.addTag(table, tag);
+    return record;
+}
+
 // Change the data type of a column in a dataset
 const changeColType = async(datasets, table, column, type) => {
     // Change the column in db
@@ -90,6 +105,24 @@ const updateMetadata = async(datasets, user, table, params) => {
     return record;
 }
 
+// Get unique tags
+const getUniqueTags = async(datasets) => {
+    // Get tag names from table
+    const records = await datasets.getUniqueTags();
+    // Convert objects to strings with tag names
+    const results = records.map(x => x.tag_name);
+    return results;
+} 
+
+// Get tags by dataset
+const getTags = async(datasets, table) => {
+    // Get tag names from table
+    const records = await datasets.getTags(table);
+    // Convert objects to strings with tag names
+    const results = records.map(x => x.tag_name);
+    return results;
+} 
+
 // Delete a dataset and its metadata
 const deleteDataset = async(datasets, user, table) => {
     // Get the current metadata for this table
@@ -106,10 +139,29 @@ const deleteDataset = async(datasets, user, table) => {
     return null;
 }
 
+// Delete the given tag for the given dataset
+const deleteTag = async(datasets, user, table, tag) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.user !== user) {
+        throw new Error("Logged in user is not the owner of this dataset");
+    }
+
+    await datasets.deleteTag(table, tag);
+
+    return null;
+}
+
 module.exports = {
     createDataset,
     createMetadata,
+    addTag,
     changeColType,
     updateMetadata,
-    deleteDataset
+    getUniqueTags,
+    getTags,
+    deleteDataset,
+    deleteTag
 };
