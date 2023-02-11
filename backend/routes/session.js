@@ -23,8 +23,7 @@ router.post('/', async (req, res, next) => {
 // Route to get user data from token
 router.get('/', authenticateJWT, async (req, res, next) => {
   try {
-    const result = await control.findUserByUsername(req.models.users, req.user);
-    res.status(200).json(result);
+    res.status(200).json(req.user);
   } catch (err) {
     console.error("Failed to get session:", err);
     res.status(500).json({message: err.toString()});

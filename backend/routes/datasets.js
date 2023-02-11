@@ -18,7 +18,7 @@ router.post('/', authenticateJWT, async(req, res, next) => {
 // Route to add dataset metadata
 router.post('/metadata', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.createMetadata(req.models.datasets, req.user, req.body);
+        const result = await control.createMetadata(req.models.datasets, req.user.username, req.body);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to create dataset metadata:', err);
@@ -42,7 +42,7 @@ router.put('/:table', authenticateJWT, async(req, res, next) => {
 // Route to change dataset metadata
 router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.updateMetadata(req.models.datasets, req.user, req.params.table, req.body);
+        const result = await control.updateMetadata(req.models.datasets, req.user.username, req.params.table, req.body);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to update dataset metadata:', err);
@@ -78,7 +78,7 @@ router.get('/:table', async(req, res, next) => {
 // Route to delete a datset and its metadata
 router.delete('/:table', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.deleteDataset(req.models.datasets, req.user, req.params.table);
+        const result = await control.deleteDataset(req.models.datasets, req.user.username, req.params.table);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset records:', err);

@@ -15,7 +15,7 @@ const authenticateJWT = (req, res, next) => {
         return res.sendStatus(403);
       }
   
-      req.user = user.username;
+      req.user = user;
       next();
     });
 };
