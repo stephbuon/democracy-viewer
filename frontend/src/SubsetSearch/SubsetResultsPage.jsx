@@ -2,6 +2,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import { DisplayResults } from './DisplayResults/DisplayResults';
 
+//MUI Imports
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import { minWidth } from '@mui/system';
 
 const hardcodedResults = ["hello", "helloj", ";lo", "asdkfjh", "k"]
 
@@ -40,17 +45,47 @@ export const SubsetResultsPage = (props) => {
 
 
     return (<div className='darkblue'>
-        <row>
-            <input type="text" id='searchTerm' value={searchTerm} onChange={event => { setSearchTerm(event.target.value) }} />
-            <button type='button' onClick={() => searchFunction()}>Search</button>
-        </row>
-
-        <div className='mt-5'></div>
+        <Box
+            pt={2}
+            sx={{
+                background: 0xffffffff,
+                display: "flex",
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <TextField
+                id="searchTerm"
+                label="Search"
+                variant="filled"
+                sx={{
+                    background: 'rgb(255, 255, 255)',
+                    color: 'rgb(0, 0, 0)',
+                    '&:active': {
+                        color: 'rgb(0, 0, 0)'
+                    }
+                }}
+                value={searchTerm}
+                onChange={event => { setSearchTerm(event.target.value) }}
+            />
+            <Button
+                variant="contained"
+                sx={{
+                    background: 'rgb(255, 255, 255)',
+                    color: 'rgb(0, 0, 0)',
+                    '&:hover': {
+                        background: 'rgb(200, 200, 200)'
+                    }
+                }}
+                onClick={() => searchFunction()}
+            >
+                Search
+            </Button>
+        </Box>
 
         <DisplayResults
-        results={hardcodedResults}/>
-        
-        
+            results={hardcodedResults} />
+
     </div >)
 
 }
