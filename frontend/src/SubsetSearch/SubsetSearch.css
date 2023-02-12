@@ -1,11 +1,8 @@
 .darkblue{
-    background: rgb(54, 54, 228);
-    min-height: 5em;
+    background: rgb(105, 105, 238);
+    min-height: 100vh;
+    max-height: 100vh;
     min-width: 100%;
+    max-width: 100vw;
 }
 
-.searchbarrow{
-    width: 20%;
-    height: 5%;
-    margin: 47.5% 40%;
-}

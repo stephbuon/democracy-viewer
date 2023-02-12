@@ -1,6 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
+//MUI Imports
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+
+
 import './SubsetSearch.css'
 
 
@@ -13,7 +19,6 @@ export const SubsetSearch = (props) => {
         console.log("navigating")
         navigate(`/subsetsearch/${searchTerm}`)
         console.log("did not navigate from search page")
-
     }
 
     //code to see if enter key is pressed (search when that happens)
@@ -36,10 +41,49 @@ export const SubsetSearch = (props) => {
 
 
     return (<div className='darkblue'>
-        <row className='searchbarrow'>
-            <input type="text" id='searchTerm' value={searchTerm} onChange={event => { setSearchTerm(event.target.value) }} />
-            <button type='button' onClick={() => searchFunction()}>Search</button>
-        </row>
+        <Box
+            sx={{
+                minHeight: 1,
+                display: 'flex'
+            }}
+        >
+            <Box
+                sx={{
+                    display: 'flex',
+                    width: .8
+                }}
+            >
+                <TextField
+                    id="searchTerm"
+                    label="Search"
+                    variant="filled"
+                    fullWidth
+                    sx={{
+                        background: 'rgb(255, 255, 255)',
+                        color: 'rgb(0, 0, 0)',
+                        '&:active': {
+                            color: 'rgb(0, 0, 0)'
+                        }
+                    }}
+                    value={searchTerm}
+                    onChange={event => { setSearchTerm(event.target.value) }}
+                />
+                <Button
+                    variant="contained"
+                    sx={{
+                        background: 'rgb(255, 255, 255)',
+                        color: 'rgb(0, 0, 0)',
+                        '&:hover': {
+                            background: 'rgb(200, 200, 200)'
+                        }
+                    }}
+                    onClick={() => searchFunction()}
+                >
+                    Search
+                </Button>
+            </Box>
+        </Box>
+
     </div >)
 
 }
