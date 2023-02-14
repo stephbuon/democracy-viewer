@@ -1,4 +1,4 @@
-# CREATE DATABASE democracy_viewer_demo;
+-- CREATE DATABASE democracy_viewer_demo;
 
 CREATE TABLE users (
     username VARCHAR(20) PRIMARY KEY,
@@ -13,23 +13,23 @@ CREATE TABLE users (
 );
 
 CREATE TABLE private_groups (
-    id SERIAL PRIMARY KEY,
+    id BIGINT PRIMARY KEY IDENTITY,
     name VARCHAR(50)
 );
 
 CREATE TABLE dataset_metadata (
     table_name VARCHAR(50) PRIMARY KEY,
-    user VARCHAR(20),
-    private_group BIGINT UNSIGNED,
+    username VARCHAR(20),
+    private_group BIGINT,
     title VARCHAR(20),
     description VARCHAR(200),
-    FOREIGN KEY(user) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
 CREATE TABLE group_members (
-    id SERIAL PRIMARY KEY,
-    private_group BIGINT UNSIGNED,
+    id BIGINT PRIMARY KEY IDENTITY,
+    private_group BIGINT,
     member VARCHAR(20),
     member_rank INT,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
@@ -43,4 +43,4 @@ CREATE TABLE tags (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
-# Additionally tables will be dynamically generated for uploaded datasets
+-- Additional tables will be dynamically generated for uploaded datasets
