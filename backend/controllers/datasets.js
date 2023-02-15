@@ -59,9 +59,9 @@ const readCSV = (path) => {
 }
 
 // Create the initial metadata for a dataset
-const createMetadata = async(datasets, user, body) => {
+const createMetadata = async(datasets, username, body) => {
     // Add username to parameters
-    const params = { ...body, user };
+    const params = { ...body, username };
     const record = await datasets.createMetadata(params);
     return record;
 }
@@ -72,7 +72,7 @@ const addTag = async(datasets, user, table, tag) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.user !== user) {
+    if (curr.username !== user) {
         throw new Error("Logged in user is not the owner of this dataset");
     }
 
@@ -96,7 +96,7 @@ const updateMetadata = async(datasets, user, table, params) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.user !== user) {
+    if (curr.username !== user) {
         throw new Error("Logged in user is not the owner of this dataset");
     }
 
@@ -129,7 +129,7 @@ const deleteDataset = async(datasets, user, table) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.user !== user) {
+    if (curr.username !== user) {
         throw new Error("Logged in user is not the owner of this dataset");
     }
 
@@ -145,7 +145,7 @@ const deleteTag = async(datasets, user, table, tag) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.user !== user) {
+    if (curr.username !== user) {
         throw new Error("Logged in user is not the owner of this dataset");
     }
 
