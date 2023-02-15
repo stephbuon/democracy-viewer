@@ -76,7 +76,7 @@ router.get('/metadata/:table', async(req, res, next) => {
 });
 
 // Route to get all records in a table
-router.get('/:table', async(req, res, next) => {
+router.get('/records/:table', async(req, res, next) => {
     try {
         const result = await req.models.datasets.getDataset(req.params.table);
         res.status(200).json(result);
@@ -106,6 +106,18 @@ router.get('/tags/dataset/:table', async(req, res, next) => {
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset tags:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to filter datasets
+router.get('/filter', async(req, res, next) => {
+    try {
+        const results = await req.models.datasets.getFilteredDatasets(req.query);
+        res.status(200).json(results);
+    } catch (err) {
+        console.error('Failed to get filtered datasets:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

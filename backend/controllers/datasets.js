@@ -34,7 +34,7 @@ const readCSV = (path) => {
     // Get column names from first row
     const names = [];
     for (let i = 0; i < rows[0].length; i++) {
-        names.push(rows[0][i]);
+        names.push(rows[0][i].replace("\r", ""));
     }
 
     // Collect data from the rest of the rows
@@ -47,7 +47,7 @@ const readCSV = (path) => {
             if (!rows[i][j]) {
                 break;
             } 
-            curr[names[j]] = rows[i][j];
+            curr[names[j]] = rows[i][j].replace("\r", "");
         }
         // If curr is not empty, add to data
         if (Object.keys(curr).length > 0) {

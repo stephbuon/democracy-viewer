@@ -48,7 +48,7 @@ class datasets {
 
     // Change the data type of the given column in the given table
     async changeColType(table, column, type) {
-        const update = await knex.raw(`ALTER TABLE ${ table } MODIFY ${ column } ${ type }`);
+        const update = await knex.raw(`ALTER TABLE ${ table } ALTER COLUMN ${ column } ${ type }`);
         return update;
     }
 
@@ -79,6 +79,62 @@ class datasets {
     // Get tags by datset
     async getTags(table_name) {
         const results = await knex(tag_table).where({ table_name });
+        return results;
+    }
+
+    // Filter datasets
+    async getFilteredDatasets(params) {
+        const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
+            .join(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
+            .where(q => {
+                // Filter by user
+                const username = params.username;
+                if (username) {
+                    q.whereILike("username", `%${ username }%`);
+                }
+
+                // Filter by private group
+                const private_group = params.private_group;
+                if (private_group) {
+                    q.where({ private_group });
+                }
+
+                // Filter by title
+                const title = params.title;
+                if (title) {
+                    q.whereILike("title", `%${ title }%`);
+                }
+
+                // Filter by description
+                const description = params.description;
+                if (description) {
+                    q.whereILike("description", `%${ description }%`);
+                }
+
+                // Search all text fields
+                const search = params.search;
+                if (search) {
+                    q.where(q => {
+                        q.orWhereILike("title", `%${ search }%`);
+                        q.orWhereILike("description", `%${ search }%`);
+                    })
+                }
+
+                // Search for tags
+                const tag_name = params.tag;
+                if (tag_name) {
+                    // If tag is an array, find datasets with all tags
+                    if (Array.isArray(tag_name)) {
+                        q.where(q => {
+                            tag_name.map(x => q.orWhere({ tag_name: x }));
+                        });
+                    } else {
+                        q.where({ tag_name });
+                    }
+                }
+            });
+
+        const results = await query;
         return results;
     }
 
