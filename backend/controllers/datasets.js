@@ -18,9 +18,13 @@ const createDataset = async(datasets, path) => {
         await datasets.addRow(name, data[i]);
     }
 
-    // Return the first 10 rows of the new dataset
+    // Return the first 10 rows of the new dataset and the table name
     const results = await datasets.getHead(name);
-    return results;
+    const output = {
+        table_name: name,
+        data: results
+    }
+    return output;
 }
 
 // Read a csv file
@@ -54,6 +58,9 @@ const readCSV = (path) => {
             data.push(curr);
         }
     }
+
+    // Delete file once read
+    fs.unlinkSync(path);
 
     return data;
 }

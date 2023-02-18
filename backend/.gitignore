@@ -8,7 +8,6 @@
 
 # testing
 /coverage
-/test-data
 
 # production
 /build
@@ -27,3 +26,6 @@ yarn-error.log*
 
 yarn.lock
 package-lock.json
+
+accounts.csv
+add_account.sql

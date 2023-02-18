@@ -2,12 +2,21 @@ const express = require('express');
 const router = express.Router();
 const control = require("../controllers/datasets");
 const { authenticateJWT } = require("../middleware/authentication");
+const uploadFile = require("../middleware/file_upload");
 
 // Route to create a dataset
 router.post('/', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.createDataset(req.models.datasets, req.body.path);
-        res.status(201).json(result);
+        await uploadFile(req, res);
+
+        if (!req.file) {
+            res.status(400).json({ message: "No uploaded file" });
+        } else {
+            console.log(req.file.path);
+            const result = await control.createDataset(req.models.datasets, req.file.path);
+            res.status(201).json(result);
+        }
+        
     } catch (err) {
         console.error('Failed to create dataset:', err);
         res.status(500).json({ message: err.toString() });
