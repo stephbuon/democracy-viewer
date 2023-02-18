@@ -2,16 +2,19 @@ const express = require('express');
 const router = express.Router();
 const control = require("../controllers/datasets");
 const { authenticateJWT } = require("../middleware/authentication");
-const uploadFile = require("../middleware/file_upload");
+const util = require("../util/file_management");
 
 // Route to create a dataset
 router.post('/', authenticateJWT, async(req, res, next) => {
     try {
-        await uploadFile(req, res);
+        // Upload file to server
+        await util.uploadFile(req, res);
 
         if (!req.file) {
+            // If file failed to upload, throw error
             res.status(400).json({ message: "No uploaded file" });
         } else {
+            // Create dataset in database from file
             console.log(req.file.path);
             const result = await control.createDataset(req.models.datasets, req.file.path);
             res.status(201).json(result);
@@ -70,6 +73,27 @@ router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
         res.status(500).json({ message: err.toString() });
     }
     next();
+});
+
+// Route to download a csv of a full dataset
+router.get('/download/:table', async(req, res, next) => {
+    try {
+        // Generate file
+        const result = await control.downloadDataset(req.models.datasets, req.params.table);
+        // Download file
+        res.download(result, `${ req.params.table }.csv`, (err) => {
+            // Error handling
+            if (err) {
+                console.error("Failed to download dataset:", err);
+                res.status(500).json({ message: err.toString() });
+                next();
+            }
+        });
+    } catch (err) {
+        console.error('Failed to download dataset:', err);
+        res.status(500).json({ message: err.toString() });
+        next();
+    }
 });
 
 // Route to get dataset metadata

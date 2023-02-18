@@ -27,5 +27,10 @@ yarn-error.log*
 yarn.lock
 package-lock.json
 
+# upload/download files
+downloads/*.csv
+uploads/*.csv
+
+# account management
 accounts.csv
 add_account.sql
