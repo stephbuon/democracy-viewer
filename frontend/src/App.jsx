@@ -1,21 +1,24 @@
+import React from "react";
+import { LoginRegister } from "./pages/login-register.jsx";
+import { Graph } from "./pages/graph.jsx";
+import { Layout } from "./pages/layout.jsx";
 
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-export const App = () => {
+function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Router>
+        <Layout />
+        <div className="container border border-2">
+          <Routes>
+            <Route path="/login" element={<LoginRegister/>}></Route>
+            <Route path="/graph" element={<Graph />}></Route>
+          </Routes>
+        </div>
+      </Router>
     </div>
   );
 }
+
+export default App;
