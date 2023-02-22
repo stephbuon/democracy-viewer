@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const accessTokenSecret = process.env.TOKEN_SECRET;
 
+// Required token authentication
 const authenticateJWT = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -20,6 +21,23 @@ const authenticateJWT = (req, res, next) => {
     });
 };
 
+// Optional token authentication
+const optAuthenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+    jwt.verify(token, accessTokenSecret, (err, user) => {
+      if (user) {
+        req.user = user;
+      }
+    });
+  }
+
+  next();
+};
+
 module.exports = {
-  authenticateJWT
+  authenticateJWT,
+  optAuthenticateJWT
 };

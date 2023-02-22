@@ -52,6 +52,13 @@ class datasets {
         return update;
     }
 
+    // Increment the dataset's clicks
+    async incClicks(table_name) {
+        const update = await knex(metadata_table).where({ table_name }).increment("clicks", 1);
+        const record = await knex(metadata_table).where({ table_name });
+        return record[0];
+    }
+
     // Get the first n rows of a dataset (n = 10 by default)
     async getHead(table, n = 10) {
         const results = await knex(table).limit(n);
@@ -83,14 +90,33 @@ class datasets {
     }
 
     // Filter datasets
-    async getFilteredDatasets(params) {
+    async getFilteredDatasets(params, username) {
         const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
-            .join(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
+            .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
+                // Filter by type (public/private)
+                const type = params.type;
+                if (type === "public") {
+                    // Get public datasets
+                    q.where({ is_public: true });
+                } else if (type === "private") {
+                    // Get private datasets
+                    if (!username) {
+                        // Throw error if user is not logged in
+                        throw new Error("Cannot find private datasets if user is not logged in.");
+                    }
+
+                    // Get private datasets created by this user
+                    q.where({ is_public: false, username });
+                } else {
+                    // Throw error if type if not public/private
+                    throw new Error("Public/private dataset type not defined.");
+                }
+
                 // Filter by user
-                const username = params.username;
-                if (username) {
-                    q.whereILike("username", `%${ username }%`);
+                const user = params.username;
+                if (user) {
+                    q.whereILike("username", `%${ user }%`);
                 }
 
                 // Filter by private group
@@ -132,7 +158,7 @@ class datasets {
                         q.where({ tag_name });
                     }
                 }
-            });
+            }).orderBy("clicks", "desc");
 
         const results = await query;
         return results;

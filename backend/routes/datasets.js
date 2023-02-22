@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const control = require("../controllers/datasets");
-const { authenticateJWT } = require("../middleware/authentication");
+const { authenticateJWT, optAuthenticateJWT } = require("../middleware/authentication");
 const util = require("../util/file_management");
 
 // Route to create a dataset
@@ -70,6 +70,18 @@ router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to update dataset metadata:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to increment a dataset's clicks
+router.put('/click/:table', async(req, res, next) => {
+    try {
+        const result = await req.models.datasets.incClicks(req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to click on dataset:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -145,9 +157,9 @@ router.get('/tags/dataset/:table', async(req, res, next) => {
 });
 
 // Route to filter datasets
-router.get('/filter', async(req, res, next) => {
+router.get('/filter', optAuthenticateJWT, async(req, res, next) => {
     try {
-        const results = await req.models.datasets.getFilteredDatasets(req.query);
+        const results = await req.models.datasets.getFilteredDatasets(req.query, req.user.username);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get filtered datasets:', err);

@@ -23,6 +23,8 @@ CREATE TABLE dataset_metadata (
     private_group BIGINT,
     title VARCHAR(20),
     description VARCHAR(200),
+    is_public BIT,
+    clicks INT DEFAULT 0,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
