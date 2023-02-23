@@ -116,7 +116,10 @@ class datasets {
                 // Filter by user
                 const user = params.username;
                 if (user) {
-                    q.whereILike("username", `%${ user }%`);
+                    const terms = user.split(" ");
+                    terms.forEach(term => {
+                        q.whereILike("username", `%${ term }%`);
+                    });
                 }
 
                 // Filter by private group
@@ -128,21 +131,30 @@ class datasets {
                 // Filter by title
                 const title = params.title;
                 if (title) {
-                    q.whereILike("title", `%${ title }%`);
+                    const terms = title.split(" ");
+                    terms.forEach(term => {
+                        q.whereILike("title", `%${ term }%`);
+                    });
                 }
 
                 // Filter by description
                 const description = params.description;
                 if (description) {
-                    q.whereILike("description", `%${ description }%`);
+                    const terms = description.split(" ");
+                    terms.forEach(term => {
+                        q.whereILike("description", `%${ term }%`);
+                    });
                 }
 
                 // Search all text fields
                 const search = params.search;
                 if (search) {
                     q.where(q => {
-                        q.orWhereILike("title", `%${ search }%`);
-                        q.orWhereILike("description", `%${ search }%`);
+                        const terms = search.split(" ");
+                        terms.forEach(term => {
+                            q.orWhereILike("title", `%${ term }%`);
+                            q.orWhereILike("description", `%${ term }%`);
+                        });
                     })
                 }
 
@@ -177,8 +189,11 @@ class datasets {
                     // If not an array, find exact value
                     q.where({ [key]: params[key] })
                 } else if (params[key][0] === "like") {
-                    // If first value is "like", find strings like this value
-                    q.whereILike(key, `%${ params[key][1] }%`);
+                    // If first value is "like", find strings like all terms in this value
+                    const terms = params[key][1].split(" ");
+                    terms.forEach(term => {
+                        q.whereILike(key, `%${ term }%`);
+                    });
                 } else if (params[key][0] === "greater") {
                     // If first value is "greater", find values greater than this value
                     q.where(key, ">=", params[key][1]);
