@@ -9,6 +9,7 @@ import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
 import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
 import { Result } from './Result';
+import { FilterDatasets } from '../apiFolder/DatasetSearchAPI';
 
 
 const hardcodedResults = [{ datasetName: "Congress", public: true, owner: "Admin", tags: ["Congress", "Politics"], description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." },
@@ -19,16 +20,19 @@ export const DatasetResultsPage = (props) => {
     const navigate = useNavigate();
     const params = useParams()
 
+    //temp values
+
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
     const [totalTags, setTotalTags] = useState([]);
 
-    const searchFunction = () => {
-        console.log("navigating")
-        // navigate(`/datasetsearch/${searchTerm}`)
-        console.log("did not navigate from results page")
+    //Call backend with query params and return results
+    const filterResults = () => {
 
+        FilterDatasets().then((res) => {
+            
+        })
     }
 
     //code to see if enter key is pressed (search when that happens)
