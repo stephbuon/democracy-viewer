@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
+
 
 //Page imports
+import { DatasetSearch } from "./DatasetSearch/DatasetSearch";
 import { SubsetSearch } from "./SubsetSearch/SubsetSearch";
+import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
+import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
 
 
 export const App = () => {
@@ -18,6 +21,14 @@ export const App = () => {
           <Route
             path='/subsetsearch/:searchterm'
             element={<SubsetResultsPage />} />
+
+          {/* <Route
+            path='/datasetsearch'
+            element={<DatasetSearch />} /> */}
+
+          <Route
+            path='/datasetsearch'
+            element={<DatasetResultsPage />} />
         </Routes>
       </BrowserRouter>
     </div>
