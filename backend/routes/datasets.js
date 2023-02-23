@@ -138,7 +138,12 @@ router.get('/tags/dataset/:table', async(req, res, next) => {
 // Route to filter datasets
 router.get('/filter', optAuthenticateJWT, async(req, res, next) => {
     try {
-        const results = await req.models.datasets.getFilteredDatasets(req.query, req.user.username);
+        let results;
+        if (req.user) {
+            results = await req.models.datasets.getFilteredDatasets(req.query, req.user.username);
+        } else {
+            results = await req.models.datasets.getFilteredDatasets(req.query, undefined);
+        }
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get filtered datasets:', err);
