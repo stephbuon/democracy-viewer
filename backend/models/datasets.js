@@ -164,6 +164,39 @@ class datasets {
         return results;
     }
 
+    // Get a subset of a dataset
+    async subsetTable(table, params) {
+        const query = knex(table).where(q => {
+            // Get the query object keys
+            const keys = Object.keys(params);
+
+            // Iterate through keys and and where clause for each
+            keys.forEach(key => {
+                console.log(key, params[key])
+                if (!Array.isArray(params[key])) {
+                    // If not an array, find exact value
+                    q.where({ [key]: params[key] })
+                } else if (params[key][0] === "like") {
+                    // If first value is "like", find strings like this value
+                    q.whereILike(key, `%${ params[key][1] }%`);
+                } else if (params[key][0] === "greater") {
+                    // If first value is "greater", find values greater than this value
+                    q.where(key, ">=", params[key][1]);
+                } else if (params[key][0] === "less") {
+                    // If first value is "less", find values less than this value
+                    q.where(key, "<=", params[key][1]);
+                } else {
+                    // Else, find values between these values
+                    q.where(key, ">=", params[key][0]);
+                    q.where(key, "<=", params[key][1]);
+                }
+            });
+        });
+
+        const results = await query;
+        return results;
+    }
+
     // Delete a dataset table
     async deleteTable(name) {
         const del = await knex.schema.dropTable(name);

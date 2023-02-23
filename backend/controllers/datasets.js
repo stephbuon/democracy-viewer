@@ -74,18 +74,6 @@ const updateMetadata = async(datasets, user, table, params) => {
     return record;
 }
 
-// Download a csv with all records from a dataset
-const downloadDataset = async(datasets, table) => {
-    // Clear the downloads folder on the server
-    util.clearDirectory("./downloads/");
-    // Get all records in this dataset
-    const records = await datasets.getDataset(table);
-    // Generate csv from records
-    const fileName = util.generateCSV(`./downloads/${ table }`, records);
-    // Return generated file name
-    return fileName;
-}
-
 // Get unique tags
 const getUniqueTags = async(datasets) => {
     // Get tag names from table
@@ -103,6 +91,30 @@ const getTags = async(datasets, table) => {
     const results = records.map(x => x.tag_name);
     return results;
 } 
+
+// Download a csv with all records from a dataset
+const downloadDataset = async(datasets, table) => {
+    // Clear the downloads folder on the server
+    util.clearDirectory("./downloads/");
+    // Get all records in this dataset
+    const records = await datasets.getDataset(table);
+    // Generate csv from records
+    const fileName = util.generateCSV(`./downloads/${ table }`, records);
+    // Return generated file name
+    return fileName;
+}
+
+// Download a subset of a dataset
+const downloadSubset = async(datasets, table, params) => {
+    // Clear the downloads folder on the server
+    util.clearDirectory("./downloads/");
+    // Get all records in this dataset
+    const records = await datasets.subsetTable(table, params);
+    // Generate csv from records
+    const fileName = util.generateCSV(`./downloads/${ table }`, records);
+    // Return generated file name
+    return fileName;
+}
 
 // Delete a dataset and its metadata
 const deleteDataset = async(datasets, user, table) => {
@@ -142,6 +154,7 @@ module.exports = {
     changeColType,
     updateMetadata,
     downloadDataset,
+    downloadSubset,
     getUniqueTags,
     getTags,
     deleteDataset,
