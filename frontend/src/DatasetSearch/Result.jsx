@@ -6,7 +6,6 @@ import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableR
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
-
 export const Result = (result) => {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
@@ -16,14 +15,14 @@ export const Result = (result) => {
 
     }, []);
 
-    return <div id={result.result.datasetName}>
+    return <div>
 
         <Box onClick={() => handleOpen()}
             sx={{
                 background: 'rgb(255, 255, 255)',
                 color: 'rgb(0, 0, 0)'
             }}>
-            {result.result.datasetName}
+            {result.result.title}
         </Box>
         <Modal
             open={open}
@@ -43,14 +42,14 @@ export const Result = (result) => {
                                 sx={{
 
                                 }}>
-                                {result.result.datasetName}
+                                {result.result.table_name}
                             </TableCell>
                             <TableCell>
                                 &nbsp;
                             </TableCell>
                             <TableCell>
-                                {result.result.public && "Public"}
-                                {!result.result.public && "Private"}
+                                {result.result.is_public && "Public"}
+                                {!result.result.is_public && "Private"}
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -60,7 +59,7 @@ export const Result = (result) => {
                                 Owner:
                             </TableCell>
                             <TableCell>
-                                {result.result.owner}
+                                {result.result.username}
                             </TableCell>
                         </TableRow>
                         <TableRow>
