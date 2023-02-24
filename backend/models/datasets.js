@@ -91,7 +91,7 @@ class datasets {
 
     // Filter datasets
     async getFilteredDatasets(params, username) {
-        const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
+        const query = knex(metadata_table).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
                 // Filter by type (public/private)
