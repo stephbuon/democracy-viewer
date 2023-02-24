@@ -91,7 +91,7 @@ class datasets {
 
     // Filter datasets
     async getFilteredDatasets(params, username) {
-        const query = knex(metadata_table).distinct()
+        const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
                 // Filter by type (public/private)
@@ -173,6 +173,13 @@ class datasets {
             }).orderBy("clicks", "desc");
 
         const results = await query;
+
+        // Get tags for search results
+        for (let i = 0; i < results.length; i++) {
+            const tags = await this.getTags(results[i].table_name);
+            results[i].tags = tags.map(x => x.tag_name);
+        }
+
         return results;
     }
 
