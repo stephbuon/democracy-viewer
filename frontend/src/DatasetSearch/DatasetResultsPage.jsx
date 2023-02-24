@@ -12,10 +12,6 @@ import { Result } from './Result';
 import { FilterDatasets } from '../apiFolder/DatasetSearchAPI';
 
 
-const hardcodedResults = [{ datasetName: "Congress", public: true, owner: "Admin", tags: ["Congress", "Politics"], description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." },
-{ datasetName: "Health Stuffs", public: true, owner: "username", tags: ["Health", "Biology", "Other"], description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." },
-{ datasetName: "Own Dataset", public: false, owner: "myself", tags: ["Do I need a tag?"], description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." }]
-
 export const DatasetResultsPage = (props) => {
     const navigate = useNavigate();
     const params = useParams()
@@ -29,16 +25,20 @@ export const DatasetResultsPage = (props) => {
 
     //Call backend with query params and return results
     const filterResults = () => {
-
-        FilterDatasets().then((res) => {
-            
+        let filter = {
+            searchTerm: searchTerm ? searchTerm : '',
+            type: publicPrivate ? 'public' : 'private',
+            tags: totalTags
+        }
+        FilterDatasets(filter).then((res) => {
+            setSearchResults(res)
         })
     }
 
     //code to see if enter key is pressed (search when that happens)
     useEffect(() => {
-        setSearchTerm(params.searchterm)
-        setSearchResults([...hardcodedResults])
+        // setSearchTerm(params.searchterm) //Need to make this a global variable
+        // setSearchResults([...hardcodedResults])
         // const keyDownHandler = event => {
         //     // console.log('User pressed: ', event.key);
 
@@ -63,25 +63,22 @@ export const DatasetResultsPage = (props) => {
                 justifyContent: 'center'
             }}
         >
-            {/* <FormControl> */}
-                {/* <InputLabel id="private-public">Privacy</InputLabel> */}
-                <Select
-                    // labelId="private-public"
-                    value={publicPrivate}
-                    label="Age"
-                    onChange={event => setPublicPrivate(event.target.value)}
-                    sx={{
-                        background: 'rgb(255, 255, 255)',
-                        color: 'rgb(0, 0, 0)',
-                        '&:active': {
-                            color: 'rgb(0, 0, 0)'
-                        }
-                    }}
-                >
-                    <MenuItem value={true}>Public</MenuItem>
-                    <MenuItem value={false}>Private</MenuItem>
-                </Select>
-            {/* </FormControl> */}
+            <Select
+                // labelId="private-public"
+                value={publicPrivate}
+                label="Age"
+                onChange={event => setPublicPrivate(event.target.value)}
+                sx={{
+                    background: 'rgb(255, 255, 255)',
+                    color: 'rgb(0, 0, 0)',
+                    '&:active': {
+                        color: 'rgb(0, 0, 0)'
+                    }
+                }}
+            >
+                <MenuItem value={true}>Public</MenuItem>
+                <MenuItem value={false}>Private</MenuItem>
+            </Select>
             <TextField
                 id="searchTerm"
                 label="Search"
@@ -105,7 +102,7 @@ export const DatasetResultsPage = (props) => {
                         background: 'rgb(200, 200, 200)'
                     }
                 }}
-            // onClick={() => searchFunction()}
+                onClick={() => filterResults()}
             >
                 Apply Filters
             </Button>
@@ -126,13 +123,11 @@ export const DatasetResultsPage = (props) => {
             </TableHead>
             <TableBody>
                 {searchResults.map((result) => {
-                    if (publicPrivate === result.public) {
-                        return <TableRow id={result.datasetName} key={result.datasetName}>
-                            <TableCell>
-                                <Result result={result} />
-                            </TableCell>
-                        </TableRow>
-                    }
+                    return <TableRow id={result.table_name} key={result.table_name}>
+                        <TableCell>
+                            <Result result={result} />
+                        </TableCell>
+                    </TableRow>
                 })}
             </TableBody>
         </Table>
