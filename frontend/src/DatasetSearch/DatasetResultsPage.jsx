@@ -15,6 +15,7 @@ import Alert from '@mui/material/Alert';
 //Other Imports
 import { FilterDatasets } from '../apiFolder/DatasetSearchAPI';
 import { Result } from './Result';
+import { AdvancedFilter } from './AdvancedFilter';
 
 
 export const DatasetResultsPage = (props) => {
@@ -28,6 +29,7 @@ export const DatasetResultsPage = (props) => {
     const [publicPrivate, setPublicPrivate] = useState(true);
     const [totalTags, setTotalTags] = useState([]);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
+    const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
     //Call backend with query params and return results
 
@@ -35,9 +37,15 @@ export const DatasetResultsPage = (props) => {
     const filterResults = () => {
         let filter = {
             searchTerm: searchTerm ? searchTerm : '',
-            type: publicPrivate ? 'public' : 'private',
-            tags: totalTags
+            type: publicPrivate ? 'public' : 'private'
         }
+        FilterDatasets(filter).then((res) => {
+            setSearchResults(res)
+        })
+    }
+    const advancedFilterResults = (filter) => {
+        handleAdvancedFilterClose()
+        
         FilterDatasets(filter).then((res) => {
             setSearchResults(res)
         })
@@ -59,21 +67,16 @@ export const DatasetResultsPage = (props) => {
         }
         setSnackBarOpen(false);
     };
+    const openAdvancedFilter = () => {
+        setAdvancedFilterOpen(true);
+    }
 
-    //code to see if enter key is pressed (search when that happens)
+    
+    const handleAdvancedFilterClose = () => {
+        setAdvancedFilterOpen(false);
+    }
+
     useEffect(() => {
-        // setSearchTerm(params.searchterm) //Need to make this a global variable
-        // setSearchResults([...hardcodedResults])
-        // const keyDownHandler = event => {
-        //     // console.log('User pressed: ', event.key);
-
-        //     if (event.key === 'Enter') {
-        //         console.log('User pressed: Enter');
-        //         searchFunction();
-        //     }
-        // };
-
-        // document.addEventListener('keydown', keyDownHandler);
 
     }, []);
 
@@ -83,12 +86,18 @@ export const DatasetResultsPage = (props) => {
             anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             open={snackBarOpen}
             autoHideDuration={6000}
-            onClose={handleSnackBarClose}
+            onClose={() => handleSnackBarClose()}
         >
             <Alert onClose={handleSnackBarClose} severity="error" sx={{ width: '100%' }}>
                 Must be logged in to search privately
             </Alert>
         </Snackbar>
+        <Modal
+            open={advancedFilterOpen}
+            onClose={() => handleAdvancedFilterClose()}
+        >
+            <AdvancedFilter advancedFilterResults={() => advancedFilterResults()} />
+        </Modal>
         <Box
             pt={2}
             sx={{
@@ -98,6 +107,18 @@ export const DatasetResultsPage = (props) => {
                 justifyContent: 'center'
             }}
         >
+            <Button
+                onClick={() => setAdvancedFilterOpen(true)}
+                variant="contained"
+                sx={{
+                    background: 'rgb(255, 255, 255)',
+                    color: 'rgb(0, 0, 0)',
+                    '&:hover': {
+                        background: 'rgb(200, 200, 200)'
+                    }
+                }}>
+                Advanced Filter
+            </Button>
             <FormControl>
                 <Select
                     value={publicPrivate}
