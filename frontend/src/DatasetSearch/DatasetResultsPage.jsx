@@ -8,8 +8,13 @@ import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
 import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
-import { Result } from './Result';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
+
+//Other Imports
 import { FilterDatasets } from '../apiFolder/DatasetSearchAPI';
+import { Result } from './Result';
 
 
 export const DatasetResultsPage = (props) => {
@@ -22,8 +27,11 @@ export const DatasetResultsPage = (props) => {
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
     const [totalTags, setTotalTags] = useState([]);
+    const [snackBarOpen, setSnackBarOpen] = useState(false);
 
     //Call backend with query params and return results
+
+    //TODO - ADD FUNCTIONALITY THAT TELLS THE USER MUST BE LOGGED IN. USE SNACKBAR
     const filterResults = () => {
         let filter = {
             searchTerm: searchTerm ? searchTerm : '',
@@ -34,6 +42,23 @@ export const DatasetResultsPage = (props) => {
             setSearchResults(res)
         })
     }
+
+    const loggedIn = () => {
+        //check if user is logged in
+        //for now will return false since system is not hooked up
+        return false;
+    }
+    const openSnackbar = () => {
+        if (!loggedIn()) {
+            setSnackBarOpen(true)
+        }
+    }
+    const handleSnackBarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackBarOpen(false);
+    };
 
     //code to see if enter key is pressed (search when that happens)
     useEffect(() => {
@@ -54,6 +79,16 @@ export const DatasetResultsPage = (props) => {
 
 
     return (<div className='darkblue'>
+        <Snackbar
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            open={snackBarOpen}
+            autoHideDuration={6000}
+            onClose={handleSnackBarClose}
+        >
+            <Alert onClose={handleSnackBarClose} severity="error" sx={{ width: '100%' }}>
+                Must be logged in to search privately
+            </Alert>
+        </Snackbar>
         <Box
             pt={2}
             sx={{
@@ -63,37 +98,37 @@ export const DatasetResultsPage = (props) => {
                 justifyContent: 'center'
             }}
         >
-            <Select
-                // labelId="private-public"
-                value={publicPrivate}
-                label="Age"
-                onChange={event => setPublicPrivate(event.target.value)}
-                sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)',
-                    '&:active': {
+            <FormControl>
+                <Select
+                    value={publicPrivate}
+                    onChange={event => setPublicPrivate(event.target.value)}
+                    sx={{
+                        background: 'rgb(255, 255, 255)',
                         color: 'rgb(0, 0, 0)'
-                    }
-                }}
-            >
-                <MenuItem value={true}>Public</MenuItem>
-                <MenuItem value={false}>Private</MenuItem>
-            </Select>
+                        // '&:active': {
+                        //     color: 'rgb(0, 0, 0)'
+                        //     // border: '1px solid #000'
+                        // },
+                        // border: '1px solid #000',
+                        // borderRadius: ".5em .5em"
+                    }}
+                >
+                    <MenuItem value={true}>Public</MenuItem>
+                    <MenuItem value={false} onClick={() => openSnackbar()}>Private</MenuItem>
+                </Select>
+            </FormControl>
             <TextField
                 id="searchTerm"
                 label="Search"
                 variant="filled"
                 sx={{
                     background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)',
-                    '&:active': {
-                        color: 'rgb(0, 0, 0)'
-                    }
+                    color: 'rgb(0, 0, 0)'
                 }}
                 value={searchTerm}
                 onChange={event => { setSearchTerm(event.target.value) }}
             />
-            <Button
+            {(publicPrivate || (!publicPrivate && loggedIn())) && <Button
                 variant="contained"
                 sx={{
                     background: 'rgb(255, 255, 255)',
@@ -105,7 +140,24 @@ export const DatasetResultsPage = (props) => {
                 onClick={() => filterResults()}
             >
                 Apply Filters
-            </Button>
+            </Button>}
+            {(!publicPrivate && !loggedIn()) &&
+                <Button
+                    variant="contained"
+                    disabled
+
+                // sx={{
+                //     background: 'rgb(255, 255, 255)',
+                //     color: 'rgb(0, 0, 0)',
+                //     '&:hover': {
+                //         background: 'rgb(200, 200, 200)'
+                //     }
+                // }}
+                // onClick={() => filterResults()}
+                >
+                    Apply Filters
+                </Button>
+            }
         </Box>
         <Table
             sx={{
