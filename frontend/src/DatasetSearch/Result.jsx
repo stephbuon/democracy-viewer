@@ -27,22 +27,31 @@ export const Result = (result) => {
         <Modal
             open={open}
             onClose={() => handleClose()}
-        // aria-labelledby="modal-modal-title"
-        // aria-describedby="modal-modal-description"
         >
             <Box
                 sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)'
+                    position: 'absolute',
+                    top: '15%',
+                    left: '15%',
+                    height: "70%",
+                    overflow: "scroll",
+                    width: "70%",
+                    bgcolor: 'background.paper',
+                    border: '1px solid #000',
+                    borderRadius: ".5em .5em"
+                }}
+            >
+                <Table
+                sx={{
+                    margin: "1em"
                 }}>
-                <Table>
                     <TableHead>
                         <TableRow>
                             <TableCell
                                 sx={{
 
                                 }}>
-                                {result.result.table_name}
+                                {result.result.title}
                             </TableCell>
                             <TableCell>
                                 &nbsp;
