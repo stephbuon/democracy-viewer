@@ -33,12 +33,12 @@ export function LoginRegister() {
               value={loginPassword}
               setValue={setLoginPassword}
             />
-            {(loginUsername == "" || loginPassword == "") && (
+            {(loginUsername === "" || loginPassword === "") && (
               <button type="button" className="btn btn-md btn-primary" disabled>
                 Login
               </button>
             )}
-            {loginUsername != "" && loginPassword != "" && (
+            {loginUsername !== "" && loginPassword !== "" && (
               <button
                 type="button"
                 className="btn btn-md btn-primary"
@@ -51,9 +51,9 @@ export function LoginRegister() {
           <div className="col ms-3">
             <h2 className="text-center">Register</h2>
             <TextField
-                label="* Email:"
-                value={email}
-                setValue={setEmail}
+              label="* Email:"
+              value={email}
+              setValue={setEmail}
             />
             <TextField
               label="* Username:"
@@ -71,57 +71,57 @@ export function LoginRegister() {
               setValue={setRegisterConfirmPassword}
             />
             <div className="row justify-content-center">
-                <div className="col">
-                    <TextField
-                        label="First Name:"
-                        value={first}
-                        setValue={setFirst}
-                    />
-                    <TextField
-                        label="Suffix:"
-                        value={suffix}
-                        setValue={setSuffix}
-                    />
-                    <TextField
-                        label="Orcid:"
-                        value={orcid}
-                        setValue={setOrcid}
-                    />
-                </div>
-                <div className="col">
-                    <TextField
-                        label="Last Name:"
-                        value={last}
-                        setValue={setLast}
-                    />
-                    <TextField
-                        label="Title:"
-                        value={title}
-                        setValue={setTitle}
-                    />
-                    <TextField
-                        label="LinkedIn:"
-                        value={linkedin}
-                        setValue={setLinkedin}
-                    />
-                </div>
+              <div className="col">
+                <TextField
+                  label="First Name:"
+                  value={first}
+                  setValue={setFirst}
+                />
+                <TextField
+                  label="Suffix:"
+                  value={suffix}
+                  setValue={setSuffix}
+                />
+                <TextField
+                  label="Orcid:"
+                  value={orcid}
+                  setValue={setOrcid}
+                />
+              </div>
+              <div className="col">
+                <TextField
+                  label="Last Name:"
+                  value={last}
+                  setValue={setLast}
+                />
+                <TextField
+                  label="Title:"
+                  value={title}
+                  setValue={setTitle}
+                />
+                <TextField
+                  label="LinkedIn:"
+                  value={linkedin}
+                  setValue={setLinkedin}
+                />
+              </div>
             </div>
-            {(registerUsername == "" ||
-              registerPassword == "" ||
-              registerConfirmPassword == "" ||
-              registerPassword != registerConfirmPassword) && (
-              <button type="button" className="btn btn-md btn-primary" disabled>
-                Register
-              </button>
-            )}
-            {registerUsername != "" &&
-              registerPassword != "" &&
-              registerConfirmPassword != "" &&
-              registerPassword == registerConfirmPassword && (
+            {(registerUsername === "" ||
+              registerPassword === "" ||
+              registerConfirmPassword === "" ||
+              registerPassword !== registerConfirmPassword) && (
+                <button type="button" className="btn btn-md btn-primary" disabled>
+                  Register
+                </button>
+              )}
+            {registerUsername !== "" &&
+              registerPassword !== "" &&
+              registerConfirmPassword !== "" &&
+              registerPassword === registerConfirmPassword && (
                 <button
                   type="button"
                   className="btn btn-md btn-primary"
-                  onClick={() => {}}
+                  onClick={() => { }}
                 >
                   Register
                 </button>
