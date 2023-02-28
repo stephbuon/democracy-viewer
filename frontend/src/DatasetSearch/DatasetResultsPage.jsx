@@ -31,26 +31,30 @@ export const DatasetResultsPage = (props) => {
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
-    //Call backend with query params and return results
-
-    //TODO - ADD FUNCTIONALITY THAT TELLS THE USER MUST BE LOGGED IN. USE SNACKBAR
     const filterResults = () => {
+
         let filter = {
-            searchTerm: searchTerm ? searchTerm : '',
-            type: publicPrivate ? 'public' : 'private'
+            searchTerm: searchTerm ? `&search=${searchTerm}` : '',
+            type: publicPrivate ? 'public' : 'private',
+            advanced: false
         }
         FilterDatasets(filter).then((res) => {
-            setSearchResults(res)
-        })
-    }
-    const advancedFilterResults = (filter) => {
-        handleAdvancedFilterClose()
-        
-        FilterDatasets(filter).then((res) => {
-            setSearchResults(res)
-        })
-    }
 
+            if(!res){setSearchResults([])}
+            else{setSearchResults(res)}
+
+        })
+    }
+    const advancedFilterResults = (advancedFilter) => {
+        console.log("Filter", advancedFilter)
+        FilterDatasets(advancedFilter).then((res) => {
+
+            if(!res){setSearchResults([])}
+            else{setSearchResults(res)}
+
+            handleAdvancedFilterClose()
+        })
+    }
     const loggedIn = () => {
         //check if user is logged in
         //for now will return false since system is not hooked up
@@ -70,8 +74,6 @@ export const DatasetResultsPage = (props) => {
     const openAdvancedFilter = () => {
         setAdvancedFilterOpen(true);
     }
-
-    
     const handleAdvancedFilterClose = () => {
         setAdvancedFilterOpen(false);
     }
@@ -96,7 +98,9 @@ export const DatasetResultsPage = (props) => {
             open={advancedFilterOpen}
             onClose={() => handleAdvancedFilterClose()}
         >
-            <AdvancedFilter advancedFilterResults={() => advancedFilterResults()} />
+            <AdvancedFilter
+                advancedFilterResults={(x) => advancedFilterResults(x)}
+            />
         </Modal>
         <Box
             pt={2}
