@@ -4,7 +4,19 @@ export const BACKEND_ENDPOINT = "http://localhost:8000";
 
 export const FilterDatasets = async (params) =>  {
     console.log("Filtering Datasets", params);
-    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter?type=${params.type}&search=${params.searchTerm}&title=${params.title}&username=${params.username}${params.tags}`);
+    // console.log(`GET  -  ${BACKEND_ENDPOINT}/datasets/filter?type=${params.type}${params.searchTerm}`)
+
+    let res;
+    if(params.advanced)
+    {
+        //ADVANCED SEARCH
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`);
+    }
+    else
+    {
+        //SIMPLE SEARCH
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter?type=${params.type}${params.searchTerm}`);
+    }
     if(res.status !== 200){
         console.log(`Couldn't get datasets information. ${res.status}`, params)
         return null;
