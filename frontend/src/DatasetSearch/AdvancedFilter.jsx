@@ -32,14 +32,20 @@ export const AdvancedFilter = (props) => {
         for (let tag in totalTags) {
             tags += `&tag=${tag}`;
         }
+        console.log("tags", tags)
         let filter = {
-            title: title ? title : '',
-            description: description ? description : '',
-            username: username ? username : '',
+            title: title ? `&title=${title}` : '',
+            description: description ? `&description=${description}` : '',
+            username: username ? `&username=${username}` : '',
             type: publicPrivate ? 'public' : 'private',
-            tags: tags
+            tags: tags,
+            advanced: true
         }
+        console.log("filter before", filter)
+        // props.setAdvancedFilter(filter);
         props.advancedFilterResults(filter);
+
+        
 
     }
 
