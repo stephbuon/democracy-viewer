@@ -9,6 +9,9 @@ import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
 
 
 export const App = () => {
+  
+  const [dataset, setDataset] = useState('');
+
   return (
     <div className={`App`} >
       <BrowserRouter>
@@ -23,7 +26,7 @@ export const App = () => {
 
           <Route
             path='/datasetsearch'
-            element={<DatasetResultsPage />} />
+            element={<DatasetResultsPage setDataset={() => setDataset()}/>} />
         </Routes>
       </BrowserRouter>
     </div>
