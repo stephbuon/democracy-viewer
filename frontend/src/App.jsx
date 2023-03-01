@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
+
 
 //Page imports
 import { SubsetSearch } from "./SubsetSearch/SubsetSearch";
+import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
+import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
 
 
 export const App = () => {
+  
+  const [dataset, setDataset] = useState(undefined);
+  
+  useEffect(()=>{
+    console.log("NOW USING NEW DATASET", dataset);
+  }, [dataset]);
+  
   return (
     <div className={`App`} >
       <BrowserRouter>
@@ -18,6 +27,10 @@ export const App = () => {
           <Route
             path='/subsetsearch/:searchterm'
             element={<SubsetResultsPage />} />
+
+          <Route
+            path='/datasetsearch'
+            element={<DatasetResultsPage setDataset={(x) => setDataset(x)}/>} />
         </Routes>
       </BrowserRouter>
     </div>

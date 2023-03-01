@@ -23,24 +23,18 @@ export const SubsetResultsPage = (props) => {
         console.log("did not navigate from results page")
 
     }
+    const handleKeyPress = event => {
+        console.log('User pressed: ', event.key);
+
+        if (event.key === 'Enter') {
+            console.log(searchTerm)
+            navigate(`/subsetsearch/${searchTerm}`);
+        }
+    };
 
     //code to see if enter key is pressed (search when that happens)
     useEffect(() => {
         setSearchTerm(params.searchterm)
-        const keyDownHandler = event => {
-            // console.log('User pressed: ', event.key);
-
-            if (event.key === 'Enter') {
-                console.log('User pressed: Enter');
-                searchFunction();
-            }
-        };
-
-        document.addEventListener('keydown', keyDownHandler);
-
-        return () => {
-            document.removeEventListener('keydown', keyDownHandler);
-        };
     }, []);
 
 
@@ -67,6 +61,8 @@ export const SubsetResultsPage = (props) => {
                 }}
                 value={searchTerm}
                 onChange={event => { setSearchTerm(event.target.value) }}
+                // New Code to search with enter press
+                onKeyPress={event => handleKeyPress.bind(event)}
             />
             <Button
                 variant="contained"

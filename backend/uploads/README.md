@@ -1,0 +1,1 @@
+This is where uploaded files will be temporarily stored while being processed. The file will be deleted one its has been uploaded to the database.
