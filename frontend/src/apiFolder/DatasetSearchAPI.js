@@ -24,3 +24,14 @@ export const FilterDatasets = async (params) =>  {
     console.log("Returning", res.data);
     return res.data;
 };
+
+export const GetAllTags = async () =>  {
+    console.log("Getting Tags");
+    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/tags/unique`);
+    if(res.status !== 200){
+        console.log(`Couldn't get tags. ${res.status}`)
+        return null;
+    }
+    console.log("Returning", res.data);
+    return res.data;
+};
