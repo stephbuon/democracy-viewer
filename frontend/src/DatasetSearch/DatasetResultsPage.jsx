@@ -47,7 +47,7 @@ export const DatasetResultsPage = (props) => {
     }
     const advancedFilterResults = (advancedFilter) => {
         console.log("Filter", advancedFilter)
-        FilterDatasets(advancedFilter).then((res) => {
+        FilterDatasets(advancedFilter).then(async res => {
 
             if(!res){setSearchResults([])}
             else{setSearchResults(res)}
@@ -202,7 +202,7 @@ export const DatasetResultsPage = (props) => {
                 {searchResults.map((result) => {
                     return <TableRow id={result.table_name} key={result.table_name}>
                         <TableCell>
-                            <Result result={result} />
+                            <Result result={result} setDataset={(x)=> props.setDataset(x)}/>
                         </TableCell>
                     </TableRow>
                 })}
