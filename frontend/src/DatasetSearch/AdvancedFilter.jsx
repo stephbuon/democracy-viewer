@@ -5,11 +5,14 @@ import { useState, useEffect } from "react";
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
 import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import Checkbox from '@mui/material/Checkbox';
+import ListItemText from '@mui/material/ListItemText';
+import OutlinedInput from '@mui/material/OutlinedInput';
+
+import { MultiCheckBoxSelect } from './MultiCheckBoxSelect';
+
 
 
 //Other Imports
@@ -24,13 +27,13 @@ export const AdvancedFilter = (props) => {
     const [title, setTitle] = useState('');
     const [username, setUsername] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(true);
-    const [totalTags, setTotalTags] = useState([]);
+    const [selectedTags, setSelectedTags] = useState([]);
     const [description, setDescription] = useState('');
 
     const filterResults = () => {
         let tags = ''
-        for (let tag in totalTags) {
-            tags += `&tag=${tag}`;
+        for (let tag in selectedTags) {
+            tags += `&tag=${tag.tag}`;
         }
         console.log("tags", tags)
         let filter = {
@@ -44,9 +47,6 @@ export const AdvancedFilter = (props) => {
         console.log("filter before", filter)
         // props.setAdvancedFilter(filter);
         props.advancedFilterResults(filter);
-
-        
-
     }
 
     const loggedIn = () => {
@@ -55,10 +55,13 @@ export const AdvancedFilter = (props) => {
         return false;
     }
 
+    const changeTagsValue = delta => setSelectedTags([ ...selectedTags, ...delta ]);
+
 
     useEffect(() => {
-
+        console.log("Rendering Advanced Filter")
     }, []);
+
 
 
     return (
@@ -177,19 +180,20 @@ export const AdvancedFilter = (props) => {
                                     labelId="tag-checkbox-label"
                                     id="tag-checkbox"
                                     multiple
-                                    value={personName}
-                                    onChange={handleChange}
+                                    value={totalTags}
+                                    onChange={() => changeTagsValue()}
                                     input={<OutlinedInput label="Tag" />}
-                                    renderValue={(selected) => selected.join(', ')}
-                                    MenuProps={MenuProps}
+                                    // renderValue={(selected) => selected.join(', ')}
+                                    // MenuProps={MenuProps}
                                 >
-                                    {names.map((name) => (
-                                        <MenuItem key={name} value={name}>
-                                            <Checkbox checked={personName.indexOf(name) > -1} />
-                                            <ListItemText primary={name} />
+                                    {allTagOptions.map((tag) => (
+                                        <MenuItem key={tag.tag} value={tag.tag}>
+                                            <Checkbox checked={allTagOptions.indexOf(tag).checked} />
+                                            <ListItemText primary={tag.tag} />
                                         </MenuItem>
                                     ))}
                                 </Select> */}
+                                <MultiCheckBoxSelect setSelectedTags={delta => setSelectedTags([ ...selectedTags, ...delta ])}/>
                             </FormControl>
                         </TableCell>
                     </TableRow>
@@ -201,13 +205,6 @@ export const AdvancedFilter = (props) => {
                             <Button
                                 variant="contained"
                                 primary
-                                // sx={{
-                                //     background: 'rgb(255, 255, 255)',
-                                //     color: 'rgb(0, 0, 0)',
-                                //     '&:hover': {
-                                //         background: 'rgb(200, 200, 200)'
-                                //     }
-                                // }}
                                 onClick={() => filterResults()}
                             >
                                 Apply Filters
