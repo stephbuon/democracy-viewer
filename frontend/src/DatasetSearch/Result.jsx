@@ -6,13 +6,20 @@ import Button from '@mui/material/Button';
 import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
+import { Popularize } from '../apiFolder/DatasetSearchAPI';
 
 export const Result = (props) => {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
-    
+
     const navigate = useNavigate();
+
+    const chooseDataset = () => {
+        Popularize(props.result)
+        props.setDataset(props.result);
+    }
+
     useEffect(() => {
         // console.log(result)
 
@@ -109,28 +116,28 @@ export const Result = (props) => {
                         </TableRow>
                     </TableBody>
                 </Table>
-                <Box 
-                sx={{
-                    width:'100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    marginTop: '2em'
-                }}>
-                <Button
-                    variant="contained"
-                    primary
+                <Box
                     sx={{
-                        
-                    }}
-                    onClick={() => {
-                        props.setDataset(props.result);
-                        navigate('/subsetSearch');
-                    }}
-                >
-                    Use Dataset
-                </Button>
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: '2em'
+                    }}>
+                    <Button
+                        variant="contained"
+                        primary
+                        sx={{
+
+                        }}
+                        onClick={() => {
+                            chooseDataset()
+                            navigate('/subsetSearch');
+                        }}
+                    >
+                        Use Dataset
+                    </Button>
                 </Box>
-                
+
             </Box>
         </Modal>
 

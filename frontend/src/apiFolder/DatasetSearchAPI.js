@@ -35,3 +35,15 @@ export const GetAllTags = async () =>  {
     console.log("Returning", res.data);
     return res.data;
 };
+
+export const Popularize = async (dataset) =>  {
+    console.log("Popularizing", dataset)
+    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/click/${dataset.table_name}`)
+
+    if(res.status !== 200){
+        console.log(`Couldn't popularize. ${res.status}`)
+        return;
+    }
+
+    return;
+};
