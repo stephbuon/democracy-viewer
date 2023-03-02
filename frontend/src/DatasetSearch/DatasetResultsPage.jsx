@@ -16,6 +16,8 @@ import Alert from '@mui/material/Alert';
 import { FilterDatasets } from '../apiFolder/DatasetSearchAPI';
 import { Result } from './Result';
 import { AdvancedFilter } from './AdvancedFilter';
+import './Loading.css'
+
 
 
 export const DatasetResultsPage = (props) => {
@@ -31,6 +33,14 @@ export const DatasetResultsPage = (props) => {
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
+    const [loadingResults, setLoadingResults] = useState(false);
+
+    //for animation testing
+    // const delay = ms => new Promise(res => setTimeout(res, ms));
+    // const waitFunct = async (timeout) => {
+    //     await delay(timeout);
+    // }
+
     const filterResults = () => {
 
         let filter = {
@@ -38,20 +48,40 @@ export const DatasetResultsPage = (props) => {
             type: publicPrivate ? 'public' : 'private',
             advanced: false
         }
+        setLoadingResults(true);
         FilterDatasets(filter).then((res) => {
 
-            if(!res){setSearchResults([])}
-            else{setSearchResults(res)}
+            //animation testing
+            // waitFunct(10000).then(() => {
+            //     setLoadingResults(false);
 
+            //     if (!res) { setSearchResults([]) }
+            //     else { setSearchResults(res) }
+            // })
+
+            if (!res) { setSearchResults([]) }
+            else { setSearchResults(res) }
+
+            setLoadingResults(false);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
         console.log("Filter", advancedFilter)
+        setLoadingResults(true);
         FilterDatasets(advancedFilter).then(async res => {
 
-            if(!res){setSearchResults([])}
-            else{setSearchResults(res)}
+            //animation testing
+            // waitFunct(3000).then(() => {
+            //     setLoadingResults(false);
 
+            //     if (!res) { setSearchResults([]) }
+            //     else { setSearchResults(res) }
+            // })
+
+            if (!res) { setSearchResults([]) }
+            else { setSearchResults(res) }
+
+            setLoadingResults(false);
             handleAdvancedFilterClose()
         })
     }
@@ -79,8 +109,8 @@ export const DatasetResultsPage = (props) => {
     }
 
     useEffect(() => {
-
-    }, []);
+        console.log("Loading Results", loadingResults)
+    }, [loadingResults]);
 
 
     return (<div className='darkblue'>
@@ -184,30 +214,71 @@ export const DatasetResultsPage = (props) => {
                 </Button>
             }
         </Box>
-        <Table
+        <Box
             sx={{
-                background: 'rgb(255, 255, 255)',
-                color: 'rgb(0, 0, 0)',
-                marginTop: '2rem'
-            }}
-        >
-            <TableHead>
-                <TableRow>
-                    <TableCell>
-                        Results
-                    </TableCell>
-                </TableRow>
-            </TableHead>
-            <TableBody>
-                {searchResults.map((result) => {
-                    return <TableRow id={result.table_name} key={result.table_name}>
+                display: 'flex',
+                justifyContent: 'center',
+            }}>
+            <Table
+                sx={{
+                    color: 'rgb(0, 0, 0)',
+                    marginTop: '2rem',
+                    width: .8,
+                }}
+            >
+                <TableHead
+                    sx={{
+                        background: 'rgb(255, 255, 255)',
+                    }}>
+                    <TableRow>
                         <TableCell>
-                            <Result result={result} setDataset={(x)=> props.setDataset(x)}/>
+                            Results
                         </TableCell>
                     </TableRow>
-                })}
-            </TableBody>
-        </Table>
+                </TableHead>
+
+                {/*Animated Class while people wait for database response*/}
+                {loadingResults && <TableBody className='loadingData' sx={{background: '#fff'}}>
+                    <TableRow>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow >
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow >
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow >
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                </TableBody>}
+
+                {!loadingResults && <TableBody
+                    sx={{
+                        background: 'rgb(200, 200, 200)'
+                    }}>
+                    {searchResults.map((result) => {
+                        return <TableRow id={result.table_name} key={result.table_name}>
+                            <TableCell>
+                                <Result result={result} setDataset={(x) => props.setDataset(x)} />
+                            </TableCell>
+                        </TableRow>
+                    })}
+                </TableBody>}
+            </Table>
+        </Box>
 
     </div >)
 

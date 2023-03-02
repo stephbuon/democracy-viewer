@@ -27,11 +27,7 @@ export const Result = (props) => {
 
     return <div>
 
-        <Box onClick={() => handleOpen()}
-            sx={{
-                background: 'rgb(255, 255, 255)',
-                color: 'rgb(0, 0, 0)',
-            }}>
+        <Box onClick={() => handleOpen()}>
             {props.result.title}
         </Box>
         <Modal
