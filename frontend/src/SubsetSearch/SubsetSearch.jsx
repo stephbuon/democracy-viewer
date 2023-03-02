@@ -7,9 +7,6 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
 
-import './SubsetSearch.css'
-
-
 export const SubsetSearch = (props) => {
     const navigate = useNavigate();
 
@@ -55,7 +52,8 @@ export const SubsetSearch = (props) => {
                     fullWidth
                     sx={{
                         background: 'rgb(255, 255, 255)',
-                        color: 'rgb(0, 0, 0)'
+                        color: 'rgb(0, 0, 0)',
+                        borderRadius: 10
                     }}
                     value={searchTerm}
                     onChange={event => { setSearchTerm(event.target.value) }}

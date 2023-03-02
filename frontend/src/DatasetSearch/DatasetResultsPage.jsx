@@ -52,7 +52,7 @@ export const DatasetResultsPage = (props) => {
         FilterDatasets(filter).then((res) => {
 
             //animation testing
-            waitFunct(10000).then(() => {
+            waitFunct(3000).then(() => {
                 setLoadingResults(false);
 
                 if (!res) { setSearchResults([]) }
@@ -279,7 +279,6 @@ export const DatasetResultsPage = (props) => {
                 </TableBody>}
             </Table>
         </Box>
-
-    </div >)
+        </div>)
 
 }

@@ -6,9 +6,9 @@ import { DisplayResults } from './DisplayResults/DisplayResults';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { minWidth } from '@mui/system';
+import { GetSubsetOfData } from '../apiFolder/SubsetSearchAPI';
 
-const hardcodedResults = ["hello", "helloj", ";lo", "asdkfjh", "k"]
+
 
 export const SubsetResultsPage = (props) => {
     const navigate = useNavigate();
@@ -16,6 +16,7 @@ export const SubsetResultsPage = (props) => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [searched, setSearched] = useState(false);
 
     const searchFunction = () => {
         console.log("navigating")
@@ -34,7 +35,11 @@ export const SubsetResultsPage = (props) => {
 
     //code to see if enter key is pressed (search when that happens)
     useEffect(() => {
-        setSearchTerm(params.searchterm)
+        // setSearchTerm(params.searchterm)
+        console.log(props)
+        // GetSubsetOfData({table_name: props.dataset.table_name, seach:""}).then(async (res) => {
+        //     setSearchResults(res)
+        // })
     }, []);
 
 
@@ -48,22 +53,25 @@ export const SubsetResultsPage = (props) => {
                 justifyContent: 'center'
             }}
         >
-            <TextField
-                id="searchTerm"
-                label="Search"
-                variant="filled"
+            <Box
                 sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)',
-                    '&:active': {
-                        color: 'rgb(0, 0, 0)'
-                    }
-                }}
-                value={searchTerm}
-                onChange={event => { setSearchTerm(event.target.value) }}
-                // New Code to search with enter press
-                onKeyPress={event => handleKeyPress(event)}
-            />
+                    borderRadius: '.5em',
+                    overflow: "hidden"
+                }}>
+                <TextField
+                    id="searchTerm"
+                    label="Search"
+                    variant="filled"
+                    sx={{
+                        background: 'rgb(255, 255, 255)',
+                        color: 'rgb(0, 0, 0)',
+                    }}
+                    value={searchTerm}
+                    onChange={event => { setSearchTerm(event.target.value) }}
+                    // New Code to search with enter press
+                    onKeyPress={event => handleKeyPress(event)}
+                />
+            </Box>
             <Button
                 variant="contained"
                 sx={{
@@ -80,7 +88,7 @@ export const SubsetResultsPage = (props) => {
         </Box>
 
         <DisplayResults
-            results={hardcodedResults} />
+            results={searchResults} />
 
     </div >)
 

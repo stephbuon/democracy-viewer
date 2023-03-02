@@ -7,6 +7,8 @@ import { SubsetSearch } from "./SubsetSearch/SubsetSearch";
 import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
 import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
 
+import "./App.css";
+
 
 export const App = () => {
   
@@ -43,7 +45,7 @@ export const App = () => {
 
           <Route
             path='/subsetsearch/:searchterm'
-            element={<SubsetResultsPage />} />
+            element={<SubsetResultsPage dataset={dataset} />} />
 
           <Route
             path='/datasetsearch'
