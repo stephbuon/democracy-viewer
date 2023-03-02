@@ -24,7 +24,7 @@ export const SubsetResultsPage = (props) => {
 
     }
     const handleKeyPress = event => {
-        console.log('User pressed: ', event.key);
+        // console.log('User pressed: ', event.key);
 
         if (event.key === 'Enter') {
             console.log(searchTerm)
@@ -62,7 +62,7 @@ export const SubsetResultsPage = (props) => {
                 value={searchTerm}
                 onChange={event => { setSearchTerm(event.target.value) }}
                 // New Code to search with enter press
-                onKeyPress={event => handleKeyPress.bind(event)}
+                onKeyPress={event => handleKeyPress(event)}
             />
             <Button
                 variant="contained"
