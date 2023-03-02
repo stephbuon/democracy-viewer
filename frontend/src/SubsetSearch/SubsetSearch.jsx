@@ -21,7 +21,7 @@ export const SubsetSearch = (props) => {
         console.log("did not navigate from search page")
     }
     const handleKeyPress = event => {
-        console.log('User pressed: ', event.key);
+        // console.log('User pressed: ', event.key);
 
         if (event.key === 'Enter') {
             console.log(searchTerm)
@@ -36,8 +36,10 @@ export const SubsetSearch = (props) => {
     return (<div className='darkblue'>
         <Box
             sx={{
-                minHeight: 1,
-                display: 'flex'
+                display: 'flex',
+                height: "100vh",
+                justifyContent: "center",
+                alignItems: "center"
             }}
         >
             <Box
@@ -53,15 +55,12 @@ export const SubsetSearch = (props) => {
                     fullWidth
                     sx={{
                         background: 'rgb(255, 255, 255)',
-                        color: 'rgb(0, 0, 0)',
-                        '&:active': {
-                            color: 'rgb(0, 0, 0)'
-                        }
+                        color: 'rgb(0, 0, 0)'
                     }}
                     value={searchTerm}
                     onChange={event => { setSearchTerm(event.target.value) }}
-                    // New Code to search with enter press
-                    onKeyPress={event => handleKeyPress.bind(event)}
+                // New Code to search with enter press
+                onKeyPress={event => handleKeyPress(event)}
                 />
                 <Button
                     variant="contained"
