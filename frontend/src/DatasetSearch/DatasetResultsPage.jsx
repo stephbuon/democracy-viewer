@@ -36,10 +36,10 @@ export const DatasetResultsPage = (props) => {
     const [loadingResults, setLoadingResults] = useState(false);
 
     //for animation testing
-    // const delay = ms => new Promise(res => setTimeout(res, ms));
-    // const waitFunct = async (timeout) => {
-    //     await delay(timeout);
-    // }
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+    const waitFunct = async (timeout) => {
+        await delay(timeout);
+    }
 
     const filterResults = () => {
 
@@ -52,17 +52,17 @@ export const DatasetResultsPage = (props) => {
         FilterDatasets(filter).then((res) => {
 
             //animation testing
-            // waitFunct(10000).then(() => {
-            //     setLoadingResults(false);
+            waitFunct(10000).then(() => {
+                setLoadingResults(false);
 
-            //     if (!res) { setSearchResults([]) }
-            //     else { setSearchResults(res) }
-            // })
+                if (!res) { setSearchResults([]) }
+                else { setSearchResults(res) }
+            })
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
+            // if (!res) { setSearchResults([]) }
+            // else { setSearchResults(res) }
 
-            setLoadingResults(false);
+            // setLoadingResults(false);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
@@ -71,17 +71,17 @@ export const DatasetResultsPage = (props) => {
         FilterDatasets(advancedFilter).then(async res => {
 
             //animation testing
-            // waitFunct(3000).then(() => {
-            //     setLoadingResults(false);
+            waitFunct(3000).then(() => {
+                setLoadingResults(false);
 
-            //     if (!res) { setSearchResults([]) }
-            //     else { setSearchResults(res) }
-            // })
+                if (!res) { setSearchResults([]) }
+                else { setSearchResults(res) }
+            })
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
+            // if (!res) { setSearchResults([]) }
+            // else { setSearchResults(res) }
 
-            setLoadingResults(false);
+            // setLoadingResults(false);
             handleAdvancedFilterClose()
         })
     }
