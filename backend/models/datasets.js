@@ -207,11 +207,19 @@ class datasets {
                         q.where(q => {
                             // Iterate through column names
                             for (let j = 0; j < colNames.length; j++) {
-                                // Get results where column value like term (if column contains strings)
                                 if (typeof head[0][colNames[j]] === "string") {
+                                    // Get results where column value like term (if column contains strings)
                                     q.orWhereILike(colNames[j], `%${ terms[i] }%`);
+                                } else if (typeof head[0][colNames[j]] === "number") {
+                                    // Get results when column value equals term (if column contains numbers and term is a number)
+                                    if (!isNaN(parseFloat(terms[i])) && !Number.isInteger(head[0][colNames[j]])) {
+                                        // If search term and column value are floats
+                                        q.orWhere(colNames[j], "=", parseFloat(terms[i]));
+                                    } else if (!isNaN(parseInt(terms[i])) && Number.isInteger(head[0][colNames[j]])) {
+                                        // If search term and column value are ints
+                                        q.orWhere(colNames[j], "=", parseInt(terms[i]));
+                                    }
                                 }
-                                
                             }
                         });
                     }
