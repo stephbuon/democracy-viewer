@@ -56,7 +56,7 @@ export const SubsetResultsPage = (props) => {
         }
         GetSubsetOfData(query).then((res) => {
             setSearchResults(res);
-            setLoadingResults(false);
+            // setLoadingResults(false);
         })
     }
 
@@ -194,7 +194,7 @@ export const SubsetResultsPage = (props) => {
                         background: 'rgb(200, 200, 200)'
                     }}>
                     {searchResults.map((result) => {
-                        return <TableRow id={result.keys()[0]} key={result.keys()[0]}>
+                        return <TableRow id={Object.keys(result)[0]} key={Object.keys(result)[0]}>
                             <TableCell>
                                 <Result result={result} dataset={props.dataset}/>
                             </TableCell>

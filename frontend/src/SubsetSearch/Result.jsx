@@ -14,15 +14,16 @@ export const Result = (props) => {
 
     const navigate = useNavigate();
 
-    const [keys] = useState(props.result.keys());
+    const [keys] = useState(Object.keys(props.result));
 
     useEffect(() => {
-    }, []);
+        console.log("keys", keys)
+    }, [keys]);
 
     return <div>
 
         <Box onClick={() => handleOpen()}>
-            {props.result}
+            {props.result[keys[0]]}
         </Box>
         <Modal
             open={open}
@@ -57,8 +58,17 @@ export const Result = (props) => {
                     </TableHead>
                     <TableBody>
                         {keys.map((key) => {
+                            console.log(key)
                             return <TableRow id={key}>
-
+                                <TableCell>
+                                    {key}
+                                </TableCell>
+                                <TableCell>
+                                    {props.result[key]}
+                                </TableCell>
+                                <TableCell>
+                                    &nbsp;
+                                </TableCell>
                             </TableRow>
                         })}
                     </TableBody>
