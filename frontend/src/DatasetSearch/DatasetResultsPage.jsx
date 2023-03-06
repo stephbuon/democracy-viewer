@@ -73,7 +73,6 @@ export const DatasetResultsPage = (props) => {
             //animation testing
             waitFunct(3000).then(() => {
                 setLoadingResults(false);
-
                 if (!res) { setSearchResults([]) }
                 else { setSearchResults(res) }
             })
@@ -238,29 +237,29 @@ export const DatasetResultsPage = (props) => {
                 </TableHead>
 
                 {/*Animated Class while people wait for database response*/}
-                {loadingResults && <TableBody className='loadingData' sx={{background: '#fff'}}>
-                    <TableRow>
+                {loadingResults && <TableBody sx={{background: '#fff'}}>
+                    <TableRow className='loadingData1'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
-                    <TableRow>
+                    <TableRow className='loadingData2'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
-                    <TableRow>
+                    <TableRow className='loadingData3'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
-                    <TableRow>
+                    <TableRow className='loadingData4'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
-                    <TableRow >
+                    <TableRow className='loadingData5'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
-                    <TableRow>
+                    <TableRow className='loadingData6'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
-                    <TableRow >
+                    <TableRow className='loadingData7'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
-                    <TableRow >
+                    <TableRow className='loadingData8'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
                 </TableBody>}
