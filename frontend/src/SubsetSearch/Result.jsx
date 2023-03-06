@@ -16,10 +16,6 @@ export const Result = (props) => {
 
     const [keys] = useState(Object.keys(props.result));
 
-    useEffect(() => {
-        console.log("keys", keys)
-    }, [keys]);
-
     return <div>
 
         <Box onClick={() => handleOpen()}>
@@ -58,7 +54,6 @@ export const Result = (props) => {
                     </TableHead>
                     <TableBody>
                         {keys.map((key) => {
-                            console.log(key)
                             return <TableRow id={key}>
                                 <TableCell>
                                     {key}

@@ -37,7 +37,7 @@ export const SubsetResultsPage = (props) => {
         else
         {
             setLoadingResults(true);
-            setTimeout(() => setLoadingResults(false), 3000);
+            fetchSubset();
         }
 
     }
@@ -52,10 +52,18 @@ export const SubsetResultsPage = (props) => {
         setTimeout(() => setLoadingResults(false), 3000);
         let query = {
             table_name: props.dataset.table_name,
-            search: ''
+            search: searchTerm!=='' ? `?col_search=${searchTerm}` : ''
         }
+        console.log("QUERY ",query.search)
         GetSubsetOfData(query).then((res) => {
-            setSearchResults(res);
+            if(!res)
+            {
+                setSearchResults([]);
+            }
+            else
+            {
+                setSearchResults(res);
+            }
             // setLoadingResults(false);
         })
     }
@@ -112,8 +120,7 @@ export const SubsetResultsPage = (props) => {
                         sx={{
                             background: 'rgb(255, 255, 255)',
                             color: 'rgb(0, 0, 0)',
-                    
-
+                            
                         }}
                         value={searchTerm}
                         onChange={event => { setSearchTerm(event.target.value) }}
@@ -126,6 +133,7 @@ export const SubsetResultsPage = (props) => {
                     sx={{
                         background: 'rgb(255, 255, 255)',
                         color: 'rgb(0, 0, 0)',
+                        marginLeft: '2em',
 
                         '&:hover': {
                             background: 'rgb(200, 200, 200)'
