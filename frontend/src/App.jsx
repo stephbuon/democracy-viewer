@@ -3,6 +3,7 @@ import { LoginRegister } from "./pages/login-register.jsx";
 import { Graph } from "./pages/graph.jsx";
 import { Layout } from "./pages/layout.jsx";
 import { Zoom } from "./pages/zoom.jsx";
+import { Upload } from "./pages/upload.jsx";
 
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
@@ -38,6 +39,7 @@ function App() {
         <Layout />
         <div className="container border border-2">
           <Routes>
+            <Route path="/" element={<Upload />}></Route>
             <Route path="/login" element={<LoginRegister />}></Route>
             <Route path="/graph" element={<Graph dataset={dataset} setData={setData} />}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
