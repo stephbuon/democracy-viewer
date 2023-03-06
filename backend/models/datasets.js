@@ -185,14 +185,45 @@ class datasets {
 
     // Get a subset of a dataset
     async subsetTable(table, params) {
+        // Get the first record in case col names are needed
+        const head = await this.getHead(table, 1);
+
         const query = knex(table).where(q => {
             // Get the query object keys
             const keys = Object.keys(params);
 
             // Iterate through keys and and where clause for each
             keys.forEach(key => {
-                console.log(key, params[key])
-                if (!Array.isArray(params[key])) {
+                if (key === "col_search") {
+                    // If the key is col_search, search for search terms in all columns
+
+                    // Split search string into words
+                    const terms = params[key].split(" ");
+                    // Get column names from first record
+                    const colNames = Object.keys(head[0]);
+
+                    // Iterate through search words
+                    for (let i = 0; i < terms.length; i++) {
+                        q.where(q => {
+                            // Iterate through column names
+                            for (let j = 0; j < colNames.length; j++) {
+                                if (typeof head[0][colNames[j]] === "string") {
+                                    // Get results where column value like term (if column contains strings)
+                                    q.orWhereILike(colNames[j], `%${ terms[i] }%`);
+                                } else if (typeof head[0][colNames[j]] === "number") {
+                                    // Get results when column value equals term (if column contains numbers and term is a number)
+                                    if (!isNaN(parseFloat(terms[i])) && !Number.isInteger(head[0][colNames[j]])) {
+                                        // If search term and column value are floats
+                                        q.orWhere(colNames[j], "=", parseFloat(terms[i]));
+                                    } else if (!isNaN(parseInt(terms[i])) && Number.isInteger(head[0][colNames[j]])) {
+                                        // If search term and column value are ints
+                                        q.orWhere(colNames[j], "=", parseInt(terms[i]));
+                                    }
+                                }
+                            }
+                        });
+                    }
+                } else if (!Array.isArray(params[key])) {
                     // If not an array, find exact value
                     q.where({ [key]: params[key] })
                 } else if (params[key][0] === "like") {
