@@ -3,11 +3,11 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 
 //Page imports
-import { SubsetSearch } from "./SubsetSearch/SubsetSearch";
 import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
 import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
 
 import "./App.css";
+import 'animate.css';
 
 
 export const App = () => {
@@ -41,10 +41,6 @@ export const App = () => {
         <Routes>
           <Route
             path='/subsetsearch'
-            element={<SubsetSearch />} />
-
-          <Route
-            path='/subsetsearch/:searchterm'
             element={<SubsetResultsPage dataset={dataset} />} />
 
           <Route
