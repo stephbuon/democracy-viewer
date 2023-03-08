@@ -15,7 +15,8 @@ CREATE TABLE users (
 
 CREATE TABLE private_groups (
     id BIGINT PRIMARY KEY IDENTITY,
-    name VARCHAR(50)
+    name VARCHAR(50),
+    description NVARCHAR(255)
 );
 
 CREATE TABLE dataset_metadata (
@@ -30,11 +31,19 @@ CREATE TABLE dataset_metadata (
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
+CREATE TABLE group_invites (
+    private_group BIGINT,
+    username VARCHAR(20),
+    PRIMARY KEY(private_group, username),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
+);
+
 CREATE TABLE group_members (
-    id BIGINT PRIMARY KEY IDENTITY,
     private_group BIGINT,
     member VARCHAR(20),
     member_rank INT,
+    PRIMARY KEY(private_group, member),
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
     FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
 );
