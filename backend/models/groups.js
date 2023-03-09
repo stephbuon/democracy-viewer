@@ -64,6 +64,12 @@ class groups {
         return groups;
     }
 
+    // Get members by group
+    async getMembersByGroup(private_group) {
+        const records = await knex(member_table).where({ private_group });
+        return records;
+    }
+
     // Get group member info by member and group
     async getMember(member, private_group) {
         const records = await knex(member_table).where({ member, private_group });
