@@ -38,3 +38,5 @@ router.post('/invite', authenticateJWT, async(req, res, next) => {
     }
     next();
 });
+
+module.exports = router;
