@@ -76,9 +76,9 @@ router.get('/id/:group', async(req, res, next) => {
 });
 
 // Route to all groups with a name like the given name
-router.get('/search/:search', async(req, res, next) => {
+router.get('/search', async(req, res, next) => {
     try {
-        const result = await req.models.groups.getGroupsByName(req.params.search);
+        const result = await req.models.groups.getGroupsByName(req.query.search);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get private group by search:', err);
@@ -114,7 +114,7 @@ router.get('/members/:group', authenticateJWT, async(req, res, next) => {
 // Route to get a group member record
 router.get('/:group/member/:member', async(req, res, next) => {
     try {
-        const result = await req.models.getMember(req.params.member, req.params.group);
+        const result = await req.models.groups.getMember(req.params.member, req.params.group);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get private group member:', err);
@@ -142,6 +142,18 @@ router.delete('/:group/member/:member', authenticateJWT, async(req, res, next) =
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete private group member:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a private group member
+router.delete('/invite/:group/member/:member', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.deleteGroupInvite(req.models.groups, req.user.username, req.params.member, req.params.group);
+        res.status(204).end();
+    } catch (err) {
+        console.error('Failed to delete private group invite:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

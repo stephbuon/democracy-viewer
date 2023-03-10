@@ -9,7 +9,7 @@ const addGroup = async(groups, username, params) => {
     const member_record = await groups.addMember({
         member: username,
         private_group: group_record.id,
-        rank: 1
+        member_rank: 1
     });
 
     return group_record;
@@ -19,9 +19,10 @@ const addGroup = async(groups, username, params) => {
 const sendInvite = async(models, user_from, user_to, private_group) => {
     // Get user_from info
     const from_record = await models.groups.getMember(user_from, private_group);
+    console.log(from_record)
 
     // If user_from is not the admin of the group, throw error
-    if (!from_record || from_record.rank !== 1) {
+    if (!from_record || from_record.member_rank !== 1) {
         throw new Error(`User ${ user_from } does not have permission to invite users to private group ${ private_group }`);
     }
 
@@ -51,7 +52,7 @@ const sendInvite = async(models, user_from, user_to, private_group) => {
 }
 
 // Add a user as a member to a group from an invite
-const addMember = async(groups, private_group, username, rank) => {
+const addMember = async(groups, private_group, username, member_rank) => {
     // Get the invite record
     const invite_record = await groups.getInvites({ private_group, username });
     // If no record found, throw error
@@ -63,10 +64,10 @@ const addMember = async(groups, private_group, username, rank) => {
 
     // Add member record
     let record;
-    if (rank !== undefined) {
-        record = await groups.addMember({ private_group, username, rank });
+    if (member_rank !== undefined) {
+        record = await groups.addMember({ private_group, member: username, member_rank });
     } else {
-        record = await groups.addMember({ private_group, username });
+        record = await groups.addMember({ private_group, member: username });
     }
 
     return record;
@@ -77,8 +78,8 @@ const editGroup = async(groups, username, id, params) => {
     // Get user's group member record
     const member_record = await groups.getMember(username, id);
     // If record not found or user not an admin, throw error
-    if (!member_record || member_record.rank !== 0) {
-        throw new Error(`User ${ user } is not an admin in private group ${ id }`);
+    if (!member_record || member_record.member_rank !== 1) {
+        throw new Error(`User ${ username } is not an admin in private group ${ id }`);
     }
 
     // Edit the private group
@@ -92,8 +93,8 @@ const editMember = async(groups, username, id, member, params) => {
     // Get user's group member record
     const member_record = await groups.getMember(username, id);
     // If record not found or user not an admin, throw error
-    if (!member_record || member_record.rank !== 0) {
-        throw new Error(`User ${ user } is not an admin in private group ${ id }`);
+    if (!member_record || member_record.member_rank !== 1) {
+        throw new Error(`User ${ username } is not an admin in private group ${ id }`);
     }
 
     // Edit the private group
@@ -121,8 +122,8 @@ const deleteGroup = async(groups, username, private_group) => {
     // Get user's group member record
     const member_record = await groups.getMember(username, private_group);
     // If record not found or user not an admin, throw error
-    if (!member_record || member_record.rank !== 0) {
-        throw new Error(`User ${ user } is not an admin in private group ${ private_group }`);
+    if (!member_record || member_record.member_rank !== 1) {
+        throw new Error(`User ${ username } is not an admin in private group ${ private_group }`);
     }
 
     // Delete group
@@ -136,12 +137,27 @@ const deleteGroupMember = async(groups, admin, username, private_group) => {
     // Get user's group member record
     const member_record = await groups.getMember(admin, private_group);
     // If record not found or user not an admin, throw error
-    if (admin !== username && !member_record || member_record.rank !== 0) {
+    if (admin !== username && !member_record || member_record.member_rank !== 1) {
         throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
     }
 
     // Delete group member
     await groups.deleteMember(username, private_group);
+    
+    return null;
+}
+
+// Delete a private group invite
+const deleteGroupInvite = async(groups, admin, username, private_group) => {
+    // Get user's group member record
+    const member_record = await groups.getMember(admin, private_group);
+    // If record not found or user not an admin, throw error
+    if (admin !== username && !member_record || member_record.member_rank !== 1) {
+        throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
+    }
+
+    // Delete group invite
+    await groups.deleteInvite(username, private_group);
     
     return null;
 }
@@ -154,5 +170,6 @@ module.exports = {
     editMember,
     getGroupMembers,
     deleteGroup,
-    deleteGroupMember
+    deleteGroupMember,
+    deleteGroupInvite
 };

@@ -95,19 +95,19 @@ class groups {
 
     // Delete a private group
     async deleteGroup(id) {
-        const del = await knex(group_table).delete({ id });
+        const del = await knex(group_table).delete().where({ id });
         return null;
     }
 
     // Delete a member from a group
     async deleteMember(member, private_group) {
-        const del = await knex(member_table).delete({ member, private_group });
+        const del = await knex(member_table).delete().where({ member, private_group });
         return null;
     }
 
     // Delete a group invite
     async deleteInvite(username, private_group) {
-        const del = await knex(invite_table).delete({ username, private_group });
+        const del = await knex(invite_table).delete().where({ username, private_group });
         return null;
     }
 }
