@@ -8,7 +8,7 @@ const createDataset = async(datasets, path) => {
     // Get the file name from the file path
     let name = path.split("/");
     name = name[name.length - 1].split(".");
-    name = name[0];
+    name = name[0] + Date.now();
 
     // Create a new table with the file name and column names
     await datasets.createDataset(name, Object.keys(data[0]));
