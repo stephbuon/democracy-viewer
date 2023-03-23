@@ -5,18 +5,26 @@ const tag_table = "tags";
 
 class datasets {
     // Create a table for a new dataset
-    async createDataset(name, cols) {
+    async createDataset(name, cols, lengths) {
         const table = await knex.schema.createTable(name, (table) => {
             // Create serial primary key
             table.increments("id").primary();
 
             // Add all column names as strings
             cols.map(x => {
-                table.string(x);
+                table.string(x, lengths[x]);
             });
         });
 
         return table;
+    }
+
+    // Add multiple rows to a dataset
+    async addRows(table, rows) {
+        const queries = rows.map(row => knex(table).insert({ ...row }));
+        const query = queries.map(q => q.toString()).join("; ");
+        const insert = await knex.raw(query);
+        return insert;
     }
 
     // Add a row to a dataset

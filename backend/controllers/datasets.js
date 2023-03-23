@@ -8,15 +8,29 @@ const createDataset = async(datasets, path) => {
     // Get the file name from the file path
     let name = path.split("/");
     name = name[name.length - 1].split(".");
-    name = name[0] + Date.now();
+    name = name[0] + "_" + Date.now();
+
+    // Determine the maximum length for each column
+    const maxLengths = {};
+    data.map((row) => {
+        Object.keys(row).forEach(key => {
+            if (!maxLengths[key] || row[key].length > maxLengths[key]) {
+                maxLengths[key] = row[key].length;
+            }
+        });
+    });
 
     // Create a new table with the file name and column names
-    await datasets.createDataset(name, Object.keys(data[0]));
+    await datasets.createDataset(name, Object.keys(data[0]), maxLengths);
 
     // Loop through the data and insert rows
-    for (let i = 0; i < data.length; i++) {
-        await datasets.addRow(name, data[i]);
+    // for (let i = 0; i < data.length; i++) {
+    //     await datasets.addRow(name, data[i]);
+    // }
+    for (let i = 0; i < data.length; i += 10000) {
+        await datasets.addRows(name, data.slice(i, i + 10000))
     }
+    // await datasets.addRows(name, data);
 
     // Return the first 10 rows of the new dataset and the table name
     const results = await datasets.getHead(name);

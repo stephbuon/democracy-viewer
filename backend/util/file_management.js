@@ -95,7 +95,7 @@ const uploadFile = util.promisify(
                 cb(null, file.originalname);
             }
         }),
-        limits: { fileSize: maxUploadSize }
+        // limits: { fileSize: maxUploadSize }
     }).single("file")
 );
 
