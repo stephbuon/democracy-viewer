@@ -1,6 +1,7 @@
 const fs = require("fs");
 const multer = require("multer");
 const util = require("util");
+const csv = require("csv-parser");
 const maxUploadSize = 100 * 1024 * 1024;
 
 // Clear the given directory of unwanted files
@@ -40,48 +41,27 @@ const generateCSV = (name, records) => {
 }
 
 // Read a csv file
-const readCSV = (path) => {
+const readCSV = (path) => new Promise((resolve, reject) => {
     // If the file path does not end in '.csv', delete file and throw error
     if (path.substring(path.length - 4, path.length) !== ".csv") {
         fs.unlinkSync(path);
         throw new Error(`${ path.substring(path.length - 4, path.length) } is an invalid file type`);
     }
 
-    // Read file an split into rows
-    const fileContents = fs.readFileSync(path, { encoding: 'utf-8' });
-    let rows = fileContents.split("\n");
-    // Split rows by commas
-    rows = rows.map(x => x.split(","));
-
-    // Get column names from first row
-    const names = [];
-    for (let i = 0; i < rows[0].length; i++) {
-        names.push(rows[0][i].replace("\r", ""));
-    }
-
-    // Collect data from the rest of the rows
+    // Parse csv
     const data = [];
-    for (let i = 1; i < rows.length; i++) {
-        // Create object with current row data
-        const curr = {};
-        for (let j = 0; j < rows[i].length; j++) {
-            // If rows[i][j] is an empty string, end loop
-            if (!rows[i][j]) {
-                break;
-            } 
-            curr[names[j]] = rows[i][j].replace("\r", "");
-        }
-        // If curr is not empty, add to data
-        if (Object.keys(curr).length > 0) {
-            data.push(curr);
-        }
-    }
-
-    // Delete file once read
-    fs.unlinkSync(path);
-
-    return data;
-}
+    fs.createReadStream(path)
+        .pipe(csv())
+        .on("data", d => data.push(d))
+        .on("end", () => {
+            fs.unlinkSync(path);
+            resolve(data);
+        })
+        .on("error", err => {
+            fs.unlinkSync(path);
+            reject(err);
+        });
+});
 
 // Upload a file to the server
 // Based on https://www.bezkoder.com/node-js-express-file-upload/
