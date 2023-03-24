@@ -1,39 +1,42 @@
 import pandas as pd
-# DB connection
-import pyodbc
-# Environment variables
-import os
-from dotenv import load_dotenv
+import sys
+# APIs to backend server
+import requests
+import json
 # These will let us use R packages:
 from rpy2.robjects.packages import importr
+from rpy2.robjects.packages import STAP
 from rpy2.robjects import pandas2ri
 
-# Establish a connection to the database using env login
-def connectDB():
-    load_dotenv()
-    server = os.environ.get("HOST")
-    database =  os.environ.get("DATABASE")
-    username = os.environ.get("USERNAME")
-    password = os.environ.get("PASSWORD")
+BASE_URL = "http://localhost:8000"
+TABLE_NAME = sys.argv[1]
 
-    print("Connecting to database...")
-    cnxn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
-    print("Connection established")
-    # cursor = cnxn.cursor()
+# Get the data from a database table
+def getTable(name):
+    page = 1
+    print("Page:", page)
+    data = requests.get(BASE_URL + "/datasets/records/" + name + "/" + str(page))
+    data = pd.DataFrame(json.loads(data.text))
+    while page == 1 or len(curr.index) > 0:
+        page += 1
+        print("Page", page)
+        curr = requests.get(BASE_URL + "/datasets/records/" + name + "/" + str(page))
+        curr = pd.DataFrame(json.loads(curr.text))
+        data = pd.merge(data, curr)
+    return data
 
-    return cnxn
+# Split the text and insert into database
+def splitText(data):
+    # Import split_text function from split.R
+    with open("util/split.R", "r") as file:
+        split_text = file.read()
+    split_text = STAP(split_text, "split_text")
+
+    # Split the text of the given data frame
+    split_data = split_text.split_text(data, "text", "speaker")
 
 # Convert pandas.DataFrames to R dataframes automatically.
 pandas2ri.activate()
-# Include needed R packages
-dhmeasures = importr("dhmeasures")
 
-# Establish db connection
-db = connectDB()
-
-# Get data from db
-data = pd.io.sql.read_sql("SELECT * FROM mfunds;", db)
-
-print(data)
-
-db.close()
+data = getTable(TABLE_NAME)
+splitText(data)

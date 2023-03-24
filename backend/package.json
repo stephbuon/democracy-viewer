@@ -9,6 +9,7 @@
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.0",
     "knex": "^2.4.2",
+    "knex-paginate": "^3.1.0",
     "multer": "^1.4.5-lts.1",
     "tedious": "^15.1.2"
   }

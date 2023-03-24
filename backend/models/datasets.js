@@ -80,9 +80,9 @@ class datasets {
     }
 
     // Get all records in a dataset
-    async getDataset(table) {
-        const results = await knex(table);
-        return results;
+    async getDataset(table, page) {
+        const results = await knex(table).orderBy("id").paginate({ perPage: 50, currentPage: page });
+        return results.data;
     }
 
     // Get all unique tags

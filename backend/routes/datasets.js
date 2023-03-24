@@ -100,9 +100,9 @@ router.get('/metadata/:table', async(req, res, next) => {
 });
 
 // Route to get all records in a table
-router.get('/records/:table', async(req, res, next) => {
+router.get('/records/:table/:page', async(req, res, next) => {
     try {
-        const result = await req.models.datasets.getDataset(req.params.table);
+        const result = await req.models.datasets.getDataset(req.params.table, req.params.page);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset records:', err);
