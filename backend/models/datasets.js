@@ -178,7 +178,7 @@ class datasets {
                         q.where({ tag_name });
                     }
                 }
-            }).orderBy("clicks", "desc");
+            }).orderBy("clicks", "desc").paginate({ perPage: 50, currentPage: params.page });
 
         const results = await query;
 
@@ -202,7 +202,9 @@ class datasets {
 
             // Iterate through keys and and where clause for each
             keys.forEach(key => {
-                if (key === "col_search") {
+                if (key === "page") {
+                    // If key is page, skip
+                } else if (key === "col_search") {
                     // If the key is col_search, search for search terms in all columns
 
                     // Split search string into words
@@ -252,7 +254,7 @@ class datasets {
                     q.where(key, "<=", params[key][1]);
                 }
             });
-        });
+        }).orderBy("id").paginate({ perPage: 50, currentPage: params.page });
 
         const results = await query;
         return results;
