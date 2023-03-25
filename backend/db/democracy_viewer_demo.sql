@@ -20,7 +20,7 @@ CREATE TABLE private_groups (
 );
 
 CREATE TABLE dataset_metadata (
-    table_name VARCHAR(50) PRIMARY KEY,
+    table_name VARCHAR(250) PRIMARY KEY,
     username VARCHAR(20),
     private_group BIGINT,
     title VARCHAR(20),
@@ -50,8 +50,18 @@ CREATE TABLE group_members (
 
 CREATE TABLE tags (
     tag_name VARCHAR(15),
-    table_name VARCHAR(50),
+    table_name VARCHAR(250),
     PRIMARY KEY(tag_name, table_name),
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);
+
+CREATE TABLE dataset_split_text (
+    id BIGINT PRIMARY KEY IDENTITY,
+    table_name VARCHAR(250),
+    record_id BIGINT,
+    word VARCHAR(100),
+    count BIGINT,
+    col VARCHAR(100),
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
