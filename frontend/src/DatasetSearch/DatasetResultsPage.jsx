@@ -7,16 +7,19 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
-import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
+import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Paper } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-
+import SearchTwoToneIcon from '@mui/icons-material/SearchTwoTone';
+import { Card } from '@mui/material';
+import { CardMedia } from '@mui/material';
 
 //Other Imports
 import { FilterDatasets } from '../apiFolder/DatasetSearchAPI';
 import { Result } from './Result';
 import { AdvancedFilter } from './AdvancedFilter';
 import './Loading.css'
+import { Stack, width } from '@mui/system';
 
 
 
@@ -112,7 +115,7 @@ export const DatasetResultsPage = (props) => {
     }, [loadingResults]);
 
 
-    return (<div className='darkblue'>
+    return (<div className='blue'>
         <Snackbar
             anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             open={snackBarOpen}
@@ -123,6 +126,62 @@ export const DatasetResultsPage = (props) => {
                 Must be logged in to search privately
             </Alert>
         </Snackbar>
+
+        <Stack spacing={2}>
+            <Box>
+                <Card>
+                    <div style={{ position: "relative" }}>
+                        <CardMedia style={{ height: "400px" }} component="img" image={"https://cdn.pixabay.com/photo/2018/04/10/17/45/look-for-3308177_1280.png"} title="Pancakes" alt="Pancakes" />
+                        <div style={{ position: "absolute", color: "white", top: 10, left: "50%", transform: "translateX(-50%)", }}>
+dsfsdfsdfsd
+
+                        </div>
+                    </div>
+
+                </Card>
+            </Box>
+            <Box>
+                <div align="center">
+                    <FormControl
+                    sx={{ color: "blue" }}>
+                    <Select
+                        sx={{ color: "primary" }}
+                        value={publicPrivate}
+                        onChange={event => setPublicPrivate(event.target.value)}
+
+                    >
+                        <MenuItem
+                            value={true}
+                        >Public</MenuItem>
+
+                        <MenuItem
+                            value={false}
+                            onClick={() => openSnackbar()}>Private
+                        </MenuItem>
+
+                    </Select>
+                </FormControl>
+</div>
+            </Box>
+            <Box>
+                <div align="center">
+
+                    <TextField
+                        sx={{ width: "500px" }}
+                        id="searchTerm"
+                        label="Search"
+                        variant="outlined"
+                        color="primary"
+                        focused
+
+                        value={searchTerm}
+                        onChange={event => { setSearchTerm(event.target.value) }}
+                    />
+                </div>
+
+            </Box>
+        </Stack>
+
         <Modal
             open={advancedFilterOpen}
             onClose={() => handleAdvancedFilterClose()}
@@ -134,70 +193,34 @@ export const DatasetResultsPage = (props) => {
         <Box
             pt={2}
             sx={{
-                background: 0xffffffff,
+                //background: 0xffffffff,
                 display: "flex",
-                alignItems: 'center',
-                justifyContent: 'center'
+                alignItems: 'stretch',
+                justifyContent: 'center',
+
             }}
         >
+
+
             <Button
                 onClick={() => setAdvancedFilterOpen(true)}
-                variant="contained"
-                sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
-                }}>
+                variant="outlined"
+                sx={{ m: 2 }}
+            >
                 Advanced Filter
             </Button>
-            <FormControl>
-                <Select
-                    value={publicPrivate}
-                    onChange={event => setPublicPrivate(event.target.value)}
-                    sx={{
-                        background: 'rgb(255, 255, 255)',
-                        color: 'rgb(0, 0, 0)'
-                        // '&:active': {
-                        //     color: 'rgb(0, 0, 0)'
-                        //     // border: '1px solid #000'
-                        // },
-                        // border: '1px solid #000',
-                        // borderRadius: ".5em .5em"
-                    }}
-                >
-                    <MenuItem value={true}>Public</MenuItem>
-                    <MenuItem value={false} onClick={() => openSnackbar()}>Private</MenuItem>
-                </Select>
-            </FormControl>
-            <TextField
-                id="searchTerm"
-                label="Search"
-                variant="filled"
-                sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)'
-                }}
-                value={searchTerm}
-                onChange={event => { setSearchTerm(event.target.value) }}
-            />
+
             {(publicPrivate || (!publicPrivate && loggedIn())) && <Button
-                variant="contained"
-                sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
-                }}
+                variant="outlined"
                 onClick={() => filterResults()}
+                sx={{ m: 2 }}
             >
                 Apply Filters
             </Button>}
             {(!publicPrivate && !loggedIn()) &&
                 <Button
                     variant="contained"
+                    sx={{m: 2}}
                     disabled
 
                 // sx={{
@@ -212,6 +235,8 @@ export const DatasetResultsPage = (props) => {
                     Apply Filters
                 </Button>
             }
+
+
         </Box>
         <Box
             sx={{
@@ -237,7 +262,7 @@ export const DatasetResultsPage = (props) => {
                 </TableHead>
 
                 {/*Animated Class while people wait for database response*/}
-                {loadingResults && <TableBody sx={{background: '#fff'}}>
+                {loadingResults && <TableBody sx={{ background: '#fff' }}>
                     <TableRow className='loadingData1'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
@@ -278,6 +303,6 @@ export const DatasetResultsPage = (props) => {
                 </TableBody>}
             </Table>
         </Box>
-        </div>)
+    </div>)
 
 }
