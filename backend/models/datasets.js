@@ -80,9 +80,14 @@ class datasets {
     }
 
     // Get all records in a dataset
-    async getDataset(table, page) {
-        const results = await knex(table).orderBy("id").paginate({ perPage: 50, currentPage: page });
-        return results.data;
+    async getDataset(table, paginate = true, page = 1) {
+        if (paginate) {
+            const results = await knex(table).orderBy("id").paginate({ perPage: 50, currentPage: page });
+            return results.data;
+        } else {
+            const results = await knex(table).orderBy("id");
+            return results;
+        }
     }
 
     // Get the number of records in a dataset

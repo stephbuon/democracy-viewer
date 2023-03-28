@@ -1,28 +1,26 @@
 import util.dhmeasures as dhmeasures
 import pandas as pd
 import sys
+import json
 
-input_file = sys.argv[1]
-metric = sys.argv[2]
+# Get input files from command line arguments
+data_file = sys.argv[1]
+params_file = sys.argv[2]
 
-data = pd.read_csv(input_file)
+# Parse input files
+data = pd.read_csv(data_file)
+with open(params_file, "r") as file:
+    params = json.load(file)
 
-# TEMPORARY
-group = "speaker"
-word = "word"
-n = "n"
-group_list = ["Mr. Hume", "Mr. Brougham"]
-word_list = ["house", "person"]
-
-if metric == "ll":
-    output = dhmeasures.LogLikelihood(data, group_list, word_list, group, word, n)
-elif metric == "jsd":
-    output = dhmeasures.JSD(data, group_list, word_list, group, word, n)
-elif metric == "ojsd":
-    output = dhmeasures.OriginalJSD(data, group_list, word_list, group, word, n)
+# Call function based on given metric
+if params.metric == "ll":
+    output = dhmeasures.LogLikelihood(data, params.group_list, params.word_list, params.group, params.word, params.n)
+elif params.metric == "jsd":
+    output = dhmeasures.JSD(data, params.group_list, params.word_list, params.group, params.word, params.n)
+elif params.metric == "ojsd":
+    output = dhmeasures.OriginalJSD(data, params.group_list, params.word_list, params.group, params.word, params.n)
 else:
-    sys.exit("Invalid metric: " + metric)
+    sys.exit("Invalid metric: " + params.metric)
 
-output_file = input_file.replace("/input/", "/output/")
-
+output_file = data_file.replace("/input/", "/output/")
 output.to_csv(output_file)

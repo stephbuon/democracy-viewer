@@ -126,9 +126,9 @@ const downloadDataset = async(datasets, table) => {
     // Clear the downloads folder on the server
     util.clearDirectory("./downloads/");
     // Get all records in this dataset
-    const records = await datasets.getDataset(table);
+    const records = await datasets.getDataset(table, false);
     // Generate csv from records
-    const fileName = util.generateCSV(`./downloads/${ table }`, records);
+    const fileName = await util.generateCSV(`./downloads/${ table }_${ Date.now() }.csv`, records);
     // Return generated file name
     return fileName;
 }
@@ -138,7 +138,7 @@ const downloadSubset = async(datasets, table, params) => {
     // Clear the downloads folder on the server
     util.clearDirectory("./downloads/");
     // Get all records in this dataset
-    const records = await datasets.subsetTable(table, params);
+    const records = await datasets.subsetTable(table, params, false);
     // Generate csv from records
     const fileName = util.generateCSV(`./downloads/${ table }`, records);
     // Return generated file name
