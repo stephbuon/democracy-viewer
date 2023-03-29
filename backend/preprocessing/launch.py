@@ -24,13 +24,13 @@ def getTable():
     print("Page:", page)
     data = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
     data = pd.DataFrame(json.loads(data.text))
-    while (page == 1 or len(curr.index) > 0) and page < 5:
+    while (page == 1 or len(curr.index) > 0):
         page += 1
         print("Page", page)
         curr = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
         curr = pd.DataFrame(json.loads(curr.text))
         data = pd.concat([data, curr])
-        
+
     return data
 
 # Split the text and insert into database
