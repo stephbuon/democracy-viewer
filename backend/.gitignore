@@ -28,9 +28,13 @@ yarn.lock
 package-lock.json
 
 # upload/download files
-downloads/*.csv
-uploads/*.csv
+downloads/*
+!downloads/README.md
+uploads/*
+!uploads/README.md
 
 # account management
 accounts.csv
 add_account.sql
+
+datasets

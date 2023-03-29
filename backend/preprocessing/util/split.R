@@ -1,33 +1,28 @@
 library(dhmeasures)
-library(tidyverse)
+library(dplyr)
 
 # Split all text columns into word counts
-split_text = function(file, cols) {
-    data = read.csv(file)
+split_text = function(data, text_cols) {
+    final = list()
     
-    final = data.frame()
-    
-    if (is.vector(cols)) {
+    if (is.vector(text_cols)) {
         all_tokens = list()
         
-        for (i in 1:length(cols)) {
+        for (i in 1:length(text_cols)) {
             curr = data %>%
-              dhmeasures::count_tokens(data, text = cols[i]) %>%
+              dhmeasures::count_tokens(text = text_cols[i], group = "id") %>%
               dhmeasures::remove_stop_words() %>%
-              dplyr::mutate(column = cols[i])
+              dplyr::mutate(col = text_cols[i])
             all_tokens[[i]] = curr
         }
         
         final = do.call(rbind, all_tokens)
     } else {
       final = data %>%
-        dhmeasures::count_tokens(data, text = cols) %>%
+        dhmeasures::count_tokens(text = text_cols, group = "id") %>%
         dhmeasures::remove_stop_words() %>%
-        dplyr::mutate(column = cols)
+        dplyr::mutate(col = text_cols)
     }
     
-    output = paste(file, "-split", sep = "")
-    write.csv(output)
-    
-    return(output)
+    return(final)
 }
