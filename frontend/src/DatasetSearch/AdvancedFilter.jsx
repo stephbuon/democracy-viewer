@@ -174,6 +174,8 @@ export const AdvancedFilter = (props) => {
                         <TableCell>
                             Tags:
                         </TableCell>
+                        {/* NOT CURRENTLY FUNCTIONAL COMMENTING OUT FOR NOW
+                        
                         <TableCell>
                             <FormControl sx={{ m: 1, width: 300 }}>
                                 {/* <InputLabel id="tag-checkbox-label">Tag</InputLabel>
@@ -193,10 +195,10 @@ export const AdvancedFilter = (props) => {
                                             <ListItemText primary={tag.tag} />
                                         </MenuItem>
                                     ))}
-                                </Select> */}
+                                </Select> 
                                 <MultiCheckBoxSelect setSelectedTags={delta => setSelectedTags([ ...selectedTags, ...delta ])}/>
                             </FormControl>
-                        </TableCell>
+                                    </TableCell>*/}
                     </TableRow>
                     <TableRow>
                         <TableCell>
