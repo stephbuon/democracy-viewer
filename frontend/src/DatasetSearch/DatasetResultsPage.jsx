@@ -15,7 +15,7 @@ import { Card } from '@mui/material';
 import { CardMedia } from '@mui/material';
 
 //Other Imports
-import { FilterDatasets } from '../apiFolder/DatasetSearchAPI';
+import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { Result } from './Result';
 import { AdvancedFilter } from './AdvancedFilter';
 import './Loading.css'
@@ -28,7 +28,7 @@ export const DatasetResultsPage = (props) => {
     const params = useParams()
 
     //Navbar 
-    
+
     //temp values
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -38,13 +38,18 @@ export const DatasetResultsPage = (props) => {
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
+
+    //pagination
+    const [pageFilter, setPageFilter] = useState(null);
+    const [totalNumOfPages, setTotalNumOfPages] = useState(1);
+    const [page, setPage] = useState(1);
+    const [loadingNextPage, setLoadingNextPage] = useState(false)
+
+
     const [loadingResults, setLoadingResults] = useState(false);
 
     //for animation testing
-    const delay = ms => new Promise(res => setTimeout(res, ms));
-    const waitFunct = async (timeout) => {
-        await delay(timeout);
-    }
+
 
     const filterResults = () => {
 
@@ -53,42 +58,65 @@ export const DatasetResultsPage = (props) => {
             type: publicPrivate ? 'public' : 'private',
             advanced: false
         }
+        setPageFilter({...filter});
         setLoadingResults(true);
-        FilterDatasets(filter).then((res) => {
+        FilterDatasets(filter, 1).then((res) => {
 
             //animation testing
-            waitFunct(3000).then(() => {
+            setTimeout(() => {
                 setLoadingResults(false);
 
                 if (!res) { setSearchResults([]) }
                 else { setSearchResults(res) }
-            })
+            }, 3000);
 
-            // if (!res) { setSearchResults([]) }
-            // else { setSearchResults(res) }
-
-            // setLoadingResults(false);
+        })
+        FilterDatasetsCount(filter).then(async (res) => {
+            let tot = res / 50;
+            setTotalNumOfPages(tot);
+            console.log("Number of Pages", tot);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
         console.log("Filter", advancedFilter)
+        setPageFilter({...advancedFilter});
         setLoadingResults(true);
-        FilterDatasets(advancedFilter).then(async res => {
+        FilterDatasets(advancedFilter, 1).then(async res => {
 
             //animation testing
-            waitFunct(3000).then(() => {
+            setTimeout(() => {
                 setLoadingResults(false);
+
                 if (!res) { setSearchResults([]) }
                 else { setSearchResults(res) }
-            })
+            }, 3000);
 
-            // if (!res) { setSearchResults([]) }
-            // else { setSearchResults(res) }
-
-            // setLoadingResults(false);
             handleAdvancedFilterClose()
         })
+        FilterDatasetsCount(advancedFilter).then(async (res) => {
+            let tot = res / 50;
+            setTotalNumOfPages(tot);
+            console.log("Number of Pages", tot);
+        })
     }
+
+
+    const GetNewPage = () => {
+        let _results = [];
+        setLoadingNextPage(true);
+        FilterDatasets(pageFilter, page+1).then(async res => {
+
+            //animation testing
+            _results = [...searchResults, ...res];
+            
+        })
+        setTimeout(() => {
+            setLoadingNextPage(false)
+            setSearchResults(_results);
+        }, 3000);
+        setPage(page + 1);
+    }
+
     const loggedIn = () => {
         //check if user is logged in
         //for now will return false since system is not hooked up
@@ -145,25 +173,25 @@ export const DatasetResultsPage = (props) => {
             <Box>
                 <div align="center">
                     <FormControl
-                    sx={{ color: "blue" }}>
-                    <Select
-                        sx={{ color: "primary" }}
-                        value={publicPrivate}
-                        onChange={event => setPublicPrivate(event.target.value)}
+                        sx={{ color: "blue" }}>
+                        <Select
+                            sx={{ color: "primary" }}
+                            value={publicPrivate}
+                            onChange={event => setPublicPrivate(event.target.value)}
 
-                    >
-                        <MenuItem
-                            value={true}
-                        >Public</MenuItem>
+                        >
+                            <MenuItem
+                                value={true}
+                            >Public</MenuItem>
 
-                        <MenuItem
-                            value={false}
-                            onClick={() => openSnackbar()}>Private
-                        </MenuItem>
+                            <MenuItem
+                                value={false}
+                                onClick={() => openSnackbar()}>Private
+                            </MenuItem>
 
-                    </Select>
-                </FormControl>
-</div>
+                        </Select>
+                    </FormControl>
+                </div>
             </Box>
             <Box>
                 <div align="center">
@@ -222,7 +250,7 @@ export const DatasetResultsPage = (props) => {
             {(!publicPrivate && !loggedIn()) &&
                 <Button
                     variant="contained"
-                    sx={{m: 2}}
+                    sx={{ m: 2 }}
                     disabled
 
                 // sx={{
@@ -258,7 +286,7 @@ export const DatasetResultsPage = (props) => {
                     }}>
                     <TableRow>
                         <TableCell>
-                      
+
                         </TableCell>
                     </TableRow>
                 </TableHead>
@@ -303,6 +331,48 @@ export const DatasetResultsPage = (props) => {
                         </TableRow>
                     })}
                 </TableBody>}
+                {loadingNextPage && <TableBody sx={{ background: '#fff' }}>
+                    <TableRow className='loadingData1'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData2'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData3'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData4'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData5'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData6'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData7'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData8'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                </TableBody>}
+                <TableRow sx={{
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}>
+                    {page < totalNumOfPages && <Button
+                        onClick={() => GetNewPage()}
+                        sx={{
+                            background: 'rgb(255, 255, 255)',
+                            color: 'rgb(0, 0, 0)',
+                            marginLeft: '2em',
+
+                            '&:hover': {
+                                background: 'rgb(200, 200, 200)'
+                            }
+                        }}>Load More</Button>}
+                </TableRow>
             </Table>
         </Box>
     </div>)
