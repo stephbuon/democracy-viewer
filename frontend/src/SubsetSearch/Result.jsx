@@ -68,28 +68,6 @@ export const Result = (props) => {
                         })}
                     </TableBody>
                 </Table>
-                {/* <Box
-                    sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        marginTop: '2em'
-                    }}>
-                    <Button
-                        variant="contained"
-                        primary
-                        sx={{
-
-                        }}
-                        onClick={() => {
-                            chooseDataset()
-                            navigate('/subsetSearch');
-                        }}
-                    >
-                        Use Dataset
-                    </Button>
-                </Box> */}
-
             </Box>
         </Modal>
 
