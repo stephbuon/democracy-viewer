@@ -126,7 +126,7 @@ const downloadDataset = async(datasets, table) => {
     // Clear the downloads folder on the server
     util.clearDirectory("./downloads/");
     // Get all records in this dataset
-    const records = await datasets.getDataset(table, false);
+    const records = await datasets.getSubset(table, {}, false);
     // Generate csv from records
     const fileName = await util.generateCSV(`./downloads/${ table }_${ Date.now() }.csv`, records);
     // Return generated file name

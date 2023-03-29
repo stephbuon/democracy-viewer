@@ -79,23 +79,6 @@ class datasets {
         return record[0];
     }
 
-    // Get all records in a dataset
-    async getDataset(table, paginate = true, page = 1) {
-        if (paginate) {
-            const results = await knex(table).orderBy("id").paginate({ perPage: 50, currentPage: page });
-            return results.data;
-        } else {
-            const results = await knex(table).orderBy("id");
-            return results;
-        }
-    }
-
-    // Get the number of records in a dataset
-    async getDatasetRecordCount(table) {
-        const result = await knex(table).count("id as count");
-        return result[0].count;
-    }
-
     // Get all unique tags
     async getUniqueTags() {
         const results = await knex(tag_table).select("tag_name").distinct();
@@ -282,16 +265,17 @@ class datasets {
         let results;
         if (paginate) {
             results = await query.orderBy("id").paginate({ perPage: 50, currentPage: page });
+            return results.data;
         } else {
             results = await query;
+            return results;
         }
-
-        return results.data;
     }
 
     // Get the number of records in a dataset subset
     async subsetTableCount(table, params) {
         const results = await this.subsetTable(table, params, false);
+        console.log(results)
         return results.length;
     }
 
