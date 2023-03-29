@@ -84,6 +84,7 @@ export const AdvancedFilter = (props) => {
                         <TableCell
                             sx={{
                                 textAlign: 'center'
+                                
                             }}>
                             <h2>Advanced Filter</h2>
                         </TableCell>

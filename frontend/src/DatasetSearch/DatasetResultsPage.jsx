@@ -27,6 +27,8 @@ export const DatasetResultsPage = (props) => {
     const navigate = useNavigate();
     const params = useParams()
 
+    //Navbar 
+    
     //temp values
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -133,7 +135,7 @@ export const DatasetResultsPage = (props) => {
                     <div style={{ position: "relative" }}>
                         <CardMedia style={{ height: "400px" }} component="img" image={"https://cdn.pixabay.com/photo/2018/04/10/17/45/look-for-3308177_1280.png"} title="Pancakes" alt="Pancakes" />
                         <div style={{ position: "absolute", color: "white", top: 10, left: "50%", transform: "translateX(-50%)", }}>
-dsfsdfsdfsd
+
 
                         </div>
                     </div>
@@ -256,7 +258,7 @@ dsfsdfsdfsd
                     }}>
                     <TableRow>
                         <TableCell>
-                            Results
+                      
                         </TableCell>
                     </TableRow>
                 </TableHead>

@@ -5,7 +5,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 //Page imports
 import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
 import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
-
 import "./App.css";
 import 'animate.css';
 
