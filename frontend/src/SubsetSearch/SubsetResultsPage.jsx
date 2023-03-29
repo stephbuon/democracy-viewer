@@ -10,7 +10,7 @@ import Table from '@mui/material/Table';
 import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
 
 //Other Imports
-import { GetSubsetOfData } from '../apiFolder/SubsetSearchAPI';
+import { GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 
 import "./MoveBar.css"
 import "./Loading.css"
@@ -24,18 +24,21 @@ export const SubsetResultsPage = (props) => {
     const [searchResults, setSearchResults] = useState([]);
     const [searched, setSearched] = useState(false);
     const [searching, setSearching] = useState(false);
+    const [totalNumOfPages, setTotalNumOfPages] = useState(0);
+    const [page, setPage] = useState(1);
+    const [query, setQuery] = useState("");
+    const [loadingNextPage, setLoadingNextPage] = useState(false)
+
 
     const [loadingResults, setLoadingResults] = useState(false);
 
     const doMoveAnimation = () => {
         console.log("STARTING THE MOVE")
-        if(!searched)
-        {
+        if (!searched) {
             setSearching(true)
             setTimeout(() => finishAnimation(), 500);
         }
-        else
-        {
+        else {
             setLoadingResults(true);
             fetchSubset();
         }
@@ -49,23 +52,43 @@ export const SubsetResultsPage = (props) => {
     }
 
     const fetchSubset = () => {
-        setTimeout(() => setLoadingResults(false), 3000);
-        let query = {
+        let _query = {
             table_name: props.dataset.table_name,
-            search: searchTerm!=='' ? `?col_search=${searchTerm}` : ''
+            search: searchTerm !== '' ? `?col_search=${searchTerm}` : ''
         }
-        console.log("QUERY ",query.search)
-        GetSubsetOfData(query).then((res) => {
-            if(!res)
-            {
+
+        console.log("QUERY ", _query.search)
+        setTimeout(() => setLoadingResults(false), 3000);
+        GetSubsetOfDataByPage(_query, 1).then(async (res) => {
+            if (!res) {
                 setSearchResults([]);
             }
-            else
-            {
+            else {
                 setSearchResults(res);
             }
-            // setLoadingResults(false);
         })
+
+        GetNumOfEntries(_query).then(async (res) => {
+            let tot = res / 50;
+            setTotalNumOfPages(tot);
+            console.log("Number of Pages", tot);
+        })
+        setQuery(_query);
+    }
+
+    const GetNewPage = () => {
+        let _results = [];
+        setLoadingNextPage(true);
+        GetSubsetOfDataByPage(query, page + 1).then((res) => {
+            _results = [...searchResults, ...res];
+            console.log("Combo array",_results);
+            
+        })
+        setTimeout(() => {
+            setLoadingNextPage(false)
+            setSearchResults(_results);
+        }, 3000);
+        setPage(page + 1);
     }
 
     const handleKeyPress = event => {
@@ -74,7 +97,7 @@ export const SubsetResultsPage = (props) => {
         if (event.key === 'Enter') {
             doMoveAnimation()
             console.log(searchTerm)
-            
+
         }
     };
 
@@ -99,7 +122,7 @@ export const SubsetResultsPage = (props) => {
                 alignItems: "center"
             }}
         >
-            <Box className = {`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
+            <Box className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
                 sx={{
                     display: 'flex',
                     // display: 'flex',
@@ -110,7 +133,7 @@ export const SubsetResultsPage = (props) => {
                         borderRadius: '.5em',
                         overflow: "hidden",
                         width: '100%',
-                        
+
                     }}>
                     <TextField
                         id="searchTerm"
@@ -120,7 +143,7 @@ export const SubsetResultsPage = (props) => {
                         sx={{
                             background: 'rgb(255, 255, 255)',
                             color: 'rgb(0, 0, 0)',
-                            
+
                         }}
                         value={searchTerm}
                         onChange={event => { setSearchTerm(event.target.value) }}
@@ -170,7 +193,7 @@ export const SubsetResultsPage = (props) => {
                 </TableHead>
 
                 {/*Animated Class while people wait for database response*/}
-                {loadingResults && <TableBody sx={{background: '#fff'}}>
+                {loadingResults && <TableBody sx={{ background: '#fff' }}>
                     <TableRow className='loadingData1'>
                         <TableCell>&nbsp;</TableCell>
                     </TableRow>
@@ -197,18 +220,57 @@ export const SubsetResultsPage = (props) => {
                     </TableRow>
                 </TableBody>}
 
-                {!loadingResults && <TableBody
-                    sx={{
-                        background: 'rgb(200, 200, 200)'
-                    }}>
+                {!loadingResults && <TableBody sx={{ background: '#fff' }}>
                     {searchResults.map((result) => {
                         return <TableRow id={Object.keys(result)[0]} key={Object.keys(result)[0]}>
                             <TableCell>
-                                <Result result={result} dataset={props.dataset}/>
+                                <Result result={result} dataset={props.dataset} />
                             </TableCell>
                         </TableRow>
                     })}
                 </TableBody>}
+                {loadingNextPage && <TableBody sx={{ background: '#fff' }}>
+                    <TableRow className='loadingData1'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData2'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData3'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData4'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData5'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData6'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData7'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData8'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                </TableBody>}
+                <TableRow sx={{
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}>
+                    {page < totalNumOfPages && <Button
+                        onClick={() => GetNewPage()}
+                        sx={{
+                            background: 'rgb(255, 255, 255)',
+                            color: 'rgb(0, 0, 0)',
+                            marginLeft: '2em',
+
+                            '&:hover': {
+                                background: 'rgb(200, 200, 200)'
+                            }
+                        }}>Load More</Button>}
+                </TableRow>
             </Table>
         </Box>}
 
