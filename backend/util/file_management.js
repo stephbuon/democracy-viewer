@@ -1,6 +1,9 @@
 const fs = require("fs");
 const multer = require("multer");
 const util = require("util");
+const csv_read = require("csv-parser");
+const csv_write =require("objects-to-csv");
+
 const maxUploadSize = 100 * 1024 * 1024;
 
 // Clear the given directory of unwanted files
@@ -16,71 +19,58 @@ const clearDirectory = (path) => {
     });
 }
 
+// Delete an individual file or multiple files
+const deleteFiles = (files) => {
+    if (Array.isArray(files)) {
+        // Delete multiple files
+        files.forEach(f => fs.unlinkSync(f));
+    } else {
+        // Delete one file
+        fs.unlinkSync(files);
+    }
+}
+
 // Generate a csv file from an array of records
-const generateCSV = (name, records) => {
-    // Generate file name using given name and time stamp
-    const fileName = `${ name }_${ Date.now() }.csv`;
+const generateCSV = async(name, records) => {
+    // Write csv
+    const csv = new csv_write(records);
+    await csv.toDisk(name);
+    
+    return name;
+}
 
-    // String for file data
-    let data = "";
-    // Generate col names from keys of first record
-    const colNames = Object.keys(records[0]);
-    // Add all column names and a line break
-    data += colNames.join(",") + "\n";
-
-    // Iterate through records and add all data to file data
-    records.forEach(row => {
-        data += Object.values(row).join(",") + "\n";
-    });
-
-    // Create file
-    fs.writeFileSync(fileName, data);
-
-    return fileName;
+// Generate a JSON file from an object or array of objects
+const generateJSON = (name, data) => {
+    fs.writeFileSync(name, JSON.stringify(data, null, 4));
 }
 
 // Read a csv file
-const readCSV = (path) => {
+const readCSV = (path) => new Promise((resolve, reject) => {
     // If the file path does not end in '.csv', delete file and throw error
     if (path.substring(path.length - 4, path.length) !== ".csv") {
         fs.unlinkSync(path);
         throw new Error(`${ path.substring(path.length - 4, path.length) } is an invalid file type`);
     }
 
-    // Read file an split into rows
-    const fileContents = fs.readFileSync(path, { encoding: 'utf-8' });
-    let rows = fileContents.split("\n");
-    // Split rows by commas
-    rows = rows.map(x => x.split(","));
-
-    // Get column names from first row
-    const names = [];
-    for (let i = 0; i < rows[0].length; i++) {
-        names.push(rows[0][i].replace("\r", ""));
-    }
-
-    // Collect data from the rest of the rows
+    // Parse csv
     const data = [];
-    for (let i = 1; i < rows.length; i++) {
-        // Create object with current row data
-        const curr = {};
-        for (let j = 0; j < rows[i].length; j++) {
-            // If rows[i][j] is an empty string, end loop
-            if (!rows[i][j]) {
-                break;
-            } 
-            curr[names[j]] = rows[i][j].replace("\r", "");
-        }
-        // If curr is not empty, add to data
-        if (Object.keys(curr).length > 0) {
-            data.push(curr);
-        }
-    }
+    fs.createReadStream(path)
+        .pipe(csv_read())
+        .on("data", d => data.push(d))
+        .on("end", () => {
+            fs.unlinkSync(path);
+            resolve(data);
+        })
+        .on("error", err => {
+            fs.unlinkSync(path);
+            reject(err);
+        });
+});
 
-    // Delete file once read
-    fs.unlinkSync(path);
-
-    return data;
+// Read a JSON file
+const readJSON = (path) => {
+    const str = fs.readFileSync(path);
+    return JSON.parse(str);
 }
 
 // Upload a file to the server
@@ -95,13 +85,16 @@ const uploadFile = util.promisify(
                 cb(null, file.originalname);
             }
         }),
-        limits: { fileSize: maxUploadSize }
+        // limits: { fileSize: maxUploadSize }
     }).single("file")
 );
 
 module.exports = {
     clearDirectory,
+    deleteFiles,
     generateCSV,
+    generateJSON,
     readCSV,
+    readJSON,
     uploadFile
 }

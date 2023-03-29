@@ -5,18 +5,26 @@ const tag_table = "tags";
 
 class datasets {
     // Create a table for a new dataset
-    async createDataset(name, cols) {
+    async createDataset(name, cols, lengths) {
         const table = await knex.schema.createTable(name, (table) => {
             // Create serial primary key
             table.increments("id").primary();
 
             // Add all column names as strings
             cols.map(x => {
-                table.string(x);
+                table.string(x, lengths[x]);
             });
         });
 
         return table;
+    }
+
+    // Add multiple rows to a dataset
+    async addRows(table, rows) {
+        const queries = rows.map(row => knex(table).insert({ ...row }));
+        const query = queries.map(q => q.toString()).join("; ");
+        const insert = await knex.raw(query);
+        return insert;
     }
 
     // Add a row to a dataset
@@ -72,9 +80,20 @@ class datasets {
     }
 
     // Get all records in a dataset
-    async getDataset(table) {
-        const results = await knex(table);
-        return results;
+    async getDataset(table, paginate = true, page = 1) {
+        if (paginate) {
+            const results = await knex(table).orderBy("id").paginate({ perPage: 50, currentPage: page });
+            return results.data;
+        } else {
+            const results = await knex(table).orderBy("id");
+            return results;
+        }
+    }
+
+    // Get the number of records in a dataset
+    async getDatasetRecordCount(table) {
+        const result = await knex(table).count("id as count");
+        return result[0].count;
     }
 
     // Get all unique tags
@@ -90,7 +109,7 @@ class datasets {
     }
 
     // Filter datasets
-    async getFilteredDatasets(params, username) {
+    async getFilteredDatasets(params, username, paginate = true, page = 1) {
         const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
@@ -170,9 +189,17 @@ class datasets {
                         q.where({ tag_name });
                     }
                 }
-            }).orderBy("clicks", "desc");
+            });
 
-        const results = await query;
+        let results;
+        if (paginate) {
+            results = await query.orderBy("clicks", "desc").paginate({ perPage: 50, currentPage: page });
+            results = results.data;
+        } else {
+            results = await query;
+        }
+
+        // const results = await query;
 
         // Get tags for search results
         for (let i = 0; i < results.length; i++) {
@@ -183,8 +210,14 @@ class datasets {
         return results;
     }
 
+    // Get the number of datasets for a given set of filters
+    async getFilteredDatasetsCount(params, username) {
+        const results = await this.getFilteredDatasets(params, username, false);
+        return results.length;
+    }
+
     // Get a subset of a dataset
-    async subsetTable(table, params) {
+    async subsetTable(table, params, paginate = true, page = 1) {
         // Get the first record in case col names are needed
         const head = await this.getHead(table, 1);
 
@@ -246,8 +279,20 @@ class datasets {
             });
         });
 
-        const results = await query;
-        return results;
+        let results;
+        if (paginate) {
+            results = await query.orderBy("id").paginate({ perPage: 50, currentPage: page });
+        } else {
+            results = await query;
+        }
+
+        return results.data;
+    }
+
+    // Get the number of records in a dataset subset
+    async subsetTableCount(table, params) {
+        const results = await this.subsetTable(table, params, false);
+        return results.length;
     }
 
     // Delete a dataset table
