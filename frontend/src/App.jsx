@@ -3,6 +3,10 @@ import { LoginRegister } from "./pages/login-register.jsx";
 import { Graph } from "./pages/graph.jsx";
 import { Layout } from "./pages/layout.jsx";
 import { Zoom } from "./pages/zoom.jsx";
+import Homepage from "./pages/Homepage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 function App() {
@@ -37,6 +41,11 @@ function App() {
         <Layout />
         <div className="container border border-2">
           <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/src/pages/Homepage.jsx" component={<Homepage />} />
+            <Route path="/src/pages/Login.jsx" element={<Login />} />
+            <Route path="src/pages/Register.jsx" element={<Register />} />
+            <Route path="src/pages/Profile.jsx" element={<Profile/>} />
             <Route path="/login" element={<LoginRegister />}></Route>
             <Route path="/graph" element={<Graph dataset={dataset} setData={setData} />}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
