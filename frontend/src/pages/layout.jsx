@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import {Link} from 'react-router-dom';
+import {useNavigate, useLocation} from 'react-router-dom';
 export const Layout = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   return <>
     <nav className="navbar text-white bg-dark">

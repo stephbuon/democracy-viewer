@@ -3,11 +3,14 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 // Import middleware
-const authenticateJWT = require("./middleware/authentication");
 const requestLog = require("./middleware/logging");
 const { createModelsMiddleware, disconnectFromDatababaseMiddleware } = require("./middleware/models");
 
 // Import routes
+const datasets = require("./routes/datasets");
+const graphs = require("./routes/graphs");
+const groups = require("./routes/groups");
+const preprocessing = require("./routes/preprocessing");
 const session = require("./routes/session");
 const users = require('./routes/users');
 
@@ -29,6 +32,10 @@ app.get("/health", (req, res, next) => {
 });
 
 // Use routes
+app.use("/datasets", datasets);
+app.use("/graphs", graphs);
+app.use("/groups", groups);
+app.use("/preprocessing", preprocessing);
 app.use("/session", session);
 app.use("/users", users);
 

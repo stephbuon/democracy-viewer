@@ -26,3 +26,15 @@ yarn-error.log*
 
 yarn.lock
 package-lock.json
+
+# csv/json files
+downloads/*
+uploads/*
+graphs/files/*
+preprocessing/files/*
+
+# account management
+accounts.csv
+add_account.sql
+
+datasets
