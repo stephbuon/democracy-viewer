@@ -8,8 +8,8 @@ export const Layout = () => {
       <div className="container-fluid row">
         <div className="col">
           <nav className="navbar justify-content-left">
-            {location.pathname != "/login" && <Link className="btn btn-primary" to="/login" >Login or register</Link>}
-            {location.pathname == "/login" && <Link className="btn btn-primary" to="/" >Back</Link>}
+            {location.pathname !== "/login" && <Link className="btn btn-primary" to="/login" >Login or register</Link>}
+            {location.pathname === "/login" && <Link className="btn btn-primary" to="/" >Back</Link>}
           </nav>
         </div>
         <div className="col">
@@ -20,9 +20,9 @@ export const Layout = () => {
         <div className="col">
           <nav className="navbar justify-content-end">
             <div>
-              {location.pathname != "/graph" && <Link className="btn btn-primary me-4" to="/graph" >View Graph</Link>}
-              {location.pathname == "/graph" && <Link className="btn btn-primary me-4" to="/" >Close Graph</Link>}
-              </div>
+              {location.pathname !== "/graph" && <Link className="btn btn-primary me-4" to="/graph" >View Graph</Link>}
+              {location.pathname === "/graph" && <Link className="btn btn-primary me-4" to="/" >Close Graph</Link>}
+            </div>
           </nav>
         </div>
       </div>

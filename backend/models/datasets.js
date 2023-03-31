@@ -5,18 +5,26 @@ const tag_table = "tags";
 
 class datasets {
     // Create a table for a new dataset
-    async createDataset(name, cols) {
+    async createDataset(name, cols, lengths) {
         const table = await knex.schema.createTable(name, (table) => {
             // Create serial primary key
             table.increments("id").primary();
 
             // Add all column names as strings
             cols.map(x => {
-                table.string(x);
+                table.string(x, lengths[x]);
             });
         });
 
         return table;
+    }
+
+    // Add multiple rows to a dataset
+    async addRows(table, rows) {
+        const queries = rows.map(row => knex(table).insert({ ...row }));
+        const query = queries.map(q => q.toString()).join("; ");
+        const insert = await knex.raw(query);
+        return insert;
     }
 
     // Add a row to a dataset
@@ -71,12 +79,6 @@ class datasets {
         return record[0];
     }
 
-    // Get all records in a dataset
-    async getDataset(table) {
-        const results = await knex(table);
-        return results;
-    }
-
     // Get all unique tags
     async getUniqueTags() {
         const results = await knex(tag_table).select("tag_name").distinct();
@@ -90,7 +92,7 @@ class datasets {
     }
 
     // Filter datasets
-    async getFilteredDatasets(params, username) {
+    async getFilteredDatasets(params, username, paginate = true, page = 1) {
         const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
@@ -170,22 +172,72 @@ class datasets {
                         q.where({ tag_name });
                     }
                 }
-            }).orderBy("clicks", "desc");
+            });
 
-        const results = await query;
+        let results;
+        if (paginate) {
+            results = await query.orderBy("clicks", "desc").paginate({ perPage: 50, currentPage: page });
+            results = results.data;
+        } else {
+            results = await query;
+        }
+
+        // Get tags for search results
+        for (let i = 0; i < results.length; i++) {
+            const tags = await this.getTags(results[i].table_name);
+            results[i].tags = tags.map(x => x.tag_name);
+        }
+
         return results;
     }
 
+    // Get the number of datasets for a given set of filters
+    async getFilteredDatasetsCount(params, username) {
+        const results = await this.getFilteredDatasets(params, username, false);
+        return results.length;
+    }
+
     // Get a subset of a dataset
-    async subsetTable(table, params) {
+    async subsetTable(table, params, paginate = true, page = 1) {
+        // Get the first record in case col names are needed
+        const head = await this.getHead(table, 1);
+
         const query = knex(table).where(q => {
             // Get the query object keys
             const keys = Object.keys(params);
 
             // Iterate through keys and and where clause for each
             keys.forEach(key => {
-                console.log(key, params[key])
-                if (!Array.isArray(params[key])) {
+                if (key === "col_search") {
+                    // If the key is col_search, search for search terms in all columns
+
+                    // Split search string into words
+                    const terms = params[key].split(" ");
+                    // Get column names from first record
+                    const colNames = Object.keys(head[0]);
+
+                    // Iterate through search words
+                    for (let i = 0; i < terms.length; i++) {
+                        q.where(q => {
+                            // Iterate through column names
+                            for (let j = 0; j < colNames.length; j++) {
+                                if (typeof head[0][colNames[j]] === "string") {
+                                    // Get results where column value like term (if column contains strings)
+                                    q.orWhereILike(colNames[j], `%${ terms[i] }%`);
+                                } else if (typeof head[0][colNames[j]] === "number") {
+                                    // Get results when column value equals term (if column contains numbers and term is a number)
+                                    if (!isNaN(parseFloat(terms[i])) && !Number.isInteger(head[0][colNames[j]])) {
+                                        // If search term and column value are floats
+                                        q.orWhere(colNames[j], "=", parseFloat(terms[i]));
+                                    } else if (!isNaN(parseInt(terms[i])) && Number.isInteger(head[0][colNames[j]])) {
+                                        // If search term and column value are ints
+                                        q.orWhere(colNames[j], "=", parseInt(terms[i]));
+                                    }
+                                }
+                            }
+                        });
+                    }
+                } else if (!Array.isArray(params[key])) {
                     // If not an array, find exact value
                     q.where({ [key]: params[key] })
                 } else if (params[key][0] === "like") {
@@ -208,7 +260,22 @@ class datasets {
             });
         });
 
-        const results = await query;
+        let results;
+        if (paginate === true) {
+            results = await query.orderBy("id").paginate({ perPage: 50, currentPage: page });
+            return results.data;
+        } else if (paginate === false) {
+            results = await query;
+            return results;
+        } else {
+            results = await query.count({ count: "*" });
+            return results[0].count;
+        }
+    }
+
+    // Get the number of records in a dataset subset
+    async subsetTableCount(table, params) {
+        const results = await this.subsetTable(table, params, null);
         return results;
     }
 

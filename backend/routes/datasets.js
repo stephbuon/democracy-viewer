@@ -99,18 +99,6 @@ router.get('/metadata/:table', async(req, res, next) => {
     next();
 });
 
-// Route to get all records in a table
-router.get('/records/:table', async(req, res, next) => {
-    try {
-        const result = await req.models.datasets.getDataset(req.params.table);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get dataset records:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
 // Route to get all unique tags
 router.get('/tags/unique', async(req, res, next) => {
     try {
@@ -136,9 +124,14 @@ router.get('/tags/dataset/:table', async(req, res, next) => {
 });
 
 // Route to filter datasets
-router.get('/filter', optAuthenticateJWT, async(req, res, next) => {
+router.get('/filter/:page', optAuthenticateJWT, async(req, res, next) => {
     try {
-        const results = await req.models.datasets.getFilteredDatasets(req.query, req.user.username);
+        let results;
+        if (req.user) {
+            results = await req.models.datasets.getFilteredDatasets(req.query, req.user.username, true, req.params.page);
+        } else {
+            results = await req.models.datasets.getFilteredDatasets(req.query, undefined, true, req.params.page);
+        }
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get filtered datasets:', err);
@@ -147,13 +140,43 @@ router.get('/filter', optAuthenticateJWT, async(req, res, next) => {
     next();
 });
 
-// Route to subset a dataset
-router.get('/subset/:table', async(req, res, next) => {
+// Route to get number of dataset filter results
+router.get('/count/filter', optAuthenticateJWT, async(req, res, next) => {
     try {
-        const results = await req.models.datasets.subsetTable(req.params.table, req.query);
+        let result;
+        if (req.user) {
+            result = await req.models.datasets.getFilteredDatasetsCount(req.query, req.user.username);
+        } else {
+            result = await req.models.datasets.getFilteredDatasetsCount(req.query, undefined);
+        }
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get filtered datasets count:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to subset a dataset
+router.get('/subset/:table/:page', async(req, res, next) => {
+    try {
+        const results = await req.models.datasets.subsetTable(req.params.table, req.query, true, req.params.page);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset subset:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to count the records of a dataset subset
+router.get('/count/subset/:table', async(req, res, next) => {
+    try {
+        const result = await req.models.datasets.subsetTableCount(req.params.table, req.query);
+        console.log(result)
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset subset count:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

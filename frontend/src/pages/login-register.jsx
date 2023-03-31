@@ -33,12 +33,12 @@ export function LoginRegister() {
               value={loginPassword}
               setValue={setLoginPassword}
             />
-            {(loginUsername == "" || loginPassword == "") && (
+            {(loginUsername === "" || loginPassword === "") && (
               <button type="button" className="btn btn-md btn-primary" disabled>
                 Login
               </button>
             )}
-            {loginUsername != "" && loginPassword != "" && (
+            {loginUsername !== "" && loginPassword !== "" && (
               <button
                 type="button"
                 className="btn btn-md btn-primary"
@@ -51,9 +51,9 @@ export function LoginRegister() {
           <div className="col ms-3">
             <h2 className="text-center">Register</h2>
             <TextField
-                label="* Email:"
-                value={email}
-                setValue={setEmail}
+              label="* Email:"
+              value={email}
+              setValue={setEmail}
             />
             <TextField
               label="* Username:"

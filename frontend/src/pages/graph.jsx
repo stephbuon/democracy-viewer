@@ -1,4 +1,4 @@
-import React from "react";
+import { React, useRef, useEffect } from "react";
 import { TextField } from "../common/textField.jsx";
 import { useEffect, useState } from "react";
 import { MDBContainer } from "mdbreact";
@@ -7,31 +7,36 @@ import Chart from "chart.js/auto";
 import { CategoryScale } from "chart.js";
 import { SelectField } from "../common/selectField.jsx";
 import { Range } from "../common/range.jsx";
+import Plotly from "plotly.js-dist";
+import { useNavigate } from "react-router-dom";
 
-export function Graph() {
-  Chart.register(CategoryScale);
-  const data = {
-    labels: [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ],
-    datasets: [
-      {
-        label: "Hours/Day",
-        data: [24, 24, 24, 24, 24, 24, 24],
-        backgroundColor: "#02b844",
-        borderWidth: 1,
-        borderColor: "#000000",
-      },
-    ],
+export const Graph = ({ dataset, setData }) => {
+  const graph = useRef(null);
+  const navigate = useNavigate();
+
+  var data = [
+    {
+      x: dataset.x,
+      y: dataset.y,
+      type: 'bar'
+    }
+  ];
+  var layout = {
+    title: dataset.label
   };
 
-  const keywordValue = 0;
+  useEffect(() => {
+    Plotly.newPlot(graph.current, data, layout);
+    graph.current.on('plotly_click', function (data) {
+      let i = data.points[0].pointIndex;
+      setData({
+        x: dataset.x[i],
+        y: dataset.y[i],
+        description: dataset.other[i]
+      });
+      navigate("/zoom");
+    });
+  })
 
   const [searchValue, setSearchValue] = useState("");
 
@@ -88,37 +93,35 @@ export function Graph() {
             max={2000}
             step={10}
           />
-          <div className="col mb-2 mx-auto">
-            <button
-              type="button"
-              className="btn btn-md btn-primary"
-              style={{ width: "45%" }}
-            >
-              Law
-            </button>
-            <button
-              type="button"
-              className="btn btn-md btn-primary mx-2 ps-2"
-              style={{ width: "45%" }}
-            >
-              Government
-            </button>
-          </div>
-          <div className="col w-100 mb-2">
-            <button
-              type="button"
-              className="btn btn-md btn-primary"
-              style={{ width: "45%" }}
-            >
-              Men
-            </button>
-            <button
-              type="button"
-              className="btn btn-md btn-primary mx-2"
-              style={{ width: "45%" }}
-            >
-              Women
-            </button>
+          <div className="row">
+            <div className="col">
+              <button
+                type="button"
+                className="btn btn-md btn-primary w-100 mb-2"
+              >
+                Law
+              </button>
+              <button
+                type="button"
+                className="btn btn-md btn-primary w-100 mb-2"
+              >
+                Government
+              </button>
+            </div>
+            <div className="col">
+              <button
+                type="button"
+                className="btn btn-md btn-primary w-100 mb-2"
+              >
+                Men
+              </button>
+              <button
+                type="button"
+                className="btn btn-md btn-primary w-100 mb-2"
+              >
+                Women
+              </button>
+            </div>
           </div>
           <TextField
             label="Custom Search:"
@@ -157,9 +160,7 @@ export function Graph() {
           />
         </div>
         <div className="col ms-2">
-          <MDBContainer>
-            <Bar data={data} />
-          </MDBContainer>
+          <div ref={graph}></div>
         </div>
       </div>
     </>
