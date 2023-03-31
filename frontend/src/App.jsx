@@ -3,7 +3,6 @@ import { LoginRegister } from "./pages/login-register.jsx";
 import { Graph } from "./pages/graph.jsx";
 import { Layout } from "./pages/layout.jsx";
 import { Zoom } from "./pages/zoom.jsx";
-
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 function App() {
