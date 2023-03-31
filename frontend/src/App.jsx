@@ -7,6 +7,10 @@ import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
+import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
+import "./App.css";
+import 'animate.css';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 function App() {
@@ -34,13 +38,36 @@ function App() {
   };
 
   const [data, setData] = useState(undefined);
+  
+export const App = () => {
+  
+  const [dataset, setDataset] = useState(undefined);
+
+  const chooseDataset = (choice) =>{
+    setDataset(choice)
+    localStorage.setItem('dataset', JSON.stringify(choice))
+  }
+
+  useEffect(() => {
+    console.log("Strating Democracy Viewer App")
+
+    //TODO implement this (only when logged in?)
+    if(localStorage.getItem('dataset') != undefined)
+    {
+      setDataset(JSON.parse(localStorage.getItem('dataset')))
+    }
+  },[]);
+  
+  useEffect(()=>{
+    console.log("NOW USING NEW DATASET", dataset);
+  }, [dataset]);
+
+  
 
   return (
-    <div className="App">
-      <Router>
-        <Layout />
-        <div className="container border border-2">
-          <Routes>
+    <div className={`App`} >
+      <BrowserRouter>
+        <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/src/pages/Homepage.jsx" component={<Homepage />} />
             <Route path="/src/pages/Login.jsx" element={<Login />} />
@@ -49,9 +76,10 @@ function App() {
             <Route path="/login" element={<LoginRegister />}></Route>
             <Route path="/graph" element={<Graph dataset={dataset} setData={setData} />}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
-          </Routes>
-        </div>
-      </Router>
+            <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} />} />
+            <Route path='/datasetsearch' element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)}/>} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
