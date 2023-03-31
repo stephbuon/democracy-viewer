@@ -10,11 +10,11 @@ const createGraph = async(models, dataset, params, user = null) => {
 
     // If the metric is raw, return raw splits
     if (params.metric === "raw") {
-        return await models.graphs.getGroupSplits(dataset, params.group_name, params.group_values);
+        return await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
     }
 
     // Create input file with data for python program
-    const input = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_values);
+    const input = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
     const file1 = "graphs/files/input/" + dataset + "_" + Date.now() + ".csv";
     await files.generateCSV(file1, input);
     // Create input file with parameters for python program
@@ -23,7 +23,8 @@ const createGraph = async(models, dataset, params, user = null) => {
 
     // Run python program that generates graph data
     try {
-        terminal(`python3 graphs/launch.py ${ file1 } ${ file2 }`, { encoding: 'utf-8' });
+        const python = terminal(`python3 graphs/launch.py ${ file1 } ${ file2 }`, { encoding: 'utf-8' });
+        console.log(python);
     } catch(err) {
         files.deleteFiles([ file1, file2 ]);
         throw new Error(err);
@@ -32,6 +33,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     // Read python output file and return results
     const file3 = file1.replace("/input/", "/output/");
     return await files.readCSV(file3).then(async(data) => {
+        throw new Error()
         files.deleteFiles([ file1, file2, file3 ]);
 
         return data;

@@ -182,8 +182,6 @@ class datasets {
             results = await query;
         }
 
-        // const results = await query;
-
         // Get tags for search results
         for (let i = 0; i < results.length; i++) {
             const tags = await this.getTags(results[i].table_name);
@@ -263,20 +261,22 @@ class datasets {
         });
 
         let results;
-        if (paginate) {
+        if (paginate === true) {
             results = await query.orderBy("id").paginate({ perPage: 50, currentPage: page });
             return results.data;
-        } else {
+        } else if (paginate === false) {
             results = await query;
             return results;
+        } else {
+            results = await query.count({ count: "*" });
+            return results[0].count;
         }
     }
 
     // Get the number of records in a dataset subset
     async subsetTableCount(table, params) {
-        const results = await this.subsetTable(table, params, false);
-        console.log(results)
-        return results.length;
+        const results = await this.subsetTable(table, params, null);
+        return results;
     }
 
     // Delete a dataset table

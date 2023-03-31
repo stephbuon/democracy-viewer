@@ -32,9 +32,13 @@ const deleteFiles = (files) => {
 
 // Generate a csv file from an array of records
 const generateCSV = async(name, records) => {
-    // Write csv
-    const csv = new csv_write(records);
-    await csv.toDisk(name);
+    // Split records into sets of 10,000
+    for (let i = 0; i < records.length; i += 10000) {
+        // If i is 0, overwrite file
+        // Else, append to file
+        const csv = new csv_write(records.slice(i, i + 10000));
+        await csv.toDisk(name, { append: i === 0 ? false : true });
+    }
     
     return name;
 }

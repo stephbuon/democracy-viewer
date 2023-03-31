@@ -27,11 +27,11 @@ yarn-error.log*
 yarn.lock
 package-lock.json
 
-# upload/download files
+# csv/json files
 downloads/*
-!downloads/README.md
 uploads/*
-!uploads/README.md
+graphs/files/*
+preprocessing/files/*
 
 # account management
 accounts.csv
