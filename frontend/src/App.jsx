@@ -66,15 +66,8 @@ export const App = () => {
 
   return (
     <div className="App">
-      <Router>
-        <Layout />
-        <div className="container border border-2">
-          <Routes>
-            <Route path="/" element={<Upload />}></Route>
-            <Route path="/login" element={<LoginRegister />}></Route>
-            <Route path="/graph" element={<Graph dataset={dataset} setData={setData} />}></Route>
-    <div className={`App`} >
       <BrowserRouter>
+        <Layout />
         <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<Login />} />

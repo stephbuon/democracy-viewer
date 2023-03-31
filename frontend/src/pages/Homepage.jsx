@@ -211,7 +211,7 @@ export default function Homepage() {
                     </Typography>
                   </CardContent>
                   <CardActions style={{justifyContent: 'center'}}>
-                    <Button href="/src/pages/Login.jsx" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
+                    <Button href="/upload" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
                   </CardActions>
                 </Card>
                 
