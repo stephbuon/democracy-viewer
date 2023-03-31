@@ -43,7 +43,7 @@ const createDataset = async(datasets, path) => {
     
         // Loop through the data and insert rows
         for (let i = 0; i < data.length; i += 10000) {
-            await datasets.addRows(name, data.slice(i, i + 10000))
+            await datasets.addRows(name, data.slice(i, i + 10000));
         }
     
         // Return the first 10 rows of the new dataset and the table name

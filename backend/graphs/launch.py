@@ -13,14 +13,15 @@ with open(params_file, "r") as file:
     params = json.load(file)
 
 # Call function based on given metric
-if params.metric == "ll":
-    output = dhmeasures.LogLikelihood(data, params.group_list, params.word_list, params.group, params.word, params.n)
-elif params.metric == "jsd":
-    output = dhmeasures.JSD(data, params.group_list, params.word_list, params.group, params.word, params.n)
-elif params.metric == "ojsd":
-    output = dhmeasures.OriginalJSD(data, params.group_list, params.word_list, params.group, params.word, params.n)
+if params["metric"] == "ll":
+    output = dhmeasures.LogLikelihood(data, params["group_list"], params["word_list"], "group", "word", "n")
+elif params["metric"] == "jsd":
+    output = dhmeasures.JSD(data, params["group_list"], params["word_list"], "group", "word", "n")
+elif params["metric"] == "ojsd":
+    output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
 else:
-    sys.exit("Invalid metric: " + params.metric)
+    sys.exit("Invalid metric: " + params["metric"])
 
 output_file = data_file.replace("/input/", "/output/")
-output.to_csv(output_file)
+print(output_file)
+output.to_csv(output_file, index = False)
