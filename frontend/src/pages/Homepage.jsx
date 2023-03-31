@@ -94,7 +94,36 @@ export default function Homepage() {
                     </Typography>
                   </CardContent>
                   <CardActions style={{justifyContent: 'center'}}>
-                    <Button href="/src/pages/Search.jsx" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
+                    <Button href="/datasetsearch" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
+                  </CardActions>
+                </Card>
+                
+              </Grid>
+
+              {/* TEMPORARY FOR VERTICAL SLICE */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Card
+                  sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                >
+                  <CardMedia
+                    component="img"
+                    sx={{
+                      // 16:9
+                      height :200,
+                      width:'100%'
+                    }}
+                    image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h5" component="h2" align='center'>
+                      Subset
+                    </Typography>
+                    <Typography align='center'>
+                    Find records in a dataset
+                    </Typography>
+                  </CardContent>
+                  <CardActions style={{justifyContent: 'center'}}>
+                    <Button href="/subsetsearch" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
                   </CardActions>
                 </Card>
                 
@@ -124,7 +153,7 @@ export default function Homepage() {
                   </CardContent>
                   <CardActions style={{justifyContent: 'center'}}>
                   
-                    <Button href="/src/pages/Login.jsx" variant="contained" sx={{borderRadius: 50 }} 
+                    <Button href="/login" variant="contained" sx={{borderRadius: 50 }} 
                        >SELECT</Button>
                    </CardActions>
                 </Card>
@@ -153,7 +182,7 @@ export default function Homepage() {
                     </Typography>
                   </CardContent>
                   <CardActions style={{justifyContent: 'center'}}>
-                    <Button href="/src/pages/Profile.jsx" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
+                    <Button href="/profile" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
                   </CardActions>
                 </Card>
                 
@@ -188,7 +217,63 @@ export default function Homepage() {
                 
               </Grid>
 
+              {/* TEMPORARY FOR VERTICAL SLICE */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Card
+                  sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                >
+                  <CardMedia
+                    component="img"
+                    sx={{
+                      // 16:9
+                      height :200,
+                      width:'100%'
+                    }}
+                    image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h5" component="h2" align='center'>
+                      Graph
+                    </Typography>
+                    <Typography align='center'>
+                    View customizable and interactive graphs
+                    </Typography>
+                  </CardContent>
+                  <CardActions style={{justifyContent: 'center'}}>
+                    <Button href="/graph" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
+                  </CardActions>
+                </Card>
+                
+              </Grid>
 
+              {/* TEMPORARY FOR VERTICAL SLICE */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Card
+                  sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                >
+                  <CardMedia
+                    component="img"
+                    sx={{
+                      // 16:9
+                      height :200,
+                      width:'100%'
+                    }}
+                    image="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+                  />
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Typography gutterBottom variant="h5" component="h2" align='center'>
+                      Sign In
+                    </Typography>
+                    <Typography align='center'>
+                    Sign in to your account or create a new account
+                    </Typography>
+                  </CardContent>
+                  <CardActions style={{justifyContent: 'center'}}>
+                    <Button href="/login-register" variant="contained" sx={{borderRadius: 50 }}>SELECT</Button>
+                  </CardActions>
+                </Card>
+                
+              </Grid>
     
           </Grid>
         </Container>
