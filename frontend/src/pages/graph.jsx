@@ -1,6 +1,5 @@
-import { React, useRef, useEffect } from "react";
+import { React, useRef, useEffect, useState } from "react";
 import { TextField } from "../common/textField.jsx";
-import { useEffect, useState } from "react";
 import { MDBContainer } from "mdbreact";
 import { Bar } from "react-chartjs-2";
 import Chart from "chart.js/auto";
