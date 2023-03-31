@@ -1,0 +1,9 @@
+
+.darkblue{
+    background: rgb(105, 105, 238);
+    min-height: 100vh;
+    min-width: 100vw;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}

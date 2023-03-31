@@ -1,6 +1,9 @@
-import { React, useRef, useEffect } from "react";
+import { React, useRef, useEffect, useState } from "react";
 import { TextField } from "../common/textField.jsx";
-import { useState } from "react";
+import { MDBContainer } from "mdbreact";
+import { Bar } from "react-chartjs-2";
+import Chart from "chart.js/auto";
+import { CategoryScale } from "chart.js";
 import { SelectField } from "../common/selectField.jsx";
 import { Range } from "../common/range.jsx";
 import Plotly from "plotly.js-dist";
@@ -58,7 +61,7 @@ export const Graph = ({ dataset, setData }) => {
   return (
     <>
       <div className="row justify-content-center">
-        <div className="col-3 border border-secondary border-3 rounded m-1">
+        <div className="col-2 border border-secondary border-3 rounded m-1">
           <SelectField
             label="Vocabulary"
             value={vocabulary}
