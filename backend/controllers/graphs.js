@@ -1,5 +1,5 @@
 const files = require("../util/file_management");
-const terminal = require("child_process").execSync;
+const python = require("python-shell").PythonShell;
 
 const createGraph = async(models, dataset, params, user = null) => {
     // Check dataset metadata to make sure user has access to this dataset
@@ -12,12 +12,18 @@ const createGraph = async(models, dataset, params, user = null) => {
     if (params.metric === "raw") {
         let results;
         if (params.word_list) {
-            if (!Array.isArray(params.word_list)) {
-                params.word_list = [ params.word_list ];
-            }
-            results =  await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list, params.word_list);
+            results = await models.graphs.getGroupSplits(
+                dataset, 
+                params.group_name, 
+                Array.isArray(params.group_list) ? params.group_list : [ params.group_list ],
+                Array.isArray(params.word_list) ? params.word_list : [ params.word_list ]
+            );
         } else {
-            results = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
+            results = await models.graphs.getGroupSplits(
+                dataset, 
+                params.group_name, 
+                Array.isArray(params.group_list) ? params.group_list : [ params.group_list ]
+            );
         }
         
         return sumCol(results, "n");
@@ -33,8 +39,9 @@ const createGraph = async(models, dataset, params, user = null) => {
 
     // Run python program that generates graph data
     try {
-        const python = terminal(`python3 graphs/launch.py ${ file1 } ${ file2 }`, { encoding: 'utf-8' });
-        console.log(python);
+        await python.run("graphs/launch.py", {
+            args: [ file1, file2 ]
+        }).then(x => console.log(x));
     } catch(err) {
         files.deleteFiles([ file1, file2 ]);
         throw new Error(err);
@@ -43,8 +50,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     // Read python output file and return results
     const file3 = file1.replace("/input/", "/output/");
     return await files.readCSV(file3).then(async(data) => {
-        throw new Error()
-        files.deleteFiles([ file1, file2, file3 ]);
+        files.deleteFiles([ file1, file2 ]);
 
         return data;
     });

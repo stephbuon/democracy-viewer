@@ -23,5 +23,4 @@ else:
     sys.exit("Invalid metric: " + params["metric"])
 
 output_file = data_file.replace("/input/", "/output/")
-print(output_file)
 output.to_csv(output_file, index = False)
