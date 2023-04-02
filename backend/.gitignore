@@ -33,8 +33,6 @@ uploads/*
 graphs/files/*
 preprocessing/files/*
 
-
-
 # account management
 accounts.csv
 add_account.sql
