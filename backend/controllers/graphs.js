@@ -10,7 +10,17 @@ const createGraph = async(models, dataset, params, user = null) => {
 
     // If the metric is raw, return raw splits
     if (params.metric === "raw") {
-        return await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
+        let results;
+        if (params.word_list) {
+            if (!Array.isArray(params.word_list)) {
+                params.word_list = [ params.word_list ];
+            }
+            results =  await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list, params.word_list);
+        } else {
+            results = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
+        }
+        
+        return sumCol(results, "n");
     }
 
     // Create input file with data for python program
@@ -38,6 +48,31 @@ const createGraph = async(models, dataset, params, user = null) => {
 
         return data;
     });
+}
+
+const sumCol = (data, col) => {
+    let newData = [];
+    data.forEach(x => {
+        let found = false;
+        newData.forEach((y, i) => {
+            if (x.word === y.word && x.group === y.group) {
+                found = true;
+                newData[i].ids.push(x.id);
+                newData[i][col] += Number.parseFloat(x[col]);
+            }
+        });
+
+        if (!found) {
+            newData.push({
+                ids: [ x.id ],
+                [col]: Number.parseFloat(x[col]),
+                word: x.word,
+                group: x.group
+            });
+        }
+    });
+
+    return newData;
 }
 
 module.exports = {
