@@ -1,6 +1,7 @@
 const files = require("../util/file_management");
 const python = require("python-shell").PythonShell;
 
+// Generate the data for a graph based on user input
 const createGraph = async(models, dataset, params, user = null) => {
     // Check dataset metadata to make sure user has access to this dataset
     const metadata = await models.datasets.getMetadata(dataset);
@@ -12,6 +13,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     if (params.metric === "raw") {
         let results;
         if (params.word_list) {
+            // If a word list was given, return splits for only given words
             results = await models.graphs.getGroupSplits(
                 dataset, 
                 params.group_name, 
@@ -19,6 +21,7 @@ const createGraph = async(models, dataset, params, user = null) => {
                 Array.isArray(params.word_list) ? params.word_list : [ params.word_list ]
             );
         } else {
+            // Else, return all words for the given groups
             results = await models.graphs.getGroupSplits(
                 dataset, 
                 params.group_name, 
@@ -53,21 +56,29 @@ const createGraph = async(models, dataset, params, user = null) => {
         files.deleteFiles([ file1, file2 ]);
 
         return data;
+        // return joinData(input, data, params.metric);
     });
 }
 
+// Take the sum of a column and add ids as an array
 const sumCol = (data, col) => {
     let newData = [];
+    // Iterate through original data
     data.forEach(x => {
         let found = false;
-        newData.forEach((y, i) => {
-            if (x.word === y.word && x.group === y.group) {
+
+        // Iterate through new data
+        for (let i = 0; i < newData.length; i++) {
+            if (x.word === newData[i].word && x.group === newData[i].group) {
+                // If the word and group match, add id and increment count
                 found = true;
                 newData[i].ids.push(x.id);
                 newData[i][col] += Number.parseFloat(x[col]);
+                break;
             }
-        });
+        }
 
+        // If no word and group match was found, create a new record
         if (!found) {
             newData.push({
                 ids: [ x.id ],
@@ -80,6 +91,25 @@ const sumCol = (data, col) => {
 
     return newData;
 }
+
+// // Join ids with calculated data
+// const joinData = (original, calculated, metric) => {
+//     let newData = [];
+
+//     if (metric === "ll") {
+//         calculated.forEach(x => {
+//             let found = false;
+
+//             for (let i = 0; i < original.length; i++) {
+//                 if ()
+//             }
+//         })
+//     } else if (metric === "jsd") {
+
+//     } else if (metric === "ojsd") {
+
+//     }
+// }
 
 module.exports = {
     createGraph

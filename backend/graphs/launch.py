@@ -9,6 +9,7 @@ params_file = sys.argv[2]
 
 # Parse input files
 data = pd.read_csv(data_file)
+data = data.groupby(["group", "word"]).sum().reset_index()
 with open(params_file, "r") as file:
     params = json.load(file)
 
