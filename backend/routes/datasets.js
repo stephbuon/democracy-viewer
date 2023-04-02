@@ -173,7 +173,6 @@ router.get('/subset/:table/:page', async(req, res, next) => {
 router.get('/count/subset/:table', async(req, res, next) => {
     try {
         const result = await req.models.datasets.subsetTableCount(req.params.table, req.query);
-        console.log(result)
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset subset count:', err);
@@ -222,6 +221,18 @@ router.get('/download/subset/:table', async(req, res, next) => {
         res.status(500).json({ message: err.toString() });
         next();
     }
+});
+
+// Route to get dataset records by ids
+router.get('/ids/:table', async(req, res, next) => {
+    try {
+        const result = await req.models.datasets.getRecordsByIds(req.params.table, Array.isArray(req.query.id) ? req.query.id : [ req.query.id ]);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset subset count:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
 });
 
 // Route to delete a datset and its metadata

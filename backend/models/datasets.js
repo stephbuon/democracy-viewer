@@ -279,6 +279,12 @@ class datasets {
         return results;
     }
 
+    // Get all records from the given table with the given ids
+    async getRecordsByIds(table, ids) {
+        const results = await knex(table).whereIn("id", ids);
+        return results;
+    }
+
     // Delete a dataset table
     async deleteTable(name) {
         const del = await knex.schema.dropTable(name);
