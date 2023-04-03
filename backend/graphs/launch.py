@@ -9,6 +9,7 @@ params_file = sys.argv[2]
 
 # Parse input files
 data = pd.read_csv(data_file)
+data = data.groupby(["group", "word"]).sum().reset_index()
 with open(params_file, "r") as file:
     params = json.load(file)
 
@@ -23,5 +24,4 @@ else:
     sys.exit("Invalid metric: " + params["metric"])
 
 output_file = data_file.replace("/input/", "/output/")
-print(output_file)
 output.to_csv(output_file, index = False)
