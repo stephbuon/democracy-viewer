@@ -6,6 +6,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
 import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
 import { Group } from "./Groups/Group";
+import { Groups } from "./Groups/Groups";
+
 
 import "./App.css";
 import 'animate.css';
@@ -46,10 +48,10 @@ export const App = () => {
           <Route
             path='/datasetsearch'
             element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)} />} />
-{/* 
+
           <Route
             path='/groups'
-            element={<Groups />} /> */}
+            element={<Groups />} />
 
           <Route
             path='/groups/:groupid'
