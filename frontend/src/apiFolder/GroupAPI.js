@@ -47,3 +47,17 @@ export const UpdateGroup = async (private_group, update) =>  {
     console.log("Returning", res.data);
     return res.data;
 };
+
+export const GetGroups = async (user) =>  {
+    console.log("Searching for user", user); //currently hardcoded
+    const res = await axios.get(`${BACKEND_ENDPOINT}/groups/user`, {headers: {
+        'Authorization': token
+    }}
+    );
+    if(res.status !== 200){
+        console.log(`Couldn't get groups. ${res.status}`)
+        return null;
+    }
+    console.log("Returning", res.data);
+    return res.data;
+};
