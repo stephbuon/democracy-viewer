@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const knex = require("../db/knex");
 const table = "users";
 
@@ -31,6 +31,19 @@ class users {
         const isValid = await bcrypt.compare(password, user.password);
         // Return if password is a match or not
         return isValid;
+    }
+
+    // Update a user record
+    async updateUser(username, params) {
+        const update = await knex(table).where({ username }).update({ ...params });
+        const record = await knex(table).where({ username });
+        return record[0];
+    }
+
+    // Delete a user record
+    async deleteUser(username) {
+        const del = await knex(table).where({ username }).delete();
+        return del;
     }
 }
 
