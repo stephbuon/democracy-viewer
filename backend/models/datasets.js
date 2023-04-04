@@ -34,9 +34,9 @@ class datasets {
     }
 
     // Add initial metadata for a table
-    async createMetadata(params) {
-        const insert = await knex(metadata_table).insert({ ...params });
-        const record = await knex(metadata_table).where({ table_name: params.table_name });
+    async createMetadata(table_name, username) {
+        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0 });
+        const record = await knex(metadata_table).where({ table_name });
         return record[0];
     }
 

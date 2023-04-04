@@ -1,7 +1,7 @@
 const util = require("../util/file_management");
 
 // Upload a new dataset from a csv file
-const createDataset = async(datasets, path) => {
+const createDataset = async(datasets, path, username) => {
     // Parse the provided csv file
     return await util.readCSV(path).then(async(data) => {
         // Get the file name from the file path
@@ -40,6 +40,9 @@ const createDataset = async(datasets, path) => {
     
         // Create a new table with the file name and column names
         await datasets.createDataset(name, Object.keys(data[0]), maxLengths);
+
+        // Create empty metadata for data set
+        await datasets.createMetadata(name, username);
     
         // Loop through the data and insert rows
         for (let i = 0; i < data.length; i += 10000) {
@@ -54,14 +57,6 @@ const createDataset = async(datasets, path) => {
         }
         return output;
     });
-}
-
-// Create the initial metadata for a dataset
-const createMetadata = async(datasets, username, body) => {
-    // Add username to parameters
-    const params = { ...body, username };
-    const record = await datasets.createMetadata(params);
-    return record;
 }
 
 // Add a tag for a dataset
@@ -178,7 +173,6 @@ const deleteTag = async(datasets, user, table, tag) => {
 
 module.exports = {
     createDataset,
-    createMetadata,
     addTag,
     changeColType,
     updateMetadata,

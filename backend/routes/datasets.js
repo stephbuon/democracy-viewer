@@ -16,24 +16,12 @@ router.post('/', authenticateJWT, async(req, res, next) => {
         } else {
             // Create dataset in database from file
             console.log(req.file.path);
-            const result = await control.createDataset(req.models.datasets, req.file.path);
+            const result = await control.createDataset(req.models.datasets, req.file.path, req.user.username);
             res.status(201).json(result);
         }
         
     } catch (err) {
         console.error('Failed to create dataset:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
-// Route to add dataset metadata
-router.post('/metadata', authenticateJWT, async(req, res, next) => {
-    try {
-        const result = await control.createMetadata(req.models.datasets, req.user.username, req.body);
-        res.status(201).json(result);
-    } catch (err) {
-        console.error('Failed to create dataset metadata:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
