@@ -55,8 +55,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     return await files.readCSV(file3).then(async(data) => {
         files.deleteFiles([ file1, file2 ]);
 
-        return data;
-        // return joinData(input, data, params.metric);
+        return joinData(input, data, params.metric, params.word_list);
     });
 }
 
@@ -69,7 +68,7 @@ const sumCol = (data, col) => {
 
         // Iterate through new data
         for (let i = 0; i < newData.length; i++) {
-            if (x.word === newData[i].word && x.group === newData[i].group) {
+            if (x.word === newData[i].word && x.group.toLowerCase() === newData[i].group.toLowerCase()) {
                 // If the word and group match, add id and increment count
                 found = true;
                 newData[i].ids.push(x.id);
@@ -92,24 +91,51 @@ const sumCol = (data, col) => {
     return newData;
 }
 
-// // Join ids with calculated data
-// const joinData = (original, calculated, metric) => {
-//     let newData = [];
+// Join ids with calculated data
+const joinData = (original, calculated, metric, word_list) => {
+    let newData = [ ...calculated ];
 
-//     if (metric === "ll") {
-//         calculated.forEach(x => {
-//             let found = false;
+    if (metric === "ll") {
+        newData = newData.map(x => {
+            x.ids = [];
+            original.forEach(y => {
+                if (y.word === x.word) {
+                    x.ids.push(y.id);
+                }
+            }); 
 
-//             for (let i = 0; i < original.length; i++) {
-//                 if ()
-//             }
-//         })
-//     } else if (metric === "jsd") {
+            return x;
+        });
+    } else if (metric === "jsd") {
+        newData = newData.map(x => {
+            const groups = Object.keys(x)[1].split("_").splice(1).map(x => x.toLowerCase());
+            x.ids = [];
+            original.forEach(y => {
+                if (y.word === x.word && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                    x.ids.push(y.id);
+                }
+            }); 
 
-//     } else if (metric === "ojsd") {
+            return x;
+        });
+    } else if (metric === "ojsd") {
+        newData = newData.map(x => {
+            const groups = Object.keys(x)[0].split("_").splice(1).map(x => x.toLowerCase());
+            x.ids = [];
+            original.forEach(y => {
+                if (word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                    x.ids.push(y.id);
+                }
+            }); 
 
-//     }
-// }
+            return x;
+        });
+    } else {
+        throw new Error(`Invalid metric ${ metric }`);
+    }
+
+    return newData;
+}
 
 module.exports = {
     createGraph
