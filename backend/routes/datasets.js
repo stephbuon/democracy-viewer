@@ -169,27 +169,6 @@ router.get('/count/subset/:table', async(req, res, next) => {
     next();
 });
 
-// Route to download a csv of a full dataset
-router.get('/download/:table', async(req, res, next) => {
-    try {
-        // Generate file
-        const result = await control.downloadDataset(req.models.datasets, req.params.table);
-        // Download file
-        res.download(result, `${ req.params.table }.csv`, (err) => {
-            // Error handling
-            if (err) {
-                console.error("Failed to download dataset:", err);
-                res.status(500).json({ message: err.toString() });
-                next();
-            }
-        });
-    } catch (err) {
-        console.error('Failed to download dataset:', err);
-        res.status(500).json({ message: err.toString() });
-        next();
-    }
-});
-
 // Route to download a subset of a dataset
 router.get('/download/subset/:table', async(req, res, next) => {
     try {

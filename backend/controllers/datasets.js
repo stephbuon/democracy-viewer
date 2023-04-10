@@ -116,18 +116,6 @@ const getTags = async(datasets, table) => {
     return results;
 } 
 
-// Download a csv with all records from a dataset
-const downloadDataset = async(datasets, table) => {
-    // Clear the downloads folder on the server
-    util.clearDirectory("./downloads/");
-    // Get all records in this dataset
-    const records = await datasets.getSubset(table, {}, false);
-    // Generate csv from records
-    const fileName = await util.generateCSV(`./downloads/${ table }_${ Date.now() }.csv`, records);
-    // Return generated file name
-    return fileName;
-}
-
 // Download a subset of a dataset
 const downloadSubset = async(datasets, table, params) => {
     // Clear the downloads folder on the server
@@ -176,7 +164,6 @@ module.exports = {
     addTag,
     changeColType,
     updateMetadata,
-    downloadDataset,
     downloadSubset,
     getUniqueTags,
     getTags,
