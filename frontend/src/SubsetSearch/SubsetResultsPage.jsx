@@ -10,11 +10,12 @@ import Table from '@mui/material/Table';
 import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
 
 //Other Imports
-import { GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+import { DownloadSubset, DownloadFullDataset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 
 import "./MoveBar.css"
 import "./Loading.css"
 import { Result } from './Result';
+
 
 export const SubsetResultsPage = (props) => {
     const navigate = useNavigate();
@@ -29,9 +30,9 @@ export const SubsetResultsPage = (props) => {
     const [page, setPage] = useState(1);
     const [query, setQuery] = useState("");
     const [loadingNextPage, setLoadingNextPage] = useState(false)
-
-
     const [loadingResults, setLoadingResults] = useState(false);
+
+    let FileSaver = require('file-saver');
 
     const doMoveAnimation = () => {
         console.log("STARTING THE MOVE")
@@ -83,8 +84,8 @@ export const SubsetResultsPage = (props) => {
         setLoadingNextPage(true);
         GetSubsetOfDataByPage(query, page + 1).then((res) => {
             _results = [...searchResults, ...res];
-            console.log("Combo array",_results);
-            
+            console.log("Combo array", _results);
+
         })
         setTimeout(() => {
             setLoadingNextPage(false)
@@ -171,117 +172,154 @@ export const SubsetResultsPage = (props) => {
             </Box>
         </Box>
         {searched && !loadingResults && <Box
-        sx={{
-            display: 'flex',
-            justifyContent: 'center',
-        }}>
-            {totalNumResults} results returned
-        </Box>}
-        {searched && <Box
             sx={{
                 display: 'flex',
                 justifyContent: 'center',
             }}>
-            <Table
+            <Box
                 sx={{
-                    color: 'rgb(0, 0, 0)',
-                    marginTop: '2rem',
-                    width: .8,
-                    marginBottom: '2rem'
+                    display: 'flex',
+                    justifyContent: 'center',
                 }}
-            >
-                <TableHead
-                    sx={{
-                        background: 'rgb(255, 255, 255)',
-                    }}>
-                    <TableRow>
-                        <TableCell>
-                            Results
-                        </TableCell>
-                    </TableRow>
-                </TableHead>
+            >{totalNumResults} results returned</Box>
+            <Button
+                sx={{
+                    background: 'rgb(255, 255, 255)',
+                    color: 'rgb(0, 0, 0)',
+                    marginLeft: '2em',
 
-                {/*Animated Class while people wait for database response*/}
-                {loadingResults && <TableBody sx={{ background: '#fff' }}>
-                    <TableRow className='loadingData1'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData2'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData3'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData4'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData5'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData6'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData7'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData8'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                </TableBody>}
+                    '&:hover': {
+                        background: 'rgb(200, 200, 200)'
+                    }
+                }}
+                onClick={() => DownloadFullDataset(query).then((res) => {
+                    let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
+                    FileSaver.saveAs(blob, `${query.table_name}.csv`);
+                })}
+            >Download full dataset</Button>
+            <Button
+                sx={{
+                    background: 'rgb(255, 255, 255)',
+                    color: 'rgb(0, 0, 0)',
+                    marginLeft: '2em',
 
-                {!loadingResults && <TableBody sx={{ background: '#fff' }}>
-                    {searchResults.map((result) => {
-                        return <TableRow id={Object.keys(result)[0]} key={Object.keys(result)[0]}>
-                            <TableCell>
-                                <Result result={result} dataset={props.dataset} />
-                            </TableCell>
-                        </TableRow>
-                    })}
-                </TableBody>}
-                {loadingNextPage && <TableBody sx={{ background: '#fff' }}>
-                    <TableRow className='loadingData1'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData2'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData3'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData4'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData5'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData6'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData7'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData8'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                </TableBody>}
-                <TableRow sx={{
-                    justifyContent: "center",
-                    alignItems: "center"
+                    '&:hover': {
+                        background: 'rgb(200, 200, 200)'
+                    }
+                }}
+                onClick={() => DownloadSubset(query).then((res) => {
+                    let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
+                    FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);
+                })}
+            >Download these {totalNumResults} results</Button>
+        </Box>}
+        {
+            searched && <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
                 }}>
-                    {page < totalNumOfPages && <Button
-                        onClick={() => GetNewPage()}
+                <Table
+                    sx={{
+                        color: 'rgb(0, 0, 0)',
+                        marginTop: '2rem',
+                        width: .8,
+                        marginBottom: '2rem'
+                    }}
+                >
+                    <TableHead
                         sx={{
                             background: 'rgb(255, 255, 255)',
-                            color: 'rgb(0, 0, 0)',
-                            marginLeft: '2em',
+                        }}>
+                        <TableRow>
+                            <TableCell>
+                                Results
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
 
-                            '&:hover': {
-                                background: 'rgb(200, 200, 200)'
-                            }
-                        }}>Load More</Button>}
-                </TableRow>
-            </Table>
-        </Box>}
+                    {/*Animated Class while people wait for database response*/}
+                    {loadingResults && <TableBody sx={{ background: '#fff' }}>
+                        <TableRow className='loadingData1'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData2'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData3'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData4'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData5'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData6'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData7'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData8'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                    </TableBody>}
+
+                    {!loadingResults && <TableBody sx={{ background: '#fff' }}>
+                        {searchResults.map((result) => {
+                            return <TableRow id={Object.keys(result)[0]} key={Object.keys(result)[0]}>
+                                <TableCell>
+                                    <Result result={result} dataset={props.dataset} />
+                                </TableCell>
+                            </TableRow>
+                        })}
+                    </TableBody>}
+                    {loadingNextPage && <TableBody sx={{ background: '#fff' }}>
+                        <TableRow className='loadingData1'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData2'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData3'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData4'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData5'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData6'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData7'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData8'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                    </TableBody>}
+                    <TableRow sx={{
+                        justifyContent: "center",
+                        alignItems: "center"
+                    }}>
+                        {page < totalNumOfPages && <Button
+                            onClick={() => GetNewPage()}
+                            sx={{
+                                background: 'rgb(255, 255, 255)',
+                                color: 'rgb(0, 0, 0)',
+                                marginLeft: '2em',
+
+                                '&:hover': {
+                                    background: 'rgb(200, 200, 200)'
+                                }
+                            }}>Load More</Button>}
+                    </TableRow>
+                </Table>
+            </Box>
+        }
 
     </div >)
 
