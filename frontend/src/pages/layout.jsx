@@ -73,7 +73,7 @@ export const Layout = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {getCurrentPage()}
           </Typography>
-              {location.pathname !== '/login' ? (
+          {location.pathname !== '/login' ? (
             <Button color="inherit" component={Link} to="/login">
               Login or register
             </Button>
@@ -98,13 +98,13 @@ export const Layout = () => {
           }}
         >
           <List component="nav">
-            <ListItemButton>
+            <ListItemButton component={Link} to="/">
               <ListItemIcon>
                 <Home />
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
-            <ListItemButton>
+            <ListItemButton component={Link} to="/datasetsearch">
               <ListItemIcon>
                 <Search />
               </ListItemIcon>
@@ -122,7 +122,7 @@ export const Layout = () => {
               </ListItemIcon>
               <ListItemText primary="Upload/Edit Data Sets" />
             </ListItemButton>
-            <ListItemButton>
+            <ListItemButton component={Link} to="/Profile">
               <ListItemIcon>
                 <Person />
               </ListItemIcon>

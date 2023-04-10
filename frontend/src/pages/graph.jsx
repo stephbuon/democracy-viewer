@@ -9,15 +9,7 @@ import { Range } from "../common/range.jsx";
 import Plotly from "plotly.js-dist";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-import {
-  Grid,
-  Paper,
-  Button,
-  Radio,
-  RadioGroup,
-  FormControl,
-  FormControlLabel,
-} from "@mui/material";
+import {Grid,Paper,Button,Radio,RadioGroup,FormControl,FormControlLabel,} from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
@@ -169,6 +161,7 @@ export const Graph = ({ dataset, setData }) => {
                 />
 
               </Paper>
+              {/* Help icon that opens Modal */}
               <IconButton
                 onClick={toggleModal}
                 sx={{ position: "absolute", bottom: -5, right: 8 }}
@@ -182,7 +175,6 @@ export const Graph = ({ dataset, setData }) => {
               >
                 <DialogTitle id="how-to-modal-title">How To</DialogTitle>
                 <DialogContent>
-                  {/* Add your how-to content here */}
                   <div>This will explain how to use the graph</div>
                 </DialogContent>
               </Dialog>

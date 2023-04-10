@@ -1,30 +1,17 @@
 import * as React from 'react';
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Link from '@mui/material/Link';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import { Avatar, ListItemText } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Title, Menu, Home, Search } from '@mui/icons-material'
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import PeopleIcon from '@mui/icons-material/People';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import LayersIcon from '@mui/icons-material/Layers';
 import CardMedia from '@mui/material/CardMedia';
 
 
@@ -41,7 +28,7 @@ function DashboardContent() {
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
-               
+
                 <Box
                     component="main"
                     sx={{
@@ -69,6 +56,7 @@ function DashboardContent() {
                                         height: 240,
                                     }}
                                 >
+                                    {/* How do we upload avatar here? */}
                                     <Avatar alt="John Smith" src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
                                     <Divider flexItem sx={{ mt: 2, mb: 4 }} />
                                     <Typography variant="h4" component="h4">
@@ -76,7 +64,6 @@ function DashboardContent() {
                                     </Typography>
                                 </Paper>
                             </Grid>
-                            {/* Recent Deposits */}
                             <Grid item xs={12} md={4} lg={3}>
                                 <Paper
                                     elevation={12}
@@ -105,17 +92,14 @@ function DashboardContent() {
                                         <ListItemText>
                                             <LinkedIn color="primary" /> <Link href="#">linkedin.com/johnsmith</Link>
                                         </ListItemText>
-
-
                                         <ListItemText>
                                             <Email /> <Link href='#'>john.smith@gmail.com</Link>
                                         </ListItemText>
 
                                     </List>
-
+                                    {/* Will add in edit button to edit personal information */}
                                 </Paper>
                             </Grid>
-                            {/* Recent Orders */}
                             <Grid item xs={12} md={4} lg={9}>
                                 <Paper
                                     elevation={12}
