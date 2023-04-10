@@ -24,6 +24,7 @@ export const SubsetResultsPage = (props) => {
     const [searchResults, setSearchResults] = useState([]);
     const [searched, setSearched] = useState(false);
     const [searching, setSearching] = useState(false);
+    const [totalNumResults, setTotalNumResults] = useState(0);
     const [totalNumOfPages, setTotalNumOfPages] = useState(0);
     const [page, setPage] = useState(1);
     const [query, setQuery] = useState("");
@@ -69,6 +70,7 @@ export const SubsetResultsPage = (props) => {
         })
 
         GetNumOfEntries(_query).then(async (res) => {
+            setTotalNumResults(res);
             let tot = res / 50;
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
@@ -168,6 +170,13 @@ export const SubsetResultsPage = (props) => {
                 </Button>
             </Box>
         </Box>
+        {searched && !loadingResults && <Box
+        sx={{
+            display: 'flex',
+            justifyContent: 'center',
+        }}>
+            {totalNumResults} results returned
+        </Box>}
         {searched && <Box
             sx={{
                 display: 'flex',
