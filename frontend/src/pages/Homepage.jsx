@@ -31,13 +31,7 @@ export default function Homepage() {
     
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="relative">
-        <Toolbar>
-          <Typography variant="h6" color="inherit" noWrap>
-            Text-Mining Development 
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      
       <main>
         {/* Hero unit */}
         <Box
@@ -55,11 +49,10 @@ export default function Homepage() {
               color="text.primary"
               gutterBottom
             >
-              Text Mining Development 
+              TextMining Development 
             </Typography>
             <Typography variant="h5" align="center" color="text.secondary" paragraph>
-            A community to analyze and share data sets.
-Text Mining Development offers an array of visualization tools to support statistical and close readings of text.
+              A community to share and access numerous historical datasets. Helping to further research and knowledge on a daily basis.
             </Typography>
             <Stack
               sx={{ pt: 4 }}
@@ -208,7 +201,7 @@ Text Mining Development offers an array of visualization tools to support statis
                       Upload
                     </Typography>
                     <Typography align='center'>
-                      Upload a Personal Dataset
+                      Upload a Data Set
                     </Typography>
                   </CardContent>
                   <CardActions style={{justifyContent: 'center'}}>
