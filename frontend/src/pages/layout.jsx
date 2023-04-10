@@ -1,31 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  Button,
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Box,
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Home as HomeIcon,
-  BarChart as BarChartIcon,
-  Email,
-  PermIdentity,
-  Person,
-  Title,
-  Menu,
-  Home,
-  Search,
-} from '@mui/icons-material';
+import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItem,ListItemIcon,ListItemText,Box,} from '@mui/material';
+import {Menu as MenuIcon,Home as HomeIcon,BarChart as BarChartIcon,Person,Home,Search,} from '@mui/icons-material';
 import ListItemButton from '@mui/material/ListItemButton';
 import Divider from '@mui/material/Divider';
 import PeopleIcon from '@mui/icons-material/People';
@@ -43,16 +20,18 @@ export const Layout = () => {
     switch (location.pathname) {
       case '/':
         return 'Home';
-      case '/search':
+      case '/datasetsearch':
         return 'Search';
-      case '/groups':
-        return 'Groups';
-      case '/upload':
-        return 'Upload/Edit Datasets';
-      case '/profile':
-        return 'Profile';
-      default:
+      case '/graph':
         return 'Graphs';
+      case '/login':
+        return 'Login';
+      case '/Profile':
+        return 'Profile';
+      case '/register':
+        return 'Register';
+      default:
+        return 'Home';
     }
   };
 
@@ -98,25 +77,25 @@ export const Layout = () => {
           }}
         >
           <List component="nav">
-            <ListItemButton component={Link} to="/">
+            <ListItemButton component={Link} to="/" sx={{ pt: 3 }} >
               <ListItemIcon>
                 <Home />
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/datasetsearch">
+            <ListItemButton component={Link} to="/datasetsearch" sx={{ pt: 3 }}>
               <ListItemIcon>
                 <Search />
               </ListItemIcon>
               <ListItemText primary="Search" />
             </ListItemButton>
-            <ListItemButton>
+            <ListItemButton sx={{ pt: 3 }}>
               <ListItemIcon>
                 <PeopleIcon />
               </ListItemIcon>
               <ListItemText primary="Groups" />
             </ListItemButton>
-            <ListItemButton>
+            <ListItemButton component={Link} to='/graph'>
               <ListItemIcon>
                 <BarChartIcon />
               </ListItemIcon>
