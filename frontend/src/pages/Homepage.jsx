@@ -55,10 +55,11 @@ export default function Homepage() {
               color="text.primary"
               gutterBottom
             >
-              Text-Mining Development 
+              Text Mining Development 
             </Typography>
             <Typography variant="h5" align="center" color="text.secondary" paragraph>
-              A community to share and access numerous historical datasets. Helping to further research and knowledge on a daily basis.
+            A community to analyze and share data sets.
+Text Mining Development offers an array of visualization tools to support statistical and close readings of text.
             </Typography>
             <Stack
               sx={{ pt: 4 }}
