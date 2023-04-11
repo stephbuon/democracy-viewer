@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 //MUI Imports
 import Box from '@mui/material/Box';
@@ -27,10 +27,11 @@ export const SubsetResultsPage = (props) => {
     const [searching, setSearching] = useState(false);
     const [totalNumResults, setTotalNumResults] = useState(0);
     const [totalNumOfPages, setTotalNumOfPages] = useState(0);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [query, setQuery] = useState("");
     const [loadingNextPage, setLoadingNextPage] = useState(false)
     const [loadingResults, setLoadingResults] = useState(false);
+    const [loadingPage, setLoadingPage] = useState(true);
 
     let FileSaver = require('file-saver');
 
@@ -60,7 +61,10 @@ export const SubsetResultsPage = (props) => {
         }
 
         console.log("QUERY ", _query.search)
-        setTimeout(() => setLoadingResults(false), 3000);
+        setTimeout(() => {
+            setLoadingResults(false);
+            setLoadingPage(false);
+        }, 3000);
         GetSubsetOfDataByPage(_query, 1).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
@@ -68,6 +72,7 @@ export const SubsetResultsPage = (props) => {
             else {
                 setSearchResults(res);
             }
+            setPage(1);
         })
 
         GetNumOfEntries(_query).then(async (res) => {
@@ -79,24 +84,69 @@ export const SubsetResultsPage = (props) => {
         setQuery(_query);
     }
 
-    const GetNewPage = () => {
-        let _results = [];
+    const GetNewPage = async () => {
+        if(loadingPage) {return}
         setLoadingNextPage(true);
-        GetSubsetOfDataByPage(query, page + 1).then((res) => {
-            _results = [...searchResults, ...res];
-            console.log("Combo array", _results);
+        setLoadingPage(true)
+        try {
+            const resPromise = GetSubsetOfDataByPage(query, page + 1);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            const res = await resPromise;
+            if (res) {
+                setSearchResults(prevResults => [...prevResults, ...res]);
+                setPage(page + 1);
+            }
+        } catch (error) {
+            console.error('Error fetching new page:', error);
+        } finally {
+            setLoadingNextPage(false);
+            setLoadingPage(false);
+        }
+    };
 
-        })
-        setTimeout(() => {
-            setLoadingNextPage(false)
-            setSearchResults(_results);
-        }, 3000);
-        setPage(page + 1);
-    }
+    //Old function
+    // const GetNewPage = () => {
+    //     let _results = [];
+    //     console.log("getting page", page)
+    //     setLoadingNextPage(true);
+    //     GetSubsetOfDataByPage(query, page + 1).then((res) => {
+    //         _results = [...searchResults, ...res];
+    //         console.log("Combo array", _results);
+
+    //     })
+    //     setTimeout(() => {
+    //         setLoadingNextPage(false)
+    //         setSearchResults(_results);
+    //     }, 3000);
+    //     setPage(page + 1);
+    // }
+
+    //infinite scroll
+    // window.addEventListener("scroll", (event) => {
+    //     let lastKnownScrollPosition = window.scrollY;
+    //     // let limit = document.documentElement.offsetHeight
+    //     let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, 
+    //         document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
+    //     // console.log("lastKnownScrollPosition out of limit",lastKnownScrollPosition, limit)
+    //     // console.log("SHOULD BE GRABBING NEW PAGE",lastKnownScrollPosition, (limit - 600))
+    //     // console.log("1",lastKnownScrollPosition > (limit - 600),"2", !loadingNextPage,"3", page < totalNumOfPages,"4", page > 0)
+    //     if (lastKnownScrollPosition > (limit - 1000)  && !loadingNextPage && page < totalNumOfPages && page > 0) {
+    //         if(page < totalNumOfPages)
+    //         {
+    //             setLoadingNextPage(true);
+    //         }
+    //         setTimeout(() => {
+    //             if(!loadingNextPage)
+    //             {
+    //                 GetNewPage();
+    //             }
+    //         }, 1000);
+    //         console.log("SHOULD BE GRABBING NEW PAGE")
+
+    //     }
+    //   });
 
     const handleKeyPress = event => {
-        // console.log('User pressed: ', event.key);
-
         if (event.key === 'Enter') {
             doMoveAnimation()
             console.log(searchTerm)
@@ -104,15 +154,45 @@ export const SubsetResultsPage = (props) => {
         }
     };
 
-    //code to see if enter key is pressed (search when that happens)
     useEffect(() => {
-        // setSearchTerm(params.searchterm)
         console.log(props)
-        // GetSubsetOfData({table_name: props.dataset.table_name, seach:""}).then(async (res) => {
-        //     setSearchResults(res)
-        // })
     }, []);
 
+    useEffect(() => {
+        console.log("page",loadingPage)
+    }, [loadingPage]);
+
+    useEffect(() => {
+        const handleScroll = (event) => {
+            // if(loadingResults) {return}
+            let lastKnownScrollPosition = window.scrollY;
+            let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, 
+            document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
+            if (lastKnownScrollPosition > (limit - 1000) && !loadingNextPage && page < totalNumOfPages && page > 0) {
+                GetNewPage();
+                console.log("SHOULD BE GRABBING NEW PAGE")
+                
+
+                //     if(page < totalNumOfPages)
+                //     {
+                //         setLoadingNextPage(true);
+                //     }
+                //     setTimeout(() => {
+                //         if(!loadingNextPage)
+                //         {
+
+                //         }
+                //     }, 1000);
+
+            }
+        };
+
+        window.addEventListener("scroll", handleScroll);
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, [page, loadingNextPage, totalNumOfPages, loadingPage]);
 
     return (<div className='darkblue'>
         <Box className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
@@ -305,7 +385,7 @@ export const SubsetResultsPage = (props) => {
                         justifyContent: "center",
                         alignItems: "center"
                     }}>
-                        {page < totalNumOfPages && <Button
+                        {/* {page < totalNumOfPages && <Button
                             onClick={() => GetNewPage()}
                             sx={{
                                 background: 'rgb(255, 255, 255)',
@@ -315,7 +395,7 @@ export const SubsetResultsPage = (props) => {
                                 '&:hover': {
                                     background: 'rgb(200, 200, 200)'
                                 }
-                            }}>Load More</Button>}
+                            }}>Load More</Button>} */}
                     </TableRow>
                 </Table>
             </Box>
