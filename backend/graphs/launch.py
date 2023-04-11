@@ -1,4 +1,8 @@
+# Import metrics
 import util.dhmeasures as dhmeasures
+import util.tf_idf as tf_idf
+
+# Other imports
 import pandas as pd
 import sys
 import json
@@ -20,6 +24,8 @@ elif params["metric"] == "jsd":
     output = dhmeasures.JSD(data, params["group_list"], params["word_list"], "group", "word", "n")
 elif params["metric"] == "ojsd":
     output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
+elif params["metric"] == "tf_idf":
+    output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
 else:
     sys.exit("Invalid metric: " + params["metric"])
 
