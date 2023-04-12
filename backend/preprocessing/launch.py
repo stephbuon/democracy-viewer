@@ -1,3 +1,6 @@
+# Python modules
+import util.word_embeddings as word_embeddings
+
 import pandas as pd
 import sys
 # APIs to backend server
@@ -36,7 +39,7 @@ def getTable():
 # Split the text and insert into database
 def splitText(data):
     # Import split_text function from split.R
-    with open("util/split.R", "r") as file:
+    with open("preprocessing/util/split_text.R", "r") as file:
         split_text = file.read()
     split_text = STAP(split_text, "split_text")
 
@@ -47,10 +50,15 @@ def splitText(data):
         body = json.loads(split_data[i:(i + 50000)].to_json(orient = "records"))
         requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
 
+# Compute word embeddings and insert into database
+def wordEmbeddings(data):
+    results = word_embeddings.word_embeddings()
+
 # Convert pandas.DataFrames to R dataframes automatically.
 pandas2ri.activate()
 
 data = getTable()
 splitText(data)
+wordEmbeddings(data)
 
 # python3 launch.py hansard_1870_1679632154914
