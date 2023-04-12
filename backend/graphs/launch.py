@@ -24,7 +24,7 @@ elif params["metric"] == "jsd":
     output = dhmeasures.JSD(data, params["group_list"], params["word_list"], "group", "word", "n")
 elif params["metric"] == "ojsd":
     output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
-elif params["metric"] == "tf_idf":
+elif params["metric"] == "tf-idf":
     output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
 else:
     sys.exit("Invalid metric: " + params["metric"])

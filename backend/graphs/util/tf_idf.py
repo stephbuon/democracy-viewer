@@ -8,12 +8,13 @@ pandas2ri.activate()
 
 def tf_idf(data, group_list, word_list, group, word, n):
     # Import tf_idf function from tf_idf.R
-    with open("tf_idf.R", "r") as file:
+    with open("graphs/util/tf_idf.R", "r") as file:
         tf_idf = file.read()
     tf_idf = STAP(tf_idf, "tf_idf")
 
     # Run tf_idf runction
     output = tf_idf.tf_idf(data, StrVector(group_list), StrVector(word_list), group, word, n)
     output = conversion.rpy2py(output)
+    
     return output
 

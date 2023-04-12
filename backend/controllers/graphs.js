@@ -55,7 +55,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     return await files.readCSV(file3).then(async(data) => {
         files.deleteFiles([ file1, file2 ]);
 
-        return joinData(input, data, params.metric, params.word_list);
+        return joinData(input, data, params);
     });
 }
 
@@ -92,10 +92,10 @@ const sumCol = (data, col) => {
 }
 
 // Join ids with calculated data
-const joinData = (original, calculated, metric, word_list) => {
+const joinData = (original, calculated, params) => {
     let newData = [ ...calculated ];
 
-    if (metric === "ll") {
+    if (params.metric === "ll") {
         newData = newData.map(x => {
             x.ids = [];
             original.forEach(y => {
@@ -106,7 +106,7 @@ const joinData = (original, calculated, metric, word_list) => {
 
             return x;
         });
-    } else if (metric === "jsd") {
+    } else if (params.metric === "jsd") {
         newData = newData.map(x => {
             const groups = Object.keys(x)[1].split("_").splice(1).map(x => x.toLowerCase());
             x.ids = [];
@@ -118,12 +118,23 @@ const joinData = (original, calculated, metric, word_list) => {
 
             return x;
         });
-    } else if (metric === "ojsd") {
+    } else if (params.metric === "ojsd") {
         newData = newData.map(x => {
             const groups = Object.keys(x)[0].split("_").splice(1).map(x => x.toLowerCase());
             x.ids = [];
             original.forEach(y => {
-                if (word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                if (params.word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                    x.ids.push(y.id);
+                }
+            }); 
+
+            return x;
+        });
+    } else if (params.metric === "tf-idf") {
+        newData = newData.map(x => {
+            x.ids = [];
+            original.forEach(y => {
+                if (x.word === y.word && x.group === y.group) {
                     x.ids.push(y.id);
                 }
             }); 
@@ -131,7 +142,7 @@ const joinData = (original, calculated, metric, word_list) => {
             return x;
         });
     } else {
-        throw new Error(`Invalid metric ${ metric }`);
+        throw new Error(`Invalid metric ${ params.metric }`);
     }
 
     return newData;
