@@ -85,7 +85,7 @@ export const SubsetResultsPage = (props) => {
     }
 
     const GetNewPage = async () => {
-        if(loadingPage) {return}
+        if (loadingPage) { return }
         setLoadingNextPage(true);
         setLoadingPage(true)
         try {
@@ -159,19 +159,19 @@ export const SubsetResultsPage = (props) => {
     }, []);
 
     useEffect(() => {
-        console.log("page",loadingPage)
+        console.log("page", loadingPage)
     }, [loadingPage]);
 
     useEffect(() => {
         const handleScroll = (event) => {
             // if(loadingResults) {return}
             let lastKnownScrollPosition = window.scrollY;
-            let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, 
-            document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
+            let limit = Math.max(document.body.scrollHeight, document.body.offsetHeight,
+                document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
             if (lastKnownScrollPosition > (limit - 1000) && !loadingNextPage && page < totalNumOfPages && page > 0) {
                 GetNewPage();
                 console.log("SHOULD BE GRABBING NEW PAGE")
-                
+
 
                 //     if(page < totalNumOfPages)
                 //     {
@@ -293,113 +293,91 @@ export const SubsetResultsPage = (props) => {
                 })}
             >Download these {totalNumResults} results</Button>
         </Box>}
-        {
-            searched && <Box
+        {searched && <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                margin: 0
+            }}>
+            <Table
+                stickyHeader
                 sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                }}>
-                <Table
-                    sx={{
-                        color: 'rgb(0, 0, 0)',
-                        marginTop: '2rem',
-                        width: .8,
-                        marginBottom: '2rem'
-                    }}
-                >
-                    <TableHead
-                        sx={{
-                            background: 'rgb(255, 255, 255)',
-                        }}>
-                        <TableRow>
-                            <TableCell>
-                                Results
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-
-                    {/*Animated Class while people wait for database response*/}
-                    {loadingResults && <TableBody sx={{ background: '#fff' }}>
-                        <TableRow className='loadingData1'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData2'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData3'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData4'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData5'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData6'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData7'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData8'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                    </TableBody>}
-
-                    {!loadingResults && <TableBody sx={{ background: '#fff' }}>
-                        {searchResults.map((result) => {
-                            return <TableRow id={Object.keys(result)[0]} key={Object.keys(result)[0]}>
-                                <TableCell>
-                                    <Result result={result} dataset={props.dataset} />
-                                </TableCell>
-                            </TableRow>
+                    color: 'rgb(0, 0, 0)',
+                    marginTop: '2rem',
+                    tableLayout: 'fixed',
+                    overflowX: 'scroll',
+                    overflow: 'hidden'
+                }}
+            >
+                {!loadingResults && <TableHead>
+                    <TableRow
+                    // sx={{
+                    //     overflow: 'hidden'
+                    // }}
+                    >
+                        {Object.keys(searchResults[0]).map(key => {
+                            return <TableCell
+                                sx={{
+                                    width: .2
+                                }}
+                            >{key}</TableCell>
                         })}
-                    </TableBody>}
-                    {loadingNextPage && <TableBody sx={{ background: '#fff' }}>
-                        <TableRow className='loadingData1'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData2'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData3'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData4'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData5'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData6'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData7'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                        <TableRow className='loadingData8'>
-                            <TableCell>&nbsp;</TableCell>
-                        </TableRow>
-                    </TableBody>}
-                    <TableRow sx={{
-                        justifyContent: "center",
-                        alignItems: "center"
-                    }}>
-                        {/* {page < totalNumOfPages && <Button
-                            onClick={() => GetNewPage()}
-                            sx={{
-                                background: 'rgb(255, 255, 255)',
-                                color: 'rgb(0, 0, 0)',
-                                marginLeft: '2em',
-
-                                '&:hover': {
-                                    background: 'rgb(200, 200, 200)'
-                                }
-                            }}>Load More</Button>} */}
                     </TableRow>
-                </Table>
-            </Box>
-        }
+
+                </TableHead>}
+
+                {!loadingResults && <TableBody sx={{ background: '#fff' }}>
+                    {searchResults.map((result) => {
+                        return <TableRow
+                            id={Object.keys(result)[0]}
+                            key={Object.keys(result)[0]}
+                            sx={{
+                                width: 1
+                            }}
+                            >
+                            <Result result={result} dataset={props.dataset} />
+                        </TableRow>
+                    })}
+                </TableBody>}
+            </Table>
+        </Box>}
+        {searched && <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginBottom: '2em',
+                marginTop: 0
+            }}>
+            <Table
+                sx={{ width: .8 }}>
+                {(loadingResults || loadingNextPage) && <TableBody sx={{ background: '#fff' }}>
+                    <TableRow className='loadingData1'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData2'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData3'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData4'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData5'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData6'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData7'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                    <TableRow className='loadingData8'>
+                        <TableCell>&nbsp;</TableCell>
+                    </TableRow>
+                </TableBody>}
+            </Table>
+        </Box>}
 
     </div >)
 

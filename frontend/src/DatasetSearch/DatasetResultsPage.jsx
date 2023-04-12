@@ -161,6 +161,8 @@ export const DatasetResultsPage = (props) => {
             <Box>
                 <Card>
                     <div style={{ position: "relative" }}>
+                        {/* Lol, I was playing with the site today and saw "Pancakes when hovering over the image.
+                            Can't bring myself to delete the title on this component" */}
                         <CardMedia style={{ height: "400px" }} component="img" image={"https://cdn.pixabay.com/photo/2018/04/10/17/45/look-for-3308177_1280.png"} title="Pancakes" alt="Pancakes" />
                         <div style={{ position: "absolute", color: "white", top: 10, left: "50%", transform: "translateX(-50%)", }}>
 
