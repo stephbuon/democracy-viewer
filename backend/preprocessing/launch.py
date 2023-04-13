@@ -9,7 +9,6 @@ import json
 from dotenv import load_dotenv
 import os
 # These will let us use R packages:
-from rpy2.robjects.packages import importr
 from rpy2.robjects.packages import STAP
 from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
@@ -50,15 +49,23 @@ def splitText(data):
         body = json.loads(split_data[i:(i + 50000)].to_json(orient = "records"))
         requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
 
+    return split_data
+
 # Compute word embeddings and insert into database
 def wordEmbeddings(data):
-    results = word_embeddings.word_embeddings()
+    # Calculate word embeddings
+    results = word_embeddings.word_embeddings(data)
+
+    # Insert into db
+    # for i in range(0, len(results.index), 50000):
+    #     body = json.loads(results[i:(i + 50000)].to_json(orient = "records"))
+    #     requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, data = body, headers = HEADERS)
 
 # Convert pandas.DataFrames to R dataframes automatically.
 pandas2ri.activate()
 
 data = getTable()
-splitText(data)
-wordEmbeddings(data)
+split = splitText(data)
+wordEmbeddings(split)
 
 # python3 launch.py hansard_1870_1679632154914

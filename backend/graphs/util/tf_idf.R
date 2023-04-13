@@ -1,10 +1,14 @@
 library(tidytext)
-library(tidyverse)
+library(dplyr)
+library(textstem)
 
 tf_idf = function(data, group_list, word_list, group, word, n) {
   word = dplyr::enquo(word)
   group = dplyr::enquo(group)
   n = dplyr::enquo(n)
+
+  # Lemmatize word list
+  word_list = textstem::lemmatize_words(word_list)
   
   # Calculate tf-idf
   output = tidytext::bind_tf_idf(data, !!word, !!group, !!n) %>%

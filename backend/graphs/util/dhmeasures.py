@@ -1,11 +1,13 @@
 # These will let us use R packages:
-from rpy2.robjects.packages import importr
+from rpy2.robjects.packages import STAP
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.vectors import StrVector
 from rpy2.robjects import conversion
 
 pandas2ri.activate()
-dhmeasures = importr("dhmeasures")
+with open("graphs/util/dhmeasures.R", "r") as file:
+    dhmeasures = file.read()
+dhmeasures = STAP(dhmeasures, "dhmeasures")
 
 def LogLikelihood(data, group_list, word_list, group, word, n):
     output = dhmeasures.log_likelihood(data, StrVector(group_list), StrVector(word_list), group, word, n)
