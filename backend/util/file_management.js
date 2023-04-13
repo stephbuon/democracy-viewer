@@ -62,7 +62,7 @@ const readCSV = (path) => new Promise((resolve, reject) => {
         .pipe(csv_read())
         .on("data", d => data.push(d))
         .on("end", () => {
-            fs.unlinkSync(path);
+            // fs.unlinkSync(path);
             resolve(data);
         })
         .on("error", err => {

@@ -3,6 +3,18 @@ const router = express.Router();
 const control = require("../controllers/preprocessing");
 const { authenticateJWT } = require("../middleware/authentication");
 
+// Begin preprocessing
+router.post('/:table', async(req, res, next) => {
+    try {
+        const result = await control.beginPreprocessing(req.models, req.params.table);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to add split text records:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Add split text records
 router.post('/split/:table', authenticateJWT, async(req, res, next) => {
     try {

@@ -3,6 +3,7 @@ import util.word_embeddings as word_embeddings
 
 import pandas as pd
 import sys
+import numpy as np
 # APIs to backend server
 import requests
 import json
@@ -22,16 +23,20 @@ HEADERS = {
 
 # Get the data from a database table
 def getTable():
-    page = 1
-    print("Page:", page)
-    data = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
-    data = pd.DataFrame(json.loads(data.text))
-    while (page == 1 or len(curr.index) > 0):
-        page += 1
-        print("Page", page)
-        curr = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
-        curr = pd.DataFrame(json.loads(curr.text))
-        data = pd.concat([data, curr])
+    # page = 1
+    # print("Page:", page)
+    # data = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
+    # data = pd.DataFrame(json.loads(data.text))
+    # while (page == 1 or len(curr.index) > 0):
+    #     page += 1
+    #     print("Page", page)
+    #     curr = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
+    #     curr = pd.DataFrame(json.loads(curr.text))
+    #     data = pd.concat([data, curr])
+
+    file = sys.argv[2]
+    data = pd.read_csv(file)
+    data["id"] = data.index
 
     return data
 
@@ -43,11 +48,15 @@ def splitText(data):
     split_text = STAP(split_text, "split_text")
 
     # Split the text of the given data frame
+    # Convert pandas.DataFrames to R dataframes automatically.
+    pandas2ri.activate()
     split_data = split_text.split_text(data, "text")
     split_data = ro.conversion.rpy2py(split_data)
-    for i in range(0, len(split_data.index), 50000):
-        body = json.loads(split_data[i:(i + 50000)].to_json(orient = "records"))
-        requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
+
+    # for i in range(0, len(split_data.index), 50000):
+    #     body = json.loads(split_data[i:(i + 50000)].to_json(orient = "records"))
+    #     requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
+    split_data.to_csv("datasets/hansard_test_split.csv", index = False)
 
     return split_data
 
@@ -55,14 +64,12 @@ def splitText(data):
 def wordEmbeddings(data):
     # Calculate word embeddings
     results = word_embeddings.word_embeddings(data)
+    print(results.head())
 
     # Insert into db
     # for i in range(0, len(results.index), 50000):
     #     body = json.loads(results[i:(i + 50000)].to_json(orient = "records"))
     #     requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, data = body, headers = HEADERS)
-
-# Convert pandas.DataFrames to R dataframes automatically.
-pandas2ri.activate()
 
 data = getTable()
 split = splitText(data)

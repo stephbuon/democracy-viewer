@@ -12,7 +12,7 @@ def word_embeddings(data):
     word_embeddings = STAP(word_embeddings, "word_embeddings")
 
     # Run tf_idf runction
-    output = word_embeddings.export_word_embeddings(data, view_most_similar = False)
+    output = word_embeddings.export_word_embeddings(data)
     output = conversion.rpy2py(output)
     
     return output
