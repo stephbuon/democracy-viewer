@@ -27,7 +27,6 @@ export const Result = (props) => {
                 }}
                 >{props.result[key]}</TableCell>
             })}
-            {/* {props.result[keys[0]]} */}
         </Box>
         <Modal
             open={open}

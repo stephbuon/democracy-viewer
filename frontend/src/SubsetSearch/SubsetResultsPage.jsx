@@ -297,15 +297,16 @@ export const SubsetResultsPage = (props) => {
             sx={{
                 display: 'flex',
                 justifyContent: 'center',
-                margin: 0
+                margin: 0,
+                overflowX: 'auto',
             }}>
             <Table
                 stickyHeader
                 sx={{
                     color: 'rgb(0, 0, 0)',
                     marginTop: '2rem',
-                    tableLayout: 'fixed',
-                    overflowX: 'scroll',
+                    // tableLayout: 'fixed',
+                    overflowX: 'auto',
                     overflow: 'hidden'
                 }}
             >
@@ -331,9 +332,6 @@ export const SubsetResultsPage = (props) => {
                         return <TableRow
                             id={Object.keys(result)[0]}
                             key={Object.keys(result)[0]}
-                            sx={{
-                                width: 1
-                            }}
                             >
                             <Result result={result} dataset={props.dataset} />
                         </TableRow>
