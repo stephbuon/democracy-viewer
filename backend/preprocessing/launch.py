@@ -27,17 +27,20 @@ def getTable():
     PER_PAGE = 50000
     pages = requests.get(BASE_URL + "/datasets/count/subset/" + TABLE_NAME)
     pages = math.ceil(int(pages.text) / PER_PAGE)
-    print(pages)
 
     # Get all dataset pages
     page = 1
     print("Page:", page)
     data = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
+    if data.status_code != 200:
+        sys.exit(data.reason)
     data = pd.DataFrame(json.loads(data.text))
-    while (page <= pages):
+    while (page < pages):
         page += 1
-        print("Page", page)
+        print("Page:", page)
         curr = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
+        if curr.status_code != 200:
+            sys.exit(curr.reason)
         curr = pd.DataFrame(json.loads(curr.text))
         data = pd.concat([data, curr])
 
@@ -59,12 +62,20 @@ def splitText(data):
     pandas2ri.activate()
     split_data = split_text.split_text(data, "text")
     split_data = ro.conversion.rpy2py(split_data)
+    split_data.to_csv("datasets/1870_split.csv", index = False)
 
     # Insert into db
-    PER_PAGE = 500000
+    PER_PAGE = 50000
+    page = 1
+    print("Split Text:")
     for i in range(0, len(split_data.index), PER_PAGE):
         body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
-        requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
+        print("Page:", page)
+        result = requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS)
+        page += 1
+        if result.status_code != 201:
+            sys.exit(result.reason)
+    print()
 
     return split_data
 
@@ -72,13 +83,19 @@ def splitText(data):
 def wordEmbeddings(data):
     # Calculate word embeddings
     results = word_embeddings.word_embeddings(data)
-    print(results.head())
 
     # Insert into db
-    PER_PAGE = 500000
+    PER_PAGE = 50000
+    page = 1
+    print("Word embeddings:")
     for i in range(0, len(results.index), PER_PAGE):
         body = json.loads(results[i:(i + PER_PAGE)].to_json(orient = "records"))
-        requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, data = body, headers = HEADERS)
+        print("Page:", page)
+        result = requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS)
+        page += 1
+        if result.status_code != 201:
+            sys.exit(result.reason)
+    print()
 
 # Get dataset from db
 data = getTable()
@@ -86,3 +103,10 @@ data = getTable()
 split = splitText(data)
 # Calculate word embeddings and insert into db
 wordEmbeddings(split)
+# Update metadata to mark as processed
+body = {
+    "processed": True
+}
+result = requests.put(BASE_URL + "/datasets/metadata/" + TABLE_NAME, json = body, headers = HEADERS)
+if result.status_code != 200:
+    sys.exit(result.reason)

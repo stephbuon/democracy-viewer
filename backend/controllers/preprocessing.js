@@ -1,22 +1,28 @@
-const files = require("../util/file_management");
 const python = require("python-shell").PythonShell;
 
 const beginPreprocessing = async(datasets, table) => {
     // Run python program that conducts preprocessing
-    try {
-        await python.run("preprocessing/launch.py", {
-            args: [ table, path ]
-        }).then(x => {
-            // Print python output
-            // console.log(x);
-        });
-    } catch(err) {
-        throw new Error(err);
-    }
+    let pythonOutput;
+    await python.run("preprocessing/launch.py", {
+        args: [ table ]
+    }).then(x => {
+        // Save python output
+        pythonOutput = x;
+    }).catch(x => {
+        // Print python output
+        console.log(x);
+        throw new Error(x);
+    });
 
     // Set dataset as processed when done
-    const record = await datasets.updateMetadata(table, { processed: true });
-    return record;
+    const record = await datasets.getMetadata(table);
+    if (!record.processed) {
+        // Throw error if the record has not been processed
+        throw new Error(pythonOutput);
+    } else {
+        // Return record if it has been processed
+        return record;
+    }
 }
 
 // Add split text records
