@@ -1,7 +1,7 @@
 const knex = require("../db/knex");
 
 const split_table = "dataset_split_text";
-const embedding_table = "dataset_embeddings";
+const embedding_table = "dataset_word_embeddings";
 
 class preprocessing {
     async addSplitWord(record) {

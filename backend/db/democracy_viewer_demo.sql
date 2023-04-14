@@ -66,4 +66,15 @@ CREATE TABLE dataset_split_text (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
+CREATE TABLE dataset_word_embeddings (
+    table_name VARCHAR(250),
+    word VARCHAR(100),
+    X1 FLOAT,
+    X2 FLOAT,
+    X3 FLOAT,
+    X4 FLOAT,
+    PRIMARY KEY(table_name, word),
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);
+
 -- Additional tables will be dynamically generated for uploaded datasets

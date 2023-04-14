@@ -20,7 +20,7 @@ export_word_embeddings = function(data) {
   vocab = create_vocabulary(it)
   
   # term_count_min is the minimum number of times a word is stated
-  # vocab = prune_vocabulary(vocab, term_count_min = 40)
+  vocab = prune_vocabulary(vocab, term_count_min = 20)
   
   vectorizer = vocab_vectorizer(vocab)
   

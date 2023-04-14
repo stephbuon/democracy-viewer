@@ -24,7 +24,7 @@ HEADERS = {
 # Get the data from a database table
 def getTable():
     # Get the number of pages
-    PER_PAGE = 50
+    PER_PAGE = 50000
     pages = requests.get(BASE_URL + "/datasets/count/subset/" + TABLE_NAME)
     pages = math.ceil(int(pages.text) / PER_PAGE)
     print(pages)
@@ -61,7 +61,7 @@ def splitText(data):
     split_data = ro.conversion.rpy2py(split_data)
 
     # Insert into db
-    PER_PAGE = 50000
+    PER_PAGE = 500000
     for i in range(0, len(split_data.index), PER_PAGE):
         body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
         requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
@@ -75,7 +75,7 @@ def wordEmbeddings(data):
     print(results.head())
 
     # Insert into db
-    PER_PAGE = 50000
+    PER_PAGE = 500000
     for i in range(0, len(results.index), PER_PAGE):
         body = json.loads(results[i:(i + PER_PAGE)].to_json(orient = "records"))
         requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, data = body, headers = HEADERS)
