@@ -26,30 +26,40 @@ const beginPreprocessing = async(datasets, table) => {
 }
 
 // Add split text records
-const addSplitRecords = async(preprocessing, table, data) => {
-    for (let i = 0; i < data.length; i++) {
-        const record = {
-            record_id: data[i].id,
-            word: data[i].word,
-            count: data[i].n,
-            col: data[i].col,
-            table_name: table
-        }
-        await preprocessing.addSplitWord(record);
+const addSplitRecords = async(preprocessing, table_name, data) => {
+    // Prep data to be inserted
+    data = data.map(x => ({
+        record_id: x.id,
+        word: x.word === null ? "null" : x.word === undefined ? "undefined" : x.word,
+        count: x.n,
+        col: x.col,
+        table_name
+    }));
+
+    // Loop through the data and insert rows
+    const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
+    for (let i = 0; i < data.length; i += per_insert) {
+        await preprocessing.addSplitWords(data.slice(i, i + per_insert));
     }
+    // await preprocessing.addSplitWords(data);
 
     return { records: data.length };
 }
 
 // Add word embedding records
 const addEmbeddingRecords = async(preprocessing, table_name, data) => {
-    for (let i = 0; i < data.length; i++) {
-        const record = {
-            ...data,
-            table_name
-        }
-        await preprocessing.addEmbedding(record);
+    // Prep data to be inserted
+    data = data.map(x => ({
+        ...x,
+        table_name
+    }));
+
+    // Loop through the data and insert rows
+    const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
+    for (let i = 0; i < data.length; i += per_insert) {
+        await preprocessing.addEmbeddings(data.slice(i, i + per_insert));
     }
+    // await preprocessing.addEmbeddings(data);
 
     return { records: data.length };
 }

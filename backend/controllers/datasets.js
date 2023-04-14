@@ -44,9 +44,15 @@ const createDataset = async(datasets, path, username) => {
         // Create empty metadata for data set
         await datasets.createMetadata(name, username);
     
+        // // Loop through the data and insert rows
+        // for (let i = 0; i < data.length; i += 10000) {
+        //     await datasets.addRows(name, data.slice(i, i + 10000));
+        // }
+
         // Loop through the data and insert rows
-        for (let i = 0; i < data.length; i += 10000) {
-            await datasets.addRows(name, data.slice(i, i + 10000));
+        const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
+        for (let i = 0; i < data.length; i += per_insert) {
+            await datasets.addRows(name, data.slice(i, i + per_insert));
         }
     
         // Return the first 10 rows of the new dataset and the table name
