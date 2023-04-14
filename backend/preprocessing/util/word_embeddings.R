@@ -1,36 +1,6 @@
-# library(tidyverse)
 library(text2vec)
-#library(MASS)
 
-# clean_data_for_word_embeddings = function(data) {
-#   
-#   source("/home/stephbuon/projects/hansard-shiny/preprocess/global_functions.R")
-#   
-#   data = data %>%
-#     filter(!str_detect(ngrams, "[[:digit:]]"))
-#   
-#   data$ngrams = str_replace(data$ngrams, "'s", "")
-#   
-#   stopwords = import_stopwords_as_regex()
-#   
-#   data = data %>%
-#     filter(!str_detect(ngrams, stopwords))
-#   
-#   return(data) 
-# }
-
-
-view_most_similar_words = function(word_vectors, keyword, n_view) {
-  kw = word_vectors[keyword, , drop = F]
-  
-  cos_sim_rom = sim2(x = word_vectors, y = kw, method = "cosine", norm = "l2")
-  
-  print(head(sort(cos_sim_rom[,1], decreasing = TRUE), n_view)) 
-}
-
-
-#export_word_embeddings = function(dir, target_dir, stopwords, view_most_similar) {
-export_word_embeddings = function(data, view_most_similar = FALSE) {
+export_word_embeddings = function(data) {
   fullText = c()
   
   for (record in unique(data$id)) {
@@ -75,5 +45,6 @@ export_word_embeddings = function(data, view_most_similar = FALSE) {
   output = data.frame(word_vectors)
   output$word = rownames(word_vectors)
   rownames(output) = NULL
+  
   return(output)
 }

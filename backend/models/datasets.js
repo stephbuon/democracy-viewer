@@ -92,7 +92,7 @@ class datasets {
     }
 
     // Filter datasets
-    async getFilteredDatasets(params, username, paginate = true, page = 1) {
+    async getFilteredDatasets(params, username, paginate = true, currentPage = 1) {
         const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
@@ -176,7 +176,8 @@ class datasets {
 
         let results;
         if (paginate) {
-            results = await query.orderBy("clicks", "desc").paginate({ perPage: 50, currentPage: page });
+            const perPage = params.pageLength ? params.pageLength : 50;
+            results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
             results = results.data;
         } else {
             results = await query;
@@ -198,7 +199,7 @@ class datasets {
     }
 
     // Get a subset of a dataset
-    async subsetTable(table, params, paginate = true, page = 1) {
+    async subsetTable(table, params, paginate = true, currentPage = 1) {
         // Get the first record in case col names are needed
         const head = await this.getHead(table, 1);
 
@@ -208,7 +209,9 @@ class datasets {
 
             // Iterate through keys and and where clause for each
             keys.forEach(key => {
-                if (key === "col_search") {
+                if (key === "pageLength") {
+                    // Skip any key that is "pageLength"
+                } else if (key === "col_search") {
                     // If the key is col_search, search for search terms in all columns
 
                     // Split search string into words
@@ -262,7 +265,8 @@ class datasets {
 
         let results;
         if (paginate === true) {
-            results = await query.orderBy("id").paginate({ perPage: 50, currentPage: page });
+            const perPage = params.pageLength ? params.pageLength : 50;
+            results = await query.orderBy("id").paginate({ perPage, currentPage });
             return results.data;
         } else if (paginate === false) {
             results = await query;

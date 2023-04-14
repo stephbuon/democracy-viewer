@@ -3,7 +3,7 @@ import util.word_embeddings as word_embeddings
 
 import pandas as pd
 import sys
-import numpy as np
+import math
 # APIs to backend server
 import requests
 import json
@@ -23,20 +23,27 @@ HEADERS = {
 
 # Get the data from a database table
 def getTable():
-    # page = 1
-    # print("Page:", page)
-    # data = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
-    # data = pd.DataFrame(json.loads(data.text))
-    # while (page == 1 or len(curr.index) > 0):
-    #     page += 1
-    #     print("Page", page)
-    #     curr = requests.get(BASE_URL + "/datasets/records/" + TABLE_NAME + "/" + str(page))
-    #     curr = pd.DataFrame(json.loads(curr.text))
-    #     data = pd.concat([data, curr])
+    # Get the number of pages
+    PER_PAGE = 50
+    pages = requests.get(BASE_URL + "/datasets/count/subset/" + TABLE_NAME)
+    pages = math.ceil(int(pages.text) / PER_PAGE)
+    print(pages)
 
-    file = sys.argv[2]
-    data = pd.read_csv(file)
-    data["id"] = data.index
+    # Get all dataset pages
+    page = 1
+    print("Page:", page)
+    data = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
+    data = pd.DataFrame(json.loads(data.text))
+    while (page <= pages):
+        page += 1
+        print("Page", page)
+        curr = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
+        curr = pd.DataFrame(json.loads(curr.text))
+        data = pd.concat([data, curr])
+
+    # file = sys.argv[2]
+    # data = pd.read_csv(file)
+    # data["id"] = data.index
 
     return data
 
@@ -53,10 +60,11 @@ def splitText(data):
     split_data = split_text.split_text(data, "text")
     split_data = ro.conversion.rpy2py(split_data)
 
-    # for i in range(0, len(split_data.index), 50000):
-    #     body = json.loads(split_data[i:(i + 50000)].to_json(orient = "records"))
-    #     requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
-    split_data.to_csv("datasets/hansard_test_split.csv", index = False)
+    # Insert into db
+    PER_PAGE = 50000
+    for i in range(0, len(split_data.index), PER_PAGE):
+        body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
+        requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, data = body, headers = HEADERS)
 
     return split_data
 
@@ -67,12 +75,14 @@ def wordEmbeddings(data):
     print(results.head())
 
     # Insert into db
-    # for i in range(0, len(results.index), 50000):
-    #     body = json.loads(results[i:(i + 50000)].to_json(orient = "records"))
-    #     requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, data = body, headers = HEADERS)
+    PER_PAGE = 50000
+    for i in range(0, len(results.index), PER_PAGE):
+        body = json.loads(results[i:(i + PER_PAGE)].to_json(orient = "records"))
+        requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, data = body, headers = HEADERS)
 
+# Get dataset from db
 data = getTable()
+# Split text and insert into db
 split = splitText(data)
+# Calculate word embeddings and insert into db
 wordEmbeddings(split)
-
-# python3 launch.py hansard_1870_1679632154914
