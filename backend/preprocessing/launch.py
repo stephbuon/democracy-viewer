@@ -4,6 +4,7 @@ import util.word_embeddings as word_embeddings
 import pandas as pd
 import sys
 import math
+import threading
 # APIs to backend server
 import requests
 import json
@@ -44,41 +45,36 @@ def getTable():
         curr = pd.DataFrame(json.loads(curr.text))
         data = pd.concat([data, curr])
 
-    # file = sys.argv[2]
-    # data = pd.read_csv(file)
-    # data["id"] = data.index
-
     return data
 
 # Split the text and insert into database
 def splitText(data):
     # Import split_text function from split.R
-    # with open("preprocessing/util/split_text.R", "r") as file:
-    #     split_text = file.read()
-    # split_text = STAP(split_text, "split_text")
+    with open("preprocessing/util/split_text.R", "r") as file:
+        split_text = file.read()
+    split_text = STAP(split_text, "split_text")
 
-    # # Split the text of the given data frame
-    # # Convert pandas.DataFrames to R dataframes automatically.
-    # pandas2ri.activate()
-    # split_data = split_text.split_text(data, "text")
-    # split_data = ro.conversion.rpy2py(split_data)
-    # split_data.to_csv("datasets/hansard_1870_split.csv", index = False)
-    split_data = pd.read_csv("datasets/hansard_1870_split.csv")
+    # Split the text of the given data frame
+    # Convert pandas.DataFrames to R dataframes automatically.
+    pandas2ri.activate()
+    split_data = split_text.split_text(data, "text")
+    split_data = ro.conversion.rpy2py(split_data)
+    split_data.to_csv("datasets/hansard_1870_split.csv", index = False)
 
+    return split_data
+
+def insertSplits(split_data):
     # Insert into db
     PER_PAGE = 50000
     page = 1
-    print("Split Text:")
     for i in range(0, len(split_data.index), PER_PAGE):
         body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
-        print("Page:", i, len(split_data.index))
+        print("Split Page:", page)
         result = requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS)
         page += 1
-        print(result.status_code, result.reason)
         if result.status_code != 201:
             sys.exit(result.reason)
-    print("here")
-    sys.exit()
+    print("Split text done")
 
     return split_data
 
@@ -86,28 +82,34 @@ def splitText(data):
 def wordEmbeddings(data):
     # Calculate word embeddings
     results = word_embeddings.word_embeddings(data)
-    results.to_csv("datasets/hansard_1870_embedding.csv", index = False)
 
     # Insert into db
     PER_PAGE = 50000
     page = 1
-    print("Word embeddings:")
     for i in range(0, len(results.index), PER_PAGE):
         body = json.loads(results[i:(i + PER_PAGE)].to_json(orient = "records"))
-        print("Page:", page)
+        print("Embeddings Page:", page)
         result = requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS)
         page += 1
         if result.status_code != 201:
             sys.exit(result.reason)
-    print()
+    print("Word embeddings done")
 
 # Get dataset from db
-# data = getTable()
-data = None
+data = getTable()
 # Split text and insert into db
 split = splitText(data)
-# Calculate word embeddings and insert into db
-wordEmbeddings(split)
+
+# Create threads to insert split records and calculate word embeddings
+t1 = threading.Thread(target = insertSplits, args = (split,))
+t2 = threading.Thread(target = wordEmbeddings, args = (split,))
+# Start threads
+t1.start()
+t2.start()
+# Wait until threads finish
+t1.join()
+t2.join()
+
 # Update metadata to mark as processed
 body = {
     "processed": True

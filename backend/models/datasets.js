@@ -21,9 +21,6 @@ class datasets {
 
     // Add multiple rows to a dataset
     async addRows(table, rows) {
-        // const queries = rows.map(row => knex(table).insert({ ...row }));
-        // const query = queries.map(q => q.toString()).join("; ");
-        // const insert = await knex.raw(query);
         const insert = await knex(table).insert([ ...rows ]);
         return insert;
     }

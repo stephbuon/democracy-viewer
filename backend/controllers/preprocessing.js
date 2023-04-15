@@ -41,7 +41,6 @@ const addSplitRecords = async(preprocessing, table_name, data) => {
     for (let i = 0; i < data.length; i += per_insert) {
         await preprocessing.addSplitWords(data.slice(i, i + per_insert));
     }
-    // await preprocessing.addSplitWords(data);
 
     return { records: data.length };
 }
@@ -50,7 +49,11 @@ const addSplitRecords = async(preprocessing, table_name, data) => {
 const addEmbeddingRecords = async(preprocessing, table_name, data) => {
     // Prep data to be inserted
     data = data.map(x => ({
-        ...x,
+        word: x.word === null ? "null" : x.word === undefined ? "undefined" : x.word,
+        X1: x.X1,
+        X2: x.X2,
+        X3: x.X3,
+        X4: x.X4,
         table_name
     }));
 
@@ -59,7 +62,6 @@ const addEmbeddingRecords = async(preprocessing, table_name, data) => {
     for (let i = 0; i < data.length; i += per_insert) {
         await preprocessing.addEmbeddings(data.slice(i, i + per_insert));
     }
-    // await preprocessing.addEmbeddings(data);
 
     return { records: data.length };
 }
