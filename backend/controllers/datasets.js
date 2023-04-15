@@ -118,11 +118,11 @@ const getTags = async(datasets, table) => {
 } 
 
 // Download a subset of a dataset
-const downloadSubset = async(datasets, table, params) => {
+const downloadSubset = async(datasets, table, params, page) => {
     // Clear the downloads folder on the server
     util.clearDirectory("./downloads/");
     // Get all records in this dataset
-    const records = await datasets.subsetTable(table, params, false);
+    const records = await datasets.subsetTable(table, params, true, page);
     // Generate csv from records
     const fileName = util.generateCSV(`./downloads/${ table }`, records);
     // Return generated file name

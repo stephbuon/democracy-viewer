@@ -170,10 +170,10 @@ router.get('/count/subset/:table', async(req, res, next) => {
 });
 
 // Route to download a subset of a dataset
-router.get('/download/subset/:table', async(req, res, next) => {
+router.get('/download/subset/:table/:page', async(req, res, next) => {
     try {
         // Generate file
-        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query);
+        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query, req.params.page);
         // Download file
         res.download(result, `${ req.params.table }.csv`, (err) => {
             // Error handling
