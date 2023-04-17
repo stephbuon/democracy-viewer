@@ -76,11 +76,10 @@ def insertSplits(split_data):
             sys.exit(result.reason)
     print("Split text done")
 
-    return split_data
-
 # Compute word embeddings and insert into database
 def wordEmbeddings(data):
     # Calculate word embeddings
+    print("Start word embeddings")
     results = word_embeddings.word_embeddings(data)
 
     # Insert into db

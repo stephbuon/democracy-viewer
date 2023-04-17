@@ -8,6 +8,7 @@ const beginPreprocessing = async(datasets, table) => {
     }).then(x => {
         // Save python output
         pythonOutput = x;
+        console.log(x);
     }).catch(x => {
         // Print python output
         console.log(x);

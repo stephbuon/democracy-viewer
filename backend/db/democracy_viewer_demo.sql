@@ -23,7 +23,7 @@ CREATE TABLE dataset_metadata (
     table_name VARCHAR(250) PRIMARY KEY,
     username VARCHAR(20),
     private_group BIGINT,
-    title VARCHAR(20),
+    title VARCHAR(50),
     description VARCHAR(200),
     is_public BIT DEFAULT false,
     clicks INT DEFAULT 0,

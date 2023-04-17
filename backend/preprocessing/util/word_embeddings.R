@@ -1,8 +1,8 @@
 library(text2vec)
+library(dplyr)
 
 export_word_embeddings = function(data) {
   fullText = c()
-  
   for (record in unique(data$id)) {
     text = ""
     temp = data %>% filter(id == record)
@@ -20,7 +20,11 @@ export_word_embeddings = function(data) {
   vocab = create_vocabulary(it)
   
   # term_count_min is the minimum number of times a word is stated
-  vocab = prune_vocabulary(vocab, term_count_min = 20)
+  # If the most used word appears at least 40 times, prune words used less than 20 times
+  maxWords = max(vocab$term_count)
+  if (maxWords >= 40) {
+    vocab = prune_vocabulary(vocab, term_count_min = 20)
+  }
   
   vectorizer = vocab_vectorizer(vocab)
   
@@ -31,11 +35,10 @@ export_word_embeddings = function(data) {
   glove = GlobalVectors$new(rank = 4, x_max = 100)
   
   wv_main = glove$fit_transform(tcm, n_iter = 1000, convergence_tol = 0.00000001, n_threads = 24)
-  
+
   wv_context = glove$components
   
   # The developers of the method suggest that sum/mean may work best when creating a matrix
-  print("Finding sum/mean")
   word_vectors = wv_main + t(wv_context)
   
   view_most_similar = FALSE

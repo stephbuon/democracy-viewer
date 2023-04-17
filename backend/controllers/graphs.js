@@ -32,8 +32,14 @@ const createGraph = async(models, dataset, params, user = null) => {
         return sumCol(results, "n");
     }
 
+    let input;
+    // Get word embeddings or split text based on the metric
+    if (params.metric === "embeddings") {
+        input = await models.graphs.getWordEmbeddings(dataset);
+    } else {
+        input = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
+    }
     // Create input file with data for python program
-    const input = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
     const file1 = "graphs/files/input/" + dataset + "_" + Date.now() + ".csv";
     await files.generateCSV(file1, input);
     // Create input file with parameters for python program
@@ -44,10 +50,14 @@ const createGraph = async(models, dataset, params, user = null) => {
     try {
         await python.run("graphs/launch.py", {
             args: [ file1, file2 ]
-        }).then(x => console.log(x));
+        });
     } catch(err) {
-        files.deleteFiles([ file1, file2 ]);
-        throw new Error(err);
+        if (!files.fileExists(file1.replace("/input/", "/output/"))) {
+            files.deleteFiles([ file1, file2 ]);
+            throw new Error(err);
+        } else {
+            console.log(err)
+        }
     }
    
     // Read python output file and return results
@@ -141,6 +151,8 @@ const joinData = (original, calculated, params) => {
 
             return x;
         });
+    } else if (params.metric === "embeddings") {
+        
     } else {
         throw new Error(`Invalid metric ${ params.metric }`);
     }
