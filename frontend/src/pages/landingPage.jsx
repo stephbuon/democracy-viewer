@@ -1,5 +1,4 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -23,13 +22,7 @@ export default function landingPage() {
     
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="relative">
-        <Toolbar>
-          <Typography variant="h6" color="inherit" noWrap>
-            Text-Mining Development 
-          </Typography>
-        </Toolbar>
-      </AppBar>
+     
       <main>
         {/* Hero unit */}
         <Box
