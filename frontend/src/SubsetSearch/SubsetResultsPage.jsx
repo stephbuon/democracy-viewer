@@ -8,7 +8,8 @@ import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
 import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
-
+import { Stack } from '@mui/system';
+import Typography from '@mui/material/Typography';
 //Other Imports
 import { DownloadSubset, DownloadFullDataset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 
@@ -194,48 +195,88 @@ export const SubsetResultsPage = (props) => {
         };
     }, [page, loadingNextPage, totalNumOfPages, loadingPage]);
 
-    return (<div className='darkblue'>
-        <Box className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
-            sx={{
-                // transform: 'translate(0, -45vh)',
-                display: 'flex',
-                // height: "100vh",
-                // paddingTop: '2%'
-                justifyContent: "center",
-                alignItems: "center"
-            }}
-        >
-            <Box className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
+    return (
+        <div className='blue' style={{ marginTop: "-1in" }}>
+            <Box component="main" sx={{ marginTop: searching ? '50px' : (searched ? '280px' : '0px') }}>
+
+            <Stack spacing={2} sx={{ position: "relative" }}>
+                <Box
+                    className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
+                    sx={{
+                        display: 'flex',
+                        justifyContent: "center",
+                        alignItems: "center",
+                        flexDirection: "column", // Add this to stack the elements vertically
+                        
+                    }}
+                >
+                  
+                        <img
+                            src="https://cdn.pixabay.com/photo/2017/10/22/05/06/search-2876776_1280.jpg"
+                            alt="your_image_description_here"
+                            style={{ maxWidth: "20%" }}
+                        />
+                  
+
+                    <Box
+                        className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
+                        sx={{
+                            display: 'flex',
+                            zIndex: 1,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                borderRadius: '.5em',
+                                overflow: "hidden",
+                                width: '100%',
+
+                            }}>
+                            <TextField
+                                id="searchTerm"
+                                label="Subset Search"
+                                variant="outlined"
+                                color='primary'
+                                focused
+                                fullWidth
+                                sx={{ marginTop: "10px" }}
+                        
+                                value={searchTerm}
+                                onChange={event => { setSearchTerm(event.target.value) }}
+                                // New Code to search with enter press
+                                onKeyPress={event => handleKeyPress(event)}
+                            />
+                        </Box>
+                        <Button
+                            variant="contained"
+                            sx={{
+                                background: 'rgb(255, 255, 255)',
+                                color: 'rgb(0, 0, 0)',
+                                marginLeft: '2em',
+
+                                '&:hover': {
+                                    background: 'rgb(200, 200, 200)'
+                                }
+                            }}
+                            onClick={() => doMoveAnimation()}
+                        >
+                            Search
+                        </Button>
+                    </Box>
+                </Box>
+            </Stack>
+            {searched && !loadingResults && <Box
                 sx={{
                     display: 'flex',
-                    // display: 'flex',
-                }}
-            >
+                    justifyContent: 'center',
+                }}>
                 <Box
                     sx={{
-                        borderRadius: '.5em',
-                        overflow: "hidden",
-                        width: '100%',
-
-                    }}>
-                    <TextField
-                        id="searchTerm"
-                        label="Search"
-                        variant="filled"
-                        fullWidth
-                        sx={{
-                            background: 'rgb(255, 255, 255)',
-                            color: 'rgb(0, 0, 0)',
-
-                        }}
-                        value={searchTerm}
-                        onChange={event => { setSearchTerm(event.target.value) }}
-                        // New Code to search with enter press
-                        onKeyPress={event => handleKeyPress(event)}
-                    />
-                </Box>
+                        display: 'flex',
+                        justifyContent: 'center',
+                    }}
+                >{totalNumResults} results returned</Box>
                 <Button
-                    variant="contained"
                     sx={{
                         background: 'rgb(255, 255, 255)',
                         color: 'rgb(0, 0, 0)',
@@ -245,138 +286,115 @@ export const SubsetResultsPage = (props) => {
                             background: 'rgb(200, 200, 200)'
                         }
                     }}
-                    onClick={() => doMoveAnimation()}
-                >
-                    Search
-                </Button>
-            </Box>
-        </Box>
-        {searched && !loadingResults && <Box
-            sx={{
-                display: 'flex',
-                justifyContent: 'center',
-            }}>
-            <Box
+                    onClick={() => DownloadFullDataset(query).then((res) => {
+                        let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
+                        FileSaver.saveAs(blob, `${query.table_name}.csv`);
+                    })}
+                >Download full dataset</Button>
+                <Button
+                    sx={{
+                        background: 'rgb(255, 255, 255)',
+                        color: 'rgb(0, 0, 0)',
+                        marginLeft: '2em',
+
+                        '&:hover': {
+                            background: 'rgb(200, 200, 200)'
+                        }
+                    }}
+                    onClick={() => DownloadSubset(query).then((res) => {
+                        let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
+                        FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);
+                    })}
+                >Download these {totalNumResults} results</Button>
+            </Box>}
+            {searched && <Box
                 sx={{
                     display: 'flex',
                     justifyContent: 'center',
-                }}
-            >{totalNumResults} results returned</Box>
-            <Button
-                sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)',
-                    marginLeft: '2em',
-
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
-                }}
-                onClick={() => DownloadFullDataset(query).then((res) => {
-                    let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
-                    FileSaver.saveAs(blob, `${query.table_name}.csv`);
-                })}
-            >Download full dataset</Button>
-            <Button
-                sx={{
-                    background: 'rgb(255, 255, 255)',
-                    color: 'rgb(0, 0, 0)',
-                    marginLeft: '2em',
-
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
-                }}
-                onClick={() => DownloadSubset(query).then((res) => {
-                    let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
-                    FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);
-                })}
-            >Download these {totalNumResults} results</Button>
-        </Box>}
-        {searched && <Box
-            sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                margin: 0,
-                overflowX: 'auto',
-            }}>
-            <Table
-                stickyHeader
-                sx={{
-                    color: 'rgb(0, 0, 0)',
-                    marginTop: '2rem',
-                    // tableLayout: 'fixed',
+                    margin: 0,
                     overflowX: 'auto',
-                    overflow: 'hidden'
-                }}
-            >
-                {!loadingResults && <TableHead>
-                    <TableRow
-                    // sx={{
-                    //     overflow: 'hidden'
-                    // }}
-                    >
-                        {Object.keys(searchResults[0]).map(key => {
-                            return <TableCell
-                                sx={{
-                                    width: .2
-                                }}
-                            >{key}</TableCell>
-                        })}
-                    </TableRow>
-
-                </TableHead>}
-
-                {!loadingResults && <TableBody sx={{ background: '#fff' }}>
-                    {searchResults.map((result) => {
-                        return <TableRow
-                            id={Object.keys(result)[0]}
-                            key={Object.keys(result)[0]}
-                            >
-                            <Result result={result} dataset={props.dataset} />
+                    marginTop: '6rem', // Add this line to set a top margin
+                }}>
+                <Table
+                    stickyHeader
+                    sx={{
+                        color: 'rgb(0, 0, 0)',
+                        marginTop: '2rem',
+                        // tableLayout: 'fixed',
+                        overflowX: 'auto',
+                        overflow: 'hidden'
+                    }}
+                >
+                    {!loadingResults && <TableHead>
+                        <TableRow
+                        // sx={{
+                        //     overflow: 'hidden'
+                        // }}
+                        >
+                            {Object.keys(searchResults[0]).map(key => {
+                                return <TableCell
+                                    sx={{
+                                        width: .2
+                                    }}
+                                >{key}</TableCell>
+                            })}
                         </TableRow>
-                    })}
-                </TableBody>}
-            </Table>
-        </Box>}
-        {searched && <Box
-            sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                marginBottom: '2em',
-                marginTop: 0
-            }}>
-            <Table
-                sx={{ width: .8 }}>
-                {(loadingResults || loadingNextPage) && <TableBody sx={{ background: '#fff' }}>
-                    <TableRow className='loadingData1'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData2'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData3'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData4'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData5'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData6'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData7'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                    <TableRow className='loadingData8'>
-                        <TableCell>&nbsp;</TableCell>
-                    </TableRow>
-                </TableBody>}
-            </Table>
-        </Box>}
 
-    </div >)
+                    </TableHead>}
+
+                    {!loadingResults && <TableBody sx={{ background: '#fff' }}>
+                        {searchResults.map((result) => {
+                            return <TableRow
+                                id={Object.keys(result)[0]}
+                                key={Object.keys(result)[0]}
+                            >
+                                <Result result={result} dataset={props.dataset} />
+                            </TableRow>
+                        })}
+                    </TableBody>}
+                </Table>
+            </Box>}
+            {searched && <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    margin: 0,
+                    overflowX: 'auto',
+                    marginTop: '2rem', // Add this line to set a top margin
+                }}>
+                <Table
+                    sx={{ width: .8 }}>
+                    {(loadingResults || loadingNextPage) && <TableBody sx={{ background: '#fff' }}>
+                        <TableRow className='loadingData1'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData2'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData3'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData4'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData5'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData6'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData7'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                        <TableRow className='loadingData8'>
+                            <TableCell>&nbsp;</TableCell>
+                        </TableRow>
+                    </TableBody>}
+                </Table>
+            </Box>}
+
+            </Box>
+
+        </div >)
 
 }

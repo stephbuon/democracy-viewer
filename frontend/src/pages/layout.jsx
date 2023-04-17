@@ -3,14 +3,20 @@ import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItem,ListItemIcon,ListItemText,Box,} from '@mui/material';
 import {Menu as MenuIcon,Home as HomeIcon,BarChart as BarChartIcon,Person,Home,Search,} from '@mui/icons-material';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import ListItemButton from '@mui/material/ListItemButton';
 import Divider from '@mui/material/Divider';
 import PeopleIcon from '@mui/icons-material/People';
+import { useEffect } from 'react';
 
 export const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location]);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -30,6 +36,8 @@ export const Layout = () => {
         return 'Profile';
       case '/register':
         return 'Register';
+      case '/subsetsearch':
+        return 'Subset Search';
       default:
         return 'Home';
     }
@@ -88,6 +96,12 @@ export const Layout = () => {
                 <Search />
               </ListItemIcon>
               <ListItemText primary="Search" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/subsetsearch" sx={{ pt: 3 }}>
+              <ListItemIcon>
+                <ManageSearchIcon />
+              </ListItemIcon>
+              <ListItemText primary="Subset Search" />
             </ListItemButton>
             <ListItemButton sx={{ pt: 3 }}>
               <ListItemIcon>

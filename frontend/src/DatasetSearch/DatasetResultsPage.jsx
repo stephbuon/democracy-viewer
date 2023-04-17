@@ -145,9 +145,9 @@ export const DatasetResultsPage = (props) => {
 
 
 
-    return (<div className='blue'> 
-    {/* Grid that conatins Search Bar */}
+    return (<div className='blue' style={{ marginTop: "-1in" }}> 
         <Grid container component="main" sx={{ height: '100vh' }}>
+              {/* Grid that conatins Search Bar */}
             <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square>
                 <Stack spacing={2}>
                     <Box
