@@ -24,3 +24,25 @@ export const GetNumOfEntries = async (query) =>  {
     console.log("Returning", res.data);
     return res.data;
 };
+
+export const DownloadSubset = async (query) =>  {
+    console.log("Attempting to download table", query.table_name);
+    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${query.table_name}${query.search}`);
+    if(res.status !== 200){
+        console.log(`Couldn't download data. ${res.status}`)
+        return null;
+    }
+    console.log("Returning", res.data);
+    return res.data;
+};
+
+export const DownloadFullDataset = async (query) =>  {
+    console.log("Attempting to download table", query.table_name);
+    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${query.table_name}`);
+    if(res.status !== 200){
+        console.log(`Couldn't download data. ${res.status}`)
+        return null;
+    }
+    console.log("Returning", res.data);
+    return res.data;
+};

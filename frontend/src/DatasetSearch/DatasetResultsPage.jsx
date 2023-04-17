@@ -144,6 +144,7 @@ export const DatasetResultsPage = (props) => {
     }, [loadingResults]);
 
 
+
     return (<div className='blue'> 
     {/* Grid that conatins Search Bar */}
         <Grid container component="main" sx={{ height: '100vh' }}>
@@ -201,6 +202,7 @@ export const DatasetResultsPage = (props) => {
                         <Modal
                             open={advancedFilterOpen}
                             onClose={() => handleAdvancedFilterClose()}
+
                         >
                             <AdvancedFilter
                                 advancedFilterResults={(x) => advancedFilterResults(x)}
