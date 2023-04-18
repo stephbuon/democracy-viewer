@@ -2,6 +2,7 @@
 import util.dhmeasures as dhmeasures
 import util.tf_idf as tf_idf
 import util.word_embeddings as embeddings
+import util.proportions as proportions
 
 # Other imports
 import pandas as pd
@@ -31,7 +32,8 @@ elif params["metric"] == "tf-idf":
     output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
 elif params["metric"] == "embeddings":
     output = embeddings.word_embeddings(data, params["word_list"])
-    print(output)
+elif params["metric"] == "proportions":
+    output = proportions.proportions(data, params["group_list"], params["word_list"], "group", "word", "n")
 else:
     sys.exit("Invalid metric: " + params["metric"])
 

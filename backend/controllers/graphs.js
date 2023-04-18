@@ -9,6 +9,10 @@ const createGraph = async(models, dataset, params, user = null) => {
         throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
     }
 
+    // Convert params.group_list and params.word_list to arrays if they aren't already
+    params.group_list = Array.isArray(params.group_list) ? params.group_list : [ params.group_list ];
+    params.word_list = Array.isArray(params.word_list) ? params.word_list : [ params.word_list ];
+
     // If the metric is raw, return raw splits
     if (params.metric === "raw") {
         let results;
@@ -17,15 +21,15 @@ const createGraph = async(models, dataset, params, user = null) => {
             results = await models.graphs.getGroupSplits(
                 dataset, 
                 params.group_name, 
-                Array.isArray(params.group_list) ? params.group_list : [ params.group_list ],
-                Array.isArray(params.word_list) ? params.word_list : [ params.word_list ]
+                params.group_list,
+                params.word_list
             );
         } else {
             // Else, return all words for the given groups
             results = await models.graphs.getGroupSplits(
                 dataset, 
                 params.group_name, 
-                Array.isArray(params.group_list) ? params.group_list : [ params.group_list ]
+                params.group_list
             );
         }
         
@@ -37,7 +41,15 @@ const createGraph = async(models, dataset, params, user = null) => {
     if (params.metric === "embeddings") {
         input = await models.graphs.getWordEmbeddings(dataset);
     } else {
-        input = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
+        input = await models.graphs.getGroupSplits(
+            dataset, 
+            params.group_name, 
+            params.group_list
+        );
+    }
+    // If input has no results, return an empty array
+    if (input.length === 0) {
+        return [];
     }
     // Create input file with data for python program
     const file1 = "graphs/files/input/" + dataset + "_" + Date.now() + ".csv";
@@ -50,7 +62,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     try {
         await python.run("graphs/launch.py", {
             args: [ file1, file2 ]
-        });
+        }).then(x => console.log(x));
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {
             files.deleteFiles([ file1, file2 ]);
@@ -140,7 +152,7 @@ const joinData = (original, calculated, params) => {
 
             return x;
         });
-    } else if (params.metric === "tf-idf") {
+    } else if (params.metric === "tf-idf" || params.metric === "proportions") {
         newData = newData.map(x => {
             x.ids = [];
             original.forEach(y => {
@@ -152,7 +164,7 @@ const joinData = (original, calculated, params) => {
             return x;
         });
     } else if (params.metric === "embeddings") {
-        
+        // Return raw python output
     } else {
         throw new Error(`Invalid metric ${ params.metric }`);
     }

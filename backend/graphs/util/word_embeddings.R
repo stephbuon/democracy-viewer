@@ -1,7 +1,10 @@
 library(dplyr)
 library(text2vec)
+library(textstem)
 
 word_embeddings = function(data, search_word) {
+    search_word = textstem::lemmatize_words(search_word)
+
     out = data.frame()
 
     if(search_word %in% data$word) {
