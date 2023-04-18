@@ -56,13 +56,20 @@ CREATE TABLE tags (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
+CREATE TABLE dataset_text_cols (
+    table_name VARCHAR(250),
+    col VARCHAR(100),
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    PRIMARY KEY(table_name, col)
+);
+
 CREATE TABLE dataset_split_text (
     table_name VARCHAR(250),
     record_id BIGINT,
     word VARCHAR(100),
     count BIGINT,
     col VARCHAR(100),
-    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
     PRIMARY KEY(table_name, record_id, word, col)
 );
 

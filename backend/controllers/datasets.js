@@ -66,13 +66,33 @@ const addTag = async(datasets, user, table, tag) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
     // Add tag to db
     const record = await datasets.addTag(table, tag);
     return record;
+}
+
+// Add text column(s) for a dataset
+const addTextCols = async(datasets, user, table, cols) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    }
+
+    // If cols is not an array, make it an array
+    if (!Array.isArray(cols)) {
+        cols = [ cols ];
+    }
+
+    // Add data to db
+    const records = await datasets.addTextCols(table, cols);
+    return records;
 }
 
 // Change the data type of a column in a dataset
@@ -90,8 +110,8 @@ const updateMetadata = async(datasets, user, table, params) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (user !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     // Update metadata record
@@ -117,6 +137,15 @@ const getTags = async(datasets, table) => {
     return results;
 } 
 
+// Get text columns by dataset
+const getTextCols = async(datasets, table) => {
+    // Get col names from table
+    const records = await datasets.getTextCols(table);
+    // Convert objects to strings with col names
+    const results = records.map(x => x.col);
+    return results;
+}
+
 // Download a subset of a dataset
 const downloadSubset = async(datasets, table, params, page) => {
     // Clear the downloads folder on the server
@@ -135,8 +164,8 @@ const deleteDataset = async(datasets, user, table) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
     await datasets.deleteTable(table);
@@ -151,8 +180,8 @@ const deleteTag = async(datasets, user, table, tag) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
     await datasets.deleteTag(table, tag);
@@ -160,14 +189,32 @@ const deleteTag = async(datasets, user, table, tag) => {
     return null;
 }
 
+// Delete a text column fro a dataset
+const deleteTextCol = async(datasets, user, table, col) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    }
+
+    await datasets.deleteTextCol(table, col);
+
+    return null;
+}
+
 module.exports = {
     createDataset,
     addTag,
+    addTextCols,
     changeColType,
     updateMetadata,
     downloadSubset,
     getUniqueTags,
     getTags,
+    getTextCols,
     deleteDataset,
-    deleteTag
+    deleteTag,
+    deleteTextCol
 };

@@ -2,6 +2,7 @@ const knex = require("../db/knex");
 
 const metadata_table = "dataset_metadata";
 const tag_table = "tags";
+const text_col_table = "dataset_text_cols";
 
 class datasets {
     // Create a table for a new dataset
@@ -45,6 +46,17 @@ class datasets {
         return record[0];
     }
 
+    // Add text columns for a dataset
+    async addTextCols(table_name, cols) {
+        // Format table name and cols as an array of objects
+        const data = cols.map(x => ({ table_name, col: x }));
+        // Insert records
+        const insert = await knex(text_col_table).insert([ ...data ]);
+        // Return all text columns for this dataset
+        const records = this.getTextCols(table_name);
+        return records;
+    }
+
     // Update the metadata of a table
     async updateMetadata(table_name, params) {
         const update = await knex(metadata_table).where({ table_name }).update({ ...params });
@@ -86,6 +98,12 @@ class datasets {
     // Get tags by datset
     async getTags(table_name) {
         const results = await knex(tag_table).where({ table_name });
+        return results;
+    }
+
+    // Get text columns by dataset
+    async getTextCols(table_name) {
+        const results = await knex(text_col_table).where({ table_name });
         return results;
     }
 
@@ -302,6 +320,12 @@ class datasets {
     // Delete tag on a dataset
     async deleteTag(table_name, tag_name) {
         const del = await knex(tag_table).where({ table_name, tag_name }).delete();
+        return del;
+    }
+
+    // Delete a text column for a dataset
+    async deleteTextCol(table_name, col) {
+        const del = await knex(text_col_table).where({ table_name, col }).delete();
         return del;
     }
 }
