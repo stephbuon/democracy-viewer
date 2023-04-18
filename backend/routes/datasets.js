@@ -28,9 +28,9 @@ router.post('/', authenticateJWT, async(req, res, next) => {
 });
 
 // Route to add a tag for a dataset
-router.post('/tag', authenticateJWT, async(req, res, next) => {
+router.post('/tags', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.addTag(req.models.datasets, req.user.username, req.body.dataset, req.body.tag);
+        const result = await control.addTag(req.models.datasets, req.user.username, req.body.dataset, req.body.tags);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to add dataset tag:', err);

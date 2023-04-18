@@ -40,10 +40,12 @@ class datasets {
     }
 
     // Add a tag for a dataset
-    async addTag(table_name, tag_name) {
-        const insert = await knex(tag_table).insert({ table_name, tag_name });
-        const record = await knex(tag_table).where({ table_name, tag_name });
-        return record[0];
+    async addTag(table_name, tags) {
+        // Format table name and tags as an array of objects
+        const data = tags.map(x => ({ table_name, tag_name: x }));
+        // Insert records
+        const insert = await knex(tag_table).insert([ ...data ]);
+        return insert;
     }
 
     // Add text columns for a dataset
@@ -52,9 +54,7 @@ class datasets {
         const data = cols.map(x => ({ table_name, col: x }));
         // Insert records
         const insert = await knex(text_col_table).insert([ ...data ]);
-        // Return all text columns for this dataset
-        const records = this.getTextCols(table_name);
-        return records;
+        return insert;
     }
 
     // Update the metadata of a table

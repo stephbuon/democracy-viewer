@@ -61,7 +61,7 @@ const createDataset = async(datasets, path, username) => {
 }
 
 // Add a tag for a dataset
-const addTag = async(datasets, user, table, tag) => {
+const addTag = async(datasets, user, table, tags) => {
     // Get the current metadata for this table
     const curr = await datasets.getMetadata(table);
 
@@ -70,9 +70,17 @@ const addTag = async(datasets, user, table, tag) => {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
-    // Add tag to db
-    const record = await datasets.addTag(table, tag);
-    return record;
+    // If cols is not an array, make it an array
+    if (!Array.isArray(tags)) {
+        tags = [ tags ];
+    }
+
+    // Add tags to db
+    await datasets.addTag(table, tags);
+
+    // Return all tags for this dataset
+    const records = await getTags(datasets, table);
+    return records;
 }
 
 // Add text column(s) for a dataset
@@ -91,7 +99,10 @@ const addTextCols = async(datasets, user, table, cols) => {
     }
 
     // Add data to db
-    const records = await datasets.addTextCols(table, cols);
+    await datasets.addTextCols(table, cols);
+
+    // Return all text columns for this dataset
+    const records = await getTextCols(datasets, table);
     return records;
 }
 
