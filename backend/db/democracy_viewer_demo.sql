@@ -23,10 +23,11 @@ CREATE TABLE dataset_metadata (
     table_name VARCHAR(250) PRIMARY KEY,
     username VARCHAR(20),
     private_group BIGINT,
-    title VARCHAR(20),
+    title VARCHAR(50),
     description VARCHAR(200),
-    is_public BIT,
+    is_public BIT DEFAULT false,
     clicks INT DEFAULT 0,
+    processed BIT DEFAULT false,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
@@ -55,13 +56,31 @@ CREATE TABLE tags (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
+CREATE TABLE dataset_text_cols (
+    table_name VARCHAR(250),
+    col VARCHAR(100),
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    PRIMARY KEY(table_name, col)
+);
+
 CREATE TABLE dataset_split_text (
-    id BIGINT PRIMARY KEY IDENTITY,
     table_name VARCHAR(250),
     record_id BIGINT,
     word VARCHAR(100),
     count BIGINT,
     col VARCHAR(100),
+    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
+    PRIMARY KEY(table_name, record_id, word, col)
+);
+
+CREATE TABLE dataset_word_embeddings (
+    table_name VARCHAR(250),
+    word VARCHAR(100),
+    X1 FLOAT,
+    X2 FLOAT,
+    X3 FLOAT,
+    X4 FLOAT,
+    PRIMARY KEY(table_name, word),
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 

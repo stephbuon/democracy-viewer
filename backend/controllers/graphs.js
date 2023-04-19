@@ -9,6 +9,10 @@ const createGraph = async(models, dataset, params, user = null) => {
         throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
     }
 
+    // Convert params.group_list and params.word_list to arrays if they aren't already
+    params.group_list = Array.isArray(params.group_list) ? params.group_list : [ params.group_list ];
+    params.word_list = Array.isArray(params.word_list) ? params.word_list : [ params.word_list ];
+
     // If the metric is raw, return raw splits
     if (params.metric === "raw") {
         let results;
@@ -17,23 +21,37 @@ const createGraph = async(models, dataset, params, user = null) => {
             results = await models.graphs.getGroupSplits(
                 dataset, 
                 params.group_name, 
-                Array.isArray(params.group_list) ? params.group_list : [ params.group_list ],
-                Array.isArray(params.word_list) ? params.word_list : [ params.word_list ]
+                params.group_list,
+                params.word_list
             );
         } else {
             // Else, return all words for the given groups
             results = await models.graphs.getGroupSplits(
                 dataset, 
                 params.group_name, 
-                Array.isArray(params.group_list) ? params.group_list : [ params.group_list ]
+                params.group_list
             );
         }
         
         return sumCol(results, "n");
     }
 
+    let input;
+    // Get word embeddings or split text based on the metric
+    if (params.metric === "embeddings") {
+        input = await models.graphs.getWordEmbeddings(dataset);
+    } else {
+        input = await models.graphs.getGroupSplits(
+            dataset, 
+            params.group_name, 
+            params.group_list
+        );
+    }
+    // If input has no results, return an empty array
+    if (input.length === 0) {
+        return [];
+    }
     // Create input file with data for python program
-    const input = await models.graphs.getGroupSplits(dataset, params.group_name, params.group_list);
     const file1 = "graphs/files/input/" + dataset + "_" + Date.now() + ".csv";
     await files.generateCSV(file1, input);
     // Create input file with parameters for python program
@@ -46,8 +64,12 @@ const createGraph = async(models, dataset, params, user = null) => {
             args: [ file1, file2 ]
         }).then(x => console.log(x));
     } catch(err) {
-        files.deleteFiles([ file1, file2 ]);
-        throw new Error(err);
+        if (!files.fileExists(file1.replace("/input/", "/output/"))) {
+            files.deleteFiles([ file1, file2 ]);
+            throw new Error(err);
+        } else {
+            console.log(err)
+        }
     }
    
     // Read python output file and return results
@@ -55,8 +77,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     return await files.readCSV(file3).then(async(data) => {
         files.deleteFiles([ file1, file2 ]);
 
-        return data;
-        // return joinData(input, data, params.metric);
+        return joinData(input, data, params);
     });
 }
 
@@ -69,7 +90,7 @@ const sumCol = (data, col) => {
 
         // Iterate through new data
         for (let i = 0; i < newData.length; i++) {
-            if (x.word === newData[i].word && x.group === newData[i].group) {
+            if (x.word === newData[i].word && x.group.toLowerCase() === newData[i].group.toLowerCase()) {
                 // If the word and group match, add id and increment count
                 found = true;
                 newData[i].ids.push(x.id);
@@ -92,24 +113,64 @@ const sumCol = (data, col) => {
     return newData;
 }
 
-// // Join ids with calculated data
-// const joinData = (original, calculated, metric) => {
-//     let newData = [];
+// Join ids with calculated data
+const joinData = (original, calculated, params) => {
+    let newData = [ ...calculated ];
 
-//     if (metric === "ll") {
-//         calculated.forEach(x => {
-//             let found = false;
+    if (params.metric === "ll") {
+        newData = newData.map(x => {
+            x.ids = [];
+            original.forEach(y => {
+                if (y.word === x.word) {
+                    x.ids.push(y.id);
+                }
+            }); 
 
-//             for (let i = 0; i < original.length; i++) {
-//                 if ()
-//             }
-//         })
-//     } else if (metric === "jsd") {
+            return x;
+        });
+    } else if (params.metric === "jsd") {
+        newData = newData.map(x => {
+            const groups = Object.keys(x)[1].split("_").splice(1).map(x => x.toLowerCase());
+            x.ids = [];
+            original.forEach(y => {
+                if (y.word === x.word && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                    x.ids.push(y.id);
+                }
+            }); 
 
-//     } else if (metric === "ojsd") {
+            return x;
+        });
+    } else if (params.metric === "ojsd") {
+        newData = newData.map(x => {
+            const groups = Object.keys(x)[0].split("_").splice(1).map(x => x.toLowerCase());
+            x.ids = [];
+            original.forEach(y => {
+                if (params.word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                    x.ids.push(y.id);
+                }
+            }); 
 
-//     }
-// }
+            return x;
+        });
+    } else if (params.metric === "tf-idf" || params.metric === "proportions") {
+        newData = newData.map(x => {
+            x.ids = [];
+            original.forEach(y => {
+                if (x.word === y.word && x.group === y.group) {
+                    x.ids.push(y.id);
+                }
+            }); 
+
+            return x;
+        });
+    } else if (params.metric === "embeddings") {
+        // Return raw python output
+    } else {
+        throw new Error(`Invalid metric ${ params.metric }`);
+    }
+
+    return newData;
+}
 
 module.exports = {
     createGraph

@@ -16,7 +16,7 @@ router.post('/', authenticateJWT, async(req, res, next) => {
         } else {
             // Create dataset in database from file
             console.log(req.file.path);
-            const result = await control.createDataset(req.models.datasets, req.file.path);
+            const result = await control.createDataset(req.models.datasets, req.file.path, req.user.username);
             res.status(201).json(result);
         }
         
@@ -27,25 +27,25 @@ router.post('/', authenticateJWT, async(req, res, next) => {
     next();
 });
 
-// Route to add dataset metadata
-router.post('/metadata', authenticateJWT, async(req, res, next) => {
+// Route to add a tag for a dataset
+router.post('/tags', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.createMetadata(req.models.datasets, req.user.username, req.body);
+        const result = await control.addTag(req.models.datasets, req.user.username, req.body.dataset, req.body.tags);
         res.status(201).json(result);
     } catch (err) {
-        console.error('Failed to create dataset metadata:', err);
+        console.error('Failed to add dataset tag:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
 });
 
-// Route to add a tag for a dataset
-router.post('/tag', authenticateJWT, async(req, res, next) => {
+// Route to add one or more text columns to a dataset
+router.post('/text', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.addTag(req.models.datasets, req.user.username, req.body.dataset, req.body.tag);
+        const result = await control.addTextCols(req.models.datasets, req.user.username, req.body.dataset, req.body.cols);
         res.status(201).json(result);
     } catch (err) {
-        console.error('Failed to add dataset tag:', err);
+        console.error('Failed to add dataset text column(s):', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -123,6 +123,18 @@ router.get('/tags/dataset/:table', async(req, res, next) => {
     next();
 });
 
+// Route to get text columns for a dataset
+router.get('/text/:table', async(req, res, next) => {
+    try {
+        const results = await control.getTextCols(req.models.datasets, req.params.table);
+        res.status(200).json(results);
+    } catch (err) {
+        console.error('Failed to get dataset text columns:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to filter datasets
 router.get('/filter/:page', optAuthenticateJWT, async(req, res, next) => {
     try {
@@ -181,32 +193,11 @@ router.get('/count/subset/:table', async(req, res, next) => {
     next();
 });
 
-// Route to download a csv of a full dataset
-router.get('/download/:table', async(req, res, next) => {
-    try {
-        // Generate file
-        const result = await control.downloadDataset(req.models.datasets, req.params.table);
-        // Download file
-        res.download(result, `${ req.params.table }.csv`, (err) => {
-            // Error handling
-            if (err) {
-                console.error("Failed to download dataset:", err);
-                res.status(500).json({ message: err.toString() });
-                next();
-            }
-        });
-    } catch (err) {
-        console.error('Failed to download dataset:', err);
-        res.status(500).json({ message: err.toString() });
-        next();
-    }
-});
-
 // Route to download a subset of a dataset
-router.get('/download/subset/:table', async(req, res, next) => {
+router.get('/download/subset/:table/:page', async(req, res, next) => {
     try {
         // Generate file
-        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query);
+        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query, req.params.page);
         // Download file
         res.download(result, `${ req.params.table }.csv`, (err) => {
             // Error handling
@@ -254,6 +245,18 @@ router.delete('/:table/tags/:tag', authenticateJWT, async(req, res, next) => {
         res.status(204).json(result);
     } catch (err) {
         console.error('Failed to delete tag:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a text col for a dataset
+router.delete('/:table/text/:col', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.deleteTextCol(req.models.datasets, req.user.username, req.params.table, req.params.col);
+        res.status(204).json(result);
+    } catch (err) {
+        console.error('Failed to delete text column:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

@@ -33,6 +33,10 @@ uploads/*
 graphs/files/*
 preprocessing/files/*
 
+# r files
+*.Rhistory
+*.RData
+
 # account management
 accounts.csv
 add_account.sql

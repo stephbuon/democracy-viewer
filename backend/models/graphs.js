@@ -1,6 +1,7 @@
 const knex = require("../db/knex");
 
 const split_table = "dataset_split_text";
+const embedding_table = "dataset_word_embeddings";
 
 class graphs {
     // Join split text records with raw records with given values in given column
@@ -22,6 +23,13 @@ class graphs {
                     q.whereIn(`${ split_table }.word`, words);
                 }
             });
+
+        return records;
+    }
+
+    // Get all word embeddings for the given table
+    async getWordEmbeddings(table_name) {
+        const records = await knex(embedding_table).where({ table_name });
 
         return records;
     }
