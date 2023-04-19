@@ -14,6 +14,7 @@ import os
 from rpy2.robjects.packages import STAP
 from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
+from rpy2.robjects.vectors import StrVector
 
 load_dotenv()
 BASE_URL = "http://localhost:8000"
@@ -34,14 +35,14 @@ def getTable():
     print("Page:", page)
     data = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
     if data.status_code != 200:
-        sys.exit(data.reason)
+        sys.exit(data.json())
     data = pd.DataFrame(json.loads(data.text))
     while (page < pages):
         page += 1
         print("Page:", page)
         curr = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
         if curr.status_code != 200:
-            sys.exit(curr.reason)
+            sys.exit(curr.json())
         curr = pd.DataFrame(json.loads(curr.text))
         data = pd.concat([data, curr])
 
@@ -54,10 +55,17 @@ def splitText(data):
         split_text = file.read()
     split_text = STAP(split_text, "split_text")
 
+    # Get the dataset's text columns from the database
+    text_cols = requests.get(BASE_URL + "/datasets/text/" + TABLE_NAME)
+    if text_cols.status_code == 200:
+        text_cols = json.loads(text_cols.text)
+    else:
+        sys.exit(text_cols.json())
+
     # Split the text of the given data frame
     # Convert pandas.DataFrames to R dataframes automatically.
     pandas2ri.activate()
-    split_data = split_text.split_text(data, "text")
+    split_data = split_text.split_text(data, StrVector(text_cols))
     split_data = ro.conversion.rpy2py(split_data)
     split_data.to_csv("datasets/hansard_1870_split.csv", index = False)
 
@@ -73,7 +81,7 @@ def insertSplits(split_data):
         result = requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS)
         page += 1
         if result.status_code != 201:
-            sys.exit(result.reason)
+            sys.exit(result.json())
     print("Split text done")
 
 # Compute word embeddings and insert into database
@@ -91,7 +99,7 @@ def wordEmbeddings(data):
         result = requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS)
         page += 1
         if result.status_code != 201:
-            sys.exit(result.reason)
+            sys.exit(result.json())
     print("Word embeddings done")
 
 # Get dataset from db
@@ -115,4 +123,4 @@ body = {
 }
 result = requests.put(BASE_URL + "/datasets/metadata/" + TABLE_NAME, json = body, headers = HEADERS)
 if result.status_code != 200:
-    sys.exit(result.reason)
+    sys.exit(result.json())
