@@ -1,8 +1,9 @@
 # Import metrics
 import util.dhmeasures as dhmeasures
+import util.proportions as proportions
+import util.raw as raw
 import util.tf_idf as tf_idf
 import util.word_embeddings as embeddings
-import util.proportions as proportions
 
 # Other imports
 import pandas as pd
@@ -38,6 +39,8 @@ elif params["metric"] == "jsd":
     output = dhmeasures.JSD(data, params["group_list"], params["word_list"], "group", "word", "n")
 elif params["metric"] == "ojsd":
     output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
+elif params["metric"] == "raw":
+    output = raw.raw(data, params["word_list"], "word")
 elif params["metric"] == "tf-idf":
     output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
 elif params["metric"] == "embedding":

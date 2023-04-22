@@ -23,7 +23,7 @@ class graphs {
         numRecords = numRecords[0].count;
 
         // Initialze records and page number
-        const records = [];
+        let records = [];
         let currentPage = 1;
         // Specify columns to select
         const selectCols = {
@@ -35,7 +35,7 @@ class graphs {
         if (column) {
             selectCols.group = `${ table_name }.${ column }`;
         }
-        for (let i = 0; i < numRecords; i += 50000) {
+        for (let i = 0; i < numRecords; i += 500000) {
             // Get next page
             const curr = await knex(split_table)
                 .join(table_name, `${ split_table }.record_id`, `${ table_name }.id`)
@@ -50,10 +50,11 @@ class graphs {
                     if (words && words[0]) {
                         q.whereIn(`${ split_table }.word`, words);
                     }
-                }).orderBy(`${ split_table }.word`).paginate({ perPage: 50000, currentPage });;
+                }).orderBy(`${ split_table }.word`).paginate({ perPage: 500000, currentPage });;
 
             // Add page to records
-            Array.prototype.push.apply(records, curr.data);
+            records = [ ...records, ...curr.data ];
+            // Array.prototype.push.apply(records, curr.data);
             currentPage++;
         }
 
@@ -69,10 +70,10 @@ class graphs {
         
         const records = [];
         let currentPage = 1;
-        for (let i = 0; i < numRecords; i += 50000) {
+        for (let i = 0; i < numRecords; i += 500000) {
             const curr = await knex(embedding_table)
             .where({ table_name })
-            .orderBy("word").paginate({ perPage: 50000, currentPage });
+            .orderBy("word").paginate({ perPage: 500000, currentPage });
             
             Array.prototype.push.apply(records, curr.data);
             currentPage++;

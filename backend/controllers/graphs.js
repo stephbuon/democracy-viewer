@@ -27,29 +27,6 @@ const createGraph = async(models, dataset, params, user = null) => {
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
-    // If the metric is raw, return raw splits
-    if (params.metric === "raw") {
-        let results;
-        if (params.word_list) {
-            // If a word list was given, return splits for only given words
-            results = await models.graphs.getGroupSplits(
-                dataset, 
-                params.group_name, 
-                params.group_list,
-                params.word_list
-            );
-        } else {
-            // Else, return all words for the given groups
-            results = await models.graphs.getGroupSplits(
-                dataset, 
-                params.group_name, 
-                params.group_list
-            );
-        }
-        
-        return sumCol(results, "n");
-    }
-
     let input;
     // Get word embeddings or split text based on the metric
     if (params.metric === "embedding") {
@@ -60,6 +37,10 @@ const createGraph = async(models, dataset, params, user = null) => {
             params.group_name, 
             params.group_list
         );
+
+        if (params.metric === "raw" && params.word_list.length === 0) {
+            return sumCol(input, "n");
+        }
     }
     // If input has no results, return an empty array
     if (input.length === 0) {
@@ -166,6 +147,8 @@ const joinData = (original, calculated, params) => {
 
             return x;
         });
+    } else if (params.metric === "raw") {
+        newData = sumCol(newData, "n");
     } else if (params.metric === "tf-idf" || params.metric === "proportion") {
         newData = newData.map(x => {
             x.ids = [];
