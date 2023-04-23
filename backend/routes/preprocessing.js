@@ -65,8 +65,9 @@ router.get('/split/:table/count', async(req, res, next) => {
 // Route to delete split text records in a table
 router.delete('/split/:table', async(req, res, next) => {
     try {
+        const metadata = await req.models.datasets.updateMetadata(req.params.table, { processed: false });
         await req.models.preprocessing.deleteSplitRecords(req.params.table);
-        res.status(204).end();
+        res.status(204).json(metadata);
     } catch (err) {
         console.error('Failed to delete split text records:', err);
         res.status(500).json({ message: err.toString() });
@@ -123,8 +124,9 @@ router.get('/embeddings/:table/count', async(req, res, next) => {
 // Route to delete word embedding records in a table
 router.delete('/split/:table', async(req, res, next) => {
     try {
+        const metadata = await req.models.datasets.updateMetadata(req.params.table, { processed: false });
         await req.models.preprocessing.deleteEmbeddingRecords(req.params.table);
-        res.status(204).end();
+        res.status(204).json(metadata);
     } catch (err) {
         console.error('Failed to delete word embedding records:', err);
         res.status(500).json({ message: err.toString() });
