@@ -7,9 +7,12 @@ import math
 import threading
 # APIs to backend server
 import requests
+import aiohttp
+import asyncio
 import json
 from dotenv import load_dotenv
 import os
+import time
 # These will let us use R packages:
 from rpy2.robjects.packages import STAP
 from rpy2.robjects import pandas2ri
@@ -22,6 +25,7 @@ TABLE_NAME = sys.argv[1]
 HEADERS = {
     "Authorization": "Bearer " + os.environ.get("TOKEN")
 }
+success = True
 
 # Get the data from a database table
 def getTable():
@@ -71,36 +75,82 @@ def splitText(data):
 
     return split_data
 
-def insertSplits(split_data):
-    # Insert into db
-    PER_PAGE = 50000
-    page = 1
-    for i in range(0, len(split_data.index), PER_PAGE):
-        body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
-        print("Split Page:", page)
-        result = requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS)
-        page += 1
-        if result.status_code != 201:
-            sys.exit(result.json())
-    print("Split text done")
+# Send API to insert a chunk of split text records
+async def insertSplitChunk(session, body):
+    try:
+        async with session.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS) as resp:
+            result = await resp.json()
+            return result
+    except Exception as e:
+        print(e)
+
+# Asynchronously insert all split text records into db
+async def insertSplits(split_data):
+    async with aiohttp.ClientSession() as session:
+        calls = []
+        PER_PAGE = 50000
+        for i in range(0, len(split_data.index), PER_PAGE):
+            body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
+            calls.append(asyncio.ensure_future(insertSplitChunk(session, body)))
+        await asyncio.gather(*calls)
+
+# Insert all split text records into db
+def insertSplitsThread(split_data):
+    start_time = time.time()
+    # Asynchronously insert split text records
+    asyncio.run(insertSplits(split_data))
+    # Verify that the number of split text records is correct
+    check = requests.get(BASE_URL + "/preprocessing/split/" + TABLE_NAME + "/count")
+    if int(check.text) != len(split_data.index):
+        # Not all records were inserted
+        success = False
+        print(check.text + " out of " + str(len(split_data.index)) + " split text records were uploaded")
+        # Delete any records that were inserted
+        requests.delete(BASE_URL + "/preprocessing/split/" + TABLE_NAME)
+    else:
+        # All records were inserted
+        print("Split text finished uploading in " + str(time.time() - start_time) + " seconds")
+
+# Send API to insert a chunk of word embedding records into db
+async def insertEmbeddingChunk(session, body):
+    try:
+        async with session.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS) as resp:
+            result = await resp.json()
+            return result
+    except Exception as e:
+        print(e)
+
+# Asynchronously insert all word embedding records into db
+async def insertEmbeddings(embedding_data):
+    async with aiohttp.ClientSession() as session:
+        calls = []
+        PER_PAGE = 50000
+        for i in range(0, len(embedding_data.index), PER_PAGE):
+            body = json.loads(embedding_data[i:(i + PER_PAGE)].to_json(orient = "records"))
+            calls.append(asyncio.ensure_future(insertEmbeddingChunk(session, body)))
+        await asyncio.gather(*calls)
 
 # Compute word embeddings and insert into database
-def wordEmbeddings(data):
+def wordEmbeddingsThread(data):
     # Calculate word embeddings
+    start_time = time.time()
     print("Start word embeddings")
-    results = word_embeddings.word_embeddings(data)
+    embeddings = word_embeddings.word_embeddings(data)
+    print("Embeddings calculated in " + str(time.time() - start_time) + " seconds")
 
-    # Insert into db
-    PER_PAGE = 50000
-    page = 1
-    for i in range(0, len(results.index), PER_PAGE):
-        body = json.loads(results[i:(i + PER_PAGE)].to_json(orient = "records"))
-        print("Embeddings Page:", page)
-        result = requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS)
-        page += 1
-        if result.status_code != 201:
-            sys.exit(result.json())
-    print("Word embeddings done")
+    start_time = time.time()
+    asyncio.run(insertEmbeddings(embeddings))
+    # Verify that the number of split text records is correct
+    check = requests.get(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME + "/count")
+    if int(check.text) != len(embeddings.index):
+        # Not all records were inserted
+        success = False
+        print(check.text + " out of " + str(len(embeddings.index)) + " word embedding records were uploaded")
+        # Delete any records that were inserted
+        requests.delete(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME)
+    else:
+        # All records were inserted
+        print("Embeddings finished uploading in " + str(time.time() - start_time) + " seconds")
 
 # Get dataset from db
 data = getTable()
@@ -108,8 +158,8 @@ data = getTable()
 split = splitText(data)
 
 # Create threads to insert split records and calculate word embeddings
-t1 = threading.Thread(target = insertSplits, args = (split,))
-t2 = threading.Thread(target = wordEmbeddings, args = (split,))
+t1 = threading.Thread(target = insertSplitsThread, args = (split,))
+t2 = threading.Thread(target = wordEmbeddingsThread, args = (split,))
 # Start threads
 t1.start()
 t2.start()
@@ -117,10 +167,11 @@ t2.start()
 t1.join()
 t2.join()
 
-# Update metadata to mark as processed
-body = {
-    "processed": True
-}
-result = requests.put(BASE_URL + "/datasets/metadata/" + TABLE_NAME, json = body, headers = HEADERS)
-if result.status_code != 200:
-    sys.exit(result.json())
+# Update metadata to mark as processed if success is True
+if success == True:
+    body = {
+        "processed": True
+    }
+    result = requests.put(BASE_URL + "/datasets/metadata/" + TABLE_NAME, json = body, headers = HEADERS)
+    if result.status_code != 200:
+        sys.exit(result.json())
