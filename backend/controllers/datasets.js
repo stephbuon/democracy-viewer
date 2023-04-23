@@ -1,7 +1,7 @@
 const util = require("../util/file_management");
 
 // Upload a new dataset from a csv file
-const createDataset = async(datasets, path) => {
+const createDataset = async(datasets, path, username) => {
     // Parse the provided csv file
     return await util.readCSV(path).then(async(data) => {
         // Get the file name from the file path
@@ -40,10 +40,14 @@ const createDataset = async(datasets, path) => {
     
         // Create a new table with the file name and column names
         await datasets.createDataset(name, Object.keys(data[0]), maxLengths);
-    
+
+        // Create empty metadata for data set
+        await datasets.createMetadata(name, username);
+
         // Loop through the data and insert rows
-        for (let i = 0; i < data.length; i += 10000) {
-            await datasets.addRows(name, data.slice(i, i + 10000));
+        const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
+        for (let i = 0; i < data.length; i += per_insert) {
+            await datasets.addRows(name, data.slice(i, i + per_insert));
         }
     
         // Return the first 10 rows of the new dataset and the table name
@@ -56,27 +60,50 @@ const createDataset = async(datasets, path) => {
     });
 }
 
-// Create the initial metadata for a dataset
-const createMetadata = async(datasets, username, body) => {
-    // Add username to parameters
-    const params = { ...body, username };
-    const record = await datasets.createMetadata(params);
-    return record;
-}
-
 // Add a tag for a dataset
-const addTag = async(datasets, user, table, tag) => {
+const addTag = async(datasets, user, table, tags) => {
     // Get the current metadata for this table
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
-    // Add tag to db
-    const record = await datasets.addTag(table, tag);
-    return record;
+    // If cols is not an array, make it an array
+    if (!Array.isArray(tags)) {
+        tags = [ tags ];
+    }
+
+    // Add tags to db
+    await datasets.addTag(table, tags);
+
+    // Return all tags for this dataset
+    const records = await getTags(datasets, table);
+    return records;
+}
+
+// Add text column(s) for a dataset
+const addTextCols = async(datasets, user, table, cols) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    }
+
+    // If cols is not an array, make it an array
+    if (!Array.isArray(cols)) {
+        cols = [ cols ];
+    }
+
+    // Add data to db
+    await datasets.addTextCols(table, cols);
+
+    // Return all text columns for this dataset
+    const records = await getTextCols(datasets, table);
+    return records;
 }
 
 // Change the data type of a column in a dataset
@@ -94,8 +121,8 @@ const updateMetadata = async(datasets, user, table, params) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (user !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     // Update metadata record
@@ -121,24 +148,21 @@ const getTags = async(datasets, table) => {
     return results;
 } 
 
-// Download a csv with all records from a dataset
-const downloadDataset = async(datasets, table) => {
-    // Clear the downloads folder on the server
-    util.clearDirectory("./downloads/");
-    // Get all records in this dataset
-    const records = await datasets.getSubset(table, {}, false);
-    // Generate csv from records
-    const fileName = await util.generateCSV(`./downloads/${ table }_${ Date.now() }.csv`, records);
-    // Return generated file name
-    return fileName;
+// Get text columns by dataset
+const getTextCols = async(datasets, table) => {
+    // Get col names from table
+    const records = await datasets.getTextCols(table);
+    // Convert objects to strings with col names
+    const results = records.map(x => x.col);
+    return results;
 }
 
 // Download a subset of a dataset
-const downloadSubset = async(datasets, table, params) => {
+const downloadSubset = async(datasets, table, params, page) => {
     // Clear the downloads folder on the server
     util.clearDirectory("./downloads/");
     // Get all records in this dataset
-    const records = await datasets.subsetTable(table, params, false);
+    const records = await datasets.subsetTable(table, params, true, page);
     // Generate csv from records
     const fileName = util.generateCSV(`./downloads/${ table }`, records);
     // Return generated file name
@@ -151,8 +175,8 @@ const deleteDataset = async(datasets, user, table) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
     await datasets.deleteTable(table);
@@ -167,8 +191,8 @@ const deleteTag = async(datasets, user, table, tag) => {
     const curr = await datasets.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error("Logged in user is not the owner of this dataset");
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
     await datasets.deleteTag(table, tag);
@@ -176,16 +200,32 @@ const deleteTag = async(datasets, user, table, tag) => {
     return null;
 }
 
+// Delete a text column fro a dataset
+const deleteTextCol = async(datasets, user, table, col) => {
+    // Get the current metadata for this table
+    const curr = await datasets.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (curr.username !== "aws_server" && curr.username !== user) {
+        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    }
+
+    await datasets.deleteTextCol(table, col);
+
+    return null;
+}
+
 module.exports = {
     createDataset,
-    createMetadata,
     addTag,
+    addTextCols,
     changeColType,
     updateMetadata,
-    downloadDataset,
     downloadSubset,
     getUniqueTags,
     getTags,
+    getTextCols,
     deleteDataset,
-    deleteTag
+    deleteTag,
+    deleteTextCol
 };

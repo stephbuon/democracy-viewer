@@ -1,13 +1,20 @@
-# Here we set up the build for the REACT.JS container
-# We simply set the working directory within docker and also expose the port to our API, 8000
-# Docker compose handles all the cross platform persistence via volumes so we don't need to worry about
-#   copying over any of the actual code files for the frontend.
-
 # We are using node version 16
 FROM node:16
 
 # Set the working directory within docker image
 WORKDIR /usr/src/app
 
-# expose port 8000
+# Expose port 8000
 EXPOSE 8000
+
+# Install node dependencies
+RUN npm install
+
+# Install Python dependencies
+FROM python
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Install R dependencies
+FROM r-base
+RUN Rscript r_install_dependencies.R

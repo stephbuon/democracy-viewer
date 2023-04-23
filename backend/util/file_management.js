@@ -30,10 +30,15 @@ const deleteFiles = (files) => {
     }
 }
 
+// Check if a given file exists
+const fileExists = (name) => {
+    return fs.existsSync(name);
+}
+
 // Generate a csv file from an array of records
 const generateCSV = async(name, records) => {
     // Split records into sets of 10,000
-    for (let i = 0; i < records.length; i += 10000) {
+    for (let i = 0; i <= records.length; i += 10000) {
         // If i is 0, overwrite file
         // Else, append to file
         const csv = new csv_write(records.slice(i, i + 10000));
@@ -96,6 +101,7 @@ const uploadFile = util.promisify(
 module.exports = {
     clearDirectory,
     deleteFiles,
+    fileExists,
     generateCSV,
     generateJSON,
     readCSV,

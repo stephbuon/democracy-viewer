@@ -2,6 +2,7 @@ const knex = require("../db/knex");
 
 const metadata_table = "dataset_metadata";
 const tag_table = "tags";
+const text_col_table = "dataset_text_cols";
 
 class datasets {
     // Create a table for a new dataset
@@ -21,9 +22,7 @@ class datasets {
 
     // Add multiple rows to a dataset
     async addRows(table, rows) {
-        const queries = rows.map(row => knex(table).insert({ ...row }));
-        const query = queries.map(q => q.toString()).join("; ");
-        const insert = await knex.raw(query);
+        const insert = await knex(table).insert([ ...rows ]);
         return insert;
     }
 
@@ -34,17 +33,28 @@ class datasets {
     }
 
     // Add initial metadata for a table
-    async createMetadata(params) {
-        const insert = await knex(metadata_table).insert({ ...params });
-        const record = await knex(metadata_table).where({ table_name: params.table_name });
+    async createMetadata(table_name, username) {
+        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0 });
+        const record = await knex(metadata_table).where({ table_name });
         return record[0];
     }
 
     // Add a tag for a dataset
-    async addTag(table_name, tag_name) {
-        const insert = await knex(tag_table).insert({ table_name, tag_name });
-        const record = await knex(tag_table).where({ table_name, tag_name });
-        return record[0];
+    async addTag(table_name, tags) {
+        // Format table name and tags as an array of objects
+        const data = tags.map(x => ({ table_name, tag_name: x }));
+        // Insert records
+        const insert = await knex(tag_table).insert([ ...data ]);
+        return insert;
+    }
+
+    // Add text columns for a dataset
+    async addTextCols(table_name, cols) {
+        // Format table name and cols as an array of objects
+        const data = cols.map(x => ({ table_name, col: x }));
+        // Insert records
+        const insert = await knex(text_col_table).insert([ ...data ]);
+        return insert;
     }
 
     // Update the metadata of a table
@@ -91,8 +101,14 @@ class datasets {
         return results;
     }
 
+    // Get text columns by dataset
+    async getTextCols(table_name) {
+        const results = await knex(text_col_table).where({ table_name });
+        return results;
+    }
+
     // Filter datasets
-    async getFilteredDatasets(params, username, paginate = true, page = 1) {
+    async getFilteredDatasets(params, username, paginate = true, currentPage = 1) {
         const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
@@ -176,7 +192,8 @@ class datasets {
 
         let results;
         if (paginate) {
-            results = await query.orderBy("clicks", "desc").paginate({ perPage: 50, currentPage: page });
+            const perPage = params.pageLength ? params.pageLength : 50;
+            results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
             results = results.data;
         } else {
             results = await query;
@@ -198,7 +215,7 @@ class datasets {
     }
 
     // Get a subset of a dataset
-    async subsetTable(table, params, paginate = true, page = 1) {
+    async subsetTable(table, params, paginate = true, currentPage = 1) {
         // Get the first record in case col names are needed
         const head = await this.getHead(table, 1);
 
@@ -208,7 +225,9 @@ class datasets {
 
             // Iterate through keys and and where clause for each
             keys.forEach(key => {
-                if (key === "col_search") {
+                if (key === "pageLength") {
+                    // Skip any key that is "pageLength"
+                } else if (key === "col_search") {
                     // If the key is col_search, search for search terms in all columns
 
                     // Split search string into words
@@ -262,7 +281,8 @@ class datasets {
 
         let results;
         if (paginate === true) {
-            results = await query.orderBy("id").paginate({ perPage: 50, currentPage: page });
+            const perPage = params.pageLength ? params.pageLength : 50;
+            results = await query.orderBy("id").paginate({ perPage, currentPage });
             return results.data;
         } else if (paginate === false) {
             results = await query;
@@ -300,6 +320,12 @@ class datasets {
     // Delete tag on a dataset
     async deleteTag(table_name, tag_name) {
         const del = await knex(tag_table).where({ table_name, tag_name }).delete();
+        return del;
+    }
+
+    // Delete a text column for a dataset
+    async deleteTextCol(table_name, col) {
+        const del = await knex(text_col_table).where({ table_name, col }).delete();
         return del;
     }
 }
