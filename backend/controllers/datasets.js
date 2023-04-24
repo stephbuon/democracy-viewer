@@ -9,6 +9,15 @@ const createDataset = async(datasets, path, username) => {
         name = name[name.length - 1].split(".");
         name = name[0] + "_" + Date.now();
 
+        // If there is a column called id, change it to id_
+        if (data[0].id) {
+            data = data.map(x => {
+                x.id_ = { ...x.id };
+                delete x.id;
+                return x;
+            })
+        }
+
         // Split any values with over 8000 characters into multiple records
         for (let i = 0; i < data.length; i++) {
             let keys = [];
@@ -158,13 +167,20 @@ const getTextCols = async(datasets, table) => {
 }
 
 // Download a subset of a dataset
-const downloadSubset = async(datasets, table, params, page) => {
+const downloadSubset = async(datasets, table, params) => {
     // Clear the downloads folder on the server
     util.clearDirectory("./downloads/");
     // Get all records in this dataset
-    const records = await datasets.subsetTable(table, params, true, page);
+    const count = await datasets.subsetTableCount(table, params);
+    const pages = Math.ceil(count / 50000);
+    params.pageLength = 50000;
+    let records = [];
+    for (let i = 1; i <= pages; i++) {
+        const curr = await datasets.subsetTable(table, params, true, i);
+        records = [ ...records, ...curr ];
+    }
     // Generate csv from records
-    const fileName = util.generateCSV(`./downloads/${ table }`, records);
+    const fileName = util.generateCSV(`./downloads/${ table }.csv`, records);
     // Return generated file name
     return fileName;
 }

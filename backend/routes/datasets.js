@@ -3,6 +3,7 @@ const router = express.Router();
 const control = require("../controllers/datasets");
 const { authenticateJWT, optAuthenticateJWT } = require("../middleware/authentication");
 const util = require("../util/file_management");
+const request = require("request");
 
 // Route to create a dataset
 router.post('/', authenticateJWT, async(req, res, next) => {
@@ -194,21 +195,21 @@ router.get('/count/subset/:table', async(req, res, next) => {
 });
 
 // Route to download a subset of a dataset
-router.get('/download/subset/:table/:page', async(req, res, next) => {
+router.get('/download/subset/:table', async(req, res, next) => {
     try {
         // Generate file
-        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query, req.params.page);
+        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query);
         // Download file
         res.download(result, `${ req.params.table }.csv`, (err) => {
             // Error handling
             if (err) {
-                console.error("Failed to download dataset subset:", err);
+                console.log("Failed to download dataset subset:", err);
                 res.status(500).json({ message: err.toString() });
                 next();
             }
         });
     } catch (err) {
-        console.error('Failed to get dataset subset:', err);
+        console.error('Failed to download dataset subset:', err);
         res.status(500).json({ message: err.toString() });
         next();
     }
