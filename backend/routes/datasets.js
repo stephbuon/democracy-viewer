@@ -3,7 +3,6 @@ const router = express.Router();
 const control = require("../controllers/datasets");
 const { authenticateJWT, optAuthenticateJWT } = require("../middleware/authentication");
 const util = require("../util/file_management");
-const request = require("request");
 
 // Route to create a dataset
 router.post('/', authenticateJWT, async(req, res, next) => {
