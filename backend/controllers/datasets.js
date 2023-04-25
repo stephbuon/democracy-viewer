@@ -116,9 +116,16 @@ const addTextCols = async(datasets, user, table, cols) => {
 }
 
 // Change the data type of a column in a dataset
-const changeColType = async(datasets, table, column, type) => {
-    // Change the column in db
-    await datasets.changeColType(table, column, type);
+const changeColType = async(datasets, table, body) => {
+    if (Array.isArray(body)) {
+        // If body is an array, change all types in array
+        for (let i = 0; i < body.length; i++) {
+            await datasets.changeColType(table, body[i].column, body[i].type);
+        }
+    } else {
+        // Else, change one column type
+        await datasets.changeColType(table, body.column, body.type);
+    }
     // Get the first 10 rows of the dataset
     const results = datasets.getHead(table);
     return results;
