@@ -1,0 +1,7 @@
+install.packages("dplyr", repos = "http://cran.us.r-project.org")
+install.packages("textstem", repos = "http://cran.us.r-project.org")
+install.packages("tidytext", repos = "http://cran.us.r-project.org")
+install.packages("text2vec", repos = "http://cran.us.r-project.org")
+install.packages("devtools", repos = "http://cran.us.r-project.org")
+library(devtools)
+devtools::install_github("https://github.com/stephbuon/dhmeasures", dependencies = TRUE, upgrade = TRUE)
