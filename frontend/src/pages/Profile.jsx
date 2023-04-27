@@ -20,7 +20,7 @@ import Button from '@mui/material/Button';
 
 const mdTheme = createTheme();
 
-function DashboardContent() {
+const Profile = () => {
     const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -112,7 +112,7 @@ function DashboardContent() {
                                         {
                                             user.orcid &&
                                             <ListItemText>
-                                                <PermIdentity /> OrcID - { user.orcid }
+                                                <PermIdentity /> OrcID - { (user.orcid.match(/.{1,4}/g) || []).join("-") }
                                             </ListItemText>
                                         }
                                         
@@ -187,6 +187,4 @@ function DashboardContent() {
     );
 }
 
-export default function Dashboard() {
-    return <DashboardContent />;
-}
+export default Profile;

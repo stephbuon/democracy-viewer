@@ -1,11 +1,9 @@
 import { FormControl, Modal } from "@mui/material";
-import { useEffect, useState } from "react";
 import Button from '@mui/material/Button';
-import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { updateUser } from "../api/users";
+import { PatternFormat } from "react-number-format";
 
 export const EditProfile = ({ user, setUser, open, setOpen }) => {
     const handleSubmit = (event) => {
@@ -15,17 +13,24 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
 
         Object.keys(user).forEach(key => {
             if (key !== "username") {
-                console.log(user)
                 const val = data.get(key);
-                console.log(key, val)
                 if (!val && user[key]) {
                     params[key] = null;
                 } else if (val && val !== user[key]) {
-                    params[key] = val;
+                    if (key === "orcid") {
+                        if (val.includes("_")) {
+                            throw new Error("Incomplete OrcID");
+                        }
+                        params[key] = val.split("-").join("");
+                    } else {
+                        params[key] = val;
+                    }
+                    
                 } 
             }
         });
 
+        console.log(params)
         updateUser(user.username, params).then(x => {
             setUser(x);
             setOpen(false);
@@ -55,9 +60,6 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             label="Username"
                             name="username"
                             defaultValue = { user.username ? user.username : "" }
-                            // InputProps={{
-                            //     readOnly: true,
-                            // }}
                             disabled
                         />
 
@@ -101,19 +103,22 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             defaultValue = { user.title ? user.title : "" }
                         />
 
-                        <TextField
+                        <PatternFormat
+                            customInput={TextField}
                             margin="normal"
                             id="orcid"
                             label="OrcID"
                             name="orcid"
-                            defaultValue = { user.orcid ? user.orcid : "" }
+                            value={ user.orcid ? user.orcid : "" }
+                            format="####-####-####-####" 
+                            mask="_"
                         />
 
                         <TextField
                             margin="normal"
-                            id="linkedin"
+                            id="linkedin_link"
                             label="LinkenIn Link"
-                            name="linkedin"
+                            name="linkedin_link"
                             defaultValue = { user.linkedin_link ? user.linkedin_link : "" }
                         />
 
