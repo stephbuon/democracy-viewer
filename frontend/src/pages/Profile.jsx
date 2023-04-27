@@ -49,7 +49,7 @@ const Profile = () => {
     }, [ params.username ]);
 
     if (!user) {
-        return <>Loading...</>
+        return <>You must be logged in to view your profile</>
     }
 
     return (
