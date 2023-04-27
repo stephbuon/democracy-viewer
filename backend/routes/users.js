@@ -26,6 +26,19 @@ router.put('/:username', async(req, res, next) => {
     next();
 });
 
+// Route to get a user by their username
+router.get('/:username', async(req, res, next) => {
+    try {
+        const result = await control.findUserByUsername(req.models.users, req.params.username)
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get account:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+
 // Route to delete a user
 router.delete('/:username', async(req, res, next) => {
     try {

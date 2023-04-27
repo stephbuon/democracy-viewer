@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect, useState } from "react";
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -13,16 +13,26 @@ import Link from '@mui/material/Link';
 import { Avatar, ListItemText } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Title, Menu, Home, Search } from '@mui/icons-material'
 import CardMedia from '@mui/material/CardMedia';
-
-
+import { getUser } from "../api/users";
+import { useParams } from "react-router-dom";
 
 const mdTheme = createTheme();
 
 function DashboardContent() {
-    const [open, setOpen] = React.useState(true);
+    const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    const [ user, setUser ] = useState(undefined);
+    
+
+    const params = useParams();
+
+    useEffect(() => {
+        if (params.username) {
+            getUser(params.username).then(x => setUser(x));
+        }
+    }, [ params.username ]);
 
     return (
         <ThemeProvider theme={mdTheme}>
