@@ -42,25 +42,50 @@ export const App = () => {
   const [data, setData] = useState(undefined);
   
   const [dataset, setDataset] = useState(undefined);
+  const [user, setUser] = useState(undefined);
 
   const chooseDataset = (choice) =>{
     setDataset(choice)
-    localStorage.setItem('dataset', JSON.stringify(choice))
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if(!demoV)
+    {
+      demoV = {user:undefined, dataset:undefined}
+    }
+    demoV.dataset = choice;
+    localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+  }
+
+  const login = (profile) => {
+    console.log(profile);
+    setUser(profile)
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if(!demoV)
+    {
+      demoV = {user:undefined, dataset:undefined}
+    }
+    console.log(demoV)
+    demoV.user = profile;
+    localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
 
   useEffect(() => {
     console.log("Strating Democracy Viewer App")
-
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
     //TODO implement this (only when logged in?)
-    if(localStorage.getItem('dataset') != undefined)
+    if(demoV != undefined)
     {
-      setDataset(JSON.parse(localStorage.getItem('dataset')))
+      if(demoV.user != undefined){setUser(demoV.user)}
+      if(demoV.dataset != undefined){setDataset(demoV.dataset)}
     }
   },[]);
   
   useEffect(()=>{
     console.log("NOW USING NEW DATASET", dataset);
   }, [dataset]);
+
+  useEffect(()=>{
+    console.log("NOW LOGGED IN", user);
+  }, [user]);
 
   
 
@@ -70,10 +95,10 @@ export const App = () => {
         <Layout />
         <Routes>
             <Route path="/" element={<Homepage />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login login={login}/>} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile/>} />
-            <Route path="/login-register" element={<LoginRegister />}></Route>
+            <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
             <Route path="/graph" element={<Graph dataset={graphData} setData={setData} />}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} />} />
