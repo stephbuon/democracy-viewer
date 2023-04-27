@@ -13,3 +13,12 @@ export const getUser = (username) => new Promise((resolve, reject) => {
           reject(x);
         });
 });
+
+export const updateUser = (username, params) => new Promise((resolve, reject) => {
+  axios.put(`${ baseEndpoint }/${ username }`, params, apiConfig)
+      .then(x => resolve(x.data))
+      .catch(x => {
+        alert(x);
+        reject(x);
+      });
+});

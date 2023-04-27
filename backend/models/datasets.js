@@ -89,6 +89,12 @@ class datasets {
         return record[0];
     }
 
+    // Get all datasets owned by a given user
+    async getUserDatasets(username) {
+        const records = await knex(metadata_table).where({ username });
+        return records;
+    }
+
     // Get all unique tags
     async getUniqueTags() {
         const results = await knex(tag_table).select("tag_name").distinct();

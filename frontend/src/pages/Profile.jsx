@@ -15,6 +15,8 @@ import { LinkedIn, Email, PermIdentity, Person, Title, Menu, Home, Search } from
 import CardMedia from '@mui/material/CardMedia';
 import { getUser } from "../api/users";
 import { useParams } from "react-router-dom";
+import { EditProfile } from "./EditProfile";
+import Button from '@mui/material/Button';
 
 const mdTheme = createTheme();
 
@@ -26,6 +28,7 @@ function DashboardContent() {
 
     const [ user, setUser ] = useState(undefined);
     const [ editable, setEditable ] = useState(false);
+    const [ modalOpen, setModalOpen ] = useState(false);
 
     const params = useParams();
 
@@ -130,7 +133,7 @@ function DashboardContent() {
                                         {
                                             user.website &&
                                             <ListItemText>
-                                                <LinkedIn color="primary" /> <Link href={ user.website }>{ user.website }</Link>
+                                                <Link href={ user.website }>{ user.website }</Link>
                                             </ListItemText>
                                         }
                                         
@@ -141,7 +144,19 @@ function DashboardContent() {
                                             </ListItemText>
                                         }
                                         
-
+                                        {
+                                            editable === true &&
+                                            <ListItemText>
+                                                <Button
+                                                    type="button"
+                                                    variant="contained"
+                                                    sx={{ mt: 3, mb: 2 }}
+                                                    onClick={()=>setModalOpen(true)}
+                                                >
+                                                Edit Profile
+                                                </Button>
+                                            </ListItemText>
+                                        }
                                     </List>
                                     {/* Will add in edit button to edit personal information */}
                                 </Paper>
@@ -166,6 +181,8 @@ function DashboardContent() {
                     </Container>
                 </Box>
             </Box>
+
+            <EditProfile user = { user } setUser = { setUser } open = { modalOpen } setOpen = { setModalOpen }/>
         </ThemeProvider>
     );
 }
