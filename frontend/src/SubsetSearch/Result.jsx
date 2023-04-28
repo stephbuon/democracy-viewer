@@ -19,7 +19,14 @@ export const Result = (props) => {
     return <div>
 
         <Box onClick={() => handleOpen()}>
-            {props.result[keys[0]]}
+            {keys.map((key)=>
+            {
+                return <TableCell
+                sx={{
+                    width: .2
+                }}
+                >{props.result[key]}</TableCell>
+            })}
         </Box>
         <Modal
             open={open}

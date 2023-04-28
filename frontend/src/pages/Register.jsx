@@ -33,7 +33,7 @@ export default function Register() {
         <CssBaseline />
         <Box
           sx={{
-            marginTop: 8,
+            marginTop: 15,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -106,7 +106,6 @@ export default function Register() {
                   fullWidth
                   id="Title"
                   label="Title"
-                  autoFocus
                 />
               </Grid>
               <Grid item xs={12} sm={6}>

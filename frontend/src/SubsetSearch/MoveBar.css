@@ -1,12 +1,18 @@
+
 .not-searched{
     height: 100vh;
+
 }
+
 .searched{
     height: 20vh;
+    
+    
 }
 
 .searching-parent {
-    animation: move-up-parent .5s linear;
+    animation: move-up-parent 1.8s linear;
+
 }
 
 @keyframes move-up-parent {

@@ -36,31 +36,25 @@ const findUserByUsername = async(user, username) => {
 
 // Update a user's information
 const updateUser = async(user, username, params) => {
-    // Get the current metadata for this table
-    const curr = await user.findUserByUsername(username);
-
-    // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== username) {
-        throw new Error("Logged in user does not match selecter user");
-    }
-
     // Update user record
-    const result = await user.updateUser(username, params);
+    await user.updateUser(username, params);
+    const result = await findUserByUsername(user, username);
     return result;
 }
 
 // Delete a user
-const deleteUser = async(user, username) => {
-    // Get the current metadata for this table
-    const curr = await user.findUserByUsername(username);
+const deleteUser = async(models, user) => {
+    const datasetController = require("../controllers/datasets");
 
-    // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== username) {
-        throw new Error("Logged in user does not match selecter user");
+    // Get this user's datasets
+    const datasets = await models.datasets.getUserDatasets(user);
+    // For each dataset, call delete function
+    for (let i = 0; i < datasets.length; i++) {
+        await datasetController.deleteDataset(models.datasets, user, datasets[i].table_name)
     }
-
+    
     // Update user record
-    const result = await user.deleteUser(username);
+    const result = await models.users.deleteUser(user);
     return result;
 }
 

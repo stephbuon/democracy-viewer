@@ -99,6 +99,18 @@ router.get('/metadata/:table', async(req, res, next) => {
     next();
 });
 
+// Route to get all datasets owned by a given user
+router.get('/user/:username', async(req, res, next) => {
+    try {
+        const result = await req.models.datasets.getUserDatasets(req.params.username);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get user datasets:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to get all unique tags
 router.get('/tags/unique', async(req, res, next) => {
     try {

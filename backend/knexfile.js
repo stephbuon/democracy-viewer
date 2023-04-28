@@ -12,7 +12,8 @@ module.exports = {
       options: {
         port: parseInt(process.env.PORT),
         encrypt: true
-      }
+      },
+      requestTimeout: 60000
     },
     pool: {
       min: 0,

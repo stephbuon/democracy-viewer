@@ -14,19 +14,24 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { BrowserRouter as Router, Switch, 
     Route, Redirect,} from "react-router-dom";
+import { LoginRequest } from '../apiFolder/LoginRegister';
 
 
 
 const theme = createTheme();
 
-export default function Login() {
+export default function Login(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    LoginRequest({username: data.get('email'),
+    password: data.get('password'),}).then(async (res) => {
+      props.login({token: res, username: data.get('email')})
+    })
+    // console.log({
+    //   email: data.get('email'),
+    //   password: data.get('password'),
+    // });
   };
 
   return (
@@ -35,7 +40,7 @@ export default function Login() {
         <CssBaseline />
         <Box
           sx={{
-            marginTop: 8,
+            marginTop: 15,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -74,6 +79,7 @@ export default function Login() {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              // onClick={()=>Login()}
             >
               Sign In
             </Button>
