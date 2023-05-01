@@ -69,7 +69,7 @@ export const UploadModal = (props) => {
         //fill out
         UploadDataset(props.file).then(async (datasetname) => {
             UpdateMetadata(datasetname,title,description,publicPrivate)
-            let _texts
+            let _texts = [];
             for (let i = 0; i < headers.length; i++)
             {
                 if(columnTypes[headers[i]] === "TEXT")
@@ -81,7 +81,7 @@ export const UploadModal = (props) => {
                 AddTextColumn(datasetname,_texts);
             }
             AddTags(datasetname,tags);
-        })
+        }).then(() => props.Cancel())
     }
 
     const loggedIn = () => {
