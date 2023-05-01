@@ -81,7 +81,7 @@ export const UploadModal = (props) => {
                 AddTextColumn(datasetname,_texts);
             }
             AddTags(datasetname,tags);
-        }).then(() => props.Cancel())
+        }).then(() => props.CancelUpload())
     }
 
     const loggedIn = () => {
