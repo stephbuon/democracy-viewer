@@ -32,7 +32,7 @@ export const UploadDataset = async (dataset) =>  {
 
 export const AddTextColumn = async (dataset,cols) =>  {
     console.log("add text cols", dataset, cols, apiConfig());
-    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/text`,{dataset,cols}, apiConfig());
+    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/text`,{dataset:dataset.table_name,cols}, apiConfig());
     if(res.status !== 201){
         console.log(`Couldn't post columns. ${res.status}`)
         return null;
@@ -43,7 +43,7 @@ export const AddTextColumn = async (dataset,cols) =>  {
 
 export const AddTags = async (dataset, tags) =>  {
     console.log("Adding tags", dataset, tags, apiConfig());
-    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/tags`, {dataset, tags}, apiConfig());
+    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/tags`, {dataset:dataset.table_name, tags}, apiConfig());
     if(res.status !== 201){
         console.log(`Couldn't add tags. ${res.status}`)
         return null;
@@ -52,8 +52,9 @@ export const AddTags = async (dataset, tags) =>  {
     return res.data;
 };
 
-export const UpdateMetadata = async (dataset, title, decription,is_public) =>  {
-    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset}`, {title, decription,is_public}, apiConfig());
+export const UpdateMetadata = async (dataset, title, description,is_public) =>  {
+    console.log("Updating metadata", dataset, title, description,is_public, apiConfig());
+    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset.table_name}`, {title, description,is_public}, apiConfig());
     if(res.status !== 200){
         console.log(`Couldn't update metadata. ${res.status}`)
         return null;

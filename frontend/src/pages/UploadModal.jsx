@@ -55,12 +55,15 @@ export const UploadModal = (props) => {
     }
 
     const deleteTag = (_tag) => {
+        
         let _tags = tags
         let index = _tags.indexOf(_tag);
+        console.log("deleting tag", index)
         if (index > -1) {
           _tags.splice(index, 1);
+          console.log(_tags);
         }
-        setTags(_tags);
+        setTags([..._tags]);
     } 
     const SendDataset = () => {
         //fill out
@@ -74,7 +77,9 @@ export const UploadModal = (props) => {
                     _texts.push(headers[i])
                 }
             }
-            AddTextColumn(datasetname,_texts);
+            if(_texts.length > 0){
+                AddTextColumn(datasetname,_texts);
+            }
             AddTags(datasetname,tags);
         })
     }
