@@ -37,10 +37,6 @@ export const UploadModal = (props) => {
     // const fs = require('fs');
     // const readline = require('readline');
 
-    const allColumnsTyped = () => {
-        // for (i in columnTypes)
-        return true
-    }
     const FilledOut = () => {
         if (title && description) { return true }
         else { return false; }
@@ -271,6 +267,7 @@ export const UploadModal = (props) => {
                         <TableCell>
                         <FormControl>
                                 <Select
+                                    defaultValue="AUTO"
                                     value={columnTypes[header]}
                                     onChange={event => setColumnTypes({...columnTypes, [header]:event.target.value})}
                                     sx={{
@@ -278,7 +275,7 @@ export const UploadModal = (props) => {
                                         color: 'rgb(0, 0, 0)'
                                     }}
                                 >
-                                    <MenuItem value={undefined}>&nbsp;</MenuItem>
+                                    <MenuItem value={"AUTO"}>AUTO</MenuItem>
                                     <MenuItem value={"TEXT"}>TEXT</MenuItem>
                                 </Select>
                             </FormControl>
