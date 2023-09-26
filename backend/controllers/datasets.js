@@ -206,9 +206,6 @@ const getUploadPercent = async(datasets, table) => {
         // If record count is 0, throw error
         throw new Error("Number of records is 0");
     }
-    
-    const perc  = records / metadata.record_count;
-
 }
 
 // Delete a dataset and its metadata
