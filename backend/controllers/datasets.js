@@ -193,6 +193,24 @@ const downloadSubset = async(datasets, table, params) => {
     return fileName;
 }
 
+// Get the percentage of a dataset that has been uploaded to the database
+const getUploadPercent = async(datasets, table) => {
+    // Get the metadata record
+    const metadata = await datasets.getMetadata(table);
+    // Get the number of records in the given table
+    const records = await datasets.subsetTableCount(table, {});
+    if (metadata.record_count > 0) {
+        // Calculate percentage of records uploaded
+        return records / metadata.record_count;
+    } else {
+        // If record count is 0, throw error
+        throw new Error("Number of records is 0");
+    }
+    
+    const perc  = records / metadata.record_count;
+
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(datasets, user, table) => {
     // Get the current metadata for this table
@@ -246,6 +264,7 @@ module.exports = {
     changeColType,
     updateMetadata,
     downloadSubset,
+    getUploadPercent,
     getUniqueTags,
     getTags,
     getTextCols,

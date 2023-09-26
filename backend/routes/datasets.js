@@ -238,6 +238,18 @@ router.get('/ids/:table', async(req, res, next) => {
     next();
 });
 
+// Route to get the percentage of a data set that has been uploaded to the database
+router.get('/upload/:table', async(req, res, next) => {
+    try {
+        const result = await control.getUploadPercent(req.models.datasets, req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset upload percentage:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to delete a datset and its metadata
 router.delete('/:table', authenticateJWT, async(req, res, next) => {
     try {
