@@ -13,7 +13,11 @@ class datasets {
 
             // Add all column names as strings
             cols.map(x => {
-                table.string(x, lengths[x]);
+                if (lengths[x] > 8000) {
+                    table.text(x);
+                } else {
+                    table.string(x, lengths[x]);
+                }
             });
         });
 

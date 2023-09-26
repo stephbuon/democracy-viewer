@@ -19,23 +19,24 @@ const createDataset = async(datasets, path, username) => {
         }
 
         // Split any values with over 8000 characters into multiple records
-        for (let i = 0; i < data.length; i++) {
-            let keys = [];
-            Object.keys(data[i]).forEach(key => {
-                if (data[i][key].length > 4000) {
-                    keys.push(key);
-                }
-            });
+        // Not used right now, but remains in case it is needed later
+        // for (let i = 0; i < data.length; i++) {
+        //     let keys = [];
+        //     Object.keys(data[i]).forEach(key => {
+        //         if (data[i][key].length > 4000) {
+        //             keys.push(key);
+        //         }
+        //     });
 
-            if (keys.length > 0) {
-                const newRecord = { ...data[i] };
-                keys.forEach(key => {
-                    data[i][key] = data[i][key].substring(0, 4000);
-                    newRecord[key] = data[i][key].substring(4000, data[i][key].length);
-                });
-                data.splice(i + 1, 0, newRecord);
-            }
-        }
+        //     if (keys.length > 0) {
+        //         const newRecord = { ...data[i] };
+        //         keys.forEach(key => {
+        //             data[i][key] = data[i][key].substring(0, 4000);
+        //             newRecord[key] = data[i][key].substring(4000, data[i][key].length);
+        //         });
+        //         data.splice(i + 1, 0, newRecord);
+        //     }
+        // }
     
         // Determine the maximum length for each column
         const maxLengths = {};
