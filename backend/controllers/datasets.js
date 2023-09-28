@@ -2,12 +2,35 @@ const util = require("../util/file_management");
 
 // Upload a new dataset from a csv file
 const createDataset = async(datasets, path, username) => {
+    // Get the file name from the file path
+    let name = path.split("/");
+    name = name[name.length - 1].split(".");
+    name = name[0] + "_" + Date.now();
+
+    // Create empty metadata for data set
+    await datasets.createMetadata(name, username);
+
+    return name;
+}
+
+// Upload dataset records
+const uploadDataset = async(datasets, name, user) => {
+    // Get the current metadata for this dataset
+    const curr = await datasets.getMetadata(name);
+
+    // If the user of this dataset does not match the user making the updates, throw error
+    if (curr.username !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    // Get file name from table name
+    const fileName = name.split("_").slice(0, -1).join("_");
+    const path = `uploads/${fileName}.csv`;
+
     // Parse the provided csv file
     return await util.readCSV(path).then(async(data) => {
-        // Get the file name from the file path
-        let name = path.split("/");
-        name = name[name.length - 1].split(".");
-        name = name[0] + "_" + Date.now();
+        // Update metadata with number of records
+        await datasets.updateMetadata(name, { record_count: data.length });
 
         // If there is a column called id, change it to id_
         if (data[0].id) {
@@ -50,9 +73,6 @@ const createDataset = async(datasets, path, username) => {
     
         // Create a new table with the file name and column names
         await datasets.createDataset(name, Object.keys(data[0]), maxLengths);
-
-        // Create empty metadata for data set
-        await datasets.createMetadata(name, username);
 
         // Loop through the data and insert rows
         const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
@@ -256,6 +276,7 @@ const deleteTextCol = async(datasets, user, table, col) => {
 
 module.exports = {
     createDataset,
+    uploadDataset,
     addTag,
     addTextCols,
     changeColType,

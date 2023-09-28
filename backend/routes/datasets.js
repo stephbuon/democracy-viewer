@@ -27,6 +27,18 @@ router.post('/', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to upload dataset records into database
+router.post('/upload/:name', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.uploadDataset(req.models.datasets, req.params.name, req.user.username);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to add dataset tag:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to add a tag for a dataset
 router.post('/tags', authenticateJWT, async(req, res, next) => {
     try {
