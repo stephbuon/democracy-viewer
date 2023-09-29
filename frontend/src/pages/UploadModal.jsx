@@ -150,6 +150,7 @@ export const UploadModal = (props) => {
                                 id="Title"
                                 label="Title"
                                 variant="filled"
+                                disabled
                                 sx={{
                                     background: 'rgb(255, 255, 255)',
                                     color: 'rgb(0, 0, 0)'
