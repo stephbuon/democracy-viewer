@@ -27,6 +27,18 @@ router.post('/', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to upload dataset records into database
+router.post('/upload/:name', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.uploadDataset(req.models.datasets, req.params.name, req.user.username);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to add dataset tag:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to add a tag for a dataset
 router.post('/tags', authenticateJWT, async(req, res, next) => {
     try {
@@ -54,7 +66,7 @@ router.post('/text', authenticateJWT, async(req, res, next) => {
 // Route to change the type of dataset column
 router.put('/:table', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.changeColType(req.models.datasets, req.params.table, req.body.column, req.body.type);
+        const result = await control.changeColType(req.models.datasets, req.params.table, req.body);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to update dataset column type:', err);
@@ -94,6 +106,18 @@ router.get('/metadata/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset metadata:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get all datasets owned by a given user
+router.get('/user/:username', async(req, res, next) => {
+    try {
+        const result = await req.models.datasets.getUserDatasets(req.params.username);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get user datasets:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -194,21 +218,21 @@ router.get('/count/subset/:table', async(req, res, next) => {
 });
 
 // Route to download a subset of a dataset
-router.get('/download/subset/:table/:page', async(req, res, next) => {
+router.get('/download/subset/:table', async(req, res, next) => {
     try {
         // Generate file
-        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query, req.params.page);
+        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query);
         // Download file
         res.download(result, `${ req.params.table }.csv`, (err) => {
             // Error handling
             if (err) {
-                console.error("Failed to download dataset subset:", err);
+                console.log("Failed to download dataset subset:", err);
                 res.status(500).json({ message: err.toString() });
                 next();
             }
         });
     } catch (err) {
-        console.error('Failed to get dataset subset:', err);
+        console.error('Failed to download dataset subset:', err);
         res.status(500).json({ message: err.toString() });
         next();
     }
@@ -221,6 +245,18 @@ router.get('/ids/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset subset count:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get the percentage of a data set that has been uploaded to the database
+router.get('/upload/:table', async(req, res, next) => {
+    try {
+        const result = await control.getUploadPercent(req.models.datasets, req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset upload percentage:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

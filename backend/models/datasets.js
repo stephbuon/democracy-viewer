@@ -13,7 +13,11 @@ class datasets {
 
             // Add all column names as strings
             cols.map(x => {
-                table.string(x, lengths[x]);
+                if (lengths[x] > 8000) {
+                    table.text(x);
+                } else {
+                    table.string(x, lengths[x]);
+                }
             });
         });
 
@@ -87,6 +91,12 @@ class datasets {
     async getMetadata(table_name) {
         const record = await knex(metadata_table).where({ table_name });
         return record[0];
+    }
+
+    // Get all datasets owned by a given user
+    async getUserDatasets(username) {
+        const records = await knex(metadata_table).where({ username });
+        return records;
     }
 
     // Get all unique tags

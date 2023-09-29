@@ -97,7 +97,7 @@ export const App = () => {
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<Login login={login}/>} />
             <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<Profile/>} />
+            <Route path="/profile/:username" element={<Profile/>} />
             <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
             <Route path="/graph" element={<Graph dataset={graphData} setData={setData} />}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>

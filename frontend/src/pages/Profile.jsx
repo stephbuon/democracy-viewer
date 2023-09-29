@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useEffect, useState } from "react";
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -13,16 +13,44 @@ import Link from '@mui/material/Link';
 import { Avatar, ListItemText } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Title, Menu, Home, Search } from '@mui/icons-material'
 import CardMedia from '@mui/material/CardMedia';
-
-
+import { getUser } from "../api/users";
+import { useParams } from "react-router-dom";
+import { EditProfile } from "./EditProfile";
+import Button from '@mui/material/Button';
 
 const mdTheme = createTheme();
 
-function DashboardContent() {
-    const [open, setOpen] = React.useState(true);
+const Profile = () => {
+    const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
     };
+
+    const [ user, setUser ] = useState(undefined);
+    const [ editable, setEditable ] = useState(false);
+    const [ modalOpen, setModalOpen ] = useState(false);
+
+    const params = useParams();
+
+    useEffect(() => {
+        if (params.username) {
+            getUser(params.username).then(x => setUser(x));
+        }
+
+        if (localStorage.getItem("democracy-viewer")) {
+            const loggedInUser = JSON.parse(localStorage.getItem("democracy-viewer")).user.username;
+            if (loggedInUser === params.username) {
+                setEditable(true);
+            } else if (!params.username) {
+                getUser(loggedInUser).then(x => setUser(x));
+                setEditable(true);
+            }
+        }
+    }, [ params.username ]);
+
+    if (!user) {
+        return <>You must be logged in to view your profile</>
+    }
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -57,10 +85,10 @@ function DashboardContent() {
                                     }}
                                 >
                                     {/* How do we upload avatar here? */}
-                                    <Avatar alt="John Smith" src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
+                                    <Avatar alt={ user.username } src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
                                     <Divider flexItem sx={{ mt: 2, mb: 4 }} />
                                     <Typography variant="h4" component="h4">
-                                        John Smith
+                                        { user.first_name } { user.last_name } { user.suffix }
                                     </Typography>
                                 </Paper>
                             </Grid>
@@ -78,24 +106,57 @@ function DashboardContent() {
                                     <List>
 
                                         <ListItemText>
-                                            <Person /> username - john.smith
+                                            <Person /> username - { user.username }
                                         </ListItemText>
 
-                                        <ListItemText>
-                                            <PermIdentity /> OrcID - 123456789
-                                        </ListItemText>
+                                        {
+                                            user.orcid &&
+                                            <ListItemText>
+                                                <PermIdentity /> OrcID - { (user.orcid.match(/.{1,4}/g) || []).join("-") }
+                                            </ListItemText>
+                                        }
+                                        
+                                        {
+                                            user.title &&
+                                            <ListItemText>
+                                                <Title /> { user.title }
+                                            </ListItemText>
+                                        }
+                                        
+                                        {
+                                            user.linkedin_link &&
+                                            <ListItemText>
+                                                <LinkedIn color="primary" /> <Link href={ user.linkedin_link }>{ user.linkedin_link }</Link>
+                                            </ListItemText>
+                                        }
 
-                                        <ListItemText>
-                                            <Title /> Graduate Student
-                                        </ListItemText>
-
-                                        <ListItemText>
-                                            <LinkedIn color="primary" /> <Link href="#">linkedin.com/johnsmith</Link>
-                                        </ListItemText>
-                                        <ListItemText>
-                                            <Email /> <Link href='#'>john.smith@gmail.com</Link>
-                                        </ListItemText>
-
+                                        {
+                                            user.website &&
+                                            <ListItemText>
+                                                <Link href={ user.website }>{ user.website }</Link>
+                                            </ListItemText>
+                                        }
+                                        
+                                        {
+                                            user.email &&
+                                            <ListItemText>
+                                                <Email /> <Link href={`mailto: ${ user.email }`}>{ user.email }</Link>
+                                            </ListItemText>
+                                        }
+                                        
+                                        {
+                                            editable === true &&
+                                            <ListItemText>
+                                                <Button
+                                                    type="button"
+                                                    variant="contained"
+                                                    sx={{ mt: 3, mb: 2 }}
+                                                    onClick={()=>setModalOpen(true)}
+                                                >
+                                                Edit Profile
+                                                </Button>
+                                            </ListItemText>
+                                        }
                                     </List>
                                     {/* Will add in edit button to edit personal information */}
                                 </Paper>
@@ -120,10 +181,10 @@ function DashboardContent() {
                     </Container>
                 </Box>
             </Box>
+
+            <EditProfile user = { user } setUser = { setUser } open = { modalOpen } setOpen = { setModalOpen }/>
         </ThemeProvider>
     );
 }
 
-export default function Dashboard() {
-    return <DashboardContent />;
-}
+export default Profile;

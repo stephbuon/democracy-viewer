@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItem,ListItemIcon,ListItemText,Box,} from '@mui/material';
@@ -7,15 +6,20 @@ import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import ListItemButton from '@mui/material/ListItemButton';
 import Divider from '@mui/material/Divider';
 import PeopleIcon from '@mui/icons-material/People';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [ username, setUsername ] = useState(undefined);
 
   useEffect(() => {
     setOpen(false);
+
+    if (localStorage.getItem("democracy-viewer")) {
+      setUsername(JSON.parse(localStorage.getItem("democracy-viewer")).user.username);
+  }
   }, [location]);
 
   const handleDrawerToggle = () => {
@@ -32,14 +36,16 @@ export const Layout = () => {
         return 'Graphs';
       case '/login':
         return 'Login';
-      case '/Profile':
-        return 'Profile';
       case '/register':
         return 'Register';
       case '/subsetsearch':
         return 'Subset Search';
       default:
-        return 'Home';
+        if (location.pathname.includes("/Profile/")) {
+          return "Profile";
+        } else {
+          return 'Home';
+        }
     }
   };
 
@@ -115,7 +121,7 @@ export const Layout = () => {
               </ListItemIcon>
               <ListItemText primary="Upload/Edit Data Sets" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/Profile">
+            <ListItemButton component={Link} to={`/Profile/${ username }`}>
               <ListItemIcon>
                 <Person />
               </ListItemIcon>
