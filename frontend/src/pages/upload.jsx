@@ -11,7 +11,7 @@ import { UploadModal } from './UploadModal';
 
 // import fs from 'fs';
 
-export const Upload = () => {
+export const Upload = (props) => {
   const [file, setFile] = useState(undefined);
   const [fileLoaded, setFileLoaded] = useState(false);
   const [passFile, setPassFile] = useState(undefined);

@@ -15,7 +15,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
 
-import { UploadDataset, AddTextColumn, AddTags, UpdateMetadata } from '../apiFolder/DatasetUploadAPI';
+import { CreateDataset, UploadDataset, AddTextColumn, AddTags, UpdateMetadata } from '../apiFolder/DatasetUploadAPI';
 
 
 
@@ -33,6 +33,7 @@ export const UploadModal = (props) => {
     const [headers, setHeaders] = useState([]);
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState('');
+    const [send, setSend] = useState(false);
 
     // const fs = require('fs');
     // const readline = require('readline');
@@ -63,22 +64,53 @@ export const UploadModal = (props) => {
     } 
     const SendDataset = () => {
         //fill out
-        UploadDataset(props.file).then(async (datasetname) => {
-            UpdateMetadata(datasetname,title,description,publicPrivate)
-            let _texts = [];
-            for (let i = 0; i < headers.length; i++)
+        let _texts = [];
+        for (let i = 0; i < headers.length; i++)
+        {
+            if(columnTypes[headers[i]] === "TEXT")
             {
-                if(columnTypes[headers[i]] === "TEXT")
-                {
-                    _texts.push(headers[i])
-                }
+                _texts.push(headers[i])
             }
+        }
+        CreateDataset(props.file).then(async (datasetname) => {
+            let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+            demoV.uploadData = datasetname;
+            localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+            UploadDataset(datasetname)
+            UpdateMetadata(datasetname,title,description,publicPrivate)
             if(_texts.length > 0){
                 AddTextColumn(datasetname,_texts);
             }
-            AddTags(datasetname,tags);
-        }).then(() => props.CancelUpload())
+            if(tags.length > 0){
+                AddTags(datasetname,tags);
+            }
+            
+        }).then(() => {window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");})
+        props.CancelUpload();
+        return;
     }
+    // useEffect(() => {
+    //    if (send)
+    //    {
+
+       
+    //     let _texts = [];
+        
+    //     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
+    //     demoV.upload_query = 
+    //     {
+    //         _texts: _texts,
+    //         tags: tags,
+    //         title: title,
+    //         description: description,
+    //         publicPrivate: publicPrivate
+    //     }
+    //     console.log("upload",demoV.upload_query)
+    //     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+        
+    // }
+    //     setSend(true);
+    // }, [props.uploadFile]);
 
     const loggedIn = () => {
         //check if user is logged in
@@ -97,7 +129,6 @@ export const UploadModal = (props) => {
 
     useEffect(() => {
         console.log("ColumnTypes", columnTypes)
-        
     }, [columnTypes]);
 
 
@@ -150,7 +181,7 @@ export const UploadModal = (props) => {
                                 id="Title"
                                 label="Title"
                                 variant="filled"
-                                disabled
+                                // disabled
                                 sx={{
                                     background: 'rgb(255, 255, 255)',
                                     color: 'rgb(0, 0, 0)'
