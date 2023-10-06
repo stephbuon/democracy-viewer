@@ -3,6 +3,20 @@ const python = require("python-shell").PythonShell;
 
 // Generate the data for a graph based on user input
 const createGraph = async(models, dataset, params, user = null) => {
+    // Check if the provided metrics is valid
+    const metrics = [
+        "raw",
+        "proportion",
+        "tf-idf",
+        "ll",
+        "jsd",
+        "ojsd",
+        "embedding"
+    ];
+    if (!metrics.includes(params.metric)) {
+        throw new Error(`Invalid metric ${ params.metric }`);
+    }
+
     // Check dataset metadata to make sure user has access to this dataset
     const metadata = await models.datasets.getMetadata(dataset);
     if (!metadata.is_public && metadata.username !== user) {
@@ -10,35 +24,12 @@ const createGraph = async(models, dataset, params, user = null) => {
     }
 
     // Convert params.group_list and params.word_list to arrays if they aren't already
-    params.group_list = Array.isArray(params.group_list) ? params.group_list : [ params.group_list ];
-    params.word_list = Array.isArray(params.word_list) ? params.word_list : [ params.word_list ];
-
-    // If the metric is raw, return raw splits
-    if (params.metric === "raw") {
-        let results;
-        if (params.word_list) {
-            // If a word list was given, return splits for only given words
-            results = await models.graphs.getGroupSplits(
-                dataset, 
-                params.group_name, 
-                params.group_list,
-                params.word_list
-            );
-        } else {
-            // Else, return all words for the given groups
-            results = await models.graphs.getGroupSplits(
-                dataset, 
-                params.group_name, 
-                params.group_list
-            );
-        }
-        
-        return sumCol(results, "n");
-    }
+    params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
+    params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
     let input;
     // Get word embeddings or split text based on the metric
-    if (params.metric === "embeddings") {
+    if (params.metric === "embedding") {
         input = await models.graphs.getWordEmbeddings(dataset);
     } else {
         input = await models.graphs.getGroupSplits(
@@ -46,6 +37,10 @@ const createGraph = async(models, dataset, params, user = null) => {
             params.group_name, 
             params.group_list
         );
+
+        if (params.metric === "raw" && params.word_list.length === 0) {
+            return sumCol(input, "n");
+        }
     }
     // If input has no results, return an empty array
     if (input.length === 0) {
@@ -65,7 +60,7 @@ const createGraph = async(models, dataset, params, user = null) => {
         }).then(x => console.log(x));
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {
-            files.deleteFiles([ file1, file2 ]);
+            // files.deleteFiles([ file1, file2 ]);
             throw new Error(err);
         } else {
             console.log(err)
@@ -90,7 +85,7 @@ const sumCol = (data, col) => {
 
         // Iterate through new data
         for (let i = 0; i < newData.length; i++) {
-            if (x.word === newData[i].word && x.group.toLowerCase() === newData[i].group.toLowerCase()) {
+            if (x.word === newData[i].word && (!x.group || x.group.toLowerCase() === newData[i].group.toLowerCase())) {
                 // If the word and group match, add id and increment count
                 found = true;
                 newData[i].ids.push(x.id);
@@ -145,14 +140,16 @@ const joinData = (original, calculated, params) => {
             const groups = Object.keys(x)[0].split("_").splice(1).map(x => x.toLowerCase());
             x.ids = [];
             original.forEach(y => {
-                if (params.word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                if (params.word_list.length === 0 || (params.word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase()))) {
                     x.ids.push(y.id);
                 }
             }); 
 
             return x;
         });
-    } else if (params.metric === "tf-idf" || params.metric === "proportions") {
+    } else if (params.metric === "raw") {
+        newData = sumCol(newData, "n");
+    } else if (params.metric === "tf-idf" || params.metric === "proportion") {
         newData = newData.map(x => {
             x.ids = [];
             original.forEach(y => {
@@ -163,7 +160,7 @@ const joinData = (original, calculated, params) => {
 
             return x;
         });
-    } else if (params.metric === "embeddings") {
+    } else if (params.metric === "embedding") {
         // Return raw python output
     } else {
         throw new Error(`Invalid metric ${ params.metric }`);

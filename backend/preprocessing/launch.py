@@ -10,6 +10,7 @@ import requests
 import json
 from dotenv import load_dotenv
 import os
+import time
 # These will let us use R packages:
 from rpy2.robjects.packages import STAP
 from rpy2.robjects import pandas2ri
@@ -22,6 +23,7 @@ TABLE_NAME = sys.argv[1]
 HEADERS = {
     "Authorization": "Bearer " + os.environ.get("TOKEN")
 }
+embeddingCount = 0
 
 # Get the data from a database table
 def getTable():
@@ -71,36 +73,56 @@ def splitText(data):
 
     return split_data
 
+# Insert all split text records into db
 def insertSplits(split_data):
-    # Insert into db
     PER_PAGE = 50000
-    page = 1
     for i in range(0, len(split_data.index), PER_PAGE):
         body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
-        print("Split Page:", page)
-        result = requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS)
-        page += 1
-        if result.status_code != 201:
-            sys.exit(result.json())
-    print("Split text done")
+        resp = requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS)
+        if (resp.status_code != 201):
+            break
+
+# Insert all word embedding records into db
+def insertEmbeddings(embedding_data):
+    PER_PAGE = 50000
+    for i in range(0, len(embedding_data.index), PER_PAGE):
+        body = json.loads(embedding_data[i:(i + PER_PAGE)].to_json(orient = "records"))
+        resp = requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS)
+        if (resp.status_code != 201):
+            break
 
 # Compute word embeddings and insert into database
-def wordEmbeddings(data):
+def wordEmbeddingsThread(data):
     # Calculate word embeddings
+    start_time = time.time()
     print("Start word embeddings")
-    results = word_embeddings.word_embeddings(data)
+    embeddings = word_embeddings.word_embeddings(data)
+    print("Embeddings calculated in " + str(time.time() - start_time) + " seconds")
 
-    # Insert into db
-    PER_PAGE = 50000
-    page = 1
-    for i in range(0, len(results.index), PER_PAGE):
-        body = json.loads(results[i:(i + PER_PAGE)].to_json(orient = "records"))
-        print("Embeddings Page:", page)
-        result = requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS)
-        page += 1
-        if result.status_code != 201:
-            sys.exit(result.json())
-    print("Word embeddings done")
+    start_time = time.time()
+    global embeddingCount
+    embeddingCount = len(embeddings.len)
+    insertEmbeddings(embeddings)
+    # Verify that the number of split text records is correct
+    check = requests.get(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME + "/count")
+    if int(check.text) != len(embeddings.index):
+        # Not all records were inserted
+        success = False
+        print(check.text + " out of " + str(len(embeddings.index)) + " word embedding records were uploaded")
+        # Delete any records that were inserted
+        requests.delete(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME)
+    else:
+        # All records were inserted
+        print("Embeddings finished uploading in " + str(time.time() - start_time) + " seconds")
+
+# Update metadata if completed
+def updateMetadata():
+    body = {
+        "processed": True
+    }
+    result = requests.put(BASE_URL + "/datasets/metadata/" + TABLE_NAME, json = body, headers = HEADERS)
+    if result.status_code != 200:
+        sys.exit(result.json())
 
 # Get dataset from db
 data = getTable()
@@ -109,18 +131,32 @@ split = splitText(data)
 
 # Create threads to insert split records and calculate word embeddings
 t1 = threading.Thread(target = insertSplits, args = (split,))
-t2 = threading.Thread(target = wordEmbeddings, args = (split,))
+t2 = threading.Thread(target = wordEmbeddingsThread, args = (split,))
+
 # Start threads
 t1.start()
 t2.start()
+
 # Wait until threads finish
 t1.join()
+# Verify that the number of split text records is correct
+check = requests.get(BASE_URL + "/preprocessing/splits/" + TABLE_NAME + "/count")
+if int(check.text) != len(split.index):
+    # Not all records were inserted
+    success = False
+    print(check.text + " out of " + str(len(split.index)) + " split text records were uploaded")
+    # Delete any records that were inserted
+    requests.delete(BASE_URL + "/preprocessing/splits/" + TABLE_NAME)
+    sys.exit()
 t2.join()
+# Verify that the number of word embedding records is correct
+check = requests.get(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME + "/count")
+if int(check.text) != embeddingCount:
+    # Not all records were inserted
+    success = False
+    print(check.text + " out of " + str(embeddingCount) + " word embedding records were uploaded")
+    # Delete any records that were inserted
+    requests.delete(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME)
+    sys.exit()
 
-# Update metadata to mark as processed
-body = {
-    "processed": True
-}
-result = requests.put(BASE_URL + "/datasets/metadata/" + TABLE_NAME, json = body, headers = HEADERS)
-if result.status_code != 200:
-    sys.exit(result.json())
+updateMetadata()

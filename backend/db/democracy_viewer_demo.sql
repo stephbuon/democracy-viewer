@@ -2,7 +2,7 @@
 
 CREATE TABLE users (
     username VARCHAR(20) PRIMARY KEY,
-    password VARCHAR(60),
+    password VARCHAR(60) NOT NULL,
     email VARCHAR(30),
     title VARCHAR(20),
     first_name VARCHAR(20),
@@ -28,6 +28,7 @@ CREATE TABLE dataset_metadata (
     is_public BIT DEFAULT false,
     clicks INT DEFAULT 0,
     processed BIT DEFAULT false,
+    record_count BIGINT DEFAULT 0,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
@@ -54,6 +55,17 @@ CREATE TABLE tags (
     table_name VARCHAR(250),
     PRIMARY KEY(tag_name, table_name),
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);
+
+CREATE TABLE dataset_download (
+    id BIGINT PRIMARY KEY IDENTITY,
+    username VARCHAR(20),
+    table_name VARCHAR(250),
+    timestamp DATETIME,
+    current_page INTEGER,
+    total_pages INTEGER,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    FOREIGN KEY(username) REFERENCES users(username),
 );
 
 CREATE TABLE dataset_text_cols (

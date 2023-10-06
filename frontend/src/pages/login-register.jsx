@@ -1,8 +1,9 @@
 import React from "react";
 import { TextField } from "../common/textField.jsx";
 import { useState } from "react";
+import { LoginRequest } from '../apiFolder/LoginRegister';
 
-export function LoginRegister() {
+export function LoginRegister(props) {
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerUsername, setRegisterUsername] = useState("");
@@ -42,7 +43,10 @@ export function LoginRegister() {
               <button
                 type="button"
                 className="btn btn-md btn-primary"
-                onClick={() => { }}
+                onClick={() => {LoginRequest({username: loginUsername,
+                password: loginPassword}).then(async (res) => {
+                  props.login({token: res, username: loginUsername})
+                }) }}
               >
                 Login
               </button>

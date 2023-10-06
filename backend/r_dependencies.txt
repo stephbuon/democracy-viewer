@@ -1,2 +1,0 @@
-dplyr textstem tidytext text2vec
-github stephbuon/dhmeasures

@@ -3,6 +3,7 @@ const knex = require("../db/knex");
 const metadata_table = "dataset_metadata";
 const tag_table = "tags";
 const text_col_table = "dataset_text_cols";
+const download_table = "dataset_download";
 
 class datasets {
     // Create a table for a new dataset
@@ -13,7 +14,11 @@ class datasets {
 
             // Add all column names as strings
             cols.map(x => {
-                table.string(x, lengths[x]);
+                if (lengths[x] > 8000) {
+                    table.text(x);
+                } else {
+                    table.string(x, lengths[x]);
+                }
             });
         });
 
@@ -57,6 +62,21 @@ class datasets {
         return insert;
     }
 
+    // Insert a dataset upload record
+    async addDownload(username, table_name, total_pages, current_page = 0) {
+        // Insert record
+        const timestamp = new Date();
+        await knex(download_table).insert({ username, table_name, total_pages, current_page, timestamp });
+        // Get record id
+        let record;
+        if (username) {
+            record = await knex(download_table).select("id").where({ username, table_name, timestamp });
+        } else {
+            record = await knex(download_table).select("id").where({ table_name, timestamp }).whereNull("username");
+        }
+        return record[0].id;
+    }
+
     // Update the metadata of a table
     async updateMetadata(table_name, params) {
         const update = await knex(metadata_table).where({ table_name }).update({ ...params });
@@ -77,6 +97,11 @@ class datasets {
         return record[0];
     }
 
+    // Increment the current page of a download
+    async updateDownload(id) {
+        await knex(download_table).where({ id }).increment("current_page", 1);
+    }
+
     // Get the first n rows of a dataset (n = 10 by default)
     async getHead(table, n = 10) {
         const results = await knex(table).limit(n);
@@ -87,6 +112,12 @@ class datasets {
     async getMetadata(table_name) {
         const record = await knex(metadata_table).where({ table_name });
         return record[0];
+    }
+
+    // Get all datasets owned by a given user
+    async getUserDatasets(username) {
+        const records = await knex(metadata_table).where({ username });
+        return records;
     }
 
     // Get all unique tags
@@ -305,6 +336,18 @@ class datasets {
         return results;
     }
 
+    // Get a download record by username and table
+    async getDownload(username, table_name) {
+        let record;
+        if (username) {
+            record = await knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ username, table_name });
+        } else {
+            record = await knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ table_name }).whereNull("username");
+        }
+        
+        return record[0];
+    }
+
     // Delete a dataset table
     async deleteTable(name) {
         const del = await knex.schema.dropTable(name);
@@ -327,6 +370,11 @@ class datasets {
     async deleteTextCol(table_name, col) {
         const del = await knex(text_col_table).where({ table_name, col }).delete();
         return del;
+    }
+
+    // Delete a download
+    async deleteDownload(id) {
+        await knex(download_table).where({ id }).delete();
     }
 }
 

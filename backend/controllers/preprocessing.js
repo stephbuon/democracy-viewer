@@ -1,4 +1,5 @@
 const python = require("python-shell").PythonShell;
+const util = require("../util/file_management");
 
 const beginPreprocessing = async(datasets, table) => {
     // Run python program that conducts preprocessing
@@ -27,7 +28,13 @@ const beginPreprocessing = async(datasets, table) => {
 }
 
 // Add split text records
-const addSplitRecords = async(preprocessing, table_name, data) => {
+const addSplitRecords = async(models, table_name, data, username) => {
+    // Check dataset metadata to make sure user has access to this dataset
+    const metadata = await models.datasets.getMetadata(table_name);
+    if (!metadata.is_public && (username !== "server" && metadata.username !== username)) {
+        throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
+    }
+
     // Prep data to be inserted
     data = data.map(x => ({
         record_id: x.id,
@@ -40,14 +47,28 @@ const addSplitRecords = async(preprocessing, table_name, data) => {
     // Loop through the data and insert rows
     const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
     for (let i = 0; i < data.length; i += per_insert) {
-        await preprocessing.addSplitWords(data.slice(i, i + per_insert));
+        await models.preprocessing.addSplitWords(data.slice(i, i + per_insert));
     }
 
     return { records: data.length };
 }
 
+// Add split text records via file upload
+const uploadSplitRecords = async(models, table_name, path, username) => {
+    // Parse the provided csv file
+    return await util.readCSV(path).then(async(data) => {
+        return await addSplitRecords(models, table_name, data, username);
+    });
+}
+
 // Add word embedding records
-const addEmbeddingRecords = async(preprocessing, table_name, data) => {
+const addEmbeddingRecords = async(models, table_name, data) => {
+    // Check dataset metadata to make sure user has access to this dataset
+    const metadata = await models.datasets.getMetadata(table_name);
+    if (!metadata.is_public && (username !== "server" && metadata.username !== username)) {
+        throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
+    }
+
     // Prep data to be inserted
     data = data.map(x => ({
         word: x.word === null ? "null" : x.word === undefined ? "undefined" : x.word,
@@ -61,14 +82,24 @@ const addEmbeddingRecords = async(preprocessing, table_name, data) => {
     // Loop through the data and insert rows
     const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
     for (let i = 0; i < data.length; i += per_insert) {
-        await preprocessing.addEmbeddings(data.slice(i, i + per_insert));
+        await models.preprocessing.addEmbeddings(data.slice(i, i + per_insert));
     }
 
     return { records: data.length };
 }
 
+// Add split text records via file upload
+const uploadEmbeddingRecords = async(models, table_name, path, username) => {
+    // Parse the provided csv file
+    return await util.readCSV(path).then(async(data) => {
+        return await addEmbeddingRecords(models, table_name, data, username);
+    });
+}
+
 module.exports = {
     beginPreprocessing,
     addSplitRecords,
-    addEmbeddingRecords
+    uploadSplitRecords,
+    addEmbeddingRecords,
+    uploadEmbeddingRecords
 };

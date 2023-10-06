@@ -4,17 +4,26 @@ FROM node:16
 # Set the working directory within docker image
 WORKDIR /usr/src/app
 
-# Expose port 8000
-EXPOSE 8000
-
 # Install node dependencies
+COPY package.json .
 RUN npm install
 
+RUN apt-get update
+RUN apt-get install --yes python3 python3-pip r-base
+RUN pip3 install --upgrade pip
+
+RUN apt update
+RUN apt upgrade --yes
+RUN apt install --yes libcurl4-openssl-dev
+RUN apt-get install --yes libbz2-dev liblzma-dev
+
 # Install Python dependencies
-FROM python
-COPY requirements.txt .
+ADD requirements.txt .
 RUN pip install -r requirements.txt
 
 # Install R dependencies
-FROM r-base
-RUN Rscript r_install_dependencies.R
+ADD requirements.R .
+RUN Rscript requirements.R
+
+# Expose port 8000
+EXPOSE 8000
