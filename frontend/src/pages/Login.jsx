@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { BrowserRouter as Router, Switch, 
-    Route, Redirect,} from "react-router-dom";
+    Route, Redirect, useNavigate,} from "react-router-dom";
 import { LoginRequest } from '../apiFolder/LoginRegister';
 
 
@@ -21,13 +21,14 @@ import { LoginRequest } from '../apiFolder/LoginRegister';
 const theme = createTheme();
 
 export default function Login(props) {
+  const navigate = useNavigate();
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     LoginRequest({username: data.get('email'),
     password: data.get('password'),}).then(async (res) => {
       props.login({token: res, username: data.get('email')})
-    })
+    }).then(()=>{navigate('/')})
     // console.log({
     //   email: data.get('email'),
     //   password: data.get('password'),
@@ -58,7 +59,7 @@ export default function Login(props) {
               required
               fullWidth
               id="email"
-              label="Email Address"
+              label="Username"
               name="email"
               autoComplete="email"
               autoFocus

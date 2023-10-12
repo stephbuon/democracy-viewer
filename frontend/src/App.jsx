@@ -99,7 +99,7 @@ export const App = () => {
         <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<Login login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register login={login}/>} />
             <Route path="/profile/:username" element={<Profile currUser={user}/>} />
             <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
             <Route path="/graph" element={<Graph dataset={graphData} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
