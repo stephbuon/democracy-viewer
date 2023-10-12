@@ -13,14 +13,14 @@ import Alert from '@mui/material/Alert';
 import { Grid } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import { Stack, width } from '@mui/system';
+
 
 //Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { Result } from './Result';
 import { AdvancedFilter } from './AdvancedFilter';
 import './Loading.css'
-import { Stack, width } from '@mui/system';
-
 
 
 export const DatasetResultsPage = (props) => {
@@ -46,6 +46,9 @@ export const DatasetResultsPage = (props) => {
 
 
     const [loadingResults, setLoadingResults] = useState(false);
+
+    const [snackBarOpen1, setSnackBarOpen1] = useState(false);
+
 
     //for animation testing
 
@@ -138,14 +141,41 @@ export const DatasetResultsPage = (props) => {
     const handleAdvancedFilterClose = () => {
         setAdvancedFilterOpen(false);
     }
+    const openSnackbar1 = () => {
+        setSnackBarOpen1(true)
+      }
+      const handleSnackBarClose1 = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+        setSnackBarOpen1(false);
+      };
 
     useEffect(() => {
         console.log("Loading Results", loadingResults)
     }, [loadingResults]);
 
+    useEffect(() => {
+        if(props.navigated)
+        {
+            props.setNavigated(false)
+            openSnackbar1()
+        }
+    }, []);
+
 
 
     return (<div className='blue' style={{ marginTop: "-1in" }}> 
+    <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={snackBarOpen1}
+        autoHideDuration={6000}
+        onClose={() => handleSnackBarClose1()}
+      >
+        <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
+          Must choose dataset first
+        </Alert>
+      </Snackbar>
         <Grid container component="main" sx={{ height: '100vh' }}>
               {/* Grid that conatins Search Bar */}
             <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square>

@@ -45,6 +45,7 @@ export const App = () => {
   
   const [dataset, setDataset] = useState(undefined);
   const [user, setUser] = useState(undefined);
+  const [navigated, setNavigated] = useState(false);
 
   const chooseDataset = (choice) =>{
     setDataset(choice)
@@ -97,17 +98,17 @@ export const App = () => {
         <Layout user={user}/>
         <Routes>
             <Route path="/" element={<Homepage />} />
-            <Route path="/login" element={<Login login={login}/>} />
+            <Route path="/login" element={<Login login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile/:username" element={<Profile currUser={user}/>} />
             <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
-            <Route path="/graph" element={<Graph dataset={graphData} setData={setData} />}></Route>
+            <Route path="/graph" element={<Graph dataset={graphData} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
-            <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} />} />
-            <Route path='/datasetsearch' element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)}/>} />
+            <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
+            <Route path='/datasetsearch' element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload />}></Route>
-            <Route path="/uploadprogress" element={<UploadProgress />}></Route>
-            <Route path="/downloadprogress" element={<DownloadProgress />}></Route>
+            <Route path="/uploadprogress" element={<UploadProgress navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
+            <Route path="/downloadprogress" element={<DownloadProgress dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
