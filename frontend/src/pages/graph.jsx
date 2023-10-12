@@ -16,29 +16,35 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 
-export const Graph = ({ dataset, setData }) => {
+export const Graph = (props) => {
   const graph = useRef(null);
   const navigate = useNavigate();
 
   var data = [
     {
-      x: dataset.x,
-      y: dataset.y,
+      x: props.dataset.x,
+      y: props.dataset.y,
       type: 'bar'
     }
   ];
   var layout = {
-    title: dataset.label
+    title: props.dataset.label
   };
 
   useEffect(() => {
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if(demoV == undefined || demoV.props.dataset == undefined)
+    {
+        navigate('/datasetSearch')
+        props.setNavigated(true)
+    }
     Plotly.newPlot(graph.current, data, layout);
     graph.current.on('plotly_click', function (data) {
       let i = data.points[0].pointIndex;
-      setData({
-        x: dataset.x[i],
-        y: dataset.y[i],
-        description: dataset.other[i]
+      props.setData({
+        x: props.dataset.x[i],
+        y: props.dataset.y[i],
+        description: props.dataset.other[i]
       });
       navigate("/zoom");
     });
