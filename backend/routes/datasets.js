@@ -218,10 +218,10 @@ router.get('/count/subset/:table', async(req, res, next) => {
 });
 
 // Route to download a subset of a dataset
-router.get('/download/subset/:table', async(req, res, next) => {
+router.get('/download/subset/:table', optAuthenticateJWT, async(req, res, next) => {
     try {
         // Generate file
-        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query);
+        const result = await control.downloadSubset(req.models.datasets, req.params.table, req.query, req.user ? req.user.username : undefined);
         // Download file
         res.download(result, `${ req.params.table }.csv`, (err) => {
             // Error handling
@@ -257,6 +257,18 @@ router.get('/upload/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset upload percentage:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get the download record for a dataset
+router.get('/download/record/:table', async(req, res, next) => {
+    try {
+        const result = await req.models.datasets.getDownload(req.user ? req.user.username : undefined, req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset download record:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

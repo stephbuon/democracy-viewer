@@ -1,5 +1,6 @@
 const files = require("../util/file_management");
 const python = require("python-shell").PythonShell;
+require('dotenv').config();
 
 // Generate the data for a graph based on user input
 const createGraph = async(models, dataset, params, user = null) => {
@@ -53,14 +54,25 @@ const createGraph = async(models, dataset, params, user = null) => {
     const file2 = file1.replace(".csv", ".json");
     files.generateJSON(file2, params);
 
+    // Add file names as command line arguments
+    const options = {
+        args: [ file1, file2 ]
+    }
+    // If a python path is provided in .env, use it
+    // Else use the default path
+    if (process.env.PYTHON_PATH) {
+        options["pythonPath"] = process.env.PYTHON_PATH;
+    }
+
     // Run python program that generates graph data
     try {
-        await python.run("graphs/launch.py", {
-            args: [ file1, file2 ]
-        }).then(x => console.log(x));
+        await python.run("graphs/launch.py", options).then(x => console.log(x)).catch(x => {
+            console.log(x);
+            throw new Error(x);
+        });
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {
-            // files.deleteFiles([ file1, file2 ]);
+            files.deleteFiles([ file1, file2 ]);
             throw new Error(err);
         } else {
             console.log(err)

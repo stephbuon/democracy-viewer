@@ -57,6 +57,17 @@ CREATE TABLE tags (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
+CREATE TABLE dataset_download (
+    id BIGINT PRIMARY KEY IDENTITY,
+    username VARCHAR(20),
+    table_name VARCHAR(250),
+    timestamp DATETIME,
+    current_page INTEGER,
+    total_pages INTEGER,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    FOREIGN KEY(username) REFERENCES users(username),
+);
+
 CREATE TABLE dataset_text_cols (
     table_name VARCHAR(250),
     col VARCHAR(100),

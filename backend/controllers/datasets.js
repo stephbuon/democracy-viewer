@@ -195,20 +195,26 @@ const getTextCols = async(datasets, table) => {
 }
 
 // Download a subset of a dataset
-const downloadSubset = async(datasets, table, params) => {
+const downloadSubset = async(datasets, table, params, username = undefined) => {
     // Clear the downloads folder on the server
     util.clearDirectory("./downloads/");
     // Get all records in this dataset
     const count = await datasets.subsetTableCount(table, params);
     const pages = Math.ceil(count / 50000);
     params.pageLength = 50000;
+    // Add dataset download record and get id
+    const downloadId = await datasets.addDownload(username, table, pages);
     let records = [];
     for (let i = 1; i <= pages; i++) {
         const curr = await datasets.subsetTable(table, params, true, i);
         records = [ ...records, ...curr ];
+        // Update download percentage
+        await datasets.updateDownload(downloadId);
     }
     // Generate csv from records
     const fileName = util.generateCSV(`./downloads/${ table }.csv`, records);
+    // Delete the download record
+    await datasets.deleteDownload(downloadId);
     // Return generated file name
     return fileName;
 }
