@@ -1,4 +1,5 @@
 const util = require("../util/file_management");
+const axios = require("axios").default
 
 // Upload a new dataset from a csv file
 const createDataset = async(datasets, path, username) => {
@@ -11,6 +12,47 @@ const createDataset = async(datasets, path, username) => {
     await datasets.createMetadata(name, username);
 
     return name;
+}
+
+// Import a new dataset from an api
+const createDatasetAPI = async(datasets, endpoint, username, token = null) => {
+    // Add token if passed
+    let apiConfig = {};
+    if (token) {
+        apiConfig = {
+            headers: {
+                Authorization: `Bearer ${ token }`
+            }
+        }
+    }
+
+    // Get the data from the api
+    const res = await axios.get(endpoint, apiConfig);
+    // If the request failed, throw an error
+    if (res.status !== 200) {
+        throw new Error(`External API status code ${ res.status }: ${ res.statusText }`);
+    }
+    // If the request succeeded, store data
+    const data = res.data;
+
+    // If the request data is not in JSON format, throw an error
+    if (typeof data !== "object") {
+        throw new Error(`Type ${ typeof data } is not valid`);
+    }
+
+    // Create table name using user's username
+    const name = `${ username }_${ Date.now() }`;
+    // Export data to csv file
+    await util.generateCSV(`uploads/${ name }.csv`, data);
+    // Create empty metadata for data set
+    await datasets.createMetadata(name, username);
+
+    // Create object with table name and first 5 rows of data
+    const output = {
+        table_name: name,
+        data: data.slice(0, 5)
+    }
+    return output;
 }
 
 // Upload dataset records
@@ -282,6 +324,7 @@ const deleteTextCol = async(datasets, user, table, col) => {
 
 module.exports = {
     createDataset,
+    createDatasetAPI,
     uploadDataset,
     addTag,
     addTextCols,
