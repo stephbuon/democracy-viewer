@@ -248,7 +248,7 @@ export const SubsetResultsPage = (props) => {
                                 color='primary'
                                 focused
                                 fullWidth
-                                sx={{ marginTop: "10px" }}
+                                sx={{ marginTop: "50px" }}
                         
                                 value={searchTerm}
                                 onChange={event => { setSearchTerm(event.target.value) }}
@@ -262,7 +262,8 @@ export const SubsetResultsPage = (props) => {
                                 background: 'rgb(255, 255, 255)',
                                 color: 'rgb(0, 0, 0)',
                                 marginLeft: '2em',
-
+                                height: '50px',
+                                marginTop:'50px',
                                 '&:hover': {
                                     background: 'rgb(200, 200, 200)'
                                 }
@@ -333,22 +334,7 @@ export const SubsetResultsPage = (props) => {
                         overflow: 'hidden'
                     }}
                 >
-                    {!loadingResults && <TableHead>
-                        <TableRow
-                        // sx={{
-                        //     overflow: 'hidden'
-                        // }}
-                        >
-                            {searchResults.length > 0 && Object.keys(searchResults[0]).map(key => {
-                                return <TableCell
-                                    sx={{
-                                        width: .2
-                                    }}
-                                >{key}</TableCell>
-                            })}
-                        </TableRow>
-
-                    </TableHead>}
+         
 
                     {!loadingResults && <TableBody sx={{ background: '#fff' }}>
                         {searchResults.map((result) => {

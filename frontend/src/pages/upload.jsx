@@ -5,6 +5,7 @@ import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 
 
 import { UploadModal } from './UploadModal';
@@ -102,25 +103,42 @@ export const Upload = (props) => {
           headers={fileHeaders}
         />
       </Modal>
-      <label className="btn btn-default">
-        <input
-          type="file"
-          id="file_input"
-          onChange={(x) => {
-            setFile(x.target.files[0]);
-          }}
-        />
+      
+      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="100vh">
+      
+      <img src="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_1280.png" alt="Descriptive alt text" className="centered-image" style={{width: '20%', maxWidth: '100%', marginBottom: '60px'}}/>
+        
+      
+      <input
+        accept="*/*" // If you want to limit to image files, otherwise omit
+        style={{ display: 'none' }} 
+        id="file_input" 
+        type="file" 
+        onChange={(x) => {
+          setFile(x.target.files[0]);
+          setPassFile(x.target.files[0]);
+        }}
+      />
+      <label htmlFor="file_input">
+        <Button variant="outlined" component="span"sx={{ my: 2 }}>
+          Choose File
+        </Button>
       </label>
-      {passFile && <Button
-        onClick={() => { setFileLoaded(true) }}
-      >
-        Continue
-      </Button>}
-      {!passFile && <Button
-        disabled
-      >
-        Continue
-      </Button>}
+      {passFile && 
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={() => { setFileLoaded(true) }}
+        >
+          Continue
+        </Button>
+      }
+      {!passFile && 
+        <Button variant="contained" color="primary" disabled>
+          Continue
+        </Button>
+      }
+    </Box>
 
       {/* <button
         className="btn btn-success"
