@@ -35,23 +35,37 @@ const createDatasetAPI = async(datasets, endpoint, username, token = null) => {
     // If the request succeeded, store data
     const data = res.data;
 
-    // If the request data is not in JSON format, throw an error
-    if (typeof data !== "object") {
+    // Create table name and file name using user's username
+    const name = `${ username }_${ Date.now() }`;
+    const filename = `uploads/${ username }.csv`;
+    
+    let output = {};
+    if (typeof data === "string") {
+        // Export data to csv using a string
+        util.generateFile(filename, data);
+        // Parse file to read first 5 records and return
+        const records = await util.readCSV(filename, false);
+        // Slice first 5 records to return
+        output = {
+            table_name: name,
+            data: records.slice(0, 5)
+        }
+    } else if (typeof data === "object") {
+        // Export data to csv file using an object
+        await util.generateCSV(filename, data);
+        // Slice first 5 records to return
+        output = {
+            table_name: name,
+            data: data.slice(0, 5)
+        }
+    } else {
+        // If the request data is not in the correct format, throw an error
         throw new Error(`Type ${ typeof data } is not valid`);
     }
 
-    // Create table name using user's username
-    const name = `${ username }_${ Date.now() }`;
-    // Export data to csv file
-    await util.generateCSV(`uploads/${ name }.csv`, data);
     // Create empty metadata for data set
     await datasets.createMetadata(name, username);
 
-    // Create object with table name and first 5 rows of data
-    const output = {
-        table_name: name,
-        data: data.slice(0, 5)
-    }
     return output;
 }
 
@@ -111,6 +125,13 @@ const uploadDataset = async(datasets, name, user) => {
                     maxLengths[key] = row[key].length;
                 }
             });
+        });
+
+        // Filter out columns with a length of 0
+        Object.keys(maxLengths).forEach(x => {
+            if (maxLengths[x] === 0) {
+                delete maxLengths[x];
+            }
         });
     
         // Create a new table with the file name and column names
