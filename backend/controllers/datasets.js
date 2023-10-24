@@ -1,4 +1,5 @@
 const util = require("../util/file_management");
+const axios = require("axios").default
 
 // Upload a new dataset from a csv file
 const createDataset = async(datasets, path, username) => {
@@ -11,6 +12,61 @@ const createDataset = async(datasets, path, username) => {
     await datasets.createMetadata(name, username);
 
     return name;
+}
+
+// Import a new dataset from an api
+const createDatasetAPI = async(datasets, endpoint, username, token = null) => {
+    // Add token if passed
+    let apiConfig = {};
+    if (token) {
+        apiConfig = {
+            headers: {
+                Authorization: `Bearer ${ token }`
+            }
+        }
+    }
+
+    // Get the data from the api
+    const res = await axios.get(endpoint, apiConfig);
+    // If the request failed, throw an error
+    if (res.status !== 200) {
+        throw new Error(`External API status code ${ res.status }: ${ res.statusText }`);
+    }
+    // If the request succeeded, store data
+    const data = res.data;
+
+    // Create table name and file name using user's username
+    const name = `${ username }_${ Date.now() }`;
+    const filename = `uploads/${ username }.csv`;
+    
+    let output = {};
+    if (typeof data === "string") {
+        // Export data to csv using a string
+        util.generateFile(filename, data);
+        // Parse file to read first 5 records and return
+        const records = await util.readCSV(filename, false);
+        // Slice first 5 records to return
+        output = {
+            table_name: name,
+            data: records.slice(0, 5)
+        }
+    } else if (typeof data === "object") {
+        // Export data to csv file using an object
+        await util.generateCSV(filename, data);
+        // Slice first 5 records to return
+        output = {
+            table_name: name,
+            data: data.slice(0, 5)
+        }
+    } else {
+        // If the request data is not in the correct format, throw an error
+        throw new Error(`Type ${ typeof data } is not valid`);
+    }
+
+    // Create empty metadata for data set
+    await datasets.createMetadata(name, username);
+
+    return output;
 }
 
 // Upload dataset records
@@ -69,6 +125,13 @@ const uploadDataset = async(datasets, name, user) => {
                     maxLengths[key] = row[key].length;
                 }
             });
+        });
+
+        // Filter out columns with a length of 0
+        Object.keys(maxLengths).forEach(x => {
+            if (maxLengths[x] === 0) {
+                delete maxLengths[x];
+            }
         });
     
         // Create a new table with the file name and column names
@@ -282,6 +345,7 @@ const deleteTextCol = async(datasets, user, table, col) => {
 
 module.exports = {
     createDataset,
+    createDatasetAPI,
     uploadDataset,
     addTag,
     addTextCols,

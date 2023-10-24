@@ -6,7 +6,7 @@ require('dotenv').config();
 const createGraph = async(models, dataset, params, user = null) => {
     // Check if the provided metrics is valid
     const metrics = [
-        "raw",
+        "counts",
         "proportion",
         "tf-idf",
         "ll",
@@ -39,7 +39,7 @@ const createGraph = async(models, dataset, params, user = null) => {
             params.group_list
         );
 
-        if (params.metric === "raw" && params.word_list.length === 0) {
+        if (params.metric === "counts" && params.word_list.length === 0) {
             return sumCol(input, "n");
         }
     }
@@ -159,7 +159,7 @@ const joinData = (original, calculated, params) => {
 
             return x;
         });
-    } else if (params.metric === "raw") {
+    } else if (params.metric === "counts") {
         newData = sumCol(newData, "n");
     } else if (params.metric === "tf-idf" || params.metric === "proportion") {
         newData = newData.map(x => {

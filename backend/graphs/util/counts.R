@@ -1,7 +1,7 @@
 library(dplyr)
 library(textstem)
 
-raw = function(data, word_list, word) {
+counts = function(data, word_list, word) {
   word = dplyr::enquo(word)
 
   # Lemmatize word list
