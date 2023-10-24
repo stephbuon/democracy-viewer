@@ -15,27 +15,33 @@ import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
+import { Yard } from "@mui/icons-material";
 
 export const Graph = (props) => {
   const graph = useRef(null);
   const navigate = useNavigate();
 
+  const xAxis = [];
+  props.dataset.forEach((dataPoint) => xAxis.push(dataPoint.group + "<br>" + dataPoint.word));
+  var yAxis = [];
+  props.dataset.forEach((dataPoint) => yAxis.push(dataPoint.ids.length));
+
   var data = [
     {
-      x: props.dataset.x,
-      y: props.dataset.y,
+      x: xAxis,
+      y: yAxis,
       type: 'bar'
     }
   ];
   var layout = {
-    title: props.dataset.label
+    title: "Number of "
   };
 
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if(demoV == undefined || demoV.props.dataset == undefined)
     {
-        navigate('/datasetSearch')
+        // navigate('/datasetSearch')
         props.setNavigated(true)
     }
     Plotly.newPlot(graph.current, data, layout);

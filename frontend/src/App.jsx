@@ -15,7 +15,10 @@ import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-  
+
+// TEMP
+import tempData from './data/data.json';
+
 export const App = () => {
 
   const graphData = {
@@ -102,7 +105,7 @@ export const App = () => {
             <Route path="/register" element={<Register login={login}/>} />
             <Route path="/profile/:username" element={<Profile currUser={user}/>} />
             <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
-            <Route path="/graph" element={<Graph dataset={graphData} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
+            <Route path="/graph" element={<Graph dataset={tempData} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path='/datasetsearch' element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
