@@ -138,6 +138,12 @@ class datasets {
         return results;
     }
 
+    // Get column names
+    async getColumnNames(table_name) {
+        const results = await knex(table_name).columnInfo();
+        return Object.keys(results);
+    }
+
     // Filter datasets
     async getFilteredDatasets(params, username, paginate = true, currentPage = 1) {
         const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()

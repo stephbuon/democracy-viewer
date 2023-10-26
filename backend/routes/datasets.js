@@ -262,6 +262,18 @@ router.get('/ids/:table', async(req, res, next) => {
     next();
 });
 
+// Route to get dataset column names
+router.get('/columns/names/:table', async(req, res, next) => {
+    try {
+        const result = await control.getColumnNames(req.models.datasets, req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset column names:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to get the percentage of a data set that has been uploaded to the database
 router.get('/upload/:table', async(req, res, next) => {
     try {

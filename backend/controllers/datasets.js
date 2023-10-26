@@ -257,6 +257,17 @@ const getTextCols = async(datasets, table) => {
     return results;
 }
 
+// Get dataset column names (excluding text columns)
+const getColumnNames = async(datasets, table) => {
+    // Get all column names
+    const names = await datasets.getColumnNames(table);
+    // Get text columns
+    const textCols = await getTextCols(datasets, table);
+    // Filter out text columns
+    const results = names.filter(x => textCols.indexOf(x) === -1);
+    return results;
+}
+
 // Download a subset of a dataset
 const downloadSubset = async(datasets, table, params, username = undefined) => {
     // Clear the downloads folder on the server
@@ -356,6 +367,7 @@ module.exports = {
     getUniqueTags,
     getTags,
     getTextCols,
+    getColumnNames,
     deleteDataset,
     deleteTag,
     deleteTextCol
