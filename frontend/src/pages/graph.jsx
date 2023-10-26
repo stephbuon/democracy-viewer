@@ -1,9 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
 import { TextField } from "../common/textField.jsx";
-import { MDBContainer } from "mdbreact";
-import { Bar } from "react-chartjs-2";
-import Chart from "chart.js/auto";
-import { CategoryScale } from "chart.js";
 import { SelectField } from "../common/selectField.jsx";
 import { Range } from "../common/range.jsx";
 import Plotly from "plotly.js-dist";
@@ -15,16 +11,36 @@ import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
-import { Yard } from "@mui/icons-material";
+import { getGraph } from "../api/api.js"
 
 export const Graph = (props) => {
+  useEffect(() => {
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if(demoV == undefined || props.dataset == undefined)
+    {
+        // navigate('/datasetSearch')
+        props.setNavigated(true)
+    }
+  }, [])
+
+
   const graph = useRef(null);
   const navigate = useNavigate();
 
   const xAxis = [];
-  props.dataset.forEach((dataPoint) => xAxis.push(dataPoint.group + "<br>" + dataPoint.word));
   var yAxis = [];
+
+  props.dataset.forEach((dataPoint) => xAxis.push(dataPoint.group + "<br>" + dataPoint.word));
   props.dataset.forEach((dataPoint) => yAxis.push(dataPoint.ids.length));
+
+  console.log("---- BEFORE USE EFFECT")
+  useEffect(()=>{
+    console.log("---- AFTER USE EFFECT")
+    getGraph("hansard_1870_1682572305673", "speaker", ["MR. GLADSTONE", "MR. DISRAELI"], "counts", ["trade", "press", "industry", "work"]).then(async (res) => {
+      console.log("---- Res TEST TEST TEST", res)
+
+    })
+  }, []);
 
   var data = [
     {
@@ -37,24 +53,20 @@ export const Graph = (props) => {
     title: "Number of "
   };
 
-  useEffect(() => {
-    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if(demoV == undefined || demoV.props.dataset == undefined)
-    {
-        // navigate('/datasetSearch')
-        props.setNavigated(true)
-    }
+  useEffect(()=>{
     Plotly.newPlot(graph.current, data, layout);
     graph.current.on('plotly_click', function (data) {
       let i = data.points[0].pointIndex;
+      let tempData = props.dataset[i]
       props.setData({
-        x: props.dataset.x[i],
-        y: props.dataset.y[i],
-        description: props.dataset.other[i]
+        group_name: tempData.group,
+        word: tempData.word,
+        count: tempData.length
       });
       navigate("/zoom");
     });
-  })
+  }, []);
+    
   //For Modal
   const [openModal, setOpenModal] = useState(false);
 
