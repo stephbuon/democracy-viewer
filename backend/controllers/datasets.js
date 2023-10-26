@@ -268,6 +268,13 @@ const getColumnNames = async(datasets, table) => {
     return results;
 }
 
+// Get unique values in a dataset column
+const getColumnValues = async(datasets, table , column) => {
+    const records = await datasets.getColumnValues(table, column);
+    const results = records.map(x => x[column]);
+    return results;
+}
+
 // Download a subset of a dataset
 const downloadSubset = async(datasets, table, params, username = undefined) => {
     // Clear the downloads folder on the server
@@ -368,6 +375,7 @@ module.exports = {
     getTags,
     getTextCols,
     getColumnNames,
+    getColumnValues,
     deleteDataset,
     deleteTag,
     deleteTextCol

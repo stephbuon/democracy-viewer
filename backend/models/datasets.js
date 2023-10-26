@@ -144,6 +144,12 @@ class datasets {
         return Object.keys(results);
     }
 
+    // Get unique column values
+    async getColumnValues(table_name, column) {
+        const results = await knex(table_name).select(column).orderBy(column).distinct();
+        return results;
+    }
+
     // Filter datasets
     async getFilteredDatasets(params, username, paginate = true, currentPage = 1) {
         const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
