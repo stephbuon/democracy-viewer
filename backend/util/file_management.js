@@ -53,20 +53,12 @@ const generateJSON = (name, data) => {
     fs.writeFileSync(name, JSON.stringify(data, null, 4));
 }
 
-// Generate a file of any format
-const generateFile = (name, data) => {
-    fs.writeFileSync(name, data);
-}
-
 // Read a csv file
-const readCSV = (path, del = true) => new Promise((resolve, reject) => {
+const readCSV = (path) => new Promise((resolve, reject) => {
+    // If the file path does not end in '.csv', delete file and throw error
     if (path.substring(path.length - 4, path.length) !== ".csv") {
-        // If the file path does not end in '.csv', delete file and throw error
         fs.unlinkSync(path);
         throw new Error(`${ path.substring(path.length - 4, path.length) } is an invalid file type`);
-    } else if (!fileExists(path)) {
-        // If the file does not exist, throw error
-        throw new Error(`${ path } does not exist`);
     }
 
     // Parse csv
@@ -75,17 +67,11 @@ const readCSV = (path, del = true) => new Promise((resolve, reject) => {
         .pipe(csv_read())
         .on("data", d => data.push(d))
         .on("end", () => {
-            if (del) {
-                fs.unlinkSync(path);
-            }
-
+            fs.unlinkSync(path);
             resolve(data);
         })
         .on("error", err => {
-            if (del) {
-                fs.unlinkSync(path);
-            }
-
+            fs.unlinkSync(path);
             reject(err);
         });
 });
@@ -118,7 +104,6 @@ module.exports = {
     fileExists,
     generateCSV,
     generateJSON,
-    generateFile,
     readCSV,
     readJSON,
     uploadFile
