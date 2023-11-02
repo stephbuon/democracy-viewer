@@ -12,32 +12,19 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { LoginRequest, RegisterRequest } from '../apiFolder/LoginRegister';
-import { useNavigate } from 'react-router-dom';
 
 
 
 const theme = createTheme();
 
-export default function Register(props) {
-  const navigate = useNavigate();
+export default function Register() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    let packet = {
-      username: data.get('username'),
-      password: data.get('password'),
+    console.log({
       email: data.get('email'),
-      title: data.get('Title'),
-      first_name: data.get('firstName'),
-      last_name: data.get('lastName'),
-      orcid: data.get('OrcID'),
-      linkedin_link: data.get('LinkedIn')
-    }
-    RegisterRequest(packet).then(async (res) => {
-      LoginRequest(packet).then(async (res) => {
-      props.login({token: res, username: data.get('email')})
-    }).then(()=>{navigate('/')})})
+      password: data.get('password'),
+    });
   };
 
   return (
@@ -85,16 +72,6 @@ export default function Register(props) {
                 <TextField
                   required
                   fullWidth
-                  id="username"
-                  label="Username"
-                  name="username"
-                  autoComplete="username"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
                   id="email"
                   label="Email Address"
                   name="email"
@@ -118,14 +95,14 @@ export default function Register(props) {
                   fullWidth
                   id="LinkedIn"
                   label="LinkedIn"
-                  name="LinkedIn"
-                  autoComplete="LinkedIn"
+                  name="email"
+                  autoComplete="email"
                 />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                 <TextField
                   Title="Title"
-                  name="Title"
+       
                   fullWidth
                   id="Title"
                   label="Title"

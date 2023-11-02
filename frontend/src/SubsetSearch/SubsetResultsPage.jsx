@@ -34,6 +34,7 @@ export const SubsetResultsPage = (props) => {
     const [loadingResults, setLoadingResults] = useState(false);
     const [loadingPage, setLoadingPage] = useState(true);
 
+    let FileSaver = require('file-saver');
 
     const doMoveAnimation = () => {
         console.log("STARTING THE MOVE")
@@ -59,10 +60,6 @@ export const SubsetResultsPage = (props) => {
             table_name: props.dataset.table_name,
             search: searchTerm !== '' ? `?col_search=${searchTerm}` : ''
         }
-
-        let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-        demoV.downloadData = _query;
-        localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
 
         console.log("QUERY ", _query.search)
         setTimeout(() => {
@@ -160,12 +157,6 @@ export const SubsetResultsPage = (props) => {
 
     useEffect(() => {
         console.log(props)
-        let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-        if(demoV == undefined || demoV.dataset == undefined)
-        {
-            navigate('/datasetSearch')
-            props.setNavigated(true)
-        }
     }, []);
 
     useEffect(() => {
@@ -295,12 +286,10 @@ export const SubsetResultsPage = (props) => {
                             background: 'rgb(200, 200, 200)'
                         }
                     }}
-                    onClick={() => {
-                        let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-                        demoV.downloadData = {table_name: props.dataset.table_name,search: ""};
-                        localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-                        window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer");
-                }}
+                    onClick={() => DownloadFullDataset(query).then((res) => {
+                        let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
+                        FileSaver.saveAs(blob, `${query.table_name}.csv`);
+                    })}
                 >Download full dataset</Button>
                 <Button
                     sx={{
@@ -312,7 +301,10 @@ export const SubsetResultsPage = (props) => {
                             background: 'rgb(200, 200, 200)'
                         }
                     }}
-                    onClick={() => window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer")}
+                    onClick={() => DownloadSubset(query).then((res) => {
+                        let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
+                        FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);
+                    })}
                 >Download these {totalNumResults} results</Button>
             </Box>}
             {searched && <Box
@@ -339,7 +331,7 @@ export const SubsetResultsPage = (props) => {
                         //     overflow: 'hidden'
                         // }}
                         >
-                            {searchResults.length > 0 && Object.keys(searchResults[0]).map(key => {
+                            {Object.keys(searchResults[0]).map(key => {
                                 return <TableCell
                                     sx={{
                                         width: .2
