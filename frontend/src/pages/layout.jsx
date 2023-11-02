@@ -8,18 +8,13 @@ import Divider from '@mui/material/Divider';
 import PeopleIcon from '@mui/icons-material/People';
 import { useEffect, useState } from 'react';
 
-export const Layout = () => {
+export const Layout = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
-  const [ username, setUsername ] = useState(undefined);
 
   useEffect(() => {
     setOpen(false);
-
-    if (localStorage.getItem("democracy-viewer")) {
-      setUsername(JSON.parse(localStorage.getItem("democracy-viewer")).user.username);
-  }
   }, [location]);
 
   const handleDrawerToggle = () => {
@@ -121,12 +116,19 @@ export const Layout = () => {
               </ListItemIcon>
               <ListItemText primary="Upload/Edit Data Sets" />
             </ListItemButton>
-            <ListItemButton component={Link} to={`/Profile/${ username }`}>
+            {props.user !== undefined && <ListItemButton component={Link} to={`/Profile/${ props.user.username }`}>
               <ListItemIcon>
                 <Person />
               </ListItemIcon>
               <ListItemText primary="Profile" />
-            </ListItemButton>
+            </ListItemButton>}
+            {props.user === undefined && <ListItemButton component={Link} to={`/login`}>
+              <ListItemIcon>
+                <Person />
+              </ListItemIcon>
+              <ListItemText primary="Profile" />
+            </ListItemButton>}
+            
             <Divider sx={{ my: 1 }} />
 
           </List>

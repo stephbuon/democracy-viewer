@@ -1,9 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
 import { TextField } from "../common/textField.jsx";
-import { MDBContainer } from "mdbreact";
-import { Bar } from "react-chartjs-2";
-import Chart from "chart.js/auto";
-import { CategoryScale } from "chart.js";
 import { SelectField } from "../common/selectField.jsx";
 import { Range } from "../common/range.jsx";
 import Plotly from "plotly.js-dist";
@@ -15,34 +11,71 @@ import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
+import { getGraph } from "../api/api.js"
 
-export const Graph = ({ dataset, setData }) => {
-  const graph = useRef(null);
-  const navigate = useNavigate();
-
-  var data = [
-    {
-      x: dataset.x,
-      y: dataset.y,
-      type: 'bar'
-    }
-  ];
+export const Graph = (props) => {
+  var data = [];
   var layout = {
-    title: dataset.label
+    title: "Number of in dataset: "
   };
+  var first = true
 
-  useEffect(() => {
-    Plotly.newPlot(graph.current, data, layout);
-    graph.current.on('plotly_click', function (data) {
-      let i = data.points[0].pointIndex;
-      setData({
-        x: dataset.x[i],
-        y: dataset.y[i],
-        description: dataset.other[i]
+  const navigate = useNavigate();
+  const graph = useRef(null);
+
+  useEffect(()=>{
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if(demoV == undefined || props.dataset == undefined)
+    {
+        navigate('/datasetSearch')
+        props.setNavigated(true)
+    }
+  }, []);
+
+  const updateData = () => {
+    getGraph(props.dataset.table_name, "speaker", ["MR. GLADSTONE", "MR. DISRAELI"], {measure}, ["trade", "press", "industry", "work"]).then(async (res) => {
+      res.forEach((dataPoint) =>{
+        let index = data.findIndex((x) => x.name == dataPoint.group);
+        console.log(index)
+        if(index >= 0){
+          data[index].x.push(dataPoint.word)
+          data[index].y.push(dataPoint.n)
+        }
+        else{
+          data.push({
+            x: [dataPoint.word],
+            y: [dataPoint.n],
+            name: dataPoint.group,
+            type: "bar"
+          })
+        }
       });
-      navigate("/zoom");
+      console.log('-----', data)
     });
-  })
+  }
+
+  const updateGraph = () =>{
+    if(first){
+      Plotly.newPlot('test', data, layout);
+
+      graph.current.on('plotly_click', function (data) {
+        let i = data.points[0].pointIndex;
+        let tempData = props.dataset[i]
+        props.setData({
+          group_name: tempData.group,
+          word: tempData.word,
+          count: tempData.length
+        });
+        navigate("/zoom");
+      });
+    }
+    else{
+      Plotly.redraw('test', data);
+    }
+  };
+  const logData = () =>{
+    console.log('--Logging data--', data)
+  };
   //For Modal
   const [openModal, setOpenModal] = useState(false);
 
@@ -65,10 +98,15 @@ export const Graph = ({ dataset, setData }) => {
     { value: 3, label: "Negative" },
   ]);
 
-  const [measure, setMeasure] = useState("");
+  const [measure, setMeasure] = useState("Count");
   const [measureOptions] = useState([
-    { value: 1, label: "Count" },
+    { value: 0, label: "Count" },
+    { value: 1, label: "Proportion" },
     { value: 2, label: "tf-idf" },
+    { value: 3, label: "Log Likelihood" },
+    { value: 4, label: "Jensen-Shannon Divergence" },
+    { value: 5, label: "Original Jensen-Shannon Divergence" },
+    { value: 6, label: "Word Embeddings" }
   ]);
 
   return (
@@ -135,23 +173,6 @@ export const Graph = ({ dataset, setData }) => {
                   value={searchValue}
                   setValue={setSearchValue}
                 />
-                <FormControl component="fieldset">
-                  <RadioGroup
-                    name="keywordRadioDefault"
-                    defaultValue="includeKeyword"
-                  >
-                    <FormControlLabel
-                      value="includeKeyword"
-                      control={<Radio />}
-                      label="Include Keyword"
-                    />
-                    <FormControlLabel
-                      value="matchKeyword"
-                      control={<Radio />}
-                      label="Match Keyword"
-                    />
-                  </RadioGroup>
-                </FormControl>
                 <SelectField
                   label="Sentiment"
                   value={sentiment}
@@ -159,6 +180,15 @@ export const Graph = ({ dataset, setData }) => {
                   options={sentimentOptions}
                   hideBlankOption={1}
                 />
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={updateGraph}>
+                  Update graph
+                </Button>
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={updateData}>
+                  Update data
+                </Button>
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={logData}>
+                  Log data
+                </Button>
 
               </Paper>
               {/* Help icon that opens Modal */}
@@ -182,7 +212,7 @@ export const Graph = ({ dataset, setData }) => {
           </Grid>
           <Grid item xs={12} sm={9}>
             <Box sx={{ margin: "8px" }}>
-              <div ref={graph}></div>
+              <div id='test' ref={graph}></div>
             </Box>
           </Grid>
         </Grid>

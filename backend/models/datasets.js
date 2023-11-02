@@ -39,7 +39,7 @@ class datasets {
 
     // Add initial metadata for a table
     async createMetadata(table_name, username) {
-        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0 });
+        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0, date_posted: new Date() });
         const record = await knex(metadata_table).where({ table_name });
         return record[0];
     }
@@ -135,6 +135,18 @@ class datasets {
     // Get text columns by dataset
     async getTextCols(table_name) {
         const results = await knex(text_col_table).where({ table_name });
+        return results;
+    }
+
+    // Get column names
+    async getColumnNames(table_name) {
+        const results = await knex(table_name).columnInfo();
+        return Object.keys(results);
+    }
+
+    // Get unique column values
+    async getColumnValues(table_name, column) {
+        const results = await knex(table_name).select(column).orderBy(column).distinct();
         return results;
     }
 

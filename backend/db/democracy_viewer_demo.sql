@@ -29,6 +29,7 @@ CREATE TABLE dataset_metadata (
     clicks INT DEFAULT 0,
     processed BIT DEFAULT false,
     record_count BIGINT DEFAULT 0,
+    date_posted DATE,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
