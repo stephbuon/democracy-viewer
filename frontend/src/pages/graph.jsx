@@ -14,59 +14,68 @@ import DialogContent from "@mui/material/DialogContent";
 import { getGraph } from "../api/api.js"
 
 export const Graph = (props) => {
-  useEffect(() => {
+  var data = [];
+  var layout = {
+    title: "Number of in dataset: "
+  };
+  var first = true
+
+  const navigate = useNavigate();
+  const graph = useRef(null);
+
+  useEffect(()=>{
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if(demoV == undefined || props.dataset == undefined)
     {
-        // navigate('/datasetSearch')
+        navigate('/datasetSearch')
         props.setNavigated(true)
     }
-  }, [])
-
-
-  const graph = useRef(null);
-  const navigate = useNavigate();
-
-  const xAxis = [];
-  var yAxis = [];
-
-  props.dataset.forEach((dataPoint) => xAxis.push(dataPoint.group + "<br>" + dataPoint.word));
-  props.dataset.forEach((dataPoint) => yAxis.push(dataPoint.ids.length));
-
-  console.log("---- BEFORE USE EFFECT")
-  useEffect(()=>{
-    console.log("---- AFTER USE EFFECT")
-    getGraph("hansard_1870_1682572305673", "speaker", ["MR. GLADSTONE", "MR. DISRAELI"], "counts", ["trade", "press", "industry", "work"]).then(async (res) => {
-      console.log("---- Res TEST TEST TEST", res)
-
-    })
   }, []);
 
-  var data = [
-    {
-      x: xAxis,
-      y: yAxis,
-      type: 'bar'
-    }
-  ];
-  var layout = {
-    title: "Number of "
-  };
-
-  useEffect(()=>{
-    Plotly.newPlot(graph.current, data, layout);
-    graph.current.on('plotly_click', function (data) {
-      let i = data.points[0].pointIndex;
-      let tempData = props.dataset[i]
-      props.setData({
-        group_name: tempData.group,
-        word: tempData.word,
-        count: tempData.length
+  const updateData = () => {
+    getGraph(props.dataset.table_name, "speaker", ["MR. GLADSTONE", "MR. DISRAELI"], {measure}, ["trade", "press", "industry", "work"]).then(async (res) => {
+      res.forEach((dataPoint) =>{
+        let index = data.findIndex((x) => x.name == dataPoint.group);
+        console.log(index)
+        if(index >= 0){
+          data[index].x.push(dataPoint.word)
+          data[index].y.push(dataPoint.n)
+        }
+        else{
+          data.push({
+            x: [dataPoint.word],
+            y: [dataPoint.n],
+            name: dataPoint.group,
+            type: "bar"
+          })
+        }
       });
-      navigate("/zoom");
+      console.log('-----', data)
     });
-  }, []);
-    
+  }
+
+  const updateGraph = () =>{
+    if(first){
+      Plotly.newPlot('test', data, layout);
+
+      graph.current.on('plotly_click', function (data) {
+        let i = data.points[0].pointIndex;
+        let tempData = props.dataset[i]
+        props.setData({
+          group_name: tempData.group,
+          word: tempData.word,
+          count: tempData.length
+        });
+        navigate("/zoom");
+      });
+    }
+    else{
+      Plotly.redraw('test', data);
+    }
+  };
+  const logData = () =>{
+    console.log('--Logging data--', data)
+  };
   //For Modal
   const [openModal, setOpenModal] = useState(false);
 
@@ -89,10 +98,15 @@ export const Graph = (props) => {
     { value: 3, label: "Negative" },
   ]);
 
-  const [measure, setMeasure] = useState("");
+  const [measure, setMeasure] = useState("Count");
   const [measureOptions] = useState([
-    { value: 1, label: "Count" },
+    { value: 0, label: "Count" },
+    { value: 1, label: "Proportion" },
     { value: 2, label: "tf-idf" },
+    { value: 3, label: "Log Likelihood" },
+    { value: 4, label: "Jensen-Shannon Divergence" },
+    { value: 5, label: "Original Jensen-Shannon Divergence" },
+    { value: 6, label: "Word Embeddings" }
   ]);
 
   return (
@@ -159,23 +173,6 @@ export const Graph = (props) => {
                   value={searchValue}
                   setValue={setSearchValue}
                 />
-                <FormControl component="fieldset">
-                  <RadioGroup
-                    name="keywordRadioDefault"
-                    defaultValue="includeKeyword"
-                  >
-                    <FormControlLabel
-                      value="includeKeyword"
-                      control={<Radio />}
-                      label="Include Keyword"
-                    />
-                    <FormControlLabel
-                      value="matchKeyword"
-                      control={<Radio />}
-                      label="Match Keyword"
-                    />
-                  </RadioGroup>
-                </FormControl>
                 <SelectField
                   label="Sentiment"
                   value={sentiment}
@@ -183,6 +180,15 @@ export const Graph = (props) => {
                   options={sentimentOptions}
                   hideBlankOption={1}
                 />
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={updateGraph}>
+                  Update graph
+                </Button>
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={updateData}>
+                  Update data
+                </Button>
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={logData}>
+                  Log data
+                </Button>
 
               </Paper>
               {/* Help icon that opens Modal */}
@@ -206,7 +212,7 @@ export const Graph = (props) => {
           </Grid>
           <Grid item xs={12} sm={9}>
             <Box sx={{ margin: "8px" }}>
-              <div ref={graph}></div>
+              <div id='test' ref={graph}></div>
             </Box>
           </Grid>
         </Grid>

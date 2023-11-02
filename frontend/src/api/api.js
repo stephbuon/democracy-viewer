@@ -35,7 +35,6 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   wordList.forEach((word) => { // Add all words in wordList to endpoint
     endpoint += `&word_list=${word}`
   })
-  console.log("API TEST TEST TEST", endpoint)
   // Get graph from endpoint
   axios.get(endpoint, apiConfig, {
     headers: {
