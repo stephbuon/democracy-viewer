@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
 import { GetDownloadProgress } from '../apiFolder/UploadDownloadProgressAPI';
-import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
+import { DownloadSubset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 
 
 //Other Imports
@@ -14,44 +14,86 @@ let FileSaver = require('file-saver');
 
 export const DownloadProgress = (props) => {
     const navigate = useNavigate();
-    const params = useParams()
+    const params = useParams();
 
     const [query, setQuery] = useState(undefined);
     const [progress, setProgress] = useState(0);
+    const [numPages, setNumPages] = useState(undefined);
+    const [entries, setEntries] = useState([]);
+    const [ping, setPing] = useState(true)
 
     useEffect(() => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-        setQuery(demoV.downloadData)
+        let _query = demoV.downloadData
+        _query.search = _query.search ? _query.search + "&pageLength=1000" : _query.search + "?pageLength=1000"
+        setQuery(_query)
     }, []);
 
     useEffect(() => {
         console.log("DOWNLOADING",query)
         if (query != undefined)
         {
-            DownloadSubset(query).then((res) => {
-                let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
-                FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);
+            GetNumOfEntries(query).then(res => {
+                setNumPages(res / 1000)
             })
-            // while (progress < 100) 
+            // DownloadSubset(query).then((res) => {
+            //     let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
+            //     FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);
+            // }).then(() => {setPing(false)})
+            // GetProgress()
+            // while(progress < 100)
             // {
-            //     setTimeout(GetProgress(), 1000);
+            //     // if(!loading)
+            //     // {
+            //     //     setLoading(true)
+            //         // setTimeout(GetProgress(), 1000);
+            //         setTimeout(() => {
+            //             console.log("here")
+            //             // GetProgress();
+            //         }, 1000)
+            //     //     GetProgress()
+            //     // }
             // }
-            GetProgress()
         }
     }, [query])
+    useEffect(() => {
+        console.log("DOWNLOADING",query)
+        if(numPages)
+        {
+            for(let i = 0; i < numPages; i++)
+            {
+                GetSubsetOfDataByPage(query, i).then(async (res) => {
+                    let _entries = [...entries, ...query]
+                    setEntries(_entries)
+                    
+                })
+                    setProgress(i / numPages * 100)
+            }
+            // setProgress(100)
+        }
+    }, [numPages])
+
+    
+
 
     const GetProgress = () => {
-        GetDownloadProgress(query).then((currProgress) => {
-            console.log(currProgress)
-            // setProgress(currProgress * 100)
-        })
-        // //get progress every 1 second
-        
-        if (progress >= 100)
+        // setThingy(thingy+1)
+        if(ping)
         {
-            let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-            demoV.downloadData = undefined
-            localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
+            GetDownloadProgress(query).then((currProgress) => {
+                console.log(currProgress)
+                if (currProgress.current_page == undefined)
+                    setProgress(0)
+                else
+                    setProgress(currProgress.current_page / currProgress.total_pages * 100)        
+                }).finally(() => {
+                if (progress >= 100)
+                {
+                    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+                    demoV.downloadData = undefined
+                    localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
+                }
+            })  
         }
     }
 
@@ -59,10 +101,13 @@ export const DownloadProgress = (props) => {
         <Box className="col-6 m-auto align-middle h-100">
 
             <Box className="justify-content-center text-center">
-                Upload Progress
+                Download Progress
             </Box>
             <Box className="justify-content-center">
                 <LinearProgress variant="determinate" value={progress} />
+            </Box>
+            <Box className="justify-content-center text-center">
+                {numPages}
             </Box>
         </Box>
 
