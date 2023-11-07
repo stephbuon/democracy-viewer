@@ -29,6 +29,7 @@ CREATE TABLE dataset_metadata (
     clicks INT DEFAULT 0,
     processed BIT DEFAULT false,
     record_count BIGINT DEFAULT 0,
+    date_posted DATE,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
@@ -55,6 +56,17 @@ CREATE TABLE tags (
     table_name VARCHAR(250),
     PRIMARY KEY(tag_name, table_name),
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);
+
+CREATE TABLE dataset_download (
+    id BIGINT PRIMARY KEY IDENTITY,
+    username VARCHAR(20),
+    table_name VARCHAR(250),
+    timestamp DATETIME,
+    current_page INTEGER,
+    total_pages INTEGER,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    FOREIGN KEY(username) REFERENCES users(username),
 );
 
 CREATE TABLE dataset_text_cols (

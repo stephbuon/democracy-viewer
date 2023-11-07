@@ -3,6 +3,7 @@ const knex = require("../db/knex");
 const metadata_table = "dataset_metadata";
 const tag_table = "tags";
 const text_col_table = "dataset_text_cols";
+const download_table = "dataset_download";
 
 class datasets {
     // Create a table for a new dataset
@@ -38,7 +39,7 @@ class datasets {
 
     // Add initial metadata for a table
     async createMetadata(table_name, username) {
-        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0 });
+        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0, date_posted: new Date() });
         const record = await knex(metadata_table).where({ table_name });
         return record[0];
     }
@@ -61,6 +62,21 @@ class datasets {
         return insert;
     }
 
+    // Insert a dataset upload record
+    async addDownload(username, table_name, total_pages, current_page = 0) {
+        // Insert record
+        const timestamp = new Date();
+        await knex(download_table).insert({ username, table_name, total_pages, current_page, timestamp });
+        // Get record id
+        let record;
+        if (username) {
+            record = await knex(download_table).select("id").where({ username, table_name, timestamp });
+        } else {
+            record = await knex(download_table).select("id").where({ table_name, timestamp }).whereNull("username");
+        }
+        return record[0].id;
+    }
+
     // Update the metadata of a table
     async updateMetadata(table_name, params) {
         const update = await knex(metadata_table).where({ table_name }).update({ ...params });
@@ -79,6 +95,11 @@ class datasets {
         const update = await knex(metadata_table).where({ table_name }).increment("clicks", 1);
         const record = await knex(metadata_table).where({ table_name });
         return record[0];
+    }
+
+    // Increment the current page of a download
+    async updateDownload(id) {
+        await knex(download_table).where({ id }).increment("current_page", 1);
     }
 
     // Get the first n rows of a dataset (n = 10 by default)
@@ -114,6 +135,18 @@ class datasets {
     // Get text columns by dataset
     async getTextCols(table_name) {
         const results = await knex(text_col_table).where({ table_name });
+        return results;
+    }
+
+    // Get column names
+    async getColumnNames(table_name) {
+        const results = await knex(table_name).columnInfo();
+        return Object.keys(results);
+    }
+
+    // Get unique column values
+    async getColumnValues(table_name, column) {
+        const results = await knex(table_name).select(column).orderBy(column).distinct();
         return results;
     }
 
@@ -315,6 +348,18 @@ class datasets {
         return results;
     }
 
+    // Get a download record by username and table
+    async getDownload(username, table_name) {
+        let record;
+        if (username) {
+            record = await knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ username, table_name });
+        } else {
+            record = await knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ table_name }).whereNull("username");
+        }
+        
+        return record[0];
+    }
+
     // Delete a dataset table
     async deleteTable(name) {
         const del = await knex.schema.dropTable(name);
@@ -337,6 +382,11 @@ class datasets {
     async deleteTextCol(table_name, col) {
         const del = await knex(text_col_table).where({ table_name, col }).delete();
         return del;
+    }
+
+    // Delete a download
+    async deleteDownload(id) {
+        await knex(download_table).where({ id }).delete();
     }
 }
 
