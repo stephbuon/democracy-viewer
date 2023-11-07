@@ -14,7 +14,8 @@ export const Result = (props) => {
 
     const navigate = useNavigate();
 
-    const [keys] = useState(Object.keys(props.result));
+    const keys = props.value && typeof props.value === 'object' ? Object.keys(props.value) : [];
+
 
     return <div>
 
@@ -25,7 +26,7 @@ export const Result = (props) => {
                 sx={{
                     width: .2
                 }}
-                >{props.result[key]}</TableCell>
+                >{props.value[key]}</TableCell>
             })}
         </Box>
         <Modal
@@ -66,7 +67,7 @@ export const Result = (props) => {
                                     {key}
                                 </TableCell>
                                 <TableCell>
-                                    {props.result[key]}
+                                    {props.value[key]}
                                 </TableCell>
                                 <TableCell>
                                     &nbsp;
