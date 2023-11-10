@@ -78,8 +78,8 @@ export const UpdateMetadata = async (dataset, title, description,is_public) =>  
 
 export const GetCSVFromAPI = async (endpoint, token) =>  {
     console.log("Geting API csv", endpoint, token, apiConfig());
-    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/api`, {endpoint, token});
-    if(res.status !== 200){
+    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/api`, {endpoint, token}, apiConfig());
+    if(res.status !== 201){
         console.log(`Couldn't get API csv. ${res.status}`)
         return null;
     }

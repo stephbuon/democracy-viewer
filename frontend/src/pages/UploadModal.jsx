@@ -35,13 +35,24 @@ export const UploadModal = (props) => {
     const [tag, setTag] = useState('');
     const [send, setSend] = useState(false);
     const [loadedPage, setLoadedPage] = useState(1);
+    const [useAPI, setUseAPI] = useState(false)
+    const [apidatasetname, setApidatasetname] = useState(undefined)
+
 
     // const fs = require('fs');
     // const readline = require('readline');
 
     const FilledOut = () => {
-        if (title && description) { return true }
-        else { return false; }
+        if(loadedPage == 1)
+        {
+            if (!title || !description) { return false }
+        }
+        else if(loadedPage == 2)
+        {
+            if(tags.length < 3){return false}
+        }
+        return true
+        
     }
 
     const addTag = () => {
@@ -71,45 +82,44 @@ export const UploadModal = (props) => {
                 _texts.push(headers[i])
             }
         }
-        CreateDataset(props.file).then(async (datasetname) => {
+        if (!useAPI)
+        {
+            CreateDataset(props.file).then(async (datasetname) => {
+                let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+                demoV.uploadData = datasetname;
+                localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+                UploadDataset(datasetname)
+                UpdateMetadata(datasetname, title, description, publicPrivate)
+                if (_texts.length > 0) {
+                    AddTextColumn(datasetname, _texts);
+                }
+                if (tags.length > 0) {
+                    AddTags(datasetname, tags);
+                }
+    
+            }).then(() => { window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer"); })
+        }
+        else
+        {
+
             let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-            demoV.uploadData = datasetname;
+            demoV.uploadData = apidatasetname;
             localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
-            UploadDataset(datasetname)
-            UpdateMetadata(datasetname, title, description, publicPrivate)
+            UploadDataset(apidatasetname)
+            UpdateMetadata(apidatasetname, title, description, publicPrivate)
             if (_texts.length > 0) {
-                AddTextColumn(datasetname, _texts);
+                AddTextColumn(apidatasetname, _texts);
             }
             if (tags.length > 0) {
-                AddTags(datasetname, tags);
+                AddTags(apidatasetname, tags);
             }
 
-        }).then(() => { window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer"); })
+            window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
+        }
+        
         props.CancelUpload();
         return;
     }
-    // useEffect(() => {
-    //    if (send)
-    //    {
-
-
-    //     let _texts = [];
-
-    //     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
-    //     demoV.upload_query = 
-    //     {
-    //         _texts: _texts,
-    //         tags: tags,
-    //         title: title,
-    //         description: description,
-    //         publicPrivate: publicPrivate
-    //     }
-    //     console.log("upload",demoV.upload_query)
-    //     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
-
-    // }
-    //     setSend(true);
-    // }, [props.uploadFile]);
 
     const loggedIn = () => {
         //check if user is logged in
@@ -122,7 +132,16 @@ export const UploadModal = (props) => {
 
     useEffect(() => {
         console.log("Props", props)
-        setTitle(props.file.name.substr(0, props.file.name.length - 4))
+        if(props.useAPI)
+        {
+            setUseAPI(true)
+            setApidatasetname(props.apidatasetname)
+            setTitle(props.apidatasetname)
+        }
+        else
+        {
+            setTitle(props.file.name.substr(0, props.file.name.length - 4))
+        }
         setHeaders(props.headers)
     }, []);
 
@@ -148,11 +167,13 @@ export const UploadModal = (props) => {
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell
+                        <TableCell className='col-10'>
+                        </TableCell>
+                        <TableCell className='col-2' 
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            <h2>Upload Dataset</h2>
+                            <h2> {loadedPage} / 3 </h2>
                         </TableCell>
                     </TableRow>
                 </TableHead>
@@ -172,7 +193,7 @@ export const UploadModal = (props) => {
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            This is some information that our system needs so that we can help people searching for you dataset, or make it to where only you can access the data. We would love for others to be able to use the data you are providing as a way to grow this tool, however we understand if you do not want that to happen.
+                            Place Holder Text. Still in process of reformatting
                             </TableCell>
                     </TableRow>
                 </TableBody>
@@ -255,7 +276,7 @@ export const UploadModal = (props) => {
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            Please consider tagging your dataset with any relevant descriptors. This will help people searching for your dataset, or similar datasets
+                            Tags are used to discover datasets
                             </TableCell>
                     </TableRow>
                 </TableBody>
@@ -313,16 +334,13 @@ export const UploadModal = (props) => {
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            Note: Our system will auto detect data types if you leave the column blank. However if you would like individual words to be parsed please signify that as a "TEXT" column
+                            Note: Our system will auto detect data types if you leave the column as "AUTO". However if you would like individual words to be parsed and preprocessed please signify that as a "TEXT" column
                         </TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
                 <Table>
                     <TableBody>
-
-                        {/* ADD COLUMN DETECTION STUFF HERE */}
-
 
                         {headers.map((header => {
                             return <TableRow id={header}>

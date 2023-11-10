@@ -9,6 +9,8 @@ import Box from '@mui/material/Box';
 
 
 import { UploadModal } from './UploadModal';
+import { Table, TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Paper, TextField } from '@mui/material';
+import { GetCSVFromAPI } from "../apiFolder/DatasetUploadAPI.js";
 
 // import fs from 'fs';
 
@@ -17,6 +19,13 @@ export const Upload = (props) => {
   const [fileLoaded, setFileLoaded] = useState(false);
   const [passFile, setPassFile] = useState(undefined);
   const [fileHeaders, setFileHeaders] = useState(undefined);
+  const [apiHeaders, setApiHeaders] = useState([]);
+  const [apiTableName, setApiTableName] = useState(undefined);
+  const [APIEndpoint, setAPIEndpoint] = useState("");
+  const [Token, setToken] = useState("");
+  const [clicked, setClicked] = useState(undefined);
+  const [alert, setAlert] = useState(true);
+
 
 
   const [snackBarOpen, setSnackBarOpen] = useState(false);
@@ -65,6 +74,7 @@ export const Upload = (props) => {
     if (file != undefined) {
       console.log(file)
       if (file.name.search('.csv') === -1) {
+        setAlert(true)
         openSnackbar()
       }
       else {
@@ -77,8 +87,32 @@ export const Upload = (props) => {
       setFileLoaded(false);
     }
   }, [file]);
-  function print() {
-    console.log(file);
+
+  const APIcsv = () => {
+    GetCSVFromAPI(APIEndpoint,Token).then(res => {
+      setApiTableName(res.table_name)
+      setApiHeaders([...Object.keys(res.data[0])])
+    }).catch(() => {
+      setAlert(false)
+      openSnackbar()
+    })
+  }
+
+  const click = (a) => {
+    console.log('clicked =',clicked)
+    setClicked(a)
+  }
+
+  const ready = () => {
+    if (clicked == 1)
+    {
+      if(passFile) {return true}
+    }
+    else if (clicked == 2)
+    {
+      if(apiHeaders.length > 0){return true}
+    }
+    else{return false}
   }
   return (
     <>
@@ -89,24 +123,45 @@ export const Upload = (props) => {
         onClose={() => handleSnackBarClose()}
       >
         <Alert onClose={handleSnackBarClose} severity="error" sx={{ width: '100%' }}>
-          Only '.csv' files can be uploaded
+          {alert && <div>Only '.csv' files can be uploaded</div>}
+          {!alert && <div>API connection is bad</div>}
         </Alert>
       </Snackbar>
       <Modal
         open={fileLoaded}
         onClose={() => handleDataSetInfo()}
       >
-        <UploadModal
+        <div>
+        {clicked == 1 && <UploadModal
           // advancedFilterResults={(x) => advancedFilterResults(x)}
           CancelUpload={() => CancelUpload()}
           file={passFile}
           headers={fileHeaders}
-        />
+        />}
+
+        {clicked == 2 && <UploadModal
+          // advancedFilterResults={(x) => advancedFilterResults(x)}
+          CancelUpload={() => CancelUpload()}
+          file={passFile}
+          useAPI={true}
+          apidatasetname={apiTableName}
+          headers={apiHeaders}
+        />}
+        </div>
       </Modal>
       
       <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="100vh">
-      
-      <img src="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_1280.png" alt="Descriptive alt text" className="centered-image" style={{width: '20%', maxWidth: '100%', marginBottom: '60px'}}/>
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell className='col-6' 
+            sx={[
+              clicked == 1 && {
+                background: 'grey',
+              }
+            ]}
+            onClick={() => click(1)}>
+            <img src="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_1280.png" alt="Descriptive alt text" className="centered-image" style={{width: '20%', maxWidth: '100%', marginBottom: '60px'}}/>
         
       
       <input
@@ -124,38 +179,66 @@ export const Upload = (props) => {
           Choose File
         </Button>
       </label>
-      {passFile && 
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={() => { setFileLoaded(true) }}
-        >
-          Continue
-        </Button>
-      }
-      {!passFile && 
-        <Button variant="contained" color="primary" disabled>
-          Continue
-        </Button>
-      }
-    </Box>
+      
+      
+            </TableCell>
+            <TableCell className='col-6' 
+            sx={[
+              clicked == 2 && {
+                background: 'grey',
+              }
+            ]}
+              onClick={() => click(2)}>
+              <h2>API</h2>
+              <p>Use an api endpoint to upload</p>
+            <TextField
+              margin="normal"
+              fullWidth
+              label="API Endpoint"
+              value={APIEndpoint}
+              onChange={event => { setAPIEndpoint(event.target.value) }}
+              />
+            <TextField
+              margin="normal"
+              fullWidth
+              label="Token"
+              value={Token}
+              onChange={event => { setToken(event.target.value) }}
+              />
 
-      {/* <button
-        className="btn btn-success"
-        disabled={file == undefined}
-        onClick={() => {
-          upload(file[0]);
-        }}
+            <center><Button
+        onClick={() => APIcsv() }
       >
-        Upload
-      </button> */}
-      {/* <button
-        className="btn btn-success"
-        disabled={file == undefined}
-        onClick={print}
+        Get csv
+      </Button></center>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell>
+              <center>
+
+            {ready() && <Button
+        onClick={() => { setFileLoaded(true) }}
       >
-        Log File
-      </button> */}
+        Continue
+      </Button>}
+      {!ready() && <Button
+        disabled
+      >
+        Continue
+      </Button>}
+      </center>
+
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+      
+    </Box>
     </>
   );
 };
