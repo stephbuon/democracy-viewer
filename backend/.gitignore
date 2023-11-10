@@ -33,9 +33,6 @@ uploads/*
 graphs/files/*
 preprocessing/files/*
 
-# python
-*__pycache__
-
 # r files
 *.Rhistory
 *.RData
