@@ -1,81 +1,111 @@
 import React, { useRef, useEffect, useState } from "react";
 import { TextField } from "../common/textField.jsx";
 import { SelectField } from "../common/selectField.jsx";
-import { Range } from "../common/range.jsx";
+import Select from 'react-select'
 import Plotly from "plotly.js-dist";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-import {Grid,Paper,Button,Radio,RadioGroup,FormControl,FormControlLabel,} from "@mui/material";
+import { Grid, Paper, Button } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
-import { getGraph } from "../api/api.js"
+import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
 
 export const Graph = (props) => {
-  var data = [];
-  var layout = {
-    title: "Number of in dataset: "
-  };
+  const [data, setData] = useState([]);
+  var layout = { title: "" }
   var first = true
+
+  useEffect(() => {
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if (demoV == undefined || props.dataset == undefined) {
+      navigate('/datasetSearch')
+      props.setNavigated(true)
+    }
+      getGroupNames(props.dataset.table_name).then(async (res) => {
+        let _groupOptions = []
+        for(let i = 0; i < res.length; i++){
+          _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+        }
+        setGroupOptions([..._groupOptions])
+      });
+  }, []);
 
   const navigate = useNavigate();
   const graph = useRef(null);
 
-  useEffect(()=>{
-    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if(demoV == undefined || props.dataset == undefined)
-    {
-        navigate('/datasetSearch')
-        props.setNavigated(true)
-    }
-  }, []);
+  const [groupOptions, setGroupOptions] = useState(undefined);
+  const [valueOptions, setValueOptions] = useState(undefined);
+  const [groupList, setGroupList] = useState([]);
+  const [group, setGroup] = useState("");
+  const [value, setValue] = useState("");
+  const [buttonToggle, setButtonToggle] = useState(false);
+  const [selectToggle, setSelectToggle] = useState(true);
 
-  const updateData = () => {
-    getGraph(props.dataset.table_name, "speaker", ["MR. GLADSTONE", "MR. DISRAELI"], {measure}, ["trade", "press", "industry", "work"]).then(async (res) => {
-      res.forEach((dataPoint) =>{
+  const nameSelected = (g) => {
+    setSelectToggle(g == "");
+
+    getColumnValues(props.dataset.table_name, g).then(async (res) => {
+      console.log(res)
+      // setValueOptions(res)
+      let _valueOptions = []
+      for(let i = 0; i < res.length; i++){
+        _valueOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+      }
+      setValueOptions([..._valueOptions])
+    });
+  }
+
+  const updateGraph = () => {
+    setButtonToggle(true);
+    getGraph(props.dataset.table_name, group, groupList, metric, ["trade", "press", "industry", "work"]).then(async (res) => {
+      console.log(res)
+      res.forEach((dataPoint) => {
         let index = data.findIndex((x) => x.name == dataPoint.group);
-        console.log(index)
-        if(index >= 0){
+        if (index >= 0) {
           data[index].x.push(dataPoint.word)
           data[index].y.push(dataPoint.n)
+          data[index].ids.push(dataPoint.ids)
         }
-        else{
+        else {
           data.push({
             x: [dataPoint.word],
             y: [dataPoint.n],
+            ids: [dataPoint.ids],
             name: dataPoint.group,
             type: "bar"
           })
         }
       });
-      console.log('-----', data)
-    });
-  }
-
-  const updateGraph = () =>{
-    if(first){
-      Plotly.newPlot('test', data, layout);
-
-      graph.current.on('plotly_click', function (data) {
-        let i = data.points[0].pointIndex;
-        let tempData = props.dataset[i]
-        props.setData({
-          group_name: tempData.group,
-          word: tempData.word,
-          count: tempData.length
+      if (first) {
+        Plotly.newPlot('graph', data, layout);
+  
+        graph.current.on('plotly_click', function (data) {
+          let dataPoint = data.points[0];
+          console.log(":-O zoom test", dataPoint, dataPoint.data.name)
+          props.setData({
+            group: dataPoint.data.name,
+            word: dataPoint.x,
+            count: dataPoint.y
+          });
+          navigate("/zoom");
         });
-        navigate("/zoom");
-      });
-    }
-    else{
-      Plotly.redraw('test', data);
-    }
+        first = false;
+      }
+      else {
+        Plotly.redraw('graph', data);
+      }
+      console.log("Updated graph data!")
+      setButtonToggle(false);
+    });
   };
-  const logData = () =>{
+
+  const logData = () => {
     console.log('--Logging data--', data)
   };
+
   //For Modal
   const [openModal, setOpenModal] = useState(false);
 
@@ -85,28 +115,15 @@ export const Graph = (props) => {
 
   const [searchValue, setSearchValue] = useState("");
 
-  const [topDecade, setTopDecade] = useState(1900);
-  const [bottomDecade, SetBottomDecade] = useState(1900);
-
-  const [vocabulary, setVocabulary] = useState("");
-  const [vocabOptions] = useState([{ value: 1, label: "All" }]);
-
-  const [sentiment, setSentiment] = useState("");
-  const [sentimentOptions] = useState([
-    { value: 1, label: "All" },
-    { value: 2, label: "Positive" },
-    { value: 3, label: "Negative" },
-  ]);
-
-  const [measure, setMeasure] = useState("Count");
-  const [measureOptions] = useState([
-    { value: 0, label: "Count" },
-    { value: 1, label: "Proportion" },
-    { value: 2, label: "tf-idf" },
-    { value: 3, label: "Log Likelihood" },
-    { value: 4, label: "Jensen-Shannon Divergence" },
-    { value: 5, label: "Original Jensen-Shannon Divergence" },
-    { value: 6, label: "Word Embeddings" }
+  const [metric, setMetric] = useState("counts");
+  const [metricOptions] = useState([
+    { value: "counts", label: "Count" },
+    { value: "proportion", label: "Proportion" },
+    { value: "tf-idf", label: "tf-idf" },
+    { value: "ll", label: "Log Likelihood" },
+    { value: "jsd", label: "Jensen-Shannon Divergence" },
+    { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
+    { value: "embedding", label: "Word Embeddings" }
   ]);
 
   return (
@@ -114,80 +131,47 @@ export const Graph = (props) => {
       <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
         <Grid container justifyContent="center">
           <Grid item xs={12} sm={2}>
-            <Box sx={{ position: "relative" }}>
-              <Paper elevation={3} sx={{ padding: "16px", margin: "8px" }}>
+            <Box className="d-flex vh-100 align-items-center" sx={{ position: "relative" }}>
+              <Paper className="mt-0" elevation={3} sx={{ padding: "16px", margin: "8px" }}>
                 <SelectField
-                  label="Vocabulary"
-                  value={vocabulary}
-                  setValue={setVocabulary}
-                  options={vocabOptions}
+                  label="Metric"
+                  value={metric}
+                  setValue={setMetric}
+                  options={metricOptions}
                   hideBlankOption={1}
                 />
                 <SelectField
-                  label="Measure"
-                  value={measure}
-                  setValue={setMeasure}
-                  options={measureOptions}
-                  hideBlankOption={1}
+                  label="Column name"
+                  value={group}
+                  setValue={(x)=>{
+                    setGroup(x)
+                    nameSelected(x)
+                  }}
+                  options={groupOptions}
+                  on
+                  hideBlankOption={0}
                 />
-                <Range
-                  value={topDecade}
-                  setValue={setTopDecade}
-                  label="Decade (Top)"
-                  min={1900}
-                  max={2000}
-                  step={10}
-                />
-                <Range
-                  value={bottomDecade}
-                  setValue={SetBottomDecade}
-                  label="Decade (Bottom)"
-                  min={1900}
-                  max={2000}
-                  step={10}
-                />
-                <Grid container spacing={1}>
-                  <Grid item xs={6}>
-                    <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}>
-                      Law
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}>
-                      Government
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}>
-                      Men
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}>
-                      Women
-                    </Button>
-                  </Grid>
-                </Grid>
+                <label htmlFor="valueSelect">Column Value</label>
+                {/* TODO No selection = top 10 */}
+                <Select options={valueOptions}
+                id="valueSelect"
+                className="mb-3"
+                closeMenuOnSelect={false}
+                isDisabled={selectToggle}
+                onChange={(x) => {
+                  setGroupList(x)
+                }}
+                isMulti></Select>
+
                 <TextField
                   label="Custom Search:"
                   value={searchValue}
                   setValue={setSearchValue}
                 />
-                <SelectField
-                  label="Sentiment"
-                  value={sentiment}
-                  setValue={setSentiment}
-                  options={sentimentOptions}
-                  hideBlankOption={1}
-                />
-                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={updateGraph}>
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}
+                className="mb-3"
+                onClick={updateGraph} disabled={buttonToggle}>
                   Update graph
-                </Button>
-                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={updateData}>
-                  Update data
-                </Button>
-                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }} onClick={logData}>
-                  Log data
                 </Button>
 
               </Paper>
@@ -211,8 +195,8 @@ export const Graph = (props) => {
             </Box>
           </Grid>
           <Grid item xs={12} sm={9}>
-            <Box sx={{ margin: "8px" }}>
-              <div id='test' ref={graph}></div>
+            <Box className="d-flex vh-100 align-items-center" sx={{ margin: "8px" }}>
+              <div id='graph' ref={graph}></div>
             </Box>
           </Grid>
         </Grid>
