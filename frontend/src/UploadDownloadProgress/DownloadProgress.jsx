@@ -63,16 +63,31 @@ export const DownloadProgress = (props) => {
             for(let i = 0; i < numPages; i++)
             {
                 GetSubsetOfDataByPage(query, i).then(async (res) => {
-                    let _entries = [...entries, ...query]
+                    let _entries = [...entries, ...res]
                     setEntries(_entries)
-                    
-                })
                     setProgress(i / numPages * 100)
-            }
-            // setProgress(100)
+                })
+            }            
         }
     }, [numPages])
 
+    function convertToCSV(arr) {
+        const array = [Object.keys(arr[0])].concat(arr)
+      
+        return array.map(it => {
+          return Object.values(it).toString()
+        }).join('\n')
+    }
+
+    useEffect(() => {
+        console.log("entries",entries)
+        if(entries.length === 1000 * numPages)
+        {
+            setProgress(100)
+            let blob = new Blob([convertToCSV(entries)], { type: "text/plain;charset=utf-8" });
+            FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);
+        }
+    }, [entries])
     
 
 
