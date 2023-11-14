@@ -8,12 +8,12 @@ export const Range = ({
 }) => {
   return (
     <>
-      <label for="range" class="form-label">
+      <label htmlFor="range" className="form-label">
         {label}: {value}
       </label>
       <input
         type="range"
-        class="form-range"
+        className="form-range"
         id="range"
         min={min}
         max={max}
