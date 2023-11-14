@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 var token;
-const apiEndpoint = 'http://classroomdb.smu.edu:55433';
+// const apiEndpoint = 'http://classroomdb.smu.edu:55433';
+const apiEndpoint = 'http://localhost:8000';
 var apiConfig;
 
 export const getToken = () => {
