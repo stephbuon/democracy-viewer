@@ -15,18 +15,41 @@ import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-
+  
 export const App = () => {
-  let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
+
+  const graphData = {
+    x: [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ],
+    y: [24, 24, 24, 24, 24, 24, 24],
+    label: "Hours/Day",
+    other: [
+      "SUNDAY is 24 hours",
+      "MONDAY is also 24 hours long",
+      "TUESDAY, as we can see, is also 24 hours",
+      "I wonder if WEDNESDAY follows the same pattern (24 hours)",
+      "'THURSDAY.hours == 24' returns true",
+      "FRIDAY is 23 hours long if we exclude the final hour",
+      "SATURDAY is not any amount of hours, except 24"
+    ]
+  };
 
   const [data, setData] = useState(undefined);
-  const [dataset, setDataset] = useState(demoV.dataset);
-  const [user, setUser] = useState(demoV.user);
+  
+  const [dataset, setDataset] = useState(undefined);
+  const [user, setUser] = useState(undefined);
   const [navigated, setNavigated] = useState(false);
 
   const chooseDataset = (choice) =>{
     setDataset(choice)
-    demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if(!demoV)
     {
       demoV = {user:undefined, dataset:undefined}
@@ -38,7 +61,7 @@ export const App = () => {
   const login = (profile) => {
     console.log(profile);
     setUser(profile)
-    demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if(!demoV)
     {
       demoV = {user:undefined, dataset:undefined}
@@ -48,6 +71,17 @@ export const App = () => {
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
 
+  useEffect(() => {
+    console.log("Strating Democracy Viewer App")
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
+    //TODO implement this (only when logged in?)
+    if(demoV != undefined)
+    {
+      if(demoV.user != undefined){setUser(demoV.user)}
+      if(demoV.dataset != undefined){setDataset(demoV.dataset)}
+    }
+  },[]);
+  
   useEffect(()=>{
     console.log("NOW USING NEW DATASET", dataset);
   }, [dataset]);
@@ -55,7 +89,9 @@ export const App = () => {
   useEffect(()=>{
     console.log("NOW LOGGED IN", user);
   }, [user]);
+
   
+
   return (
     <div className="App">
       <BrowserRouter>
@@ -66,7 +102,7 @@ export const App = () => {
             <Route path="/register" element={<Register login={login}/>} />
             <Route path="/profile/:username" element={<Profile currUser={user}/>} />
             <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
-            <Route path="/graph" element={<Graph dataset={dataset} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
+            <Route path="/graph" element={<Graph dataset={graphData} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path='/datasetsearch' element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />

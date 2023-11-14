@@ -1,11 +1,10 @@
-export const SelectField = ({ label, value, setValue, options, optionValueKey, optionLabelKey, hideBlankOption, disabled}) => {
+export const SelectField = ({ label, value, setValue, options, optionValueKey, optionLabelKey, hideBlankOption}) => {
     return <div className="form-group mb-3">
     <label htmlFor="value">{label}</label>
     <select id="value"
         name="value"
         className="form-select"
         value={value}
-        disabled={disabled}
         onChange={event => setValue(event.target.value)}>
             { !hideBlankOption && <option></option> }
             {
