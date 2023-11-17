@@ -12,8 +12,6 @@ from bcpandas import to_sql, SqlCreds
 # Text mining
 from nltk.corpus import wordnet as wn
 
-# python3 launch_parallel.py hansard_1870_1695167260301
-
 # Get table name from command line argument
 TABLE_NAME = sys.argv[1]
 
@@ -31,7 +29,7 @@ conn = pyodbc.connect(CONNECTION_STR)
 cursor = conn.cursor()
 
 # Insert tokens into database
-def insert_tokens(data: pd.DataFrame):
+def insert_tokens(df: pd.DataFrame):
     start = time.time()
     creds = SqlCreds(server, database, username, password, 18, port)
     # Suppress printed output
