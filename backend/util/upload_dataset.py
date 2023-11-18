@@ -58,7 +58,7 @@ def prep_data():
     # Determine the maximum length for each string column
     maxLengths = {}
     for col in df.select_dtypes(include=['object']).columns:
-        maxLengths[col] = int(df[col].str.len().max())
+        maxLengths[col] = int(df[col].str.len().max() * 1.1)
         # Filter out columns with a length of 0
         if maxLengths[col] == 0:
             del maxLengths[col]
@@ -74,10 +74,10 @@ def prep_data():
             query += "INTEGER"
         elif col_type == "float":
             query += "FLOAT"
-        elif maxLengths[col] > 8000:
-            query += "TEXT"
+        elif maxLengths[col] > 4000:
+            query += "NVARCHAR(MAX)"
         else:
-            query += "VARCHAR({})".format(maxLengths[col])
+            query += "NVARCHAR({})".format(maxLengths[col])
     query += ")"
     cursor.execute(query)
     cursor.commit()
@@ -99,14 +99,13 @@ def insert_records(df):
         TABLE_NAME,
         creds,
         index = False,
-        if_exists = "replace",
+        if_exists = "append",
         batch_size = 100000
     )
     # Allow printing again
     sys.stdout = sys.__stdout__
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
-        
 start_time = time.time()
 df = prep_data()
 insert_records(df)

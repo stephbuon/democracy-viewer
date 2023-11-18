@@ -158,7 +158,7 @@ const uploadDatasetPy = async(datasets, name, user) => {
         options["pythonPath"] = process.env.PYTHON_PATH;
     }
 
-    // Run python program that generates graph data
+    // Run python program to upload dataset
     await python.run("util/upload_dataset.py", options).then(x => console.log(x)).catch(x => {
         console.log(x);
         throw new Error(x);
@@ -166,6 +166,14 @@ const uploadDatasetPy = async(datasets, name, user) => {
     
     // Delete file now that it has been uploaded
     util.deleteFiles(path)
+
+    // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
+    // Begin preprocessing
+    options["args"] = [ name ]
+    await python.run("preprocessing/launch.py", options).then(x => console.log(x)).catch(x => {
+        console.log(x);
+        throw new Error(x);
+    });
 
     // Return the first 10 rows of the new dataset and the table name
     const results = await datasets.getHead(name);

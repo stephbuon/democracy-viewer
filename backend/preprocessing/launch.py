@@ -52,7 +52,7 @@ def insert_tokens(df: pd.DataFrame):
 def split_text(data: pd.DataFrame):
     start = time.time()
     # Read and process stop words
-    stopwords = pd.read_csv("util/stopwords.csv")
+    stopwords = pd.read_csv("preprocessing/util/stopwords.csv")
     stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace('\W', '', regex=True).apply(wn.morphy)
     stopwords = stopwords.drop_duplicates()
     # Create a deep copy of data
