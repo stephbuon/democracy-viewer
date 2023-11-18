@@ -100,7 +100,7 @@ def insert_records(df):
         creds,
         index = False,
         if_exists = "append",
-        batch_size = 100000
+        batch_size = 50000
     )
     # Allow printing again
     sys.stdout = sys.__stdout__

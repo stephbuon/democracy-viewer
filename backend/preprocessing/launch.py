@@ -42,7 +42,7 @@ def insert_tokens(df: pd.DataFrame):
         creds,
         index = False,
         if_exists = "append",
-        batch_size = 100000
+        batch_size = 50000
     )
     # Allow printing again
     sys.stdout = sys.__stdout__
