@@ -1,9 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { TextField } from "../common/textField.jsx";
-import { MDBContainer } from "mdbreact";
-import { Bar } from "react-chartjs-2";
-import Chart from "chart.js/auto";
-import { CategoryScale } from "chart.js";
+import { TextField } from '@mui/material'
 import { SelectField } from "../common/selectField.jsx";
 import { Range } from "../common/range.jsx";
 import Plotly from "plotly.js-dist";
@@ -17,19 +13,12 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 
 export const Graph = (props) => {
-  const graph = useRef(null);
-  const navigate = useNavigate();
+  const [data, setData] = useState([]);
+  const searchTerms = useState(["trade", "press", "industry", "work"]);
+  const [test, setTest] = useState(true);
 
-  var data = [
-    {
-      x: props.dataset.x,
-      y: props.dataset.y,
-      type: 'bar'
-    }
-  ];
-  var layout = {
-    title: props.dataset.label
-  };
+  var layout = { title: "" }
+  var first = true
 
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -38,22 +27,104 @@ export const Graph = (props) => {
         navigate('/datasetSearch')
         props.setNavigated(true)
     }
-    Plotly.newPlot(graph.current, data, layout);
-    graph.current.on('plotly_click', function (data) {
-      let i = data.points[0].pointIndex;
-      props.setData({
-        x: props.dataset.x[i],
-        y: props.dataset.y[i],
-        description: props.dataset.other[i]
+      getGroupNames(props.dataset.table_name).then(async (res) => {
+        let _groupOptions = []
+        for(let i = 0; i < res.length; i++){
+          _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+        }
+        setGroupOptions([..._groupOptions])
       });
-      navigate("/zoom");
+  }, [test]);
+
+  const navigate = useNavigate();
+  const graph = useRef(null);
+
+  const [groupOptions, setGroupOptions] = useState(undefined);
+  const [valueOptions, setValueOptions] = useState(undefined);
+  const [groupList, setGroupList] = useState([]);
+  const [group, setGroup] = useState("");
+  const [value, setValue] = useState("");
+  const [buttonToggle, setButtonToggle] = useState(false);
+  const [selectToggle, setSelectToggle] = useState(true);
+
+  const addSearchTerm = (key) => {
+    if(key == 'Enter'){
+      searchTerms[0].push(searchValue);
+      setSearchValue("");
+    }
+  }
+
+  const nameSelected = (g) => {
+    setSelectToggle(g == "");
+
+    getColumnValues(props.dataset.table_name, g).then(async (res) => {
+      console.log(res)
+      // setValueOptions(res)
+      let _valueOptions = []
+      for(let i = 0; i < res.length; i++){
+        _valueOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+      }
+      setValueOptions([..._valueOptions])
     });
-  })
+  }
+
+  const updateGraph = () => {
+    setButtonToggle(true);
+    getGraph(props.dataset.table_name, group, groupList, metric, searchTerms[0]).then(async (res) => {
+      console.log(res)
+      res.forEach((dataPoint) => {
+        let index = data.findIndex((x) => x.name == dataPoint.group);
+        if (index >= 0) {
+          data[index].x.push(dataPoint.word)
+          data[index].y.push(dataPoint.n)
+          data[index].ids.push(dataPoint.ids)
+        }
+        else {
+          data.push({
+            x: [dataPoint.word],
+            y: [dataPoint.n],
+            ids: [dataPoint.ids],
+            name: dataPoint.group,
+            type: "bar"
+          })
+        }
+      });
+      if (first) {
+        Plotly.newPlot('graph', data, layout);
+  
+        graph.current.on('plotly_click', function (data) {
+          let dataPoint = data.points[0];
+          console.log(":-O zoom test", dataPoint, dataPoint.data.name)
+          props.setData({
+            group: dataPoint.data.name,
+            word: dataPoint.x,
+            count: dataPoint.y
+          });
+          navigate("/zoom");
+        });
+        first = false;
+      }
+      else {
+        Plotly.redraw('graph', data);
+      }
+      console.log("Updated graph data!")
+      setButtonToggle(false);
+    });
+  };
+
+  const logData = () => {
+    console.log('--Logging data--', data)
+  };
+
   //For Modal
   const [openModal, setOpenModal] = useState(false);
 
   const toggleModal = () => {
     setOpenModal(!openModal);
+  };
+
+  const removeItem = (event) => {
+    console.log("removed item", event);
   };
 
   const [searchValue, setSearchValue] = useState("");
@@ -76,7 +147,7 @@ export const Graph = (props) => {
     { value: 1, label: "Count" },
     { value: 2, label: "tf-idf" },
   ]);
-
+  
   return (
     <>
       <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
@@ -139,32 +210,26 @@ export const Graph = (props) => {
                 <TextField
                   label="Custom Search:"
                   value={searchValue}
-                  setValue={setSearchValue}
+                  onChange={(event)=>setSearchValue(event.target.value)}
+                  onKeyPress={event => {addSearchTerm(event.key)}}
                 />
-                <FormControl component="fieldset">
-                  <RadioGroup
-                    name="keywordRadioDefault"
-                    defaultValue="includeKeyword"
-                  >
-                    <FormControlLabel
-                      value="includeKeyword"
-                      control={<Radio />}
-                      label="Include Keyword"
-                    />
-                    <FormControlLabel
-                      value="matchKeyword"
-                      control={<Radio />}
-                      label="Match Keyword"
-                    />
-                  </RadioGroup>
-                </FormControl>
-                <SelectField
-                  label="Sentiment"
-                  value={sentiment}
-                  setValue={setSentiment}
-                  options={sentimentOptions}
-                  hideBlankOption={1}
-                />
+
+                {searchTerms[0].map((term, index) =><li
+                onClick={(event) => {
+                  setTest(!test);
+                  searchTerms[0].splice(event.target.id, 1)
+                }}
+                onMouseOver={(event) => {event.target.style.color='red'}}
+                onMouseOut={(event) => {event.target.style.color='black'}}
+                style={{"color":"black"}}
+                id={index}>{term}</li>)}
+
+                <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}
+                className="mb-3 mt-3"
+                disabled={buttonToggle || !(searchTerms[0].length > 0 && groupList.length > 0 && group != "")}
+                onClick={updateGraph}>
+                  Update graph
+                </Button>
 
               </Paper>
               {/* Help icon that opens Modal */}

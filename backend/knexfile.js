@@ -6,7 +6,7 @@ module.exports = {
     debug: true,
     connection: {
       host: process.env.HOST,
-      user: process.env.USERNAME,
+      user: process.env.DATABASE_USERNAME,
       password: process.env.PASSWORD,
       database: process.env.DATABASE,
       options: {
