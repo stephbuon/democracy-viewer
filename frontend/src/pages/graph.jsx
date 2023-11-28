@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { TextField } from "../common/textField.jsx";
+import { TextField } from '@mui/material'
 import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select'
 import Plotly from "plotly.js-dist";
@@ -15,6 +15,9 @@ import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
 
 export const Graph = (props) => {
   const [data, setData] = useState([]);
+  const searchTerms = useState(["trade", "press", "industry", "work"]);
+  const [test, setTest] = useState(true);
+
   var layout = { title: "" }
   var first = true
 
@@ -31,7 +34,7 @@ export const Graph = (props) => {
         }
         setGroupOptions([..._groupOptions])
       });
-  }, []);
+  }, [test]);
 
   const navigate = useNavigate();
   const graph = useRef(null);
@@ -43,6 +46,13 @@ export const Graph = (props) => {
   const [value, setValue] = useState("");
   const [buttonToggle, setButtonToggle] = useState(false);
   const [selectToggle, setSelectToggle] = useState(true);
+
+  const addSearchTerm = (key) => {
+    if(key == 'Enter'){
+      searchTerms[0].push(searchValue);
+      setSearchValue("");
+    }
+  }
 
   const nameSelected = (g) => {
     setSelectToggle(g == "");
@@ -60,7 +70,7 @@ export const Graph = (props) => {
 
   const updateGraph = () => {
     setButtonToggle(true);
-    getGraph(props.dataset.table_name, group, groupList, metric, ["trade", "press", "industry", "work"]).then(async (res) => {
+    getGraph(props.dataset.table_name, group, groupList, metric, searchTerms[0]).then(async (res) => {
       console.log(res)
       res.forEach((dataPoint) => {
         let index = data.findIndex((x) => x.name == dataPoint.group);
@@ -113,6 +123,10 @@ export const Graph = (props) => {
     setOpenModal(!openModal);
   };
 
+  const removeItem = (event) => {
+    console.log("removed item", event);
+  };
+
   const [searchValue, setSearchValue] = useState("");
 
   const [metric, setMetric] = useState("counts");
@@ -125,7 +139,7 @@ export const Graph = (props) => {
     { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
     { value: "embedding", label: "Word Embeddings" }
   ]);
-
+  
   return (
     <>
       <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
@@ -166,11 +180,24 @@ export const Graph = (props) => {
                 <TextField
                   label="Custom Search:"
                   value={searchValue}
-                  setValue={setSearchValue}
+                  onChange={(event)=>setSearchValue(event.target.value)}
+                  onKeyPress={event => {addSearchTerm(event.key)}}
                 />
+
+                {searchTerms[0].map((term, index) =><li
+                onClick={(event) => {
+                  setTest(!test);
+                  searchTerms[0].splice(event.target.id, 1)
+                }}
+                onMouseOver={(event) => {event.target.style.color='red'}}
+                onMouseOut={(event) => {event.target.style.color='black'}}
+                style={{"color":"black"}}
+                id={index}>{term}</li>)}
+
                 <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}
-                className="mb-3"
-                onClick={updateGraph} disabled={buttonToggle}>
+                className="mb-3 mt-3"
+                disabled={buttonToggle || !(searchTerms[0].length > 0 && groupList.length > 0 && group != "")}
+                onClick={updateGraph}>
                   Update graph
                 </Button>
 
