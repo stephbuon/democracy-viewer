@@ -97,7 +97,7 @@ export const MultiCheckBoxSelect = (props) => {
 //     render() {
 //         return (
 //             <span
-//                 className="d-inline-block"
+//                 class="d-inline-block"
 //                 data-toggle="popover"
 //                 data-trigger="focus"
 //                 data-content="Please selecet account(s)"

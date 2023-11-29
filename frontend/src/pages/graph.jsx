@@ -10,7 +10,6 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
 import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
 
 export const Graph = (props) => {
@@ -115,7 +114,6 @@ export const Graph = (props) => {
   const logData = () => {
     console.log('--Logging data--', data)
   };
-
   //For Modal
   const [openModal, setOpenModal] = useState(false);
 
@@ -138,6 +136,23 @@ export const Graph = (props) => {
     { value: "jsd", label: "Jensen-Shannon Divergence" },
     { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
     { value: "embedding", label: "Word Embeddings" }
+  const [topDecade, setTopDecade] = useState(1900);
+  const [bottomDecade, SetBottomDecade] = useState(1900);
+
+  const [vocabulary, setVocabulary] = useState("");
+  const [vocabOptions] = useState([{ value: 1, label: "All" }]);
+
+  const [sentiment, setSentiment] = useState("");
+  const [sentimentOptions] = useState([
+    { value: 1, label: "All" },
+    { value: 2, label: "Positive" },
+    { value: 3, label: "Negative" },
+  ]);
+
+  const [measure, setMeasure] = useState("");
+  const [measureOptions] = useState([
+    { value: 1, label: "Count" },
+    { value: 2, label: "tf-idf" },
   ]);
   
   return (

@@ -119,21 +119,42 @@ export const Result = (props) => {
                         justifyContent: 'center',
                         marginTop: '2em'
                     }}>
+                    <p>Use This Dataset!</p>
+                </Box>
+                <Box
+                    sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: '.5em'
+                    }}>
                     <Button
                         variant="contained"
                         primary
                         sx={{
-
+                            marginX: '1em'
                         }}
                         onClick={() => {
                             chooseDataset()
                             navigate('/subsetSearch');
                         }}
                     >
-                        Use Dataset
+                        Search Data
+                    </Button>
+                    <Button
+                        variant="contained"
+                        primary
+                        sx={{
+                            marginX: '1em'
+                        }}
+                        onClick={() => {
+                            chooseDataset()
+                            navigate('/graph');
+                        }}
+                    >
+                        Graph Data
                     </Button>
                 </Box>
-
             </Box>
         </Modal>
 

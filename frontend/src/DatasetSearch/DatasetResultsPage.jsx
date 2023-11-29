@@ -161,6 +161,7 @@ export const DatasetResultsPage = (props) => {
             props.setNavigated(false)
             openSnackbar1()
         }
+        filterResults()
     }, []);
 
 

@@ -82,7 +82,7 @@ CREATE TABLE dataset_split_text (
     word VARCHAR(100),
     count BIGINT,
     col VARCHAR(100),
-    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
+--     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
     PRIMARY KEY(table_name, record_id, word, col)
 );
 

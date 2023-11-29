@@ -5,9 +5,6 @@ proportions = function(data, group_list, word_list, group, word, n) {
   word = dplyr::enquo(word)
   group = dplyr::enquo(group)
   n = dplyr::enquo(n)
-
-  # Lemmatize word list
-  word_list = textstem::lemmatize_words(word_list)
   
   # Get the total word counts for each group
   group_counts = data %>%
@@ -53,9 +50,6 @@ proportions = function(data, group_list, word_list, group, word, n) {
 proportions_all_groups = function(data, word_list, word, n) {
   word = dplyr::enquo(word)
   n = dplyr::enquo(n)
-
-  # Lemmatize word list
-  word_list = textstem::lemmatize_words(word_list)
   
   # Get the total word count
   total_count = data %>%

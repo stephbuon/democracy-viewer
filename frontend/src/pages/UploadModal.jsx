@@ -34,83 +34,95 @@ export const UploadModal = (props) => {
     const [tags, setTags] = useState([]);
     const [tag, setTag] = useState('');
     const [send, setSend] = useState(false);
+    const [loadedPage, setLoadedPage] = useState(1);
+    const [useAPI, setUseAPI] = useState(false)
+    const [apidatasetname, setApidatasetname] = useState(undefined)
+
 
     // const fs = require('fs');
     // const readline = require('readline');
 
     const FilledOut = () => {
-        if (title && description) { return true }
-        else { return false; }
+        if(loadedPage == 1)
+        {
+            if (!title || !description) { return false }
+        }
+        else if(loadedPage == 2)
+        {
+            if(tags.length < 3){return false}
+        }
+        return true
+        
     }
 
     const addTag = () => {
         let _tags = tags
         _tags.push(tag)
         setTags(_tags);
-        console.log("New tags",_tags)
+        console.log("New tags", _tags)
         setTag('')
     }
 
     const deleteTag = (_tag) => {
-        
+
         let _tags = tags
         let index = _tags.indexOf(_tag);
         console.log("deleting tag", index)
         if (index > -1) {
-          _tags.splice(index, 1);
-          console.log(_tags);
+            _tags.splice(index, 1);
+            console.log(_tags);
         }
         setTags([..._tags]);
-    } 
+    }
     const SendDataset = () => {
         //fill out
         let _texts = [];
-        for (let i = 0; i < headers.length; i++)
-        {
-            if(columnTypes[headers[i]] === "TEXT")
-            {
+        for (let i = 0; i < headers.length; i++) {
+            if (columnTypes[headers[i]] === "TEXT") {
                 _texts.push(headers[i])
             }
         }
-        CreateDataset(props.file).then(async (datasetname) => {
+        if (!useAPI)
+        {
+            CreateDataset(props.file).then(async (datasetname) => {
+                let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+                demoV.uploadData = datasetname;
+                localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+                if (_texts.length > 0) {
+                    AddTextColumn(datasetname, _texts);
+                }
+                if (tags.length > 0) {
+                    AddTags(datasetname, tags);
+                }
+                UploadDataset(datasetname)
+                UpdateMetadata(datasetname, title, description, publicPrivate)
+                setTimeout(() => {
+                    window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
+                }, 1000);
+            })
+            // }).then(() => { window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer"); })
+        }
+        else
+        {
+
             let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-            demoV.uploadData = datasetname;
+            demoV.uploadData = apidatasetname;
             localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
-            UploadDataset(datasetname)
-            UpdateMetadata(datasetname,title,description,publicPrivate)
-            if(_texts.length > 0){
-                AddTextColumn(datasetname,_texts);
+            UploadDataset(apidatasetname)
+            UpdateMetadata(apidatasetname, title, description, publicPrivate)
+            if (_texts.length > 0) {
+                AddTextColumn(apidatasetname, _texts);
             }
-            if(tags.length > 0){
-                AddTags(datasetname,tags);
+            if (tags.length > 0) {
+                AddTags(apidatasetname, tags);
             }
-            
-        }).then(() => {window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");})
+
+            window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
+        }
+        
         props.CancelUpload();
         return;
     }
-    // useEffect(() => {
-    //    if (send)
-    //    {
-
-       
-    //     let _texts = [];
-        
-    //     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
-    //     demoV.upload_query = 
-    //     {
-    //         _texts: _texts,
-    //         tags: tags,
-    //         title: title,
-    //         description: description,
-    //         publicPrivate: publicPrivate
-    //     }
-    //     console.log("upload",demoV.upload_query)
-    //     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
-        
-    // }
-    //     setSend(true);
-    // }, [props.uploadFile]);
 
     const loggedIn = () => {
         //check if user is logged in
@@ -123,7 +135,16 @@ export const UploadModal = (props) => {
 
     useEffect(() => {
         console.log("Props", props)
-        setTitle(props.file.name.substr(0,props.file.name.length-4))
+        if(props.useAPI)
+        {
+            setUseAPI(true)
+            setApidatasetname(props.apidatasetname)
+            setTitle(props.apidatasetname)
+        }
+        else
+        {
+            setTitle(props.file.name.substr(0, props.file.name.length - 4))
+        }
         setHeaders(props.headers)
     }, []);
 
@@ -149,34 +170,44 @@ export const UploadModal = (props) => {
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell
+                        <TableCell className='col-10'>
+                        </TableCell>
+                        <TableCell className='col-2' 
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            <h2>Upload Dataset</h2>
+                            <h2> {loadedPage} / 3 </h2>
                         </TableCell>
                     </TableRow>
                 </TableHead>
             </Table>
-            <Table>
+            {loadedPage === 1 && <><Table>
                 <TableBody>
                     <TableRow>
-                    <TableCell
+                        <TableCell
                             sx={{
                                 textAlign: 'center'
                             }}>
                             <h3>Dataset Information</h3>
                         </TableCell>
                     </TableRow>
-                    </TableBody>
-                    </Table>
-                    <Table>
-                    <TableBody>
                     <TableRow>
-                        <TableCell>
+                        <TableCell
+                            sx={{
+                                textAlign: 'center'
+                            }}>
+                            Place Holder Text. Still in process of reformatting
+                            </TableCell>
+                    </TableRow>
+                </TableBody>
+                </Table>
+                <Table>
+                <TableBody>
+                    <TableRow>
+                        <TableCell className='col-6'>
                             Dataset Title:
                         </TableCell>
-                        <TableCell>
+                        <TableCell className='col-6'>
                             <TextField
                                 id="Title"
                                 label="Title"
@@ -192,10 +223,10 @@ export const UploadModal = (props) => {
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>
+                        <TableCell className='col-6'>
                             Dataset Description:
                         </TableCell>
-                        <TableCell>
+                        <TableCell className='col-6'>
                             <TextField
                                 id="Description"
                                 label="Description"
@@ -210,10 +241,10 @@ export const UploadModal = (props) => {
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>
+                        <TableCell className='col-6'>
                             Privacy:
                         </TableCell>
-                        <TableCell>
+                        <TableCell className='col-6'>
                             <FormControl>
                                 <Select
                                     value={publicPrivate}
@@ -229,12 +260,39 @@ export const UploadModal = (props) => {
                             </FormControl>
                         </TableCell>
                     </TableRow>
+
+                </TableBody>
+            </Table></>}
+
+            {loadedPage === 2 && <><Table>
+                <TableBody>
                     <TableRow>
-                        <TableCell>
+                        <TableCell
+                            sx={{
+                                textAlign: 'center'
+                            }}>
+                            <h3>Tags</h3>
+                        </TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell
+                            sx={{
+                                textAlign: 'center'
+                            }}>
+                            Tags are used to discover datasets
+                            </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+            <Table>
+                <TableBody>
+
+                    <TableRow>
+                        <TableCell className='col-6'>
                             Tags:
                         </TableCell>
-                        <TableCell>
-                        <TextField
+                        <TableCell className='col-6'>
+                            <TextField
                                 id="Tag"
                                 label="Tag"
                                 variant="filled"
@@ -246,15 +304,15 @@ export const UploadModal = (props) => {
                                 onChange={event => { setTag(event.target.value) }}
                             />
                             <IconButton onClick={() => addTag()}>
-                                <AddIcon/>
+                                <AddIcon />
                             </IconButton>
                         </TableCell>
                     </TableRow>
-                    
+
                     {tags.map((_tag) => {
                         return <TableRow id={_tag.idx}>
-                            <TableCell>&nbsp;</TableCell>
-                            <TableCell>
+                            <TableCell className='col-6'>&nbsp;</TableCell>
+                            <TableCell className='col-6'>
                                 {_tag}
                                 <IconButton aria-label="delete" onClick={() => deleteTag(_tag)}>
                                     <DeleteIcon />
@@ -262,13 +320,12 @@ export const UploadModal = (props) => {
                             </TableCell>
                         </TableRow>
                     })}
-                    
-                    </TableBody>
-                    </Table>
-                    <Table>
-                    <TableBody>
+                </TableBody>
+            </Table></>}
+            {loadedPage === 3 && <><Table>
+                <TableBody>
                     <TableRow>
-                    <TableCell
+                        <TableCell
                             sx={{
                                 textAlign: 'center'
                             }}>
@@ -276,61 +333,53 @@ export const UploadModal = (props) => {
                         </TableCell>
                     </TableRow>
                     <TableRow>
-                    <TableCell
+                        <TableCell
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            Note: Our system will auto detect data types if you leave the column blank. However if you would like individual words to be parsed please signify that as a "TEXT" column
+                            Note: Our system will auto detect data types if you leave the column as "AUTO". However if you would like individual words to be parsed and preprocessed please signify that as a "TEXT" column
                         </TableCell>
                     </TableRow>
-                    </TableBody>
-                    </Table>
-                    <Table>
+                </TableBody>
+            </Table>
+                <Table>
                     <TableBody>
-                    
-                    {/* ADD COLUMN DETECTION STUFF HERE */}
 
-                    
-                    {headers.map((header=>{
-                        return<TableRow id={header}>
-                        <TableCell>
-                            {header}
-                        </TableCell>
-                        <TableCell>
-                        <FormControl>
-                                <Select
-                                    defaultValue="AUTO"
-                                    value={columnTypes[header]}
-                                    onChange={event => setColumnTypes({...columnTypes, [header]:event.target.value})}
-                                    sx={{
-                                        background: 'rgb(255, 255, 255)',
-                                        color: 'rgb(0, 0, 0)'
-                                    }}
-                                >
-                                    <MenuItem value={"AUTO"}>AUTO</MenuItem>
-                                    <MenuItem value={"TEXT"}>TEXT</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </TableCell>
-                    </TableRow>}))}
-                    <TableRow>
-                        <TableCell>
-                            {FilledOut() && <Button
-                                variant="contained"
-                                primary
-                                onClick={() => SendDataset()}
-                            >
-                                Submit Dataset
-                            </Button>}
-                            {!FilledOut() && <Button
-                                variant="contained"
-                                primary
-                                disabled
-                            >
-                                Submit Dataset
-                            </Button>}
-                        </TableCell>
-                        <TableCell>
+                        {headers.map((header => {
+                            return <TableRow id={header}>
+                                <TableCell className='col-6'>
+                                    {header}
+                                </TableCell>
+                                <TableCell className='col-6'>
+                                    <FormControl>
+                                        <Select
+                                            defaultValue="AUTO"
+                                            value={columnTypes[header]}
+                                            onChange={event => setColumnTypes({ ...columnTypes, [header]: event.target.value })}
+                                            sx={{
+                                                background: 'rgb(255, 255, 255)',
+                                                color: 'rgb(0, 0, 0)'
+                                            }}
+                                        >
+                                            <MenuItem value={"AUTO"}>AUTO</MenuItem>
+                                            <MenuItem value={"TEXT"}>TEXT</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </TableCell>
+                            </TableRow>
+                        }))}
+
+
+                    </TableBody>
+                </Table></>}
+            <Table 
+            sx={{
+                width: "100%"
+            }}>
+                <TableBody>
+                    <TableRow >
+
+                        {loadedPage === 1 && <TableCell className='col-6'>
                             <Button
                                 variant="contained"
                                 primary
@@ -338,9 +387,51 @@ export const UploadModal = (props) => {
                             >
                                 Cancel
                             </Button>
-                        </TableCell>
+                        </TableCell>}
+                        {loadedPage > 1 && <TableCell className='col-6'>
+                            <Button
+                                variant="contained"
+                                primary
+                                onClick={() => setLoadedPage(loadedPage - 1)}
+                            >
+                                Back
+                            </Button>
+                        </TableCell>}
+                            {loadedPage < 3 && <TableCell className='col-6'>
+                            <div className='float-right'></div>
+                                {FilledOut() && <Button
+                                    variant="contained"
+                                    primary
+                                    onClick={() => setLoadedPage(loadedPage + 1)}
+                                >
+                                    Next
+                                </Button>}
+                                {!FilledOut() && <Button
+                                    variant="contained"
+                                    primary
+                                    disabled
+                                >
+                                    Next
+                                </Button>}
+                            </TableCell>}
+                            {loadedPage === 3 && <TableCell className='col-6'>
+                                <div className='float-right'></div>
+                                {FilledOut() && <Button
+                                    variant="contained"
+                                    primary
+                                    onClick={() => SendDataset()}
+                                >
+                                    Submit Dataset
+                                </Button>}
+                                {!FilledOut() && <Button
+                                    variant="contained"
+                                    primary
+                                    disabled
+                                >
+                                    Submit Dataset
+                                </Button>}
+                            </TableCell>}
                     </TableRow>
-                    
                 </TableBody>
             </Table>
         </Box>
