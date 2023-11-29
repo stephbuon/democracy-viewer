@@ -35,7 +35,7 @@ def prep_data():
     df = pd.read_csv(FILE_NAME)
     
     # Replace spaces in column names with underscores
-    df.columns = df.columns.str.replace(' ', '_')
+    df.columns = df.columns.str.replace(' ', '_').str.replace("\r", "").str.replace("\n", "")
     # Remove line breaks and tabs
     df = df.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], value=["",""], regex=True)
     

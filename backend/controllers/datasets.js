@@ -295,7 +295,7 @@ const getColumnNames = async(datasets, table) => {
     // Get text columns
     const textCols = await getTextCols(datasets, table);
     // Filter out text columns
-    const results = Object.keys(names).filter(x => textCols.indexOf(x) === -1);
+    const results = Object.keys(names).filter(x => {console.log(textCols); return textCols.indexOf(x) === -1});
     return results;
 }
 

@@ -102,7 +102,7 @@ export const App = () => {
             <Route path="/register" element={<Register login={login}/>} />
             <Route path="/profile/:username" element={<Profile currUser={user}/>} />
             <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
-            <Route path="/graph" element={<Graph dataset={graphData} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
+            <Route path="/graph" element={<Graph dataset={dataset} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path='/datasetsearch' element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />

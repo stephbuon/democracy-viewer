@@ -10,6 +10,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
 
 export const Graph = (props) => {
@@ -136,6 +137,8 @@ export const Graph = (props) => {
     { value: "jsd", label: "Jensen-Shannon Divergence" },
     { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
     { value: "embedding", label: "Word Embeddings" }
+  ]);
+
   const [topDecade, setTopDecade] = useState(1900);
   const [bottomDecade, SetBottomDecade] = useState(1900);
 
@@ -154,7 +157,7 @@ export const Graph = (props) => {
     { value: 1, label: "Count" },
     { value: 2, label: "tf-idf" },
   ]);
-  
+
   return (
     <>
       <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
