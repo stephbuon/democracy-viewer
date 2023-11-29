@@ -27,13 +27,25 @@ router.post('/', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to create a dataset via an api
+router.post('/api', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.createDatasetAPI(req.models.datasets, req.body.endpoint, req.user.username, req.body.token);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to create dataset via API:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to upload dataset records into database
 router.post('/upload/:name', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.uploadDataset(req.models.datasets, req.params.name, req.user.username);
+        const result = await control.uploadDatasetPy(req.models.datasets, req.params.name, req.user.username);
         res.status(201).json(result);
     } catch (err) {
-        console.error('Failed to add dataset tag:', err);
+        console.error('Failed to upload dataset:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -196,7 +208,7 @@ router.get('/count/filter', optAuthenticateJWT, async(req, res, next) => {
 // Route to subset a dataset
 router.get('/subset/:table/:page', async(req, res, next) => {
     try {
-        const results = await req.models.datasets.subsetTable(req.params.table, req.query, true, req.params.page);
+        const results = await control.getSubset(req.models.datasets, req.params.table, req.query, req.params.page);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset subset:', err);
@@ -245,6 +257,30 @@ router.get('/ids/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset subset count:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get dataset column names
+router.get('/columns/:table', async(req, res, next) => {
+    try {
+        const result = await control.getColumnNames(req.models.datasets, req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset column names:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get dataset column names
+router.get('/columns/:table/values/:column', async(req, res, next) => {
+    try {
+        const result = await control.getColumnValues(req.models.datasets, req.params.table, req.params.column);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset column names:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

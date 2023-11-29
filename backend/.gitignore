@@ -33,6 +33,11 @@ uploads/*
 graphs/files/*
 preprocessing/files/*
 
+# python
+*__pycache__
+*.ipynb_checkpoints
+*.vscode
+
 # r files
 *.Rhistory
 *.RData

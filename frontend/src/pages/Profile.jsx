@@ -20,7 +20,7 @@ import Button from '@mui/material/Button';
 
 const mdTheme = createTheme();
 
-const Profile = () => {
+const Profile = (props) => {
     const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
@@ -35,17 +35,16 @@ const Profile = () => {
     useEffect(() => {
         if (params.username) {
             getUser(params.username).then(x => setUser(x));
-        }
-
-        if (localStorage.getItem("democracy-viewer")) {
-            const loggedInUser = JSON.parse(localStorage.getItem("democracy-viewer")).user.username;
-            if (loggedInUser === params.username) {
-                setEditable(true);
-            } else if (!params.username) {
-                getUser(loggedInUser).then(x => setUser(x));
+            if (props.currUser.username === params.username) {
                 setEditable(true);
             }
         }
+        else
+        {
+            getUser(props.currUser.username).then(x => setUser(x));
+            setEditable(true);
+        }
+
     }, [ params.username ]);
 
     if (!user) {

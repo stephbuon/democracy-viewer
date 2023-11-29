@@ -1,7 +1,7 @@
 # Import metrics
 import util.dhmeasures as dhmeasures
 import util.proportions as proportions
-import util.raw as raw
+import util.counts as counts
 import util.tf_idf as tf_idf
 import util.word_embeddings as embeddings
 
@@ -9,6 +9,7 @@ import util.word_embeddings as embeddings
 import pandas as pd
 import sys
 import json
+from nltk.corpus import wordnet as wn
 
 # Get input files from command line arguments
 data_file = sys.argv[1]
@@ -31,16 +32,19 @@ if "group_list" not in params.keys():
     params["group_list"] = []
 if "word_list" not in params.keys():
     params["word_list"] = []
+    
+# Lemmatize words in word_lsit
+params["word_list"] = list(map(wn.morphy, params["word_list"]))
 
 # Call function based on given metric
-if params["metric"] == "ll":
+if params["metric"] == "counts":
+    output = counts.counts(data, params["word_list"], "word")
+elif params["metric"] == "ll":
     output = dhmeasures.LogLikelihood(data, params["group_list"], params["word_list"], "group", "word", "n")
 elif params["metric"] == "jsd":
     output = dhmeasures.JSD(data, params["group_list"], params["word_list"], "group", "word", "n")
 elif params["metric"] == "ojsd":
     output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
-elif params["metric"] == "raw":
-    output = raw.raw(data, params["word_list"], "word")
 elif params["metric"] == "tf-idf":
     output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
 elif params["metric"] == "embedding":

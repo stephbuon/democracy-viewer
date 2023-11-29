@@ -29,6 +29,7 @@ CREATE TABLE dataset_metadata (
     clicks INT DEFAULT 0,
     processed BIT DEFAULT false,
     record_count BIGINT DEFAULT 0,
+    date_posted DATE,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
@@ -81,7 +82,7 @@ CREATE TABLE dataset_split_text (
     word VARCHAR(100),
     count BIGINT,
     col VARCHAR(100),
-    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
+--     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
     PRIMARY KEY(table_name, record_id, word, col)
 );
 

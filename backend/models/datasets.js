@@ -39,7 +39,7 @@ class datasets {
 
     // Add initial metadata for a table
     async createMetadata(table_name, username) {
-        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0 });
+        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0, date_posted: new Date() });
         const record = await knex(metadata_table).where({ table_name });
         return record[0];
     }
@@ -135,6 +135,18 @@ class datasets {
     // Get text columns by dataset
     async getTextCols(table_name) {
         const results = await knex(text_col_table).where({ table_name });
+        return results;
+    }
+
+    // Get column names
+    async getColumnNames(table_name) {
+        const results = await knex(table_name).columnInfo();
+        return results;
+    }
+
+    // Get unique column values
+    async getColumnValues(table_name, column) {
+        const results = await knex(table_name).select(column).orderBy(column).distinct();
         return results;
     }
 
@@ -247,8 +259,9 @@ class datasets {
 
     // Get a subset of a dataset
     async subsetTable(table, params, paginate = true, currentPage = 1) {
-        // Get the first record in case col names are needed
-        const head = await this.getHead(table, 1);
+        // Get column names and filter for string columns
+        const cols = await this.getColumnNames(table);
+        const colNames = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
 
         const query = knex(table).where(q => {
             // Get the query object keys
@@ -263,27 +276,14 @@ class datasets {
 
                     // Split search string into words
                     const terms = params[key].split(" ");
-                    // Get column names from first record
-                    const colNames = Object.keys(head[0]);
 
                     // Iterate through search words
                     for (let i = 0; i < terms.length; i++) {
                         q.where(q => {
                             // Iterate through column names
                             for (let j = 0; j < colNames.length; j++) {
-                                if (typeof head[0][colNames[j]] === "string") {
-                                    // Get results where column value like term (if column contains strings)
-                                    q.orWhereILike(colNames[j], `%${ terms[i] }%`);
-                                } else if (typeof head[0][colNames[j]] === "number") {
-                                    // Get results when column value equals term (if column contains numbers and term is a number)
-                                    if (!isNaN(parseFloat(terms[i])) && !Number.isInteger(head[0][colNames[j]])) {
-                                        // If search term and column value are floats
-                                        q.orWhere(colNames[j], "=", parseFloat(terms[i]));
-                                    } else if (!isNaN(parseInt(terms[i])) && Number.isInteger(head[0][colNames[j]])) {
-                                        // If search term and column value are ints
-                                        q.orWhere(colNames[j], "=", parseInt(terms[i]));
-                                    }
-                                }
+                                // Get results where column value like term (if column contains strings)
+                                q.orWhereILike(colNames[j], `%${ terms[i] }%`);
                             }
                         });
                     }
