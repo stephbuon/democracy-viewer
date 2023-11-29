@@ -25,7 +25,6 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   var endpoint = `${apiEndpoint}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
 
   groupList.forEach((group) => { // Add all groups in groupList to endpoint
-    console.log("Graph test 2", group)
     endpoint += `&group_list=${group.value}`
   })
 
@@ -35,7 +34,6 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   wordList.forEach((word) => { // Add all words in wordList to endpoint
     endpoint += `&word_list=${word}`
   })
-  console.log("API test",dataset, groupName, groupList, metric, wordList, endpoint)
   // Get graph from endpoint
   axios.get(endpoint, apiConfig, {
     headers: {
