@@ -34,6 +34,11 @@ def prep_data():
     # Read file
     df = pd.read_csv(FILE_NAME)
     
+    # Replace spaces in column names with underscores
+    df.columns = df.columns.str.replace(' ', '_')
+    # Remove line breaks and tabs
+    df = df.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], value=["",""], regex=True)
+    
     # Update metadata to include number of records
     query = '''
         UPDATE {}
@@ -91,8 +96,8 @@ def insert_records(df):
     start = time.time()
     creds = SqlCreds(server, database, username, password, 18, port)
     # Suppress printed output
-    text_trap = io.StringIO()
-    sys.stdout = text_trap
+    # text_trap = io.StringIO()
+    # sys.stdout = text_trap
     # Insert data into database
     to_sql(
         df,
@@ -100,10 +105,10 @@ def insert_records(df):
         creds,
         index = False,
         if_exists = "append",
-        batch_size = 50000
+        batch_size = min(50000, len(df))
     )
     # Allow printing again
-    sys.stdout = sys.__stdout__
+    # sys.stdout = sys.__stdout__
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 start_time = time.time()

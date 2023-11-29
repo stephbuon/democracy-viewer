@@ -88,16 +88,19 @@ export const UploadModal = (props) => {
                 let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
                 demoV.uploadData = datasetname;
                 localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
-                UploadDataset(datasetname)
-                UpdateMetadata(datasetname, title, description, publicPrivate)
                 if (_texts.length > 0) {
                     AddTextColumn(datasetname, _texts);
                 }
                 if (tags.length > 0) {
                     AddTags(datasetname, tags);
                 }
-    
-            }).then(() => { window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer"); })
+                UploadDataset(datasetname)
+                UpdateMetadata(datasetname, title, description, publicPrivate)
+                setTimeout(() => {
+                    window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
+                }, 1000);
+            })
+            // }).then(() => { window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer"); })
         }
         else
         {

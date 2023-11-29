@@ -33,8 +33,8 @@ def insert_tokens(df: pd.DataFrame):
     start = time.time()
     creds = SqlCreds(server, database, username, password, 18, port)
     # Suppress printed output
-    text_trap = io.StringIO()
-    sys.stdout = text_trap
+    # text_trap = io.StringIO()
+    # sys.stdout = text_trap
     # Insert data into database
     to_sql(
         df,
@@ -42,10 +42,10 @@ def insert_tokens(df: pd.DataFrame):
         creds,
         index = False,
         if_exists = "append",
-        batch_size = 50000
+        batch_size = min(50000, len(df))
     )
     # Allow printing again
-    sys.stdout = sys.__stdout__
+    # sys.stdout = sys.__stdout__
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 # Split the text of the given data frame
@@ -92,6 +92,9 @@ def get_data():
     cursor.execute("SELECT col FROM dataset_text_cols WHERE table_name = ?", TABLE_NAME)
     text_cols = cursor.fetchall()
     text_cols = list(map(lambda x: x[0], text_cols))
+    if len(text_cols) == 0:
+        print("No text columns to process")
+        sys.exit(0)
     # Array to store all processing threads
     df = []
     for col in text_cols:
