@@ -141,7 +141,7 @@ class datasets {
     // Get column names
     async getColumnNames(table_name) {
         const results = await knex(table_name).columnInfo();
-        return Object.keys(results);
+        return results;
     }
 
     // Get unique column values
@@ -259,8 +259,9 @@ class datasets {
 
     // Get a subset of a dataset
     async subsetTable(table, params, paginate = true, currentPage = 1) {
-        // Get the first record in case col names are needed
-        const head = await this.getHead(table, 1);
+        // Get column names and filter for string columns
+        const cols = await this.getColumnNames(table);
+        const colNames = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
 
         const query = knex(table).where(q => {
             // Get the query object keys
@@ -275,27 +276,14 @@ class datasets {
 
                     // Split search string into words
                     const terms = params[key].split(" ");
-                    // Get column names from first record
-                    const colNames = Object.keys(head[0]);
 
                     // Iterate through search words
                     for (let i = 0; i < terms.length; i++) {
                         q.where(q => {
                             // Iterate through column names
                             for (let j = 0; j < colNames.length; j++) {
-                                if (typeof head[0][colNames[j]] === "string") {
-                                    // Get results where column value like term (if column contains strings)
-                                    q.orWhereILike(colNames[j], `%${ terms[i] }%`);
-                                } else if (typeof head[0][colNames[j]] === "number") {
-                                    // Get results when column value equals term (if column contains numbers and term is a number)
-                                    if (!isNaN(parseFloat(terms[i])) && !Number.isInteger(head[0][colNames[j]])) {
-                                        // If search term and column value are floats
-                                        q.orWhere(colNames[j], "=", parseFloat(terms[i]));
-                                    } else if (!isNaN(parseInt(terms[i])) && Number.isInteger(head[0][colNames[j]])) {
-                                        // If search term and column value are ints
-                                        q.orWhere(colNames[j], "=", parseInt(terms[i]));
-                                    }
-                                }
+                                // Get results where column value like term (if column contains strings)
+                                q.orWhereILike(colNames[j], `%${ terms[i] }%`);
                             }
                         });
                     }

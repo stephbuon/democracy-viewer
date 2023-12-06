@@ -9,6 +9,7 @@ import util.word_embeddings as embeddings
 import pandas as pd
 import sys
 import json
+from nltk.corpus import wordnet as wn
 
 # Get input files from command line arguments
 data_file = sys.argv[1]
@@ -31,6 +32,9 @@ if "group_list" not in params.keys():
     params["group_list"] = []
 if "word_list" not in params.keys():
     params["word_list"] = []
+    
+# Lemmatize words in word_lsit
+params["word_list"] = list(map(wn.morphy, params["word_list"]))
 
 # Call function based on given metric
 if params["metric"] == "counts":

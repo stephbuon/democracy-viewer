@@ -1,5 +1,6 @@
 const util = require("../util/file_management");
 const axios = require("axios").default
+const python = require("python-shell").PythonShell;
 
 // Upload a new dataset from a csv file
 const createDataset = async(datasets, path, username) => {
@@ -69,8 +70,8 @@ const createDatasetAPI = async(datasets, endpoint, username, token = null) => {
     return output;
 }
 
-// Upload dataset records
-const uploadDataset = async(datasets, name, user) => {
+// Upload dataset records using JavaScript
+const uploadDatasetJS = async(datasets, name, user) => {
     // Get the current metadata for this dataset
     const curr = await datasets.getMetadata(name);
 
@@ -96,26 +97,6 @@ const uploadDataset = async(datasets, name, user) => {
                 return x;
             })
         }
-
-        // Split any values with over 8000 characters into multiple records
-        // Not used right now, but remains in case it is needed later
-        // for (let i = 0; i < data.length; i++) {
-        //     let keys = [];
-        //     Object.keys(data[i]).forEach(key => {
-        //         if (data[i][key].length > 4000) {
-        //             keys.push(key);
-        //         }
-        //     });
-
-        //     if (keys.length > 0) {
-        //         const newRecord = { ...data[i] };
-        //         keys.forEach(key => {
-        //             data[i][key] = data[i][key].substring(0, 4000);
-        //             newRecord[key] = data[i][key].substring(4000, data[i][key].length);
-        //         });
-        //         data.splice(i + 1, 0, newRecord);
-        //     }
-        // }
     
         // Determine the maximum length for each column
         const maxLengths = {};
@@ -151,6 +132,56 @@ const uploadDataset = async(datasets, name, user) => {
         }
         return output;
     });
+}
+
+// Upload dataset records using Python
+const uploadDatasetPy = async(datasets, name, user) => {
+    // Get the current metadata for this dataset
+    const curr = await datasets.getMetadata(name);
+
+    // If the user of this dataset does not match the user making the updates, throw error
+    if (curr.username !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    // Get file name from table name
+    const fileName = name.split("_").slice(0, -1).join("_");
+    const path = `uploads/${fileName}.csv`;
+
+    // Add file names as command line arguments
+    const options = {
+        args: [ name, path ]
+    }
+    // If a python path is provided in .env, use it
+    // Else use the default path
+    if (process.env.PYTHON_PATH) {
+        options["pythonPath"] = process.env.PYTHON_PATH;
+    }
+
+    // Run python program to upload dataset
+    await python.run("util/upload_dataset.py", options).then(x => console.log(x)).catch(x => {
+        console.log(x);
+        throw new Error(x);
+    });
+    
+    // Delete file now that it has been uploaded
+    util.deleteFiles(path)
+
+    // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
+    // Begin preprocessing
+    options["args"] = [ name ]
+    await python.run("preprocessing/launch.py", options).then(x => console.log(x)).catch(x => {
+        console.log(x);
+        throw new Error(x);
+    });
+
+    // Return the first 10 rows of the new dataset and the table name
+    const results = await datasets.getHead(name);
+    const output = {
+        table_name: name,
+        data: results
+    }
+    return output;
 }
 
 // Add a tag for a dataset
@@ -264,7 +295,7 @@ const getColumnNames = async(datasets, table) => {
     // Get text columns
     const textCols = await getTextCols(datasets, table);
     // Filter out text columns
-    const results = names.filter(x => textCols.indexOf(x) === -1);
+    const results = Object.keys(names).filter(x => {console.log(textCols); return textCols.indexOf(x) === -1});
     return results;
 }
 
@@ -273,6 +304,23 @@ const getColumnValues = async(datasets, table , column) => {
     const records = await datasets.getColumnValues(table, column);
     const results = records.map(x => x[column]);
     return results;
+}
+
+// Get a subset of a table
+const getSubset = async(datasets, table, query, page) => {
+    // Get string columns
+    const cols = await datasets.getColumnNames(table);
+    const strCols = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
+    // Get subset records
+    const records = await datasets.subsetTable(table, query, true, page);
+    // Wrap string cols in quotes
+    return records.map(x => {
+        strCols.forEach(col => {
+            x[col] = '"' + x[col] + '"';
+        });
+
+        return x;
+    });
 }
 
 // Download a subset of a dataset
@@ -285,9 +333,20 @@ const downloadSubset = async(datasets, table, params, username = undefined) => {
     params.pageLength = 50000;
     // Add dataset download record and get id
     const downloadId = await datasets.addDownload(username, table, pages);
+    // Get string columns
+    const cols = await datasets.getColumnNames(table);
+    const strCols = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
     let records = [];
     for (let i = 1; i <= pages; i++) {
-        const curr = await datasets.subsetTable(table, params, true, i);
+        let curr = await datasets.subsetTable(table, params, true, i);
+        // Wrap string cols in quotes
+        curr = curr.map(x => {
+            strCols.forEach(col => {
+                x[col] = '"' + x[col] + '"';
+            });
+
+            return x;
+        });
         records = [ ...records, ...curr ];
         // Update download percentage
         await datasets.updateDownload(downloadId);
@@ -364,11 +423,13 @@ const deleteTextCol = async(datasets, user, table, col) => {
 module.exports = {
     createDataset,
     createDatasetAPI,
-    uploadDataset,
+    uploadDatasetJS,
+    uploadDatasetPy,
     addTag,
     addTextCols,
     changeColType,
     updateMetadata,
+    getSubset,
     downloadSubset,
     getUploadPercent,
     getUniqueTags,

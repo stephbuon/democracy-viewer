@@ -42,7 +42,7 @@ router.post('/api', authenticateJWT, async(req, res, next) => {
 // Route to upload dataset records into database
 router.post('/upload/:name', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.uploadDataset(req.models.datasets, req.params.name, req.user.username);
+        const result = await control.uploadDatasetPy(req.models.datasets, req.params.name, req.user.username);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to upload dataset:', err);
@@ -208,7 +208,7 @@ router.get('/count/filter', optAuthenticateJWT, async(req, res, next) => {
 // Route to subset a dataset
 router.get('/subset/:table/:page', async(req, res, next) => {
     try {
-        const results = await req.models.datasets.subsetTable(req.params.table, req.query, true, req.params.page);
+        const results = await control.getSubset(req.models.datasets, req.params.table, req.query, req.params.page);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset subset:', err);

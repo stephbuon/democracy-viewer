@@ -1,162 +1,128 @@
-# Python modules
-import util.word_embeddings as word_embeddings
-
 import pandas as pd
+import numpy as np
 import sys
-import math
-import threading
-# APIs to backend server
-import requests
-import json
 from dotenv import load_dotenv
+import copy
 import os
 import time
-# These will let us use R packages:
-from rpy2.robjects.packages import STAP
-from rpy2.robjects import pandas2ri
-import rpy2.robjects as ro
-from rpy2.robjects.vectors import StrVector
+import io
+# Database interaction
+import pyodbc
+from bcpandas import to_sql, SqlCreds
+# Text mining
+from nltk.corpus import wordnet as wn
 
-load_dotenv()
-BASE_URL = "http://localhost:8000"
+# Get table name from command line argument
 TABLE_NAME = sys.argv[1]
-HEADERS = {
-    "Authorization": "Bearer " + os.environ.get("TOKEN")
-}
-embeddingCount = 0
 
-# Get the data from a database table
-def getTable():
-    # Get the number of pages
-    PER_PAGE = 50000
-    pages = requests.get(BASE_URL + "/datasets/count/subset/" + TABLE_NAME)
-    pages = math.ceil(int(pages.text) / PER_PAGE)
+# Load environment variables
+load_dotenv()
+server = os.environ.get("HOST")
+database = os.environ.get("DATABASE")
+port = os.environ.get("PORT")
+username = os.environ.get("DATABASE_USERNAME")
+password = os.environ.get("PASSWORD")
 
-    # Get all dataset pages
-    page = 1
-    print("Page:", page)
-    data = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
-    if data.status_code != 200:
-        sys.exit(data.json())
-    data = pd.DataFrame(json.loads(data.text))
-    while (page < pages):
-        page += 1
-        print("Page:", page)
-        curr = requests.get(BASE_URL + "/datasets/subset/" + TABLE_NAME + "/" + str(page) + "?pageLength=" + str(PER_PAGE))
-        if curr.status_code != 200:
-            sys.exit(curr.json())
-        curr = pd.DataFrame(json.loads(curr.text))
-        data = pd.concat([data, curr])
+# Connect to database
+CONNECTION_STR = 'DRIVER={ODBC Driver 18 for SQL Server};SERVER='+server+','+port+';DATABASE='+database+';UID='+username+';PWD='+ password
+conn = pyodbc.connect(CONNECTION_STR)
+cursor = conn.cursor()
 
-    return data
+# Insert tokens into database
+def insert_tokens(df: pd.DataFrame):
+    start = time.time()
+    creds = SqlCreds(server, database, username, password, 18, port)
+    # Suppress printed output
+    # text_trap = io.StringIO()
+    # sys.stdout = text_trap
+    # Insert data into database
+    to_sql(
+        df,
+        "dataset_split_text",
+        creds,
+        index = False,
+        if_exists = "append",
+        batch_size = min(50000, len(df))
+    )
+    # Allow printing again
+    # sys.stdout = sys.__stdout__
+    print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
-# Split the text and insert into database
-def splitText(data):
-    # Import split_text function from split.R
-    with open("preprocessing/util/split_text.R", "r") as file:
-        split_text = file.read()
-    split_text = STAP(split_text, "split_text")
-
-    # Get the dataset's text columns from the database
-    text_cols = requests.get(BASE_URL + "/datasets/text/" + TABLE_NAME)
-    if text_cols.status_code == 200:
-        text_cols = json.loads(text_cols.text)
-    else:
-        sys.exit(text_cols.json())
-
-    # Split the text of the given data frame
-    # Convert pandas.DataFrames to R dataframes automatically.
-    pandas2ri.activate()
-    split_data = split_text.split_text(data, StrVector(text_cols))
-    split_data = ro.conversion.rpy2py(split_data)
-    split_data.to_csv("datasets/hansard_1870_split.csv", index = False)
-
+# Split the text of the given data frame
+def split_text(data: pd.DataFrame):
+    start = time.time()
+    # Read and process stop words
+    stopwords = pd.read_csv("preprocessing/util/stopwords.csv")
+    stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace('\W', '', regex=True).apply(wn.morphy)
+    stopwords = stopwords.drop_duplicates()
+    # Create a deep copy of data
+    split_data = copy.deepcopy(data)
+    # Make lowercase and split into words
+    split_data["text"] = split_data["text"].str.lower().str.split()
+    # Create new row for each word in each record
+    split_data = split_data.explode("text")
+    # Remove special characters and lemmatize
+    split_data["text"] = split_data["text"].str.replace('\W', '', regex=True).apply(wn.morphy)
+    # Get counts of each word in each record
+    split_data = split_data.groupby(["id", "text", "col"]).size().reset_index(name='count')
+    # Remove stop words and missing data
+    split_data = split_data[~split_data["text"].isin(stopwords["stop_word"])].dropna()
+    # Add missing columns for adding to database
+    split_data["table_name"] = TABLE_NAME
+    # Rename columns to match database names
+    split_data = split_data.rename(
+        columns = {
+            "id": "record_id",
+            "text": "word"
+        }
+    )
+    print("Data processing: {} minutes".format((time.time() - start) / 60))
     return split_data
-
-# Insert all split text records into db
-def insertSplits(split_data):
-    PER_PAGE = 50000
-    for i in range(0, len(split_data.index), PER_PAGE):
-        body = json.loads(split_data[i:(i + PER_PAGE)].to_json(orient = "records"))
-        resp = requests.post(BASE_URL + "/preprocessing/split/" + TABLE_NAME, json = body, headers = HEADERS)
-        if (resp.status_code != 201):
-            break
-
-# Insert all word embedding records into db
-def insertEmbeddings(embedding_data):
-    PER_PAGE = 50000
-    for i in range(0, len(embedding_data.index), PER_PAGE):
-        body = json.loads(embedding_data[i:(i + PER_PAGE)].to_json(orient = "records"))
-        resp = requests.post(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME, json = body, headers = HEADERS)
-        if (resp.status_code != 201):
-            break
-
-# Compute word embeddings and insert into database
-def wordEmbeddingsThread(data):
-    # Calculate word embeddings
-    start_time = time.time()
-    print("Start word embeddings")
-    embeddings = word_embeddings.word_embeddings(data)
-    print("Embeddings calculated in " + str(time.time() - start_time) + " seconds")
-
-    start_time = time.time()
-    global embeddingCount
-    embeddingCount = len(embeddings.len)
-    insertEmbeddings(embeddings)
-    # Verify that the number of split text records is correct
-    check = requests.get(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME + "/count")
-    if int(check.text) != len(embeddings.index):
-        # Not all records were inserted
-        success = False
-        print(check.text + " out of " + str(len(embeddings.index)) + " word embedding records were uploaded")
-        # Delete any records that were inserted
-        requests.delete(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME)
-    else:
-        # All records were inserted
-        print("Embeddings finished uploading in " + str(time.time() - start_time) + " seconds")
-
-# Update metadata if completed
-def updateMetadata():
-    body = {
-        "processed": True
-    }
-    result = requests.put(BASE_URL + "/datasets/metadata/" + TABLE_NAME, json = body, headers = HEADERS)
-    if result.status_code != 200:
-        sys.exit(result.json())
-
-# Get dataset from db
-data = getTable()
-# Split text and insert into db
-split = splitText(data)
-
-# Create threads to insert split records and calculate word embeddings
-t1 = threading.Thread(target = insertSplits, args = (split,))
-t2 = threading.Thread(target = wordEmbeddingsThread, args = (split,))
-
-# Start threads
-t1.start()
-t2.start()
-
-# Wait until threads finish
-t1.join()
-# Verify that the number of split text records is correct
-check = requests.get(BASE_URL + "/preprocessing/splits/" + TABLE_NAME + "/count")
-if int(check.text) != len(split.index):
-    # Not all records were inserted
-    success = False
-    print(check.text + " out of " + str(len(split.index)) + " split text records were uploaded")
-    # Delete any records that were inserted
-    requests.delete(BASE_URL + "/preprocessing/splits/" + TABLE_NAME)
-    sys.exit()
-t2.join()
-# Verify that the number of word embedding records is correct
-check = requests.get(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME + "/count")
-if int(check.text) != embeddingCount:
-    # Not all records were inserted
-    success = False
-    print(check.text + " out of " + str(embeddingCount) + " word embedding records were uploaded")
-    # Delete any records that were inserted
-    requests.delete(BASE_URL + "/preprocessing/embeddings/" + TABLE_NAME)
-    sys.exit()
-
-updateMetadata()
+    
+# Get data out of database
+def get_data():
+    start = time.time()
+    # Get number of records and calculate number of pages
+    cursor.execute("SELECT COUNT(*) FROM {}".format(TABLE_NAME))
+    records = cursor.fetchall()
+    records = records[0][0]
+    PAGE_LENGTH = 50000
+    PAGES = int(np.ceil(records / PAGE_LENGTH))
+    # Get text columns
+    cursor.execute("SELECT col FROM dataset_text_cols WHERE table_name = ?", TABLE_NAME)
+    text_cols = cursor.fetchall()
+    text_cols = list(map(lambda x: x[0], text_cols))
+    if len(text_cols) == 0:
+        print("No text columns to process")
+        sys.exit(0)
+    # Array to store all processing threads
+    df = []
+    for col in text_cols:
+        for page in range(PAGES):
+            # Get next 50,000 records from db
+            QUERY = '''
+                SELECT id, {} FROM {}
+                ORDER BY id
+                OFFSET ? ROWS
+                FETCH NEXT ? ROWS ONLY
+            '''.format(col, TABLE_NAME)
+            cursor.execute(QUERY, page * PAGE_LENGTH, PAGE_LENGTH)
+            records = cursor.fetchall()
+            data = pd.DataFrame({
+                "id": list(map(lambda x: x[0], records)),
+                "text": list(map(lambda x: x[1], records)),
+                "col": col
+            })
+            df.append(data)
+    df = pd.concat(df)
+    print("Loading data: {} minutes".format((time.time() - start) / 60))
+    return df
+              
+start_time = time.time()
+data = get_data()
+df = split_text(data)
+print("Tokens processed: {}".format(len(df)))
+insert_tokens(df)
+cursor.close()
+conn.close()
+print("Total time: {} minutes".format((time.time() - start_time) / 60))

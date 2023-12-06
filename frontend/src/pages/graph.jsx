@@ -23,11 +23,11 @@ export const Graph = (props) => {
 
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if (demoV == undefined) {
+    if (demoV == undefined || props.dataset == undefined) {
       navigate('/datasetSearch')
       props.setNavigated(true)
     }
-      getGroupNames(demoV.dataset.table_name).then(async (res) => {
+      getGroupNames(props.dataset.table_name).then(async (res) => {
         let _groupOptions = []
         for(let i = 0; i < res.length; i++){
           _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
@@ -58,6 +58,7 @@ export const Graph = (props) => {
     setSelectToggle(g == "");
 
     getColumnValues(props.dataset.table_name, g).then(async (res) => {
+      console.log(res)
       // setValueOptions(res)
       let _valueOptions = []
       for(let i = 0; i < res.length; i++){
@@ -71,6 +72,7 @@ export const Graph = (props) => {
     setButtonToggle(true);
     getGraph(props.dataset.table_name, group, groupList, metric, searchTerms[0]).then(async (res) => {
       setData([]);
+      console.log(res)
       res.forEach((dataPoint) => {
         let index = data.findIndex((x) => x.name == dataPoint.group);
         if (index >= 0) {
@@ -125,6 +127,26 @@ export const Graph = (props) => {
   const removeItem = (event) => {
     console.log("removed item", event);
   };
+
+
+  const [searchValue, setSearchValue] = useState("");
+
+  const [metric, setMetric] = useState("counts");
+  const [metricOptions] = useState([
+    { value: "counts", label: "Count" },
+    { value: "proportion", label: "Proportion" },
+    { value: "tf-idf", label: "tf-idf" },
+    { value: "ll", label: "Log Likelihood" },
+    { value: "jsd", label: "Jensen-Shannon Divergence" },
+    { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
+    { value: "embedding", label: "Word Embeddings" }
+  ]);
+
+  const [topDecade, setTopDecade] = useState(1900);
+  const [bottomDecade, SetBottomDecade] = useState(1900);
+
+  const [vocabulary, setVocabulary] = useState("");
+  const [vocabOptions] = useState([{ value: 1, label: "All" }]);
 
   const [searchValue, setSearchValue] = useState("");
 
