@@ -148,19 +148,7 @@ export const Graph = (props) => {
   const [vocabulary, setVocabulary] = useState("");
   const [vocabOptions] = useState([{ value: 1, label: "All" }]);
 
-  const [searchValue, setSearchValue] = useState("");
 
-  const [metric, setMetric] = useState("counts");
-  const [metricOptions] = useState([
-    { value: "counts", label: "Count" },
-    { value: "proportion", label: "Proportion" },
-    { value: "tf-idf", label: "tf-idf" },
-    { value: "ll", label: "Log Likelihood" },
-    { value: "jsd", label: "Jensen-Shannon Divergence" },
-    { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
-    { value: "embedding", label: "Word Embeddings" }
-  ]);
-  
   return (
     <>
       <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
