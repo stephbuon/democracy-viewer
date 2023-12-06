@@ -17,31 +17,8 @@ import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
   
 export const App = () => {
-
-  const graphData = {
-    x: [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday"
-    ],
-    y: [24, 24, 24, 24, 24, 24, 24],
-    label: "Hours/Day",
-    other: [
-      "SUNDAY is 24 hours",
-      "MONDAY is also 24 hours long",
-      "TUESDAY, as we can see, is also 24 hours",
-      "I wonder if WEDNESDAY follows the same pattern (24 hours)",
-      "'THURSDAY.hours == 24' returns true",
-      "FRIDAY is 23 hours long if we exclude the final hour",
-      "SATURDAY is not any amount of hours, except 24"
-    ]
-  };
-
-  const [data, setData] = useState(undefined);
+  let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
+  const [data, setData] = useState(demoV);
   
   const [dataset, setDataset] = useState(undefined);
   const [user, setUser] = useState(undefined);

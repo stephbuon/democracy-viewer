@@ -71,6 +71,7 @@ export const Graph = (props) => {
   const updateGraph = () => {
     setButtonToggle(true);
     getGraph(props.dataset.table_name, group, groupList, metric, searchTerms[0]).then(async (res) => {
+      setData([]);
       console.log(res)
       res.forEach((dataPoint) => {
         let index = data.findIndex((x) => x.name == dataPoint.group);
@@ -115,6 +116,7 @@ export const Graph = (props) => {
   const logData = () => {
     console.log('--Logging data--', data)
   };
+
   //For Modal
   const [openModal, setOpenModal] = useState(false);
 
@@ -125,6 +127,7 @@ export const Graph = (props) => {
   const removeItem = (event) => {
     console.log("removed item", event);
   };
+
 
   const [searchValue, setSearchValue] = useState("");
 
@@ -145,19 +148,19 @@ export const Graph = (props) => {
   const [vocabulary, setVocabulary] = useState("");
   const [vocabOptions] = useState([{ value: 1, label: "All" }]);
 
-  const [sentiment, setSentiment] = useState("");
-  const [sentimentOptions] = useState([
-    { value: 1, label: "All" },
-    { value: 2, label: "Positive" },
-    { value: 3, label: "Negative" },
-  ]);
+  const [searchValue, setSearchValue] = useState("");
 
-  const [measure, setMeasure] = useState("");
-  const [measureOptions] = useState([
-    { value: 1, label: "Count" },
-    { value: 2, label: "tf-idf" },
+  const [metric, setMetric] = useState("counts");
+  const [metricOptions] = useState([
+    { value: "counts", label: "Count" },
+    { value: "proportion", label: "Proportion" },
+    { value: "tf-idf", label: "tf-idf" },
+    { value: "ll", label: "Log Likelihood" },
+    { value: "jsd", label: "Jensen-Shannon Divergence" },
+    { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
+    { value: "embedding", label: "Word Embeddings" }
   ]);
-
+  
   return (
     <>
       <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>

@@ -10,13 +10,13 @@ import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableR
 import Checkbox from '@mui/material/Checkbox';
 import ListItemText from '@mui/material/ListItemText';
 import OutlinedInput from '@mui/material/OutlinedInput';
-
-import { MultiCheckBoxSelect } from './MultiCheckBoxSelect';
+import ReactSelect from 'react-select';
 
 
 
 //Other Imports
 import './AdvancedFilter.css'
+import { GetAllTags } from '../apiFolder/DatasetSearchAPI';
 
 export const AdvancedFilter = (props) => {
     const navigate = useNavigate();
@@ -29,19 +29,21 @@ export const AdvancedFilter = (props) => {
     const [publicPrivate, setPublicPrivate] = useState(true);
     const [selectedTags, setSelectedTags] = useState([]);
     const [description, setDescription] = useState('');
+    const [allTags, setAllTags] = useState([])
 
     const filterResults = () => {
-        let tags = ''
-        for (let tag in selectedTags) {
-            tags += `&tag=${tag.tag}`;
-        }
-        console.log("tags", tags)
+        let tagstr = ''
+        selectedTags.forEach(tag => {
+            tagstr += `&tag=${tag.value}`;
+            console.log("adding to filter", tag.value)
+        })
+        // console.log("sent tags", selectedTags)
         let filter = {
             title: title ? `&title=${title}` : '',
             description: description ? `&description=${description}` : '',
             username: username ? `&username=${username}` : '',
             type: publicPrivate ? 'public' : 'private',
-            tags: tags,
+            tags: tagstr,
             advanced: true
         }
         console.log("filter before", filter)
@@ -60,9 +62,19 @@ export const AdvancedFilter = (props) => {
 
     useEffect(() => {
         console.log("Rendering Advanced Filter")
+        GetAllTags().then(res => {
+            console.log("returned results", res)
+            let _tags = []
+            res.forEach(tag => {
+                _tags.push({value:tag, label:tag})
+            })
+            setAllTags([..._tags])
+        })
     }, []);
 
-
+    useEffect(() => {
+        console.log("all tags var", allTags)
+    }, [allTags]);
 
     return (
         <Box
@@ -173,6 +185,19 @@ export const AdvancedFilter = (props) => {
                     <TableRow>
                         <TableCell>
                             Tags:
+                        </TableCell>
+                        <TableCell>
+                            <ReactSelect options={allTags}
+                                id="valueSelect"
+                                className="mb-3"
+                                closeMenuOnSelect={false}
+
+                                onChange={(x) => {
+                                    setSelectedTags(x)
+                                }}
+                                isMulti>
+
+                            </ReactSelect>
                         </TableCell>
                         {/* NOT CURRENTLY FUNCTIONAL COMMENTING OUT FOR NOW
                         
