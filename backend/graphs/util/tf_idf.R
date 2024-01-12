@@ -1,6 +1,5 @@
 library(tidytext)
 library(dplyr)
-library(textstem)
 
 tf_idf = function(data, group_list, word_list, group, word, n) {
   word = dplyr::enquo(word)
