@@ -1,4 +1,3 @@
-library(textstem)
 library(dplyr)
 
 proportions = function(data, group_list, word_list, group, word, n) {

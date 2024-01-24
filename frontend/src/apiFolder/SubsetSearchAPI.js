@@ -27,7 +27,7 @@ export const GetNumOfEntries = async (query) =>  {
 
 export const DownloadSubset = async (query) =>  {
     console.log("Attempting to download table", query.table_name);
-    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${query.table_name}${query.search}`);
+    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${query.table_name}${query.search}`);//,{ keepAlive: true });
     if(res.status !== 200){
         console.log(`Couldn't download data. ${res.status}`)
         return null;
@@ -38,7 +38,7 @@ export const DownloadSubset = async (query) =>  {
 
 export const DownloadFullDataset = async (query) =>  {
     console.log("Attempting to download table", query.table_name);
-    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${query.table_name}`);
+    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${query.table_name}`);//, { keepAlive: true });
     if(res.status !== 200){
         console.log(`Couldn't download data. ${res.status}`)
         return null;

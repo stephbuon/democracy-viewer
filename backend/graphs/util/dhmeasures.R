@@ -1,6 +1,5 @@
 library(dhmeasures)
 library(dplyr)
-library(textstem)
 
 LogLikelihood = function(data, group_list, word_list, group, word, n) {
   output = dhmeasures::log_likelihood(data, group_list, word_list, group, word, n)

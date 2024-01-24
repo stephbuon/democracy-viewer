@@ -295,7 +295,7 @@ const getColumnNames = async(datasets, table) => {
     // Get text columns
     const textCols = await getTextCols(datasets, table);
     // Filter out text columns
-    const results = names.filter(x => textCols.indexOf(x) === -1);
+    const results = Object.keys(names).filter(x => {console.log(textCols); return textCols.indexOf(x) === -1});
     return results;
 }
 
@@ -304,6 +304,23 @@ const getColumnValues = async(datasets, table , column) => {
     const records = await datasets.getColumnValues(table, column);
     const results = records.map(x => x[column]);
     return results;
+}
+
+// Get a subset of a table
+const getSubset = async(datasets, table, query, page) => {
+    // Get string columns
+    const cols = await datasets.getColumnNames(table);
+    const strCols = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
+    // Get subset records
+    const records = await datasets.subsetTable(table, query, true, page);
+    // Wrap string cols in quotes
+    return records.map(x => {
+        strCols.forEach(col => {
+            x[col] = '"' + x[col] + '"';
+        });
+
+        return x;
+    });
 }
 
 // Download a subset of a dataset
@@ -316,9 +333,20 @@ const downloadSubset = async(datasets, table, params, username = undefined) => {
     params.pageLength = 50000;
     // Add dataset download record and get id
     const downloadId = await datasets.addDownload(username, table, pages);
+    // Get string columns
+    const cols = await datasets.getColumnNames(table);
+    const strCols = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
     let records = [];
     for (let i = 1; i <= pages; i++) {
-        const curr = await datasets.subsetTable(table, params, true, i);
+        let curr = await datasets.subsetTable(table, params, true, i);
+        // Wrap string cols in quotes
+        curr = curr.map(x => {
+            strCols.forEach(col => {
+                x[col] = '"' + x[col] + '"';
+            });
+
+            return x;
+        });
         records = [ ...records, ...curr ];
         // Update download percentage
         await datasets.updateDownload(downloadId);
@@ -401,6 +429,7 @@ module.exports = {
     addTextCols,
     changeColType,
     updateMetadata,
+    getSubset,
     downloadSubset,
     getUploadPercent,
     getUniqueTags,

@@ -1,9 +1,10 @@
 
 export const Zoom = ({ data }) => {
+    // TODO Show all values from group containing selected word
     return (
         <div>
-            <div className="navbar-brand fs-3 text-center">{data.x} has {data.y} Hours</div>
-            <p class="text-justify text-center">{data.description}</p>
+            <div className="navbar-brand fs-3 text-center">{data.group} has {data.count} results for the word '{data.word}'</div>
+            <p className="text-justify text-center">{data.description}</p>
         </div>
     );
 }
