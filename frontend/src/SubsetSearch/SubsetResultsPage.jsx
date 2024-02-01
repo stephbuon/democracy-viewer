@@ -335,8 +335,8 @@ export const SubsetResultsPage = (props) => {
                 </Box>}
 
 
-                // Headers
-                <Box
+                {/* Headers */}
+                {!loadingResults && searchResults.length > 0 && <Box
                     style={{
                         paddingLeft: '5rem',
                         display: 'flex',
@@ -358,7 +358,7 @@ export const SubsetResultsPage = (props) => {
                             marginTop: '2rem',
                         }}
                     >
-                        {!loadingResults && searchResults.length > 0 && Object.keys(searchResults[0]).map((key) => (
+                        {Object.keys(searchResults[0]).map((key) => (
                             <div
                                 style={{
                                     fontWeight: 'bold',
@@ -368,9 +368,9 @@ export const SubsetResultsPage = (props) => {
                             </div>
                         ))}
                     </div>
-                </Box>
-// Data
-                <Box
+                </Box>}
+                {/* Data */}
+                {!loadingResults && <Box
                     sx={{
                         paddingLeft: '5rem',
                         display: 'flex',
@@ -389,14 +389,14 @@ export const SubsetResultsPage = (props) => {
                             gap: '1rem',
                         }}
                     >
-                        {!loadingResults && searchResults.map((result) => (
+                        {searchResults.map((result) => (
                             <div key={result.id}>
                                 <Result value={result} dataset={props.dataset} />
                             </div>
                         ))}
 
                     </div>
-                </Box>
+                </Box>}
 
 
                 <Box
@@ -406,21 +406,18 @@ export const SubsetResultsPage = (props) => {
                         margin: 0,
                         overflowX: 'auto',
                         marginTop: '2rem',
+                        width: '100%',
                     }}
                 >
                     <div
                         sx={{
+                            width: '100%',
                             display: 'grid',
                             gridTemplateColumns: `repeat(${numberOfColumns}, 1fr)`,
                             gap: '1rem',
                         }}
                     >
-                        {(loadingResults || loadingNextPage) && (
-                            <>
-                                <div className="loadingData1">&nbsp;</div>
-                                {/* ... other loading divs ... */}
-                            </>
-                        )}
+                        {(loadingResults || loadingNextPage) && <div className="loadingData1">&nbsp;</div>}
                     </div>
                 </Box>
 
