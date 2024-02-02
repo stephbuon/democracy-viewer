@@ -2,8 +2,14 @@ const files = require("../util/file_management");
 const python = require("python-shell").PythonShell;
 require('dotenv').config();
 
+const datasets = require("../models/datasets");
+const graphs = require("../models/graphs");
+
 // Generate the data for a graph based on user input
-const createGraph = async(models, dataset, params, user = null) => {
+const createGraph = async(knex, dataset, params, user = null) => {
+    const model_datasets = new datasets; 
+    const model_graphs = new graphs; 
+
     // Check if the provided metrics is valid
     const metrics = [
         "counts",
@@ -19,7 +25,7 @@ const createGraph = async(models, dataset, params, user = null) => {
     }
 
     // Check dataset metadata to make sure user has access to this dataset
-    const metadata = await models.datasets.getMetadata(dataset);
+    const metadata = await model_datasets.getMetadata(dataset);
     if (!metadata.is_public && metadata.username !== user) {
         throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
     }
@@ -31,9 +37,9 @@ const createGraph = async(models, dataset, params, user = null) => {
     let input;
     // Get word embeddings or split text based on the metric
     if (params.metric === "embedding") {
-        input = await models.graphs.getWordEmbeddings(dataset);
+        input = await model_graphs.getWordEmbeddings(dataset);
     } else {
-        input = await models.graphs.getGroupSplits(
+        input = await model_graphs.getGroupSplits(
             dataset, 
             params.group_name, 
             params.group_list

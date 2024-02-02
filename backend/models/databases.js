@@ -1,9 +1,10 @@
-// const knex = require("../db/knex");
-
 const connections_table = "database_connections";
 
 class databases {
     constructor(knex) {
+        if (!knex) {
+            throw new Error("Database connection not defined");
+        }
         this.knex = knex;
     }
 

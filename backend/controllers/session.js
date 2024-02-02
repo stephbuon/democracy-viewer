@@ -1,12 +1,16 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+const users = require("../models/users");
+
 const accessTokenSecret = process.env.TOKEN_SECRET;
 
 // Authenticate a user
-const authenticateUser = async (user, body) => {
+const authenticateUser = async (knex, body) => {
+    const model = new users(knex)
+
     const username = body.username;
-    const curr = await user.authenticateUser(username, body.password);
+    const curr = await model.authenticateUser(username, body.password);
     if (curr === false) {
         return null;
     }
