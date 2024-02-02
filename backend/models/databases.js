@@ -1,10 +1,14 @@
-const knex = require("../db/knex");
+// const knex = require("../db/knex");
 
 const connections_table = "database_connections";
 
 class databases {
+    constructor(knex) {
+        this.knex = knex;
+    }
+
     async newConnection(name, owner, is_public, host, port, db, username, password, client) {
-        await knex(connections_table).insert({
+        await this.knex(connections_table).insert({
             name, owner, is_public, host, port, db, username, password, client
         });
         const record = await knex(connections_table).orderBy("id", "desc").limit(1);
@@ -12,7 +16,7 @@ class databases {
     }
 
     async getCredentials(id) {
-        return await knex(connections_table).where({ id });
+        return await this.knex(connections_table).where({ id });
     }
 };
 

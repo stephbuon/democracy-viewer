@@ -1,21 +1,4 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
-require('dotenv').config();
-
-const accessTokenSecret = process.env.TOKEN_SECRET;
-
-// Authenticate a user
-const authenticateUser = async (user, body) => {
-    const username = body.username;
-    const curr = await user.authenticateUser(username, body.password);
-    if (curr === false) {
-        return null;
-    }
-    const user_ = await findUserByUsername(user, username);
-    const accessToken = jwt.sign({ ...user_ }, accessTokenSecret);
-
-    return accessToken;
-}
 
 // Create a new user
 const createUser = async (user, body) => {
