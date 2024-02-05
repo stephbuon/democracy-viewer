@@ -7,7 +7,7 @@ const { authenticateJWT } = require("../middleware/authentication");
 // Route to create a session and get access token
 router.post('/', async (req, res, next) => {
   try {
-      const result = await control.authenticateUser(req.models.users, req.body);
+      const result = await control.authenticateUser(req.knex, req.body);
       if (result === null) {
         res.status(401).json({message: "Invalid credentials"});
       } else {
