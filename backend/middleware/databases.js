@@ -4,15 +4,15 @@ const { attachPaginate } = require("knex-paginate");
 const control = require("../controllers/databases");
 
 const createDatabaseConnection = async(req, res, next) => {
-    const regex = new RegExp("/userws*");
+    const regex = new RegExp("/datasets*|/graphs*");
     
     let config = {};
-    if (!regex.test(req.originalUrl) && req.user && req.user.database) {
-        config = await control.loadConnection(req.user.database);
+    if (regex.test(req.originalUrl) && req.user && req.user.database) {
+        config = await control.loadConnection(knex(default_db.development), req.user.database);
     } else {
         config = default_db.development;
     }
-    console.log(config)
+
     attachPaginate();
     req.knex = knex(config);
 

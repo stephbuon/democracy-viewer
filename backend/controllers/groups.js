@@ -117,6 +117,30 @@ const editMember = async(knex, username, id, member, params) => {
     return result;
 }
 
+// Get group information by id
+const getGroupById = async(knex, id) => {
+    const model = new groups(knex);
+
+    const result = await model.getGroupById(id);
+    return result;
+}
+
+// Get all groups by name
+const getGroupsByName = async(knex, search) => {
+    const model = new groups(knex);
+
+    const result = await model.getGroupsByName(search);
+    return result;
+}
+
+// Get groups a user is in
+const getGroupsByUser = async(knex, username) => {
+    const model = new groups(knex);
+
+    const result = await model.getGroupsByUser(username);
+    return result;
+}
+
 // Get group members if user is in the group
 const getGroupMembers = async(knex, username, private_group) => {
     const model = new groups(knex);
@@ -131,6 +155,14 @@ const getGroupMembers = async(knex, username, private_group) => {
     }
 
     return records;
+}
+
+// Get the group member record by group and user
+const getMember = async(knex, username, group) => {
+    const model = new groups(knex);
+
+    const result = await model.getMember(username, group);
+    return result;
 }
 
 // Delete a private group
@@ -190,7 +222,11 @@ module.exports = {
     addMember,
     editGroup,
     editMember,
+    getGroupById,
+    getGroupsByName,
+    getGroupsByUser,
     getGroupMembers,
+    getMember,
     deleteGroup,
     deleteGroupMember,
     deleteGroupInvite

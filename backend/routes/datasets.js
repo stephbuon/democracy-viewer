@@ -102,7 +102,7 @@ router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
 // Route to increment a dataset's clicks
 router.put('/click/:table', async(req, res, next) => {
     try {
-        const result = await req.knex.incClicks(req.params.table);
+        const result = await control.incClicks(req.knex, req.params.table);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to click on dataset:', err);
@@ -114,7 +114,7 @@ router.put('/click/:table', async(req, res, next) => {
 // Route to get dataset metadata
 router.get('/metadata/:table', async(req, res, next) => {
     try {
-        const result = await req.knex.getMetadata(req.params.table);
+        const result = await control.getMetadata(req.knex, req.params.table);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset metadata:', err);
@@ -126,7 +126,7 @@ router.get('/metadata/:table', async(req, res, next) => {
 // Route to get all datasets owned by a given user
 router.get('/user/:username', async(req, res, next) => {
     try {
-        const result = await req.knex.getUserDatasets(req.params.username);
+        const result = await control.getUserDatasets(req.knex, req.params.username);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get user datasets:', err);
@@ -176,9 +176,9 @@ router.get('/filter/:page', optAuthenticateJWT, async(req, res, next) => {
     try {
         let results;
         if (req.user) {
-            results = await req.knex.getFilteredDatasets(req.query, req.user.username, true, req.params.page);
+            results = await control.getFilteredDatasets(req.knex, req.query, req.user.username, true, req.params.page);
         } else {
-            results = await req.knex.getFilteredDatasets(req.query, undefined, true, req.params.page);
+            results = await control.getFilteredDatasets(req.knex, req.query, undefined, true, req.params.page);
         }
         res.status(200).json(results);
     } catch (err) {
@@ -193,9 +193,9 @@ router.get('/count/filter', optAuthenticateJWT, async(req, res, next) => {
     try {
         let result;
         if (req.user) {
-            result = await req.knex.getFilteredDatasetsCount(req.query, req.user.username);
+            result = await control.getFilteredDatasetsCount(req.knex, req.query, req.user.username);
         } else {
-            result = await req.knex.getFilteredDatasetsCount(req.query, undefined);
+            result = await control.getFilteredDatasetsCount(req.knex, req.query, undefined);
         }
         res.status(200).json(result);
     } catch (err) {
@@ -220,7 +220,7 @@ router.get('/subset/:table/:page', async(req, res, next) => {
 // Route to count the records of a dataset subset
 router.get('/count/subset/:table', async(req, res, next) => {
     try {
-        const result = await req.knex.subsetTableCount(req.params.table, req.query);
+        const result = await control.subsetTableCount(req.knex, req.params.table, req.query);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset subset count:', err);
@@ -253,7 +253,7 @@ router.get('/download/subset/:table', optAuthenticateJWT, async(req, res, next) 
 // Route to get dataset records by ids
 router.get('/ids/:table', async(req, res, next) => {
     try {
-        const result = await req.knex.getRecordsByIds(req.params.table, Array.isArray(req.query.id) ? req.query.id : [ req.query.id ]);
+        const result = await control.getRecordsByIds(req.knex, req.params.table, Array.isArray(req.query.id) ? req.query.id : [ req.query.id ]);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset subset count:', err);
@@ -301,7 +301,7 @@ router.get('/upload/:table', async(req, res, next) => {
 // Route to get the download record for a dataset
 router.get('/download/record/:table', async(req, res, next) => {
     try {
-        const result = await req.knex.getDownload(req.user ? req.user.username : undefined, req.params.table);
+        const result = await control.getDownload(req.knex, req.user ? req.user.username : undefined, req.params.table);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset download record:', err);

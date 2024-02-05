@@ -279,6 +279,30 @@ const updateMetadata = async(knex, user, table, params) => {
     return record;
 }
 
+// Increment a dataset's clicks
+const incClicks = async(knex, table) => {
+    const model = new datasets(knex);
+
+    const result = await model.incClicks(table);
+    return result;
+}
+
+// Get dataset metadata
+const getMetadata = async(knex, table) => {
+    const model = new datasets(knex);
+
+    const result = await model.getMetadata(table);
+    return result;
+}
+
+// Get datasets by user
+const getUserDatasets = async(knex, username) => {
+    const model = new datasets(knex);
+
+    const result = await model.getUserDatasets(username);
+    return result;
+}
+
 // Get unique tags
 const getUniqueTags = async(datasets) => {
     const model = new datasets(knex);
@@ -334,6 +358,22 @@ const getColumnValues = async(knex, table , column) => {
     return results;
 }
 
+// Get filtered datasets
+const getFilteredDatasets = async(knex, query, username, page) => {
+    const model = new datasets(knex);
+
+    const result = await model.getFilteredDatasets(query, username, true, page);
+    return result;
+}
+
+// Get count of dataset filter
+const getFilteredDatasetsCount = async(knex, query, username) => {
+    const model = new datasets(knex);
+
+    const result = await model.getFilteredDatasetsCount(query, username);
+    return result;
+}
+
 // Get a subset of a table
 const getSubset = async(knex, table, query, page) => {
     const model = new datasets(knex);
@@ -351,6 +391,14 @@ const getSubset = async(knex, table, query, page) => {
 
         return x;
     });
+}
+
+// Get dataset subset count
+const subsetTableCount = async(knex, table, query) => {
+    const model = new datasets(knex);
+
+    const result = await model.subsetTableCount(table, query);
+    return result;
 }
 
 // Download a subset of a dataset
@@ -406,6 +454,22 @@ const getUploadPercent = async(knex, table) => {
         // If record count is 0, throw error
         throw new Error("Number of records is 0");
     }
+}
+
+// Get dataset records by ids
+const getRecordsByIds = async(knex, table, ids) => {
+    const model = new datasets(knex);
+
+    const result = await model.getRecordsByIds(table, ids);
+    return result;
+}
+
+// Get dataset download record
+const getDownload = async(knex, username, table) => {
+    const model = new datasets(knex);
+
+    const result = await model.getDownload(username, table);
+    return result;
 }
 
 // Delete a dataset and its metadata
@@ -469,6 +533,9 @@ module.exports = {
     addTextCols,
     changeColType,
     updateMetadata,
+    incClicks,
+    getMetadata,
+    getUserDatasets,
     getSubset,
     downloadSubset,
     getUploadPercent,
@@ -477,6 +544,11 @@ module.exports = {
     getTextCols,
     getColumnNames,
     getColumnValues,
+    getFilteredDatasets,
+    getFilteredDatasetsCount,
+    subsetTableCount,
+    getRecordsByIds,
+    getDownload,
     deleteDataset,
     deleteTag,
     deleteTextCol

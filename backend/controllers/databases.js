@@ -1,13 +1,11 @@
 const encryption = require("../util/encryption");
 const encryptor = new encryption;
-
-const knex = require('knex');
-const knex_conn = require("../db/knex");
 const databases = require("../models/databases");
-const model = new databases(knex_conn);
 
 // Establish a new external database connection
-const newConnection = async(name, owner, is_public, host, port, db, username, password, client) => {
+const newConnection = async(knex, name, owner, is_public, host, port, db, username, password, client) => {
+    const model = new databases(knex);
+
     // Encrypt all database fields
     host = encryptor.encrypt(host);
     port = port ? encryptor.encrypt(String(port)) : port;
@@ -20,7 +18,9 @@ const newConnection = async(name, owner, is_public, host, port, db, username, pa
 }
 
 // Load an external database connection
-const loadConnection = async(id) => {
+const loadConnection = async(knex, id) => {
+    const model = new databases(knex);
+
     // Get connection credentials by id
     const creds = await model.getCredentials(id);
     // Decrypt credentials

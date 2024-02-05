@@ -7,7 +7,7 @@ const { authenticateJWT, optAuthenticateJWT } = require("../middleware/authentic
 router.post('/', authenticateJWT, async(req, res, next) => {
     try {
         const result = await control.newConnection(
-            req.models.databases, req.body.name, req.user.username, 
+            req.knex, req.models.databases, req.body.name, req.user.username, 
             req.body.is_public, req.body.host, req.body.port, req.body.database, 
             req.body.username, req.body.password, req.body.client
         );
