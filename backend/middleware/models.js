@@ -1,4 +1,5 @@
 // Import models
+const databases = require("../models/databases");
 const datasets = require("../models/datasets");
 const graphs = require("../models/graphs");
 const groups = require("../models/groups");
@@ -7,6 +8,7 @@ const users = require("../models/users");
 
 const createModelsMiddleware = async (req, res, next) => {
     req.models = {
+        databases: new databases,
         datasets: new datasets,
         graphs: new graphs,
         groups: new groups,

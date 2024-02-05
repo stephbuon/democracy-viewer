@@ -6,7 +6,7 @@ const { authenticateJWT } = require("../middleware/authentication");
 // Route to create a new user
 router.post('/', async(req, res, next) => {
     try {
-        const result = await control.createUser(req.models.users, req.body);
+        const result = await control.createUser(req.knex, req.body);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to create account:', err);
@@ -21,7 +21,7 @@ router.put('/:username', authenticateJWT, async(req, res, next) => {
         if (req.params.username !== req.user.username) {
             throw new Error(`${ req.user.username } cannot update the account ${ req.params.username }`);
         }
-        const result = await control.updateUser(req.models.users, req.params.username, req.body);
+        const result = await control.updateUser(req.knex, req.params.username, req.body);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to update account:', err);
@@ -33,7 +33,7 @@ router.put('/:username', authenticateJWT, async(req, res, next) => {
 // Route to get a user by their username
 router.get('/:username', async(req, res, next) => {
     try {
-        const result = await control.findUserByUsername(req.models.users, req.params.username)
+        const result = await control.findUserByUsername(req.knex, req.params.username)
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get account:', err);
@@ -49,7 +49,7 @@ router.delete('/:username', authenticateJWT, async(req, res, next) => {
         if (req.params.username !== req.user.username) {
             throw new Error(`${ req.user.username } cannot delete the account ${ req.params.username }`);
         }
-        const result = await control.deleteUser(req.models, req.user.username);
+        const result = await control.deleteUser(req.knex, req.user.username);
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete account:', err);
