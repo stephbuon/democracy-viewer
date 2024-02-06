@@ -1,5 +1,6 @@
 
 export const Zoom = ({ data }) => {
+    console.log("Zoom page opened with data: ", data)
     // TODO Show all values from group containing selected word
     return (
         <div>
