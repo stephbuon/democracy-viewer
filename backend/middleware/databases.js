@@ -8,7 +8,9 @@ const createDatabaseConnection = async(req, res, next) => {
     
     let config = {};
     if (regex.test(req.originalUrl) && req.user && req.user.database) {
-        config = await control.loadConnection(knex(default_db.development), req.user.database);
+        const tmpConnection = knex(default_db.development);
+        config = await control.loadConnection(tmpConnection, req.user.database);
+        tmpConnection.destroy();
     } else {
         config = default_db.development;
     }
