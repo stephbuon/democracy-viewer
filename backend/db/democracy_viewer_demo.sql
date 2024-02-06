@@ -82,19 +82,22 @@ CREATE TABLE dataset_split_text (
     word VARCHAR(100),
     count BIGINT,
     col VARCHAR(100),
---     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
+    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
     PRIMARY KEY(table_name, record_id, word, col)
 );
 
-CREATE TABLE dataset_word_embeddings (
-    table_name VARCHAR(250),
-    word VARCHAR(100),
-    X1 FLOAT,
-    X2 FLOAT,
-    X3 FLOAT,
-    X4 FLOAT,
-    PRIMARY KEY(table_name, word),
-    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+CREATE TABLE database_connections (
+    id BIGINT PRIMARY KEY IDENTITY,
+    name VARCHAR(50) NOT NULL,
+    owner VARCHAR(20) NOT NULL,
+    is_public BIT NOT NULL DEFAULT 0,
+    host VARCHAR(288) NOT NULL,
+    port VARCHAR(288),
+    db VARCHAR(288) NOT NULL,
+    username VARCHAR(288) NOT NULL,
+    password VARCHAR(288),
+    client VARCHAR(10) NOT NULL,
+    FOREIGN KEY(owner) REFERENCES users(username) ON DELETE CASCADE
 );
 
 -- Additional tables will be dynamically generated for uploaded datasets

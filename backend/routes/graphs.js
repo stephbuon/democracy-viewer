@@ -8,9 +8,9 @@ router.get('/:dataset', optAuthenticateJWT, async(req, res, next) => {
     try {
         let result;
         if (req.user) {
-            result = await control.createGraph(req.models, req.params.dataset, req.query, req.user.username);
+            result = await control.createGraph(req.knex, req.params.dataset, req.query, req.user.username);
         } else {
-            result = await control.createGraph(req.models, req.params.dataset, req.query);
+            result = await control.createGraph(req.knex, req.params.dataset, req.query);
         }
         res.status(200).json(result);
     } catch (err) {

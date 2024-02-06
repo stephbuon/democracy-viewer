@@ -1,13 +1,18 @@
-const knex = require("../db/knex");
-
 const split_table = "dataset_split_text";
 const embedding_table = "dataset_word_embeddings";
 
 class graphs {
+    constructor(knex) {
+        if (!knex) {
+            throw new Error("Database connection not defined");
+        }
+        this.knex = knex;
+    }
+
     // Join split text records with raw records with given values in given column
     async getGroupSplits(table_name, column = null, values = null, words = null) {
         // Count how many records their are
-        let numRecords = await knex(split_table)
+        let numRecords = await this.knex(split_table)
             .join(table_name, `${ split_table }.record_id`, `${ table_name }.id`)
             .where(q => {
                 q.where({ table_name });
@@ -37,7 +42,7 @@ class graphs {
         }
         for (let i = 0; i < numRecords; i += 500000) {
             // Get next page
-            const curr = await knex(split_table)
+            const curr = await this.knex(split_table)
                 .join(table_name, `${ split_table }.record_id`, `${ table_name }.id`)
                 .select({ ...selectCols })
                 .where(q => {
@@ -64,7 +69,7 @@ class graphs {
     // Get raw records for graph generation
     async getRawRecords(table_name, column = null, values = null) {
         // Count how many records their are
-        let numRecords = await knex(split_table)
+        let numRecords = await this.knex(split_table)
             .join(table_name, `${ split_table }.record_id`, `${ table_name }.id`)
             .where(q => {
                 q.where({ table_name });
@@ -90,7 +95,7 @@ class graphs {
         }
         for (let i = 0; i < numRecords; i += 500000) {
             // Get next page
-            const curr = await knex(split_table)
+            const curr = await this.knex(split_table)
                 .join(table_name, `${ split_table }.record_id`, `${ table_name }.id`)
                 .select({ ...selectCols })
                 .where(q => {
@@ -116,7 +121,7 @@ class graphs {
 
     // Get all word embeddings for the given table
     async getWordEmbeddings(table_name) {
-        let numRecords = await knex(embedding_table)
+        let numRecords = await this.knex(embedding_table)
             .where({ table_name })
             .count({ count: "*" });
         numRecords = numRecords[0].count;
@@ -124,7 +129,7 @@ class graphs {
         const records = [];
         let currentPage = 1;
         for (let i = 0; i < numRecords; i += 500000) {
-            const curr = await knex(embedding_table)
+            const curr = await this.knex(embedding_table)
             .where({ table_name })
             .orderBy("word").paginate({ perPage: 500000, currentPage });
             
