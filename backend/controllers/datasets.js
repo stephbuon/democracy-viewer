@@ -304,7 +304,7 @@ const getUserDatasets = async(knex, username) => {
 }
 
 // Get unique tags
-const getUniqueTags = async(datasets) => {
+const getUniqueTags = async(knex) => {
     const model = new datasets(knex);
 
     // Get tag names from table

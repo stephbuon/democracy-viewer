@@ -7,8 +7,8 @@ const graphs = require("../models/graphs");
 
 // Generate the data for a graph based on user input
 const createGraph = async(knex, dataset, params, user = null) => {
-    const model_datasets = new datasets; 
-    const model_graphs = new graphs; 
+    const model_datasets = new datasets(knex); 
+    const model_graphs = new graphs(knex); 
 
     // Check if the provided metrics is valid
     const metrics = [

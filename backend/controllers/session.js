@@ -6,7 +6,7 @@ const users = require("../models/users");
 const accessTokenSecret = process.env.TOKEN_SECRET;
 
 // Authenticate a user
-const authenticateUser = async (knex, body) => {
+const authenticateUser = async(knex, body) => {
     const model = new users(knex)
 
     const username = body.username;

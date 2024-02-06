@@ -4,7 +4,7 @@ const dataset = require("../models/datasets");
 const users = require("../models/users");
 
 // Create a new user
-const createUser = async (knex, body) => {
+const createUser = async(knex, body) => {
     const model = new users(knex);
 
     // Hash the password and send to model
