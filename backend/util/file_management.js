@@ -76,7 +76,7 @@ const readCSV = (path, del = true) => new Promise((resolve, reject) => {
         .on("data", d => data.push(d))
         .on("end", () => {
             if (del) {
-                fs.unlinkSync(path);
+                // fs.unlinkSync(path);
             }
 
             resolve(data);

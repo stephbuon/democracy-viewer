@@ -35,20 +35,17 @@ const createGraph = async(knex, dataset, params, user = null) => {
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
     let input;
-    // Get word embeddings or split text based on the metric
-    if (params.metric === "embedding") {
-        input = await model_graphs.getWordEmbeddings(dataset);
-    } else {
-        input = await model_graphs.getGroupSplits(
-            dataset, 
-            params.group_name, 
-            params.group_list
-        );
+    // Get split text records
+    input = await model_graphs.getGroupSplits(
+        dataset, 
+        params.group_name, 
+        params.group_list
+    );
 
-        if (params.metric === "counts" && params.word_list.length === 0) {
-            return sumCol(input, "n");
-        }
+    if (params.metric === "counts" && params.word_list.length === 0) {
+        return sumCol(input, "n");
     }
+
     // If input has no results, return an empty array
     if (input.length === 0) {
         return [];
@@ -85,10 +82,12 @@ const createGraph = async(knex, dataset, params, user = null) => {
         }
     }
    
-    // Read python output file and return results
+    // Read python output files and return results
     const file3 = file1.replace("/input/", "/output/");
+    const file4 = file2.replace("/input/", "/output/");
     return await files.readCSV(file3).then(async(data) => {
-        files.deleteFiles([ file1, file2 ]);
+        const ids = files.readJSON(file4);
+        // files.deleteFiles([ file1, file2 ]);
 
         return joinData(input, data, params);
     });
@@ -178,8 +177,6 @@ const joinData = (original, calculated, params) => {
 
             return x;
         });
-    } else if (params.metric === "embedding") {
-        // Return raw python output
     } else {
         throw new Error(`Invalid metric ${ params.metric }`);
     }
