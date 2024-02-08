@@ -124,14 +124,6 @@ export const UploadModal = (props) => {
         return;
     }
 
-    const loggedIn = () => {
-        //check if user is logged in
-        //for now will return false since system is not hooked up
-        return false;
-    }
-
-
-
 
     useEffect(() => {
         console.log("Props", props)

@@ -11,6 +11,7 @@ import Box from '@mui/material/Box';
 import { UploadModal } from './UploadModal';
 import { Table, TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Paper, TextField } from '@mui/material';
 import { GetCSVFromAPI } from "../apiFolder/DatasetUploadAPI.js";
+import { useNavigate } from "react-router-dom";
 
 // import fs from 'fs';
 
@@ -114,6 +115,22 @@ export const Upload = (props) => {
     }
     else{return false}
   }
+
+  const loggedIn = () => {
+    if(props.currUser)
+    {
+      return true;
+    }
+    return false;
+  }
+  const navigate = useNavigate();
+  useEffect(() => {
+    if(!loggedIn())
+    {
+      props.setNavigated(true)
+      navigate('/login');
+    }
+  }, []);
   return (
     <>
       <Snackbar

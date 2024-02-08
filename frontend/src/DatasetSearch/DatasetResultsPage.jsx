@@ -84,14 +84,10 @@ export const DatasetResultsPage = (props) => {
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
         FilterDatasets(advancedFilter, 1).then(async res => {
+            setLoadingResults(false);
 
-            //animation testing
-            setTimeout(() => {
-                setLoadingResults(false);
-
-                if (!res) { setSearchResults([]) }
-                else { setSearchResults(res) }
-            }, 3000);
+            if (!res) { setSearchResults([]) }
+            else { setSearchResults(res) }
 
             handleAdvancedFilterClose()
         })
@@ -110,18 +106,17 @@ export const DatasetResultsPage = (props) => {
 
             //animation testing
             _results = [...searchResults, ...res];
-
-        })
-        setTimeout(() => {
             setLoadingNextPage(false)
             setSearchResults(_results);
-        }, 3000);
-        setPage(page + 1);
+            setPage(page + 1);
+        })
     }
 
     const loggedIn = () => {
-        //check if user is logged in
-        //for now will return false since system is not hooked up
+        if(props.currUser)
+        {
+            return true;
+        }
         return false;
     }
     const openSnackbar = () => {
@@ -144,12 +139,12 @@ export const DatasetResultsPage = (props) => {
     const openSnackbar1 = () => {
         setSnackBarOpen1(true)
       }
-      const handleSnackBarClose1 = (event, reason) => {
-        if (reason === 'clickaway') {
-          return;
-        }
-        setSnackBarOpen1(false);
-      };
+    const handleSnackBarClose1 = (event, reason) => {
+    if (reason === 'clickaway') {
+        return;
+    }
+    setSnackBarOpen1(false);
+    };
 
     useEffect(() => {
         console.log("Loading Results", loadingResults)
@@ -210,7 +205,7 @@ export const DatasetResultsPage = (props) => {
                                         >Public</MenuItem>
                                         <MenuItem
                                             value={false}
-                                            onClick={() => openSnackbar()}>Private
+                                            onClick={() => !loggedIn() && openSnackbar()}>Private
                                         </MenuItem>
                                     </Select>
                                 </FormControl>

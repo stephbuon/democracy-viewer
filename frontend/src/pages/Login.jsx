@@ -12,9 +12,12 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { BrowserRouter as Router, Switch, 
-    Route, Redirect, useNavigate,} from "react-router-dom";
+    Route, Redirect, useNavigate} from "react-router-dom";
 import { LoginRequest } from '../apiFolder/LoginRegister';
+import { useState, useEffect  } from "react";
 
 
 
@@ -22,6 +25,26 @@ const theme = createTheme();
 
 export default function Login(props) {
   const navigate = useNavigate();
+  const [snackBarOpen1, setSnackBarOpen1] = useState(false);
+
+  const openSnackbar1 = () => {
+    setSnackBarOpen1(true)
+  }
+  const handleSnackBarClose1 = (event, reason) => {
+    if (reason === 'clickaway') {
+        return;
+    }
+    setSnackBarOpen1(false);
+  };
+
+  useEffect(() => {
+    if(props.navigated)
+    {
+        props.setNavigated(false)
+        openSnackbar1()
+    }
+  }, []);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -29,13 +52,9 @@ export default function Login(props) {
     password: data.get('password'),}).then(async (res) => {
       props.login({token: res, username: data.get('email')})
     }).then(()=>{navigate('/')})
-    // console.log({
-    //   email: data.get('email'),
-    //   password: data.get('password'),
-    // });
   };
 
-  return (
+  return (<div>
     <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
@@ -100,5 +119,16 @@ export default function Login(props) {
         </Box>
       </Container>
     </ThemeProvider>
+    <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={snackBarOpen1}
+        autoHideDuration={6000}
+        onClose={() => handleSnackBarClose1()}
+      >
+        <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
+          You must login first
+        </Alert>
+      </Snackbar>
+    </div>
   );
 }
