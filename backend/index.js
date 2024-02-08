@@ -4,7 +4,7 @@ const cors = require("cors");
 
 // Import middleware
 const requestLog = require("./middleware/logging");
-const connectDatabase = require("./middleware/databases");
+const { createDatabaseConnection, deleteDatabaseConnection } = require("./middleware/databases");
 // const { createModelsMiddleware, disconnectFromDatababaseMiddleware } = require("./middleware/models");
 
 // Import routes
@@ -23,7 +23,7 @@ const port = 8000;
 app.use(cors());
 // app.use(createModelsMiddleware);
 app.use(requestLog);
-app.use(connectDatabase);
+app.use(createDatabaseConnection);
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 
@@ -42,6 +42,9 @@ app.use("/groups", groups);
 // app.use("/preprocessing", preprocessing);
 app.use("/session", session);
 app.use("/users", users);
+
+// Delete knex connection
+app.use(createDatabaseConnection);
 
 app.listen(port, () => {
     console.log(`This app is listening on port ${ port }`);

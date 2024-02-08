@@ -3,7 +3,6 @@ import util.dhmeasures as dhmeasures
 import util.proportions as proportions
 import util.counts as counts
 import util.tf_idf as tf_idf
-import util.word_embeddings as embeddings
 
 # Other imports
 import pandas as pd
@@ -19,12 +18,6 @@ params_file = sys.argv[2]
 with open(params_file, "r") as file:
     params = json.load(file)
 data = pd.read_csv(data_file)
-# If params metric is not "embeddings", sum all word counts in the same group
-if params["metric"] != "embedding":
-    if "group" in data.columns:
-        data = data.groupby(["group", "word"]).sum().reset_index()
-    else:
-        data = data.groupby("word").sum().reset_index()
 
 # If group_list or word_list are not in params, set to empty list
 # Also remove Nones from lists
@@ -33,8 +26,42 @@ if "group_list" not in params.keys():
 if "word_list" not in params.keys():
     params["word_list"] = []
     
-# Lemmatize words in word_lsit
+# Lemmatize words in word_list
 params["word_list"] = list(map(wn.morphy, params["word_list"]))
+
+ids = []
+if len(params["group_list"]) > 0:
+    for group in params["group_list"]:
+        if len(params["word_list"]) > 0:
+            for word in params["word_list"]:
+                ids.append({
+                    "group": group,
+                    "word": word,
+                    "ids": list(data.loc[(data["group"] == group) & (data["word"] == word)]["id"])
+                })
+        else:
+            ids.append({
+                "group": group,
+                "ids": list(data.loc[(data["group"] == group)]["id"])
+            })
+elif len(params["word_list"]) > 0:
+    for word in params["word_list"]:
+        ids.append({
+            "word": word,
+            "ids": list(data.loc[(data["word"] == word)]["id"])
+        })
+else:
+    ids.append({
+        "ids": list(data["id"])
+    })
+with open(params_file.replace("/input/", "/output/"), "w") as file:
+    file.write(json.dumps(ids))
+    
+cols = ["word"]
+if "group" in data.columns:
+    cols.append("group")
+data = data.groupby(cols)["n"].sum().reset_index()
+print(data[data["word"] == "industry"])
 
 # Call function based on given metric
 if params["metric"] == "counts":
@@ -47,8 +74,6 @@ elif params["metric"] == "ojsd":
     output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
 elif params["metric"] == "tf-idf":
     output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
-elif params["metric"] == "embedding":
-    output = embeddings.word_embeddings(data, params["word_list"])
 elif params["metric"] == "proportion":
     output = proportions.proportions(data, params["group_list"], params["word_list"], "group", "word", "n")
 else:

@@ -6,7 +6,7 @@ const users = require("../models/users");
 const accessTokenSecret = process.env.TOKEN_SECRET;
 
 // Authenticate a user
-const authenticateUser = async (knex, body) => {
+const authenticateUser = async(knex, body) => {
     const model = new users(knex)
 
     const username = body.username;
@@ -14,7 +14,7 @@ const authenticateUser = async (knex, body) => {
     if (curr === false) {
         return null;
     }
-    const user_ = await findUserByUsername(user, username);
+    const user_ = await model.findUserByUsername(username);
     const accessToken = jwt.sign({ ...user_ }, accessTokenSecret);
 
     return accessToken;
