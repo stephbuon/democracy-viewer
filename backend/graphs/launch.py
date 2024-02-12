@@ -61,7 +61,6 @@ cols = ["word"]
 if "group" in data.columns:
     cols.append("group")
 data = data.groupby(cols)["n"].sum().reset_index()
-print(data[data["word"] == "industry"])
 
 # Call function based on given metric
 if params["metric"] == "counts":
