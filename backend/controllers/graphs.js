@@ -102,9 +102,11 @@ const joinData = (calculated, params, ids) => {
             x.ids = [];
             ids.forEach(y => {
                 if (y.word === x.word) {
-                    x.ids.push(y.id);
+                    x.ids = [ ...x.ids, ...y.ids ];
                 }
             }); 
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
 
             return x;
         });
@@ -114,9 +116,11 @@ const joinData = (calculated, params, ids) => {
             x.ids = [];
             ids.forEach(y => {
                 if (y.word === x.word && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
-                    x.ids.push(y.id);
+                    x.ids = [ ...x.ids, ...y.ids ];
                 }
             }); 
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
 
             return x;
         });
@@ -126,14 +130,15 @@ const joinData = (calculated, params, ids) => {
             x.ids = [];
             ids.forEach(y => {
                 if (params.word_list.length === 0 || (params.word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase()))) {
-                    x.ids.push(y.id);
+                    x.ids = [ ...x.ids, ...y.ids ];
                 }
             }); 
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
 
             return x;
         });
     } else if (params.metric === "counts") {
-        // newData = sumCol(newData, "n");
         newData = newData.map(x => {
             x.ids = [];
             ids.forEach(y => {
@@ -141,6 +146,8 @@ const joinData = (calculated, params, ids) => {
                     x.ids = [ ...x.ids, ...y.ids ];
                 }
             });
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
 
             return x;
         });
@@ -149,9 +156,10 @@ const joinData = (calculated, params, ids) => {
             x.ids = [];
             ids.forEach(y => {
                 if (x.word === y.word && x.group === y.group) {
-                    x.ids.push(y.id);
+                    x.ids = [ ...x.ids, ...y.ids ];
                 }
             }); 
+            x.ids = [ ...new Set(x.ids) ].sort((a,b) => a - b);
 
             return x;
         });
