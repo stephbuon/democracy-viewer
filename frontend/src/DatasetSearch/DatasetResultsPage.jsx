@@ -63,15 +63,10 @@ export const DatasetResultsPage = (props) => {
         setPageFilter({ ...filter });
         setLoadingResults(true);
         FilterDatasets(filter, 1).then((res) => {
+            setLoadingResults(false);
 
-            //animation testing
-            setTimeout(() => {
-                setLoadingResults(false);
-
-                if (!res) { setSearchResults([]) }
-                else { setSearchResults(res) }
-            }, 3000);
-
+            if (!res) { setSearchResults([]) }
+            else { setSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
             let tot = res / 50;
