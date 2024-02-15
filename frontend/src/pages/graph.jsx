@@ -1,3 +1,5 @@
+// TODO Removing word embedding metric. Impliment other metrics
+
 // Imports for Graph page. This page is used for visualizing the selected dataset.
 // Props include: props.dataset
 // props.dataset - table_name
@@ -41,7 +43,7 @@ export const Graph = (props) => {
     { value: "ll", label: "Log Likelihood" },
     { value: "jsd", label: "Jensen-Shannon Divergence" },
     { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
-    { value: "embedding", label: "Word Embeddings" }
+    // { value: "embedding", label: "Word Embeddings" }
   ]);
 
 // other variable definitions
@@ -54,10 +56,9 @@ export const Graph = (props) => {
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    console.log("-!!- TEST HERE -!!-", demoV, props.dataset)
     if (demoV == undefined || props.dataset == undefined) {
-      // navigate('/datasetSearch')
-      // props.setNavigated(true)
+      navigate('/datasetSearch')
+      props.setNavigated(true)
     }
     else{
       updateGroupNames();
@@ -123,15 +124,19 @@ export const Graph = (props) => {
           })
         }
       });
+      console.log("Finished updating data", data)
       if (first) { // Generate graph on first passthrough
         Plotly.newPlot('graph', data, layout);
 
         graph.current.on('plotly_click', function (data) { // Click event for zoom page
           let dataPoint = data.points[0];
+          console.log("Selected datapoint", dataPoint);
           props.setData({
             group: dataPoint.data.name,
             word: dataPoint.x,
-            count: dataPoint.y
+            count: dataPoint.y,
+            ids: dataPoint.data.ids,
+            dataset: props.dataset
           });
           navigate("/zoom");
         });
@@ -145,7 +150,7 @@ export const Graph = (props) => {
     });
   };
 
-  // Used to toggle help modal when ?  is pressed
+  // Used to toggle help modal when ? is pressed
   const toggleModal = () => {
     setOpenModal(!openModal);
   };
@@ -215,7 +220,8 @@ export const Graph = (props) => {
                   onMouseOver={(event) => {event.target.style.color='red'}}
                   onMouseOut={(event) => {event.target.style.color='black'}}
                   style={{"color":"black"}}
-                  id={index}>{term}</li>)}
+                  id={index}
+                  key={index}>{term}</li>)}
                 </div>
 
                 {/* Update graph button */}

@@ -69,3 +69,24 @@ export const getColumnValues = (dataset, group) => new Promise((resolve, reject)
     reject(x);
   });
 });
+
+export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) => {
+  var endpoint = `${apiEndpoint}/datasets/ids/${dataset}?` // Stores concatenated endpoint
+
+  ids.forEach((id) => { // Add all groups in groupList to endpoint
+    id.forEach((i) => {
+      endpoint += `id=${i}&`
+    })
+  })
+  endpoint = endpoint.slice(0, -1);
+
+  axios.get(endpoint, apiConfig, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    console.log("ID test", x, ids)
+    alert(x);
+    reject(x);
+  });
+});
