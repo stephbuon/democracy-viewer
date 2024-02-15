@@ -14,7 +14,7 @@ const authenticateUser = async(knex, body) => {
     if (curr === false) {
         return null;
     }
-    const user_ = await findUserByUsername(user, username);
+    const user_ = await model.findUserByUsername(username);
     const accessToken = jwt.sign({ ...user_ }, accessTokenSecret);
 
     return accessToken;

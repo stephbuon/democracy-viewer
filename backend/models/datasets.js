@@ -175,8 +175,13 @@ class datasets {
                     // Get private datasets created by this user
                     q.where({ is_public: false, username });
                 } else {
-                    // Throw error if type if not public/private
-                    throw new Error("Public/private dataset type not defined.");
+                    // Get private and public datasets
+                    q.where(q => {
+                        q.orWhere({ is_public: true });
+                        if (username) {
+                            q.orWhere({ is_public: false, username });
+                        }
+                    });
                 }
 
                 // Filter by user
