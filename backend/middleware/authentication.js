@@ -5,6 +5,7 @@ const accessTokenSecret = process.env.TOKEN_SECRET;
 
 // Required token authentication
 const authenticateJWT = (req, res, next) => {
+  try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.sendStatus(401);
@@ -19,22 +20,31 @@ const authenticateJWT = (req, res, next) => {
       req.user = user;
       next();
     });
+  } catch (err) {
+    console.err("Failed to authenticate user token", err);
+    res.status(500).json({message: err.toString()});
+  }
 };
 
 // Optional token authentication
 const optAuthenticateJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  try {
+    const authHeader = req.headers.authorization;
 
-  if (authHeader) {
-    const token = authHeader.split(" ")[1];
-    jwt.verify(token, accessTokenSecret, (err, user) => {
-      if (user) {
-        req.user = user;
-      }
-    });
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      jwt.verify(token, accessTokenSecret, (err, user) => {
+        if (user) {
+          req.user = user;
+        }
+      });
+    }
+  
+    next();
+  } catch (err) {
+    console.err("Failed to authenticate user token", err);
+    res.status(500).json({message: err.toString()});
   }
-
-  next();
 };
 
 module.exports = {

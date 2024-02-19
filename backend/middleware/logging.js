@@ -5,7 +5,7 @@ const requestLog = async (req, res, next) => {
     // Grab the request link
     const url = req.protocol + "://" + req.get("host") + req.originalUrl;
     // Grab the timestamp
-    const timestamp = Date.now();
+    const timestamp = Date();
     // Previous variables
     console.log(method, url, timestamp);
     next();

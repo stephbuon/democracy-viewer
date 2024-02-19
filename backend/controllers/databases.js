@@ -6,6 +6,29 @@ const databases = require("../models/databases");
 const newConnection = async(knex, name, owner, is_public, host, port, db, username, password, client) => {
     const model = new databases(knex);
 
+    // Test new connection and throw error if it fails
+    try {
+      conn = require("knex")({
+        client: client,
+            debug: true,
+            connection: {
+              host: host,
+              user: username,
+              password: password,
+              database: db,
+              port: port,
+              requestTimeout: 60000
+            },
+            pool: {
+              min: 0,
+              max: 15
+            }
+      });
+      await conn.raw("SELECT 1");
+    } catch(err) {
+      throw new Error("Failed to connect to new database connection");
+    }
+
     // Encrypt all database fields
     host = encryptor.encrypt(host);
     port = port ? encryptor.encrypt(String(port)) : port;
@@ -23,6 +46,7 @@ const loadConnection = async(knex, id) => {
 
     // Get connection credentials by id
     const creds = await model.getCredentials(id);
+    console.log(creds)
     // Decrypt credentials
     creds.host = encryptor.decrypt(creds.host);
     creds.port = creds.port ? encryptor.decrypt(creds.port) : creds.port;
@@ -30,28 +54,23 @@ const loadConnection = async(knex, id) => {
     creds.username = encryptor.decrypt(creds.username);
     creds.password = creds.password ? encryptor.decrypt(creds.password) : creds.password;
 
-    // Create knex connection with credentials
-    return knex({
-        development: {
-            client: creds.client,
-            debug: true,
-            connection: {
-              host: creds.host,
-              user: creds.username,
-              password: creds.password,
-              database: creds.db,
-              options: {
-                port: parseInt(creds.port),
-                encrypt: true
-              },
-              requestTimeout: 60000
-            },
-            pool: {
-              min: 0,
-              max: 15
-            }
-        }
-    });
+    // Create knex connection with credentials and test
+    return {
+      client: creds.client,
+      debug: true,
+      connection: {
+        host: creds.host,
+        user: creds.username,
+        password: creds.password,
+        database: creds.db,
+        port: creds.port,
+        requestTimeout: 60000
+      },
+      pool: {
+        min: 0,
+        max: 15
+      }
+    };
 }
 
 module.exports = {

@@ -6,25 +6,37 @@ const control = require("../controllers/databases");
 attachPaginate();
 
 const createDatabaseConnection = async(req, res, next) => {
-    const regex = new RegExp("/datasets*|/graphs*");
+    try {
+        const regex = new RegExp("/datasets*|/graphs*");
     
-    let config = {};
-    if (regex.test(req.originalUrl) && req.user && req.user.database) {
-        const tmpConnection = knex(default_db.development);
-        config = await control.loadConnection(tmpConnection, req.user.database);
-        tmpConnection.destroy();
-    } else {
-        config = default_db.development;
-    }
-    
-    req.knex = knex(config);
+        let config = {};
+        if (regex.test(req.originalUrl) && req.user && req.user.database) {
+            console.log("here")
+            const tmpConnection = knex(default_db.development);
+            config = await control.loadConnection(tmpConnection, req.user.database);
+            tmpConnection.destroy();
+        } else {
+            config = default_db.development;
+        }
+        
+        req.knex = knex(config);
+        req.knex.raw("SELECT 1");
 
-    next();
+        next();
+    } catch (err) {
+        console.error("Failed to create database connection:", err);
+        res.status(500).json({message: err.toString()});
+    }
 }
 
 const deleteDatabaseConnection = async(req, res, next) => {
-    req.knex.destroy();
-    delete req.knex;
+    try {
+        req.knex.destroy();
+        delete req.knex;
+    } catch (err) {
+        console.error("Failed to delete database connection:", err);
+        res.status(500).json({message: err.toString()});
+    }
 
     next();
 }
