@@ -19,6 +19,7 @@ from nltk.corpus import wordnet as wn
 TABLE_NAME = sys.argv[1]
 
 # Load distributed connection if defined
+start_time = time.time()
 try:
     DB_CREDS_TOKEN = sys.argv[2]
 except:
@@ -64,6 +65,7 @@ else:
 engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(engine)
+print("Connection time: {} minutes".format((time.time() - start_time) / 60))
 
 # Insert tokens into database
 def insert_tokens(df: pd.DataFrame):
@@ -162,7 +164,6 @@ def get_data():
     print("Loading data: {} minutes".format((time.time() - start) / 60))
     return df
               
-start_time = time.time()
 data = get_data()
 df = split_text(data)
 print("Tokens processed: {}".format(len(df)))

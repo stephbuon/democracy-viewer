@@ -14,6 +14,7 @@ METADATA_TABLE = "dataset_metadata"
 TABLE_NAME = sys.argv[1]
 FILE_NAME = sys.argv[2]
 # Load distributed connection if defined
+start_time = time.time()
 try:
     DB_CREDS_TOKEN = sys.argv[3]
 except:
@@ -35,9 +36,7 @@ if DB_CREDS == None:
     password = os.environ.get("PASSWORD")
 
     # Connect to database
-    # CONNECTION_STR = 'DRIVER={ODBC Driver 18 for SQL Server};SERVER='+server+','+port+';DATABASE='+database+';UID='+username+';PWD='+ password
-    # conn = pyodbc.connect(CONNECTION_STR)
-    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}".format(
+    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
             username, password, host, port, database
         )
 else:
@@ -58,10 +57,13 @@ else:
     if "port" in creds.keys():
         conn_str += ":{}".format(creds["port"])
     conn_str += "/{}".format(creds["db"])
+    if client == "mssql":
+        conn_str += "?driver=ODBC+Driver+18+for+SQL+Server"
         
 engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(engine)
+print("Connection time: {} minutes".format((time.time() - start_time) / 60))
 
 # Load and process the data
 # Create table in database
@@ -132,11 +134,10 @@ def prep_data():
 def insert_records(df: pd.DataFrame):
     start = time.time()
     with engine.connect() as conn:
-        df.to_sql(tables.DatasetSplitText.__tablename__, conn, if_exists = "append", index = False)
+        df.to_sql(TABLE_NAME, conn, if_exists = "append", index = False)
         conn.commit()
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
-start_time = time.time()
 df = prep_data()
 insert_records(df)
 print("Total time: {} minutes".format((time.time() - start_time) / 60))
