@@ -5,14 +5,9 @@ import os
 import time
 import jwt
 # Database interaction
-# import pyodbc
-# import mysql.connector as mysql
-from sqlalchemy import create_engine, update, MetaData
-from sqlalchemy import Column, Integer, String, Float, Text, Table, BigInteger
+from sqlalchemy import create_engine, update, MetaData, Table
 import sql_alchemy_tables as tables
-from bcpandas import to_sql, SqlCreds
-
-load_dotenv()
+# from bcpandas import to_sql, SqlCreds
 
 METADATA_TABLE = "dataset_metadata"
 # Get table name and file name from command line argument
@@ -32,6 +27,7 @@ else:
 if DB_CREDS == None:
     # Connect to default database if no distributed connection
     # Load environment variables
+    load_dotenv()
     host = os.environ.get("HOST")
     database = os.environ.get("DATABASE")
     port = os.environ.get("PORT")
@@ -41,10 +37,9 @@ if DB_CREDS == None:
     # Connect to database
     # CONNECTION_STR = 'DRIVER={ODBC Driver 18 for SQL Server};SERVER='+server+','+port+';DATABASE='+database+';UID='+username+';PWD='+ password
     # conn = pyodbc.connect(CONNECTION_STR)
-    conn_str = "postgresql://{}:{}@{}:{}/{}".format(
+    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}".format(
             username, password, host, port, database
         )
-    
 else:
     # Connect to distributed connection
     client = DB_CREDS["client"]
@@ -66,7 +61,6 @@ else:
         
 engine = create_engine(conn_str)
 meta = MetaData()
-# meta.create_all(engine)
 meta.reflect(engine)
 
 # Load and process the data
@@ -83,21 +77,11 @@ def prep_data():
     df = df.replace(to_replace=[r"\\t|\\n|\\r", "\t|\n|\r"], value=["",""], regex=True)
     
     # Update metadata to include number of records
-    # query = '''
-    #     UPDATE {}
-    #     SET record_count = ?
-    #     WHERE table_name = ?
-    # '''.format(METADATA_TABLE)
-    # cursor.execute(query, (len(df), TABLE_NAME))
     query = (
-        update(tables.Metadata)
-            .where(tables.Metadata.table_name == TABLE_NAME)
+        update(tables.DatasetMetadata)
+            .where(tables.DatasetMetadata.table_name == TABLE_NAME)
             .values(record_count = len(df))
-    )
-    # with engine.connect() as conn:
-    #     conn.execute(query1)
-        # conn.commit()
-    
+    )    
     
     # If there is a column called id, change it to id_
     if "id" in df.columns:
@@ -122,34 +106,19 @@ def prep_data():
             df = df.drop(col, axis = 1)
             
     # Create new table in database
-    # query = "CREATE TABLE {} (id BIGINT PRIMARY KEY IDENTITY".format(TABLE_NAME)
-    # for col in df.columns:
-    #     # Determine what type to make each column
-    #     query += ", {} ".format(col)
-    #     col_type = df[col].dtype
-    #     if col_type == "int":
-    #         query += "INTEGER"
-    #     elif col_type == "float":
-    #         query += "FLOAT"
-    #     elif maxLengths[col] > 4000:
-    #         query += "NVARCHAR(MAX)"
-    #     else:
-    #         query += "NVARCHAR({})".format(maxLengths[col])
-    # query += ")"
-    
-    columns = [ Column("id", BigInteger, autoincrement = True, primary_key = True) ]
+    columns = [ tables.Column("id", tables.BigInteger, autoincrement = True, primary_key = True) ]
     for col in df.columns:
         col_type = df[col].dtype
         if col_type == "int":
-            columns.append(Column(col, Integer))
+            columns.append(tables.Column(col, tables.Integer))
         elif col_type == "float":
-            columns.append(Column(col, Float))
+            columns.append(tables.Column(col, tables.Float))
         elif maxLengths[col] > 4000:
-            columns.append(Column(col, Text))
+            columns.append(tables.Column(col, tables.Text))
         else:
-            columns.append(Column(col, String(maxLengths[col])))
-    # new_table = Table(TABLE_NAME, meta, *columns)
-    # new_table.create(engine)
+            columns.append(tables.Column(col, tables.String(maxLengths[col])))
+    new_table = Table(TABLE_NAME, meta, *columns)
+    new_table.create(engine)
     
     with engine.connect() as conn:
         conn.execute(query)
@@ -162,25 +131,9 @@ def prep_data():
 # Insert data into database
 def insert_records(df: pd.DataFrame):
     start = time.time()
-    # creds = SqlCreds(server, database, username, password, 18, port)
-    # creds = SqlCreds.from_engine(engine)
-    # Suppress printed output
-    # text_trap = io.StringIO()
-    # sys.stdout = text_trap
-    # Insert data into database
-    # to_sql(
-    #     df,
-    #     TABLE_NAME,
-    #     creds,
-    #     index = False,
-    #     if_exists = "append",
-    #     batch_size = min(50000, len(df))
-    # )
     with engine.connect() as conn:
-        df.to_sql(TABLE_NAME, conn, if_exists = "append", index = False)
+        df.to_sql(tables.DatasetSplitText.__tablename__, conn, if_exists = "append", index = False)
         conn.commit()
-    # Allow printing again
-    # sys.stdout = sys.__stdout__
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 start_time = time.time()

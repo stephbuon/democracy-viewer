@@ -171,8 +171,6 @@ const uploadDatasetPy = async(knex, name, user) => {
     if (user.database) {
         const defaultConfig = require("../knexfile").development;
         const token = await encodeConnection(require("knex")(defaultConfig), user.database);
-        console.log(token)
-        throw new Error()
         options.args.push(token);
     }
 

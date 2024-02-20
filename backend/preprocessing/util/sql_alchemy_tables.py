@@ -13,9 +13,26 @@ class DatasetMetadata(SQL_BASE):
     clicks = Column("clicks", Integer)
     record_count = Column("record_count", BigInteger)
     date_posted = Column("date_posted", Date)
-    
+
 class DatasetTextCols(SQL_BASE):
     __tablename__ = "dataset_text_cols"
     table_name = Column("table_name", String(250), ForeignKey(DatasetMetadata.table_name), primary_key = True)
     col = Column("col", String(100), primary_key = True)
     
+class DatasetSplitText(SQL_BASE):
+    __tablename__ = "dataset_split_text"
+    table_name = Column("table_name", String(250), ForeignKey(DatasetTextCols.table_name), primary_key = True)
+    record_id = Column("record_id", BigInteger, primary_key = True)
+    word = Column("word", String(100), primary_key = True)
+    count = Column("count", BigInteger)
+    col = Column("col", String(100), ForeignKey(DatasetTextCols.col), primary_key = True)
+    
+# CREATE TABLE dataset_split_text (
+#     table_name VARCHAR(250),
+#     record_id BIGINT,
+#     word VARCHAR(100),
+#     count BIGINT,
+#     col VARCHAR(100),
+#     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
+#     PRIMARY KEY(table_name, record_id, word, col)
+# );
