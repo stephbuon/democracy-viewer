@@ -11,7 +11,6 @@ const createDatabaseConnection = async(req, res, next) => {
     
         let config = {};
         if (regex.test(req.originalUrl) && req.user && req.user.database) {
-            console.log("here")
             const tmpConnection = knex(default_db.development);
             config = await control.loadConnection(tmpConnection, req.user.database);
             tmpConnection.destroy();

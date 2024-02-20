@@ -42,7 +42,7 @@ router.post('/api', authenticateJWT, async(req, res, next) => {
 // Route to upload dataset records into database
 router.post('/upload/:name', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.uploadDatasetPy(req.knex, req.params.name, req.user.username);
+        const result = await control.uploadDatasetPy(req.knex, req.params.name, req.user);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to upload dataset:', err);

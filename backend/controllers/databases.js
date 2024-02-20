@@ -1,6 +1,7 @@
 const encryption = require("../util/encryption");
 const encryptor = new encryption;
 const databases = require("../models/databases");
+const jwt = require("jsonwebtoken");
 
 // Establish a new external database connection
 const newConnection = async(knex, name, owner, is_public, host, port, db, username, password, client) => {
@@ -40,19 +41,25 @@ const newConnection = async(knex, name, owner, is_public, host, port, db, userna
     return await model.newConnection(name, owner, is_public, host, port, db, username, password, client);
 }
 
-// Load an external database connection
-const loadConnection = async(knex, id) => {
+// Get database credentials
+const getCredentials = async(knex, id) => {
     const model = new databases(knex);
 
     // Get connection credentials by id
     const creds = await model.getCredentials(id);
-    console.log(creds)
     // Decrypt credentials
     creds.host = encryptor.decrypt(creds.host);
     creds.port = creds.port ? encryptor.decrypt(creds.port) : creds.port;
     creds.db = encryptor.decrypt(creds.db);
     creds.username = encryptor.decrypt(creds.username);
     creds.password = creds.password ? encryptor.decrypt(creds.password) : creds.password;
+
+    return creds;
+}
+
+// Load an external database connection
+const loadConnection = async(knex, id) => {
+    const creds = await getCredentials(knex, id);
 
     // Create knex connection with credentials and test
     return {
@@ -73,7 +80,16 @@ const loadConnection = async(knex, id) => {
     };
 }
 
+// Encode a connection in a JWT token 
+const encodeConnection = async(knex, id) => {
+    const accessTokenSecret = process.env.TOKEN_SECRET;
+    const creds = await getCredentials(knex, id);
+    const token = jwt.sign({ ...creds }, accessTokenSecret);
+    return token;
+}
+
 module.exports = {
     newConnection,
-    loadConnection
+    loadConnection,
+    encodeConnection
 }
