@@ -8,7 +8,7 @@ import time
 import jwt
 # Database interaction
 # import pyodbc
-# from bcpandas import to_sql, SqlCreds
+from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, MetaData, select
 # Update directory to import util
 import util.sql_alchemy_tables as tables
@@ -40,7 +40,7 @@ if DB_CREDS == None:
     password = os.environ.get("PASSWORD")
 
     # Connect to database
-    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}".format(
+    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
         username, password, host, port, database
     )
 else:
@@ -61,6 +61,8 @@ else:
     if "port" in creds.keys():
         conn_str += ":{}".format(creds["port"])
     conn_str += "/{}".format(creds["db"])
+    if client == "mssql":
+        conn_str += "?driver=ODBC+Driver+18+for+SQL+Server"
         
 engine = create_engine(conn_str)
 meta = MetaData()
@@ -70,9 +72,27 @@ print("Connection time: {} minutes".format((time.time() - start_time) / 60))
 # Insert tokens into database
 def insert_tokens(df: pd.DataFrame):
     start = time.time()
-    with engine.connect() as conn:
-        df.to_sql(tables.DatasetSplitText.__tablename__, conn, if_exists = "append", index = False)
-        conn.commit()
+    if DB_CREDS == None or client == "mssql":
+        # creds = SqlCreds(server, database, username, password, 18, port)
+        creds = SqlCreds.from_engine(engine)
+        to_sql(
+            df,
+            tables.DatasetSplitText.__tablename__,
+            creds,
+            index = False,
+            if_exists = "append",
+            batch_size = min(50000, len(df))
+        )
+    else:
+        with engine.connect() as conn:
+            df.to_sql(
+                tables.DatasetSplitText.__tablename__, 
+                conn, 
+                if_exists = "append", 
+                index = False, 
+                chunksize = min(50000, len(df))
+            )
+            conn.commit()
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 # Split the text of the given data frame

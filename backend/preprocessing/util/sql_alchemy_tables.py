@@ -26,13 +26,3 @@ class DatasetSplitText(SQL_BASE):
     word = Column("word", String(100), primary_key = True)
     count = Column("count", BigInteger)
     col = Column("col", String(100), ForeignKey(DatasetTextCols.col), primary_key = True)
-    
-# CREATE TABLE dataset_split_text (
-#     table_name VARCHAR(250),
-#     record_id BIGINT,
-#     word VARCHAR(100),
-#     count BIGINT,
-#     col VARCHAR(100),
-#     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
-#     PRIMARY KEY(table_name, record_id, word, col)
-# );

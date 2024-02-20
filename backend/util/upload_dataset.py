@@ -7,7 +7,7 @@ import jwt
 # Database interaction
 from sqlalchemy import create_engine, update, MetaData, Table
 import sql_alchemy_tables as tables
-# from bcpandas import to_sql, SqlCreds
+from bcpandas import to_sql, SqlCreds
 
 METADATA_TABLE = "dataset_metadata"
 # Get table name and file name from command line argument
@@ -133,9 +133,26 @@ def prep_data():
 # Insert data into database
 def insert_records(df: pd.DataFrame):
     start = time.time()
-    with engine.connect() as conn:
-        df.to_sql(TABLE_NAME, conn, if_exists = "append", index = False)
-        conn.commit()
+    if DB_CREDS == None or client == "mssql":
+        creds = SqlCreds.from_engine(engine)
+        to_sql(
+            df,
+            TABLE_NAME,
+            creds,
+            index = False,
+            if_exists = "append",
+            batch_size = min(50000, len(df))
+        )
+    else:
+        with engine.connect() as conn:
+            df.to_sql(
+                TABLE_NAME, 
+                conn, 
+                if_exists = "append", 
+                index = False, 
+                chunksize = min(50000, len(df))
+            )
+            conn.commit()
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 df = prep_data()
