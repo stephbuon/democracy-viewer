@@ -2,6 +2,7 @@ const encryption = require("../util/encryption");
 const encryptor = new encryption;
 const databases = require("../models/databases");
 const jwt = require("jsonwebtoken");
+const config = require("../util/database_config");
 
 // Establish a new external database connection
 const newConnection = async(knex, name, owner, is_public, host, port, db, username, password, client) => {
@@ -9,22 +10,13 @@ const newConnection = async(knex, name, owner, is_public, host, port, db, userna
 
     // Test new connection and throw error if it fails
     try {
-      conn = require("knex")({
-        client: client,
-            debug: true,
-            connection: {
-              host: host,
-              user: username,
-              password: password,
-              database: db,
-              port: port,
-              requestTimeout: 60000
-            },
-            pool: {
-              min: 0,
-              max: 15
-            }
-      });
+      if (client === "mssql") {
+          conn = require("knex")(config.mssql(host, db, username, port, password));
+      } else if (client === "mysql") {
+          conn = require("knex")(config.mysql(host, db, username, port, password));
+      } else {
+          throw new Error(`Unknown client: ${ client }`);
+      }
       await conn.raw("SELECT 1");
     } catch(err) {
       throw new Error("Failed to connect to new database connection");
@@ -61,23 +53,14 @@ const getCredentials = async(knex, id) => {
 const loadConnection = async(knex, id) => {
     const creds = await getCredentials(knex, id);
 
-    // Create knex connection with credentials and test
-    return {
-      client: creds.client,
-      debug: true,
-      connection: {
-        host: creds.host,
-        user: creds.username,
-        password: creds.password,
-        database: creds.db,
-        port: creds.port,
-        requestTimeout: 60000
-      },
-      pool: {
-        min: 0,
-        max: 15
-      }
-    };
+    // Return config based on client
+    if (creds["client"] === "mssql") {
+        return config.mssql(creds["host"], creds["db"], creds["username"], creds["port"], creds["password"]);
+    } else if (creds["client"] === "mysql") {
+        return config.mysql(creds["host"], creds["db"], creds["username"], creds["port"], creds["password"]);
+    } else {
+        throw new Error(`Unknown client: ${ creds["client"] }`);
+    }
 }
 
 // Encode a connection in a JWT token 

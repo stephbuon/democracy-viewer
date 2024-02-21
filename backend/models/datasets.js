@@ -91,7 +91,7 @@ class datasets {
 
     // Change the data type of the given column in the given table
     async changeColType(table, column, type) {
-        const update = await knex.raw(`ALTER TABLE ${ table } ALTER COLUMN ${ column } ${ type }`);
+        const update = await this.knex.raw(`ALTER TABLE ${ table } ALTER COLUMN ${ column } ${ type }`);
         return update;
     }
 
@@ -360,7 +360,7 @@ class datasets {
 
     // Delete a dataset table
     async deleteTable(name) {
-        const del = await knex.schema.dropTable(name);
+        const del = await this.knex.schema.dropTable(name);
         return del;
     }
 

@@ -1,7 +1,8 @@
-const default_db = require("../knexfile");
+// const default_db = require("../knexfile");
 const knex = require('knex');
 const { attachPaginate } = require("knex-paginate");
 const control = require("../controllers/databases");
+const util = require("../util/database_config");
 
 attachPaginate();
 
@@ -9,13 +10,14 @@ const createDatabaseConnection = async(req, res, next) => {
     try {
         const regex = new RegExp("/datasets*|/graphs*");
     
-        let config = {};
+        let config;
+        const defaultConfig = util.defaultConfig();
         if (regex.test(req.originalUrl) && req.user && req.user.database) {
-            const tmpConnection = knex(default_db.development);
+            const tmpConnection = knex(defaultConfig);
             config = await control.loadConnection(tmpConnection, req.user.database);
             tmpConnection.destroy();
         } else {
-            config = default_db.development;
+            config = defaultConfig;
         }
         
         req.knex = knex(config);

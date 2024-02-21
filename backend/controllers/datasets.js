@@ -2,6 +2,7 @@ const util = require("../util/file_management");
 const axios = require("axios").default;
 const python = require("python-shell").PythonShell;
 const { encodeConnection } = require("./databases");
+const { defaultConfig } = require("../util/database_config");
 
 const datasets = require("../models/datasets"); 
 
@@ -169,8 +170,7 @@ const uploadDatasetPy = async(knex, name, user) => {
 
     // If distributed connection, add encoded token to args
     if (user.database) {
-        const defaultConfig = require("../knexfile").development;
-        const token = await encodeConnection(require("knex")(defaultConfig), user.database);
+        const token = await encodeConnection(require("knex")(defaultConfig()), user.database);
         options.args.push(token);
     }
 
