@@ -48,6 +48,8 @@ else:
         conn_str = "mssql+pyodbc://"
     elif client == "mysql":
         conn_str = "mysql+pymysql://"
+    elif client == "pg":
+        conn_str = "postgresql+psycopg2://"
     else:
         raise Exception("Unrecognized client:", client)
     conn_str += creds["username"]

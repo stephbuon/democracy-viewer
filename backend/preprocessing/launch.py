@@ -52,6 +52,8 @@ else:
         conn_str = "mssql+pyodbc://"
     elif client == "mysql":
         conn_str = "mysql+pymysql://"
+    elif client == "pg":
+        conn_str = "postgresql+psycopg2://"
     else:
         raise Exception("Unrecognized client:", client)
     conn_str += creds["username"]
@@ -73,7 +75,6 @@ print("Connection time: {} minutes".format((time.time() - start_time) / 60))
 def insert_tokens(df: pd.DataFrame):
     start = time.time()
     if DB_CREDS == None or client == "mssql":
-        # creds = SqlCreds(server, database, username, password, 18, port)
         creds = SqlCreds.from_engine(engine)
         to_sql(
             df,
@@ -142,8 +143,6 @@ def get_data():
     PAGE_LENGTH = 50000
     PAGES = int(np.ceil(records / PAGE_LENGTH))
     # Get text columns
-    # cursor.execute("SELECT col FROM dataset_text_cols WHERE table_name = ?", TABLE_NAME)
-    # text_cols = cursor.fetchall()
     query = (
         select(tables.DatasetTextCols.col)
             .where(tables.DatasetTextCols.table_name == TABLE_NAME)

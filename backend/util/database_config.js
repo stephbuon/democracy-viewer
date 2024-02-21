@@ -2,24 +2,25 @@ require("dotenv").config();
 
 const defaultConfig = () => {
     return mssql(
-        process.env.HOST, process.env.DATABASE, process.env.DATABASE_USERNAME,
-        process.env.PORT, process.env.PASSWORD
+        "mssql", process.env.HOST, process.env.DATABASE, 
+        process.env.DATABASE_USERNAME, process.env.PORT, 
+        process.env.PASSWORD
     );
 }
 
 const getConfig = (client, host, db, username, port = undefined, password = undefined) => {
     if (client === "mssql") {
-        return mssql(host, db, username, port, password);
-    } else if (client === "mysql") {
-        return mysql(host, db, username, port, password);
+        return mssql(client, host, db, username, port, password);
+    } else if (client === "mysql" || client === "pg") {
+        return mysql(client, host, db, username, port, password);
     } else {
         throw new Error(`Unknown client: ${ client }`);
     }
 }
 
-const mssql = (host, database, username, port = undefined, password = undefined) => {
+const mssql = (client, host, database, username, port = undefined, password = undefined) => {
     return {
-        client: "mssql",
+        client: client,
         debug: true,
         connection: {
             host: host,
@@ -39,9 +40,9 @@ const mssql = (host, database, username, port = undefined, password = undefined)
     };
 }
 
-const mysql = (host, database, username, port = undefined, password = undefined) => {
+const mysql = (client, host, database, username, port = undefined, password = undefined) => {
     return {
-        client: "mysql",
+        client: client,
         debug: true,
         connection: {
             host: host,
@@ -55,7 +56,7 @@ const mysql = (host, database, username, port = undefined, password = undefined)
             min: 0,
             max: 15
         }
-    }
+    };
 }
 
 module.exports = {
