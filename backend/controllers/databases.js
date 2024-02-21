@@ -10,13 +10,7 @@ const newConnection = async(knex, name, owner, is_public, host, port, db, userna
 
     // Test new connection and throw error if it fails
     try {
-      if (client === "mssql") {
-          conn = require("knex")(config.mssql(host, db, username, port, password));
-      } else if (client === "mysql") {
-          conn = require("knex")(config.mysql(host, db, username, port, password));
-      } else {
-          throw new Error(`Unknown client: ${ client }`);
-      }
+      conn = require("knex")(config.getConfig(client, host, db, username, port, password));
       await conn.raw("SELECT 1");
     } catch(err) {
       throw new Error("Failed to connect to new database connection");
@@ -54,13 +48,10 @@ const loadConnection = async(knex, id) => {
     const creds = await getCredentials(knex, id);
 
     // Return config based on client
-    if (creds["client"] === "mssql") {
-        return config.mssql(creds["host"], creds["db"], creds["username"], creds["port"], creds["password"]);
-    } else if (creds["client"] === "mysql") {
-        return config.mysql(creds["host"], creds["db"], creds["username"], creds["port"], creds["password"]);
-    } else {
-        throw new Error(`Unknown client: ${ creds["client"] }`);
-    }
+    return config.getConfig(
+      creds["client"], creds["host"], creds["db"], 
+      creds["username"], creds["port"], creds["password"]
+    );
 }
 
 // Encode a connection in a JWT token 

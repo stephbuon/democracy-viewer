@@ -7,6 +7,16 @@ const defaultConfig = () => {
     );
 }
 
+const getConfig = (client, host, db, username, port = undefined, password = undefined) => {
+    if (client === "mssql") {
+        return mssql(host, db, username, port, password);
+    } else if (client === "mysql") {
+        return mysql(host, db, username, port, password);
+    } else {
+        throw new Error(`Unknown client: ${ client }`);
+    }
+}
+
 const mssql = (host, database, username, port = undefined, password = undefined) => {
     return {
         client: "mssql",
@@ -50,6 +60,5 @@ const mysql = (host, database, username, port = undefined, password = undefined)
 
 module.exports = {
     defaultConfig,
-    mssql,
-    mysql
+    getConfig
 }
