@@ -8,13 +8,13 @@ class databases {
         this.knex = knex;
     }
 
-    async newConnection(name, owner, is_public, host, port, db, username, password, client) {
+    async newConnection(name, owner, host, port, db, username, password, client) {
         const current = await this.knex(connections_table).where({ name, owner });
         if (current.length > 0) {
             throw new Error(`Connection name ${ name } is not unique for user ${ owner }`);
         }
         await this.knex(connections_table).insert({
-            name, owner, is_public, host, port, db, username, password, client
+            name, owner, host, port, db, username, password, client
         });
         const record = await this.knex(connections_table).orderBy("id", "desc").limit(1);
         return record[0];
@@ -23,6 +23,10 @@ class databases {
     async getCredentials(id) {
        const record = await this.knex(connections_table).where({ id });
        return record[0];
+    }
+
+    async getConnectionsByUser(owner) {
+        return await this.knex(connections_table).where({ owner });
     }
 };
 

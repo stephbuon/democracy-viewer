@@ -89,7 +89,6 @@ CREATE TABLE database_connections (
     id BIGINT PRIMARY KEY IDENTITY,
     name VARCHAR(50) NOT NULL,
     owner VARCHAR(20) NOT NULL,
-    is_public BIT NOT NULL DEFAULT 0,
     host VARCHAR(288) NOT NULL,
     port VARCHAR(288),
     db VARCHAR(288) NOT NULL,

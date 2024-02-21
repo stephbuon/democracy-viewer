@@ -12,7 +12,6 @@ const databases = require("./routes/databases");
 const datasets = require("./routes/datasets");
 const graphs = require("./routes/graphs");
 const groups = require("./routes/groups");
-// const preprocessing = require("./routes/preprocessing");
 const session = require("./routes/session");
 const users = require('./routes/users');
 
