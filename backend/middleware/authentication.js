@@ -6,20 +6,28 @@ const accessTokenSecret = process.env.TOKEN_SECRET;
 // Required token authentication
 const authenticateJWT = (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    // Commented as the optional authentication is now applied to all requests
+    // const authHeader = req.headers.authorization;
+    // if (!authHeader) {
+    //   return res.sendStatus(401);
+    // }
+  
+    // const token = authHeader.split(" ")[1];
+    // jwt.verify(token, accessTokenSecret, (err, user) => {
+    //   if (err) {
+    //     return res.sendStatus(403);
+    //   }
+  
+    //   req.user = user;
+    //   next();
+    // });
+
+    // Check if user has been authenticated
+    if (req.user) {
+      next();
+    } else {
       return res.sendStatus(401);
     }
-  
-    const token = authHeader.split(" ")[1];
-    jwt.verify(token, accessTokenSecret, (err, user) => {
-      if (err) {
-        return res.sendStatus(403);
-      }
-  
-      req.user = user;
-      next();
-    });
   } catch (err) {
     console.err("Failed to authenticate user token", err);
     res.status(500).json({message: err.toString()});
