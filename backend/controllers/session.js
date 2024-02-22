@@ -22,7 +22,7 @@ const authenticateUser = async(knex, body) => {
 
 // Update an authentication token with a database connection id
 const updateToken = (user, database) => {
-    if (!req.body.database) {
+    if (!database) {
         throw new Error("Missing database connection id");
       }
   

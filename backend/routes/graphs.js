@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const control = require("../controllers/graphs");
-const { optAuthenticateJWT } = require("../middleware/authentication");
 
 // Route to get the data to generate a given graph
-router.get('/:dataset', optAuthenticateJWT, async(req, res, next) => {
+router.get('/:dataset', async(req, res, next) => {
     try {
         let result;
         if (req.user) {

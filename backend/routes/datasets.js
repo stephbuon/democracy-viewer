@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const control = require("../controllers/datasets");
-const { authenticateJWT, optAuthenticateJWT } = require("../middleware/authentication");
+const { authenticateJWT } = require("../middleware/authentication");
 const util = require("../util/file_management");
 
 // Route to create a dataset
@@ -42,7 +42,7 @@ router.post('/api', authenticateJWT, async(req, res, next) => {
 // Route to upload dataset records into database
 router.post('/upload/:name', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.uploadDatasetPy(req.knex, req.params.name, req.user.username);
+        const result = await control.uploadDatasetPy(req.knex, req.params.name, req.user);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to upload dataset:', err);
@@ -172,7 +172,7 @@ router.get('/text/:table', async(req, res, next) => {
 });
 
 // Route to filter datasets
-router.get('/filter/:page', optAuthenticateJWT, async(req, res, next) => {
+router.get('/filter/:page', async(req, res, next) => {
     try {
         let results;
         if (req.user) {
@@ -189,7 +189,7 @@ router.get('/filter/:page', optAuthenticateJWT, async(req, res, next) => {
 });
 
 // Route to get number of dataset filter results
-router.get('/count/filter', optAuthenticateJWT, async(req, res, next) => {
+router.get('/count/filter', async(req, res, next) => {
     try {
         let result;
         if (req.user) {
@@ -230,7 +230,7 @@ router.get('/count/subset/:table', async(req, res, next) => {
 });
 
 // Route to download a subset of a dataset
-router.get('/download/subset/:table', optAuthenticateJWT, async(req, res, next) => {
+router.get('/download/subset/:table', async(req, res, next) => {
     try {
         // Generate file
         const result = await control.downloadSubset(req.knex, req.params.table, req.query, req.user ? req.user.username : undefined);

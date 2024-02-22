@@ -2,7 +2,6 @@ library(tidytext)
 library(dplyr)
 
 tf_idf = function(data, group_list, word_list, group, word, n) {
-  print(data)
   word = dplyr::enquo(word)
   group = dplyr::enquo(group)
   n = dplyr::enquo(n)

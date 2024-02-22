@@ -5,47 +5,95 @@ from dotenv import load_dotenv
 import copy
 import os
 import time
-import io
+import jwt
 # Database interaction
-import pyodbc
+# import pyodbc
 from bcpandas import to_sql, SqlCreds
+from sqlalchemy import create_engine, MetaData, select
+# Update directory to import util
+import util.sql_alchemy_tables as tables
 # Text mining
 from nltk.corpus import wordnet as wn
 
 # Get table name from command line argument
 TABLE_NAME = sys.argv[1]
 
-# Load environment variables
-load_dotenv()
-server = os.environ.get("HOST")
-database = os.environ.get("DATABASE")
-port = os.environ.get("PORT")
-username = os.environ.get("DATABASE_USERNAME")
-password = os.environ.get("PASSWORD")
+# Load distributed connection if defined
+start_time = time.time()
+try:
+    DB_CREDS_TOKEN = sys.argv[2]
+except:
+    DB_CREDS_TOKEN = None
+if DB_CREDS_TOKEN != None:
+    secret = os.environ.get("TOKEN_SECRET")
+    DB_CREDS = jwt.decode(DB_CREDS_TOKEN, secret, "HS256")
+else: 
+    DB_CREDS = None
 
-# Connect to database
-CONNECTION_STR = 'DRIVER={ODBC Driver 18 for SQL Server};SERVER='+server+','+port+';DATABASE='+database+';UID='+username+';PWD='+ password
-conn = pyodbc.connect(CONNECTION_STR)
-cursor = conn.cursor()
+if DB_CREDS == None:
+    # Connect to default database if no distributed connection
+    # Load environment variables
+    host = os.environ.get("HOST")
+    database = os.environ.get("DATABASE")
+    port = os.environ.get("PORT")
+    username = os.environ.get("DATABASE_USERNAME")
+    password = os.environ.get("PASSWORD")
+
+    # Connect to database
+    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
+        username, password, host, port, database
+    )
+else:
+    # Connect to distributed connection
+    client = DB_CREDS["client"]
+    creds = { key: DB_CREDS[key] for key in ["host", "db", "port", "username", "password"]}
+    # Create connection for client
+    if client == "mssql":
+        conn_str = "mssql+pyodbc://"
+    elif client == "mysql":
+        conn_str = "mysql+pymysql://"
+    elif client == "pg":
+        conn_str = "postgresql+psycopg2://"
+    else:
+        raise Exception("Unrecognized client:", client)
+    conn_str += creds["username"]
+    if "password" in creds.keys():
+        conn_str += ":{}".format(creds["password"])
+    conn_str += "@{}".format(creds["host"])
+    if "port" in creds.keys():
+        conn_str += ":{}".format(creds["port"])
+    conn_str += "/{}".format(creds["db"])
+    if client == "mssql":
+        conn_str += "?driver=ODBC+Driver+18+for+SQL+Server"
+        
+engine = create_engine(conn_str)
+meta = MetaData()
+meta.reflect(engine)
+print("Connection time: {} minutes".format((time.time() - start_time) / 60))
 
 # Insert tokens into database
 def insert_tokens(df: pd.DataFrame):
     start = time.time()
-    creds = SqlCreds(server, database, username, password, 18, port)
-    # Suppress printed output
-    # text_trap = io.StringIO()
-    # sys.stdout = text_trap
-    # Insert data into database
-    to_sql(
-        df,
-        "dataset_split_text",
-        creds,
-        index = False,
-        if_exists = "append",
-        batch_size = min(50000, len(df))
-    )
-    # Allow printing again
-    # sys.stdout = sys.__stdout__
+    if DB_CREDS == None or client == "mssql":
+        creds = SqlCreds.from_engine(engine)
+        to_sql(
+            df,
+            tables.DatasetSplitText.__tablename__,
+            creds,
+            index = False,
+            if_exists = "append",
+            batch_size = min(50000, len(df))
+        )
+    else:
+        with engine.connect() as conn:
+            df.to_sql(
+                tables.DatasetSplitText.__tablename__, 
+                conn, 
+                if_exists = "append", 
+                index = False, 
+                chunksize = min(50000, len(df))
+            )
+            conn.commit()
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 # Split the text of the given data frame
@@ -83,31 +131,48 @@ def split_text(data: pd.DataFrame):
 def get_data():
     start = time.time()
     # Get number of records and calculate number of pages
-    cursor.execute("SELECT COUNT(*) FROM {}".format(TABLE_NAME))
-    records = cursor.fetchall()
-    records = records[0][0]
+    query = (
+        select(tables.DatasetMetadata.record_count)
+            .where(tables.DatasetMetadata.table_name == TABLE_NAME)
+    )
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            records = row[0]
+            break
+        conn.commit()
     PAGE_LENGTH = 50000
     PAGES = int(np.ceil(records / PAGE_LENGTH))
     # Get text columns
-    cursor.execute("SELECT col FROM dataset_text_cols WHERE table_name = ?", TABLE_NAME)
-    text_cols = cursor.fetchall()
-    text_cols = list(map(lambda x: x[0], text_cols))
+    query = (
+        select(tables.DatasetTextCols.col)
+            .where(tables.DatasetTextCols.table_name == TABLE_NAME)
+    )
+    text_cols = []
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            text_cols.append(row[0])
+        conn.commit()
     if len(text_cols) == 0:
         print("No text columns to process")
         sys.exit(0)
+    # Get table from metadata
+    table = meta.tables[TABLE_NAME]
     # Array to store all processing threads
     df = []
     for col in text_cols:
         for page in range(PAGES):
             # Get next 50,000 records from db
-            QUERY = '''
-                SELECT id, {} FROM {}
-                ORDER BY id
-                OFFSET ? ROWS
-                FETCH NEXT ? ROWS ONLY
-            '''.format(col, TABLE_NAME)
-            cursor.execute(QUERY, page * PAGE_LENGTH, PAGE_LENGTH)
-            records = cursor.fetchall()
+            query = (
+                select(table.c.get("id"), table.c.get(col))
+                    .order_by(table.c.get("id"))
+                    .offset(page * PAGE_LENGTH)
+                    .limit(PAGE_LENGTH)
+            )
+            records = []
+            with engine.connect() as conn:
+                for row in conn.execute(query):
+                    records.append(row)
+                conn.commit()
             data = pd.DataFrame({
                 "id": list(map(lambda x: x[0], records)),
                 "text": list(map(lambda x: x[1], records)),
@@ -118,11 +183,8 @@ def get_data():
     print("Loading data: {} minutes".format((time.time() - start) / 60))
     return df
               
-start_time = time.time()
 data = get_data()
 df = split_text(data)
 print("Tokens processed: {}".format(len(df)))
 insert_tokens(df)
-cursor.close()
-conn.close()
 print("Total time: {} minutes".format((time.time() - start_time) / 60))

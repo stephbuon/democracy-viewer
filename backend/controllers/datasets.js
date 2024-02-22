@@ -1,6 +1,8 @@
 const util = require("../util/file_management");
-const axios = require("axios").default
+const axios = require("axios").default;
 const python = require("python-shell").PythonShell;
+const { encodeConnection } = require("./databases");
+const { defaultConfig } = require("../util/database_config");
 
 const datasets = require("../models/datasets"); 
 
@@ -146,12 +148,15 @@ const uploadDatasetJS = async(knex, name, user) => {
 const uploadDatasetPy = async(knex, name, user) => {
     const model = new datasets(knex);
 
+    // Extract username from user
+    const username = user.username;
+
     // Get the current metadata for this dataset
     const curr = await model.getMetadata(name);
 
     // If the user of this dataset does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
+    if (curr.username !== username) {
+        throw new Error(`User ${ username } is not the owner of this dataset`);
     }
 
     // Get file name from table name
@@ -162,6 +167,13 @@ const uploadDatasetPy = async(knex, name, user) => {
     const options = {
         args: [ name, path ]
     }
+
+    // If distributed connection, add encoded token to args
+    if (user.database) {
+        const token = await encodeConnection(require("knex")(defaultConfig()), user.database);
+        options.args.push(token);
+    }
+
     // If a python path is provided in .env, use it
     // Else use the default path
     if (process.env.PYTHON_PATH) {
@@ -170,7 +182,7 @@ const uploadDatasetPy = async(knex, name, user) => {
 
     // Run python program to upload dataset
     await python.run("util/upload_dataset.py", options).then(x => console.log(x)).catch(x => {
-        console.log(x);
+        console.error(x);
         throw new Error(x);
     });
     
@@ -179,9 +191,9 @@ const uploadDatasetPy = async(knex, name, user) => {
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    options["args"] = [ name ]
+    options["args"] = options["args"].filter(x => x != path)
     await python.run("preprocessing/launch.py", options).then(x => console.log(x)).catch(x => {
-        console.log(x);
+        console.error(x);
         throw new Error(x);
     });
 
