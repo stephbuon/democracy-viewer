@@ -17,6 +17,7 @@ from nltk.corpus import wordnet as wn
 
 # Get table name from command line argument
 TABLE_NAME = sys.argv[1]
+load_dotenv()
 
 # Load distributed connection if defined
 start_time = time.time()
