@@ -25,6 +25,7 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   var endpoint = `${apiEndpoint}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
 
   groupList.forEach((group) => { // Add all groups in groupList to endpoint
+    console.log("Get graph test", group.value)
     endpoint += `&group_list=${group.value}`
   })
 
@@ -74,9 +75,7 @@ export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) =
   var endpoint = `${apiEndpoint}/datasets/ids/${dataset}?` // Stores concatenated endpoint
 
   ids.forEach((id) => { // Add all groups in groupList to endpoint
-    id.forEach((i) => {
-      endpoint += `id=${i}&`
-    })
+    endpoint += `id=${id}&`
   })
   endpoint = endpoint.slice(0, -1);
 
@@ -85,7 +84,6 @@ export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) =
       "Content-Type": "multipart/form-data",
     }
   }).then(x => resolve(x.data)).catch(x => {
-    console.log("ID test", x, ids)
     alert(x);
     reject(x);
   });

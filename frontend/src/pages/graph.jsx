@@ -87,7 +87,7 @@ export const Graph = (props) => {
     }
   }
 
-  // When a column is selected, update aray for column value dropdown
+  // When a column is selected, update array for column value dropdown
   const nameSelected = (g) => { 
     setSelectToggle(g == "");
 
@@ -106,19 +106,21 @@ export const Graph = (props) => {
     setButtonToggle(true); // Disable submit button until finished
 
     getGraph(props.dataset.table_name, group, groupList, metric, searchTerms[0]).then(async (res) => {
+      console.log("graph res test", res)
       setData([]);
       res.forEach((dataPoint) => { // Populate data array with request output
+        console.log("Datapoint test", dataPoint)
         let index = data.findIndex((x) => x.name == dataPoint.group);
         if (index >= 0) {
           data[index].x.push(dataPoint.word)
           data[index].y.push(dataPoint.n)
-          data[index].ids.push(dataPoint.ids)
+          data[index].ids += dataPoint.ids
         }
         else {
           data.push({
             x: [dataPoint.word],
             y: [dataPoint.n],
-            ids: [dataPoint.ids],
+            ids: dataPoint.ids,
             name: dataPoint.group,
             type: "bar"
           })

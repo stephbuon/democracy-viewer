@@ -3,12 +3,16 @@ import { getRecordsByIds } from '../api/api.js';
 
 export const Zoom = ({ data }) => {
 
-    const [searchResults, setSearchResults] = useState([]);
+    // TESTING TEMP
+    var innerHTML;
+    data.group = "MR. GLADSTONE"
+    data.count = 31
+    data.word = "industry"
+    data.ids = [1081131, 1113745, 124187, 309018, 333962, 333977, 368875, 395545, 461368, 461370, 461371, 461372, 5945, 6001, 6006, 6016, 6112, 6198, 6404, 6429, 6442, 651830, 69130, 71485, 743941, 77529, 77554, 77582]
+    //
 
-    let _query = {
-        table_name: "hansard_1870_1682572305673",
-        search: `?col_search=${data.word}`
-    }
+
+    const [searchResults, setSearchResults] = useState([]);
 
     useEffect(() => {
         getRecordsByIds(data.dataset.table_name, data.ids).then(async (res) => {
@@ -20,9 +24,30 @@ export const Zoom = ({ data }) => {
                 console.log("Zoom test", searchResults, res);
             }
         })
-      }, []);
+    }, []);
 
-    console.log("Zoom page opened with data: ", data)
+    const highlight = (result, index) => {
+        console.log("Highlighting")
+        var textLabel = document.getElementById("text" + index);
+        innerHTML = "";
+
+        let tempText = result.text.replaceAll("\"", '')
+        let lowerText = tempText.toLowerCase()
+        let i = lowerText.indexOf(data.word)
+
+        while(i != -1){
+            innerHTML += tempText.substring(0, i)
+            innerHTML += "<mark>" + data.word + "</mark>" + innerHTML.substring(i + data.word.length);
+            
+            tempText = tempText.substring(i + data.word.length)
+            lowerText = lowerText.substring(i + data.word.length)
+            i = lowerText.indexOf(data.word)
+        }
+        innerHTML += tempText;
+        console.log("HTML TEST", innerHTML)
+        console.log(result, index)
+      }
+
     // TODO Show all values from group containing selected word
     /*
     return (
@@ -35,52 +60,52 @@ export const Zoom = ({ data }) => {
     return (
         <div>
             <div className="container text-center p-5">
-                    {/* labels */}
-                    <div className="row pb-2">
-                        <div className="col"></div>
-                        <div className="col">
-                            <b>Group</b>
-                        </div>
-                        <div className="col">
-                            <b>Count</b>
-                        </div>
-                        <div className="col">
-                            <b>Word</b>
-                        </div>
+                {/* labels */}
+                <div className="row pb-2">
+                    <div className="col"></div>
+                    <div className="col">
+                        <b>Group</b>
+                    </div>
+                    <div className="col">
+                        <b>Count</b>
+                    </div>
+                    <div className="col">
+                        <b>Word</b>
+                    </div>
+                </div>
+
+                {/* data */}
+                <div className="row">
+                    <div className="col">
+                        <b>Selected datapoint</b>
+                    </div>
+                    <div className="col">
+                        {data.group}
+                    </div>
+                    <div className="col">
+                        {data.count}
+                    </div>
+                    <div className="col">
+                        {data.word}
+                    </div>
+                </div>
+
+                {/* related data */}
+                <div className="row pb-2">
+                    <div className="col">
+                        <b>Most common data in goup</b>
+                    </div>
+                    <div className="col">
+                        {"MR. GLADSTONE"}
+                    </div>
+                    <div className="col">
+                        {700 + "?"}
+                    </div>
+                    <div className="col">
+                        {"[common word]"}
                     </div>
 
-                    {/* data */}
-                    <div className="row">
-                        <div className="col">
-                            <b>Selected datapoint</b>
-                        </div>
-                        <div className="col">
-                            {data.group}
-                        </div>
-                        <div className="col">
-                            {data.count}
-                        </div>
-                        <div className="col">
-                            {data.word}
-                        </div>
-                    </div>
-
-                    {/* related data */}
-                    <div className="row pb-2">
-                        <div className="col">
-                            <b>Most common data in goup</b>
-                        </div>
-                        <div className="col">
-                            {"MR. GLADSTONE"}
-                        </div>
-                        <div className="col">
-                            {700 + "?"}
-                        </div>
-                        <div className="col">
-                            {"[common word]"}
-                        </div>
-
-                    </div>
+                </div>
 
                 {/* subset search title */}
                 <div className="row pt-4 bp-2">
@@ -95,20 +120,25 @@ export const Zoom = ({ data }) => {
                     </div>
                 </div>
 
-                {/* subset result */}
-                {searchResults.length > 0 && searchResults.map((result) => (
-                    <div className="row border">
-                        <div className="col my-auto">
-                            {result.debate.replaceAll("\"", '')}
-                        </div>
-                        <div className="col my-auto">
-                            {result.speaker.replaceAll("\"", '')}
-                        </div>
-                        <div className="col my-auto">
-                            {result.text.replaceAll("\"", '')}
-                        </div>
-                    </div>
-                ))}
+                {/* get id results */}
+                {searchResults.length > 0 && searchResults.map(function(result, i)
+                    {
+                        highlight(result, i)
+
+                        let debate = result.debate.replaceAll("\"", '')
+                        let speaker = result.speaker.replaceAll("\"", '')
+
+                        return <div className="row border">
+                                <div className="col my-auto">
+                                    {debate}
+                                </div>
+                                <div className="col my-auto">
+                                    {speaker}
+                                </div>
+                                <div className="col my-auto">{innerHTML}</div>
+                            </div>
+                    }
+                )}
 
             </div>
         </div>
