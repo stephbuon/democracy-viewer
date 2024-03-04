@@ -2,8 +2,14 @@ const files = require("../util/file_management");
 const python = require("python-shell").PythonShell;
 require('dotenv').config();
 
+const datasets = require("../models/datasets");
+const graphs = require("../models/graphs");
+
 // Generate the data for a graph based on user input
-const createGraph = async(models, dataset, params, user = null) => {
+const createGraph = async(knex, dataset, params, user = null) => {
+    const model_datasets = new datasets(knex); 
+    const model_graphs = new graphs(knex); 
+
     // Check if the provided metrics is valid
     const metrics = [
         "counts",
@@ -11,15 +17,14 @@ const createGraph = async(models, dataset, params, user = null) => {
         "tf-idf",
         "ll",
         "jsd",
-        "ojsd",
-        "embedding"
+        "ojsd"
     ];
     if (!metrics.includes(params.metric)) {
         throw new Error(`Invalid metric ${ params.metric }`);
     }
 
     // Check dataset metadata to make sure user has access to this dataset
-    const metadata = await models.datasets.getMetadata(dataset);
+    const metadata = await model_datasets.getMetadata(dataset);
     if (!metadata.is_public && metadata.username !== user) {
         throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
     }
@@ -29,20 +34,17 @@ const createGraph = async(models, dataset, params, user = null) => {
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
     let input;
-    // Get word embeddings or split text based on the metric
-    if (params.metric === "embedding") {
-        input = await models.graphs.getWordEmbeddings(dataset);
-    } else {
-        input = await models.graphs.getGroupSplits(
-            dataset, 
-            params.group_name, 
-            params.group_list
-        );
+    // Get split text records
+    input = await model_graphs.getGroupSplits(
+        dataset, 
+        params.group_name, 
+        params.group_list
+    );
 
-        if (params.metric === "counts" && params.word_list.length === 0) {
-            return sumCol(input, "n");
-        }
+    if (params.metric === "counts" && params.word_list.length === 0) {
+        return sumCol(input, "n");
     }
+
     // If input has no results, return an empty array
     if (input.length === 0) {
         return [];
@@ -79,13 +81,92 @@ const createGraph = async(models, dataset, params, user = null) => {
         }
     }
    
-    // Read python output file and return results
+    // Read python output files and return results
     const file3 = file1.replace("/input/", "/output/");
+    const file4 = file2.replace("/input/", "/output/");
     return await files.readCSV(file3).then(async(data) => {
+        const ids = files.readJSON(file4);
         files.deleteFiles([ file1, file2 ]);
 
-        return joinData(input, data, params);
+        return joinData(data, params, ids);
     });
+}
+
+// Join ids with calculated data
+const joinData = (calculated, params, ids) => {
+    let newData = [ ...calculated ];
+
+    if (params.metric === "ll") {
+        newData = newData.map(x => {
+            x.ids = [];
+            ids.forEach(y => {
+                if (y.word === x.word) {
+                    x.ids = [ ...x.ids, ...y.ids ];
+                }
+            }); 
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
+
+            return x;
+        });
+    } else if (params.metric === "jsd") {
+        newData = newData.map(x => {
+            const groups = Object.keys(x)[1].split("_").splice(1).map(x => x.toLowerCase());
+            x.ids = [];
+            ids.forEach(y => {
+                if (y.word === x.word && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
+                    x.ids = [ ...x.ids, ...y.ids ];
+                }
+            }); 
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
+
+            return x;
+        });
+    } else if (params.metric === "ojsd") {
+        newData = newData.map(x => {
+            const groups = Object.keys(x)[0].split("_").splice(1).map(x => x.toLowerCase());
+            x.ids = [];
+            ids.forEach(y => {
+                if (params.word_list.length === 0 || (params.word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase()))) {
+                    x.ids = [ ...x.ids, ...y.ids ];
+                }
+            }); 
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
+
+            return x;
+        });
+    } else if (params.metric === "counts") {
+        newData = newData.map(x => {
+            x.ids = [];
+            ids.forEach(y => {
+                if (x.word === y.word && x.group === y.group) {
+                    x.ids = [ ...x.ids, ...y.ids ];
+                }
+            });
+            x.ids = x.ids.map(y => parseInt(y));
+            x.ids = [ ...new Set(x.ids) ].sort();
+
+            return x;
+        });
+    } else if (params.metric === "tf-idf" || params.metric === "proportion") {
+        newData = newData.map(x => {
+            x.ids = [];
+            ids.forEach(y => {
+                if (x.word === y.word && x.group === y.group) {
+                    x.ids = [ ...x.ids, ...y.ids ];
+                }
+            }); 
+            x.ids = [ ...new Set(x.ids) ].sort((a,b) => a - b);
+
+            return x;
+        });
+    } else {
+        throw new Error(`Invalid metric ${ params.metric }`);
+    }
+
+    return newData;
 }
 
 // Take the sum of a column and add ids as an array
@@ -116,67 +197,6 @@ const sumCol = (data, col) => {
             });
         }
     });
-
-    return newData;
-}
-
-// Join ids with calculated data
-const joinData = (original, calculated, params) => {
-    let newData = [ ...calculated ];
-
-    if (params.metric === "ll") {
-        newData = newData.map(x => {
-            x.ids = [];
-            original.forEach(y => {
-                if (y.word === x.word) {
-                    x.ids.push(y.id);
-                }
-            }); 
-
-            return x;
-        });
-    } else if (params.metric === "jsd") {
-        newData = newData.map(x => {
-            const groups = Object.keys(x)[1].split("_").splice(1).map(x => x.toLowerCase());
-            x.ids = [];
-            original.forEach(y => {
-                if (y.word === x.word && groups.includes(y.group.replace(" ", ".").toLowerCase())) {
-                    x.ids.push(y.id);
-                }
-            }); 
-
-            return x;
-        });
-    } else if (params.metric === "ojsd") {
-        newData = newData.map(x => {
-            const groups = Object.keys(x)[0].split("_").splice(1).map(x => x.toLowerCase());
-            x.ids = [];
-            original.forEach(y => {
-                if (params.word_list.length === 0 || (params.word_list.includes(y.word) && groups.includes(y.group.replace(" ", ".").toLowerCase()))) {
-                    x.ids.push(y.id);
-                }
-            }); 
-
-            return x;
-        });
-    } else if (params.metric === "counts") {
-        newData = sumCol(newData, "n");
-    } else if (params.metric === "tf-idf" || params.metric === "proportion") {
-        newData = newData.map(x => {
-            x.ids = [];
-            original.forEach(y => {
-                if (x.word === y.word && x.group === y.group) {
-                    x.ids.push(y.id);
-                }
-            }); 
-
-            return x;
-        });
-    } else if (params.metric === "embedding") {
-        // Return raw python output
-    } else {
-        throw new Error(`Invalid metric ${ params.metric }`);
-    }
 
     return newData;
 }

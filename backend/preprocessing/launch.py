@@ -5,64 +5,167 @@ from dotenv import load_dotenv
 import copy
 import os
 import time
-import io
+import jwt
 # Database interaction
-import pyodbc
 from bcpandas import to_sql, SqlCreds
+from sqlalchemy import create_engine, MetaData, select
+# Update directory to import util
+import util.sql_alchemy_tables as tables
 # Text mining
-from nltk.corpus import wordnet as wn
+import nltk
+from nltk.corpus import wordnet
+from nltk.stem import WordNetLemmatizer
+from nltk.stem.snowball import SnowballStemmer
+nltk.download("wordnet")
+nltk.download('averaged_perceptron_tagger')
+
+# Initialize lemmatizer and define function to lemmatize text and return list of lemmas
+def lemmatize_nltk(text):
+    def get_wordnet_pos(word):
+        """Map POS tag to first character lemmatize() accepts"""
+        tag = nltk.pos_tag([word])[0][1][0].upper()
+        tag_dict = {"J": wordnet.ADJ,
+                    "N": wordnet.NOUN,
+                    "V": wordnet.VERB,
+                    "R": wordnet.ADV}
+
+        return tag_dict.get(tag, wordnet.NOUN)
+    
+    lemmatizer = WordNetLemmatizer()
+    return [ lemmatizer.lemmatize(w, get_wordnet_pos(w)) for w in nltk.word_tokenize(text)]
+
+# Stemmer function
+def stem_nltk(text):
+    stemmer = SnowballStemmer(language = "english")
+    return list(map(lambda x: stemmer.stem(x), text.split()))
 
 # Get table name from command line argument
 TABLE_NAME = sys.argv[1]
-
-# Load environment variables
 load_dotenv()
-server = os.environ.get("HOST")
-database = os.environ.get("DATABASE")
-port = os.environ.get("PORT")
-username = os.environ.get("DATABASE_USERNAME")
-password = os.environ.get("PASSWORD")
 
-# Connect to database
-CONNECTION_STR = 'DRIVER={ODBC Driver 18 for SQL Server};SERVER='+server+','+port+';DATABASE='+database+';UID='+username+';PWD='+ password
-conn = pyodbc.connect(CONNECTION_STR)
-cursor = conn.cursor()
+# Load distributed connection if defined
+start_time = time.time()
+try:
+    DB_CREDS_TOKEN = sys.argv[2]
+except:
+    DB_CREDS_TOKEN = None
+if DB_CREDS_TOKEN != None:
+    secret = os.environ.get("TOKEN_SECRET")
+    DB_CREDS = jwt.decode(DB_CREDS_TOKEN, secret, "HS256")
+else: 
+    DB_CREDS = None
+
+if DB_CREDS == None:
+    # Connect to default database if no distributed connection
+    # Load environment variables
+    host = os.environ.get("HOST")
+    database = os.environ.get("DATABASE")
+    port = os.environ.get("PORT")
+    username = os.environ.get("DATABASE_USERNAME")
+    password = os.environ.get("PASSWORD")
+
+    # Connect to database
+    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
+        username, password, host, port, database
+    )
+else:
+    # Connect to distributed connection
+    client = DB_CREDS["client"]
+    creds = { key: DB_CREDS[key] for key in ["host", "db", "port", "username", "password"]}
+    # Create connection for client
+    if client == "mssql":
+        conn_str = "mssql+pyodbc://"
+    elif client == "mysql":
+        conn_str = "mysql+pymysql://"
+    elif client == "pg":
+        conn_str = "postgresql+psycopg2://"
+    else:
+        raise Exception("Unrecognized client:", client)
+    conn_str += creds["username"]
+    if "password" in creds.keys():
+        conn_str += ":{}".format(creds["password"])
+    conn_str += "@{}".format(creds["host"])
+    if "port" in creds.keys():
+        conn_str += ":{}".format(creds["port"])
+    conn_str += "/{}".format(creds["db"])
+    if client == "mssql":
+        conn_str += "?driver=ODBC+Driver+18+for+SQL+Server"
+        
+engine = create_engine(conn_str)
+meta = MetaData()
+meta.reflect(engine)
+print("Connection time: {} minutes".format((time.time() - start_time) / 60))
 
 # Insert tokens into database
 def insert_tokens(df: pd.DataFrame):
     start = time.time()
-    creds = SqlCreds(server, database, username, password, 18, port)
-    # Suppress printed output
-    # text_trap = io.StringIO()
-    # sys.stdout = text_trap
-    # Insert data into database
-    to_sql(
-        df,
-        "dataset_split_text",
-        creds,
-        index = False,
-        if_exists = "append",
-        batch_size = min(50000, len(df))
-    )
-    # Allow printing again
-    # sys.stdout = sys.__stdout__
+    if DB_CREDS == None or client == "mssql":
+        creds = SqlCreds.from_engine(engine)
+        to_sql(
+            df,
+            tables.DatasetSplitText.__tablename__,
+            creds,
+            index = False,
+            if_exists = "append",
+            batch_size = min(50000, len(df))
+        )
+    else:
+        with engine.connect() as conn:
+            df.to_sql(
+                tables.DatasetSplitText.__tablename__, 
+                conn, 
+                if_exists = "append", 
+                index = False, 
+                chunksize = min(50000, len(df))
+            )
+            conn.commit()
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 # Split the text of the given data frame
 def split_text(data: pd.DataFrame):
     start = time.time()
+    
+    # Get metadata to determine preprocessing type
+    query = (
+        select(tables.DatasetMetadata.preprocessing_type)
+            .where(tables.DatasetMetadata.table_name == TABLE_NAME)
+    )
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            preprocessing_type = row[0]
+            break
+        conn.commit()
+        
     # Read and process stop words
     stopwords = pd.read_csv("preprocessing/util/stopwords.csv")
-    stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace('\W', '', regex=True).apply(wn.morphy)
+    stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace('\W', '', regex=True)
+    # Stem stop words if using stemming
+    if preprocessing_type == "stem":
+        stopwords["stop_word"] = stopwords["stop_word"].apply(stem_nltk)
+        stopwords = stopwords.explode("stop_word")
     stopwords = stopwords.drop_duplicates()
+    
     # Create a deep copy of data
     split_data = copy.deepcopy(data)
-    # Make lowercase and split into words
-    split_data["text"] = split_data["text"].str.lower().str.split()
-    # Create new row for each word in each record
+    # Lemmatize, stem, or split text based on preprocessing type
+    if preprocessing_type == "lemma":
+        split_data["text"] = split_data["text"].apply(lemmatize_nltk)
+    elif preprocessing_type == "stem":
+        split_data["text"] = split_data["text"].apply(stem_nltk)
+    else:
+        split_data["text"] = split_data["text"].str.split()
+    # Create new row for each word
     split_data = split_data.explode("text")
-    # Remove special characters and lemmatize
-    split_data["text"] = split_data["text"].str.replace('\W', '', regex=True).apply(wn.morphy)
+    split_data["text"] = (
+        split_data["text"]
+            # Remove special characters
+            .str.replace('\W', '', regex=True)
+            # Make lowercase
+            .str.lower()
+        )
+    
+    # Remove empty values
+    split_data = split_data[split_data["text"] != ""]
     # Get counts of each word in each record
     split_data = split_data.groupby(["id", "text", "col"]).size().reset_index(name='count')
     # Remove stop words and missing data
@@ -76,6 +179,7 @@ def split_text(data: pd.DataFrame):
             "text": "word"
         }
     )
+    
     print("Data processing: {} minutes".format((time.time() - start) / 60))
     return split_data
     
@@ -83,31 +187,48 @@ def split_text(data: pd.DataFrame):
 def get_data():
     start = time.time()
     # Get number of records and calculate number of pages
-    cursor.execute("SELECT COUNT(*) FROM {}".format(TABLE_NAME))
-    records = cursor.fetchall()
-    records = records[0][0]
+    query = (
+        select(tables.DatasetMetadata.record_count)
+            .where(tables.DatasetMetadata.table_name == TABLE_NAME)
+    )
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            records = row[0]
+            break
+        conn.commit()
     PAGE_LENGTH = 50000
     PAGES = int(np.ceil(records / PAGE_LENGTH))
     # Get text columns
-    cursor.execute("SELECT col FROM dataset_text_cols WHERE table_name = ?", TABLE_NAME)
-    text_cols = cursor.fetchall()
-    text_cols = list(map(lambda x: x[0], text_cols))
+    query = (
+        select(tables.DatasetTextCols.col)
+            .where(tables.DatasetTextCols.table_name == TABLE_NAME)
+    )
+    text_cols = []
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            text_cols.append(row[0])
+        conn.commit()
     if len(text_cols) == 0:
         print("No text columns to process")
         sys.exit(0)
+    # Get table from metadata
+    table = meta.tables[TABLE_NAME]
     # Array to store all processing threads
     df = []
     for col in text_cols:
         for page in range(PAGES):
             # Get next 50,000 records from db
-            QUERY = '''
-                SELECT id, {} FROM {}
-                ORDER BY id
-                OFFSET ? ROWS
-                FETCH NEXT ? ROWS ONLY
-            '''.format(col, TABLE_NAME)
-            cursor.execute(QUERY, page * PAGE_LENGTH, PAGE_LENGTH)
-            records = cursor.fetchall()
+            query = (
+                select(table.c.get("id"), table.c.get(col))
+                    .order_by(table.c.get("id"))
+                    .offset(page * PAGE_LENGTH)
+                    .limit(PAGE_LENGTH)
+            )
+            records = []
+            with engine.connect() as conn:
+                for row in conn.execute(query):
+                    records.append(row)
+                conn.commit()
             data = pd.DataFrame({
                 "id": list(map(lambda x: x[0], records)),
                 "text": list(map(lambda x: x[1], records)),
@@ -118,11 +239,8 @@ def get_data():
     print("Loading data: {} minutes".format((time.time() - start) / 60))
     return df
               
-start_time = time.time()
 data = get_data()
 df = split_text(data)
 print("Tokens processed: {}".format(len(df)))
 insert_tokens(df)
-cursor.close()
-conn.close()
 print("Total time: {} minutes".format((time.time() - start_time) / 60))

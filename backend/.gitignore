@@ -37,6 +37,7 @@ preprocessing/files/*
 *__pycache__
 *.ipynb_checkpoints
 *.vscode
+*.ipynb
 
 # r files
 *.Rhistory

@@ -93,6 +93,7 @@ const readCSV = (path, del = true) => new Promise((resolve, reject) => {
 // Read a JSON file
 const readJSON = (path) => {
     const str = fs.readFileSync(path);
+    fs.unlinkSync(path);
     return JSON.parse(str);
 }
 

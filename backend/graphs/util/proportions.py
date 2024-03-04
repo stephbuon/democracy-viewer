@@ -1,3 +1,5 @@
+import pandas as pd
+pd.DataFrame.iteritems = pd.DataFrame.items
 # These will let us use R packages:
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.vectors import StrVector

@@ -1,14 +1,19 @@
-const knex = require("../db/knex");
-
 const metadata_table = "dataset_metadata";
 const tag_table = "tags";
 const text_col_table = "dataset_text_cols";
 const download_table = "dataset_download";
 
 class datasets {
+    constructor(knex) {
+        if (!knex) {
+            throw new Error("Database connection not defined");
+        }
+        this.knex = knex;
+    }
+
     // Create a table for a new dataset
     async createDataset(name, cols, lengths) {
-        const table = await knex.schema.createTable(name, (table) => {
+        const table = await this.knex.schema.createTable(name, (table) => {
             // Create serial primary key
             table.increments("id").primary();
 
@@ -27,20 +32,20 @@ class datasets {
 
     // Add multiple rows to a dataset
     async addRows(table, rows) {
-        const insert = await knex(table).insert([ ...rows ]);
+        const insert = await this.knex(table).insert([ ...rows ]);
         return insert;
     }
 
     // Add a row to a dataset
     async addRow(table, row) {
-        const insert = await knex(table).insert({ ...row });
+        const insert = await this.knex(table).insert({ ...row });
         return insert;
     }
 
     // Add initial metadata for a table
     async createMetadata(table_name, username) {
-        const insert = await knex(metadata_table).insert({ table_name, username, is_public: 0, date_posted: new Date() });
-        const record = await knex(metadata_table).where({ table_name });
+        const insert = await this.knex(metadata_table).insert({ table_name, username, is_public: 0, date_posted: new Date() });
+        const record = await this.knex(metadata_table).where({ table_name });
         return record[0];
     }
 
@@ -49,7 +54,7 @@ class datasets {
         // Format table name and tags as an array of objects
         const data = tags.map(x => ({ table_name, tag_name: x }));
         // Insert records
-        const insert = await knex(tag_table).insert([ ...data ]);
+        const insert = await this.knex(tag_table).insert([ ...data ]);
         return insert;
     }
 
@@ -58,7 +63,7 @@ class datasets {
         // Format table name and cols as an array of objects
         const data = cols.map(x => ({ table_name, col: x }));
         // Insert records
-        const insert = await knex(text_col_table).insert([ ...data ]);
+        const insert = await this.knex(text_col_table).insert([ ...data ]);
         return insert;
     }
 
@@ -66,93 +71,93 @@ class datasets {
     async addDownload(username, table_name, total_pages, current_page = 0) {
         // Insert record
         const timestamp = new Date();
-        await knex(download_table).insert({ username, table_name, total_pages, current_page, timestamp });
+        await this.knex(download_table).insert({ username, table_name, total_pages, current_page, timestamp });
         // Get record id
         let record;
         if (username) {
-            record = await knex(download_table).select("id").where({ username, table_name, timestamp });
+            record = await this.knex(download_table).select("id").where({ username, table_name, timestamp });
         } else {
-            record = await knex(download_table).select("id").where({ table_name, timestamp }).whereNull("username");
+            record = await this.knex(download_table).select("id").where({ table_name, timestamp }).whereNull("username");
         }
         return record[0].id;
     }
 
     // Update the metadata of a table
     async updateMetadata(table_name, params) {
-        const update = await knex(metadata_table).where({ table_name }).update({ ...params });
-        const record = await knex(metadata_table).where({ table_name });
+        const update = await this.knex(metadata_table).where({ table_name }).update({ ...params });
+        const record = await this.knex(metadata_table).where({ table_name });
         return record;
     }
 
     // Change the data type of the given column in the given table
     async changeColType(table, column, type) {
-        const update = await knex.raw(`ALTER TABLE ${ table } ALTER COLUMN ${ column } ${ type }`);
+        const update = await this.knex.raw(`ALTER TABLE ${ table } ALTER COLUMN ${ column } ${ type }`);
         return update;
     }
 
     // Increment the dataset's clicks
     async incClicks(table_name) {
-        const update = await knex(metadata_table).where({ table_name }).increment("clicks", 1);
-        const record = await knex(metadata_table).where({ table_name });
+        const update = await this.knex(metadata_table).where({ table_name }).increment("clicks", 1);
+        const record = await this.knex(metadata_table).where({ table_name });
         return record[0];
     }
 
     // Increment the current page of a download
     async updateDownload(id) {
-        await knex(download_table).where({ id }).increment("current_page", 1);
+        await this.knex(download_table).where({ id }).increment("current_page", 1);
     }
 
     // Get the first n rows of a dataset (n = 10 by default)
     async getHead(table, n = 10) {
-        const results = await knex(table).limit(n);
+        const results = await this.knex(table).limit(n);
         return results;
     }
 
     // Get the metadata for the given table
     async getMetadata(table_name) {
-        const record = await knex(metadata_table).where({ table_name });
+        const record = await this.knex(metadata_table).where({ table_name });
         return record[0];
     }
 
     // Get all datasets owned by a given user
     async getUserDatasets(username) {
-        const records = await knex(metadata_table).where({ username });
+        const records = await this.knex(metadata_table).where({ username });
         return records;
     }
 
     // Get all unique tags
     async getUniqueTags() {
-        const results = await knex(tag_table).select("tag_name").distinct();
+        const results = await this.knex(tag_table).select("tag_name").distinct();
         return results;
     }
 
     // Get tags by datset
     async getTags(table_name) {
-        const results = await knex(tag_table).where({ table_name });
+        const results = await this.knex(tag_table).where({ table_name });
         return results;
     }
 
     // Get text columns by dataset
     async getTextCols(table_name) {
-        const results = await knex(text_col_table).where({ table_name });
+        const results = await this.knex(text_col_table).where({ table_name });
         return results;
     }
 
     // Get column names
     async getColumnNames(table_name) {
-        const results = await knex(table_name).columnInfo();
+        const results = await this.knex(table_name).columnInfo();
         return results;
     }
 
     // Get unique column values
     async getColumnValues(table_name, column) {
-        const results = await knex(table_name).select(column).orderBy(column).distinct();
+        const results = await this.knex(table_name).select(column).orderBy(column).distinct();
         return results;
     }
 
     // Filter datasets
     async getFilteredDatasets(params, username, paginate = true, currentPage = 1) {
-        const query = knex(metadata_table).select(`${ metadata_table }.*`).distinct()
+        const query = this.knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .where(q => {
                 // Filter by type (public/private)
@@ -170,8 +175,13 @@ class datasets {
                     // Get private datasets created by this user
                     q.where({ is_public: false, username });
                 } else {
-                    // Throw error if type if not public/private
-                    throw new Error("Public/private dataset type not defined.");
+                    // Get private and public datasets
+                    q.where(q => {
+                        q.orWhere({ is_public: true });
+                        if (username) {
+                            q.orWhere({ is_public: false, username });
+                        }
+                    });
                 }
 
                 // Filter by user
@@ -263,7 +273,7 @@ class datasets {
         const cols = await this.getColumnNames(table);
         const colNames = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
 
-        const query = knex(table).where(q => {
+        const query = this.knex(table).where(q => {
             // Get the query object keys
             const keys = Object.keys(params);
 
@@ -332,7 +342,7 @@ class datasets {
 
     // Get all records from the given table with the given ids
     async getRecordsByIds(table, ids) {
-        const results = await knex(table).whereIn("id", ids);
+        const results = await this.knex(table).whereIn("id", ids);
         return results;
     }
 
@@ -340,9 +350,9 @@ class datasets {
     async getDownload(username, table_name) {
         let record;
         if (username) {
-            record = await knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ username, table_name });
+            record = await this.knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ username, table_name });
         } else {
-            record = await knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ table_name }).whereNull("username");
+            record = await this.knex(download_table).select(["timestamp", "current_page", "total_pages"]).where({ table_name }).whereNull("username");
         }
         
         return record[0];
@@ -350,31 +360,31 @@ class datasets {
 
     // Delete a dataset table
     async deleteTable(name) {
-        const del = await knex.schema.dropTable(name);
+        const del = await this.knex.schema.dropTable(name);
         return del;
     }
 
     // Delete a dataset's metadata
     async deleteMetadata(table_name) {
-        const del = await knex(metadata_table).where({ table_name }).delete();
+        const del = await this.knex(metadata_table).where({ table_name }).delete();
         return del;
     }
 
     // Delete tag on a dataset
     async deleteTag(table_name, tag_name) {
-        const del = await knex(tag_table).where({ table_name, tag_name }).delete();
+        const del = await this.knex(tag_table).where({ table_name, tag_name }).delete();
         return del;
     }
 
     // Delete a text column for a dataset
     async deleteTextCol(table_name, col) {
-        const del = await knex(text_col_table).where({ table_name, col }).delete();
+        const del = await this.knex(text_col_table).where({ table_name, col }).delete();
         return del;
     }
 
     // Delete a download
     async deleteDownload(id) {
-        await knex(download_table).where({ id }).delete();
+        await this.knex(download_table).where({ id }).delete();
     }
 }
 
