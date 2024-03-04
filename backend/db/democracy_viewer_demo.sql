@@ -13,16 +13,16 @@ CREATE TABLE users (
     website VARCHAR(50)
 );
 
-CREATE TABLE private_groups (
-    id BIGINT PRIMARY KEY IDENTITY,
-    name VARCHAR(50),
-    description NVARCHAR(255)
-);
+-- CREATE TABLE private_groups (
+--     id BIGINT PRIMARY KEY IDENTITY,
+--     name VARCHAR(50),
+--     description NVARCHAR(255)
+-- );
 
 CREATE TABLE dataset_metadata (
     table_name VARCHAR(250) PRIMARY KEY,
     username VARCHAR(20),
-    private_group BIGINT,
+--     private_group BIGINT,
     title VARCHAR(50),
     description VARCHAR(200),
     is_public BIT DEFAULT false,
@@ -31,25 +31,25 @@ CREATE TABLE dataset_metadata (
     preprocessing_type VARCHAR(5),
     date_posted DATE,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
-    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
+--     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
-CREATE TABLE group_invites (
-    private_group BIGINT,
-    username VARCHAR(20),
-    PRIMARY KEY(private_group, username),
-    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
-    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
-);
-
-CREATE TABLE group_members (
-    private_group BIGINT,
-    member VARCHAR(20),
-    member_rank INT,
-    PRIMARY KEY(private_group, member),
-    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
-    FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
-);
+-- CREATE TABLE group_invites (
+--     private_group BIGINT,
+--     username VARCHAR(20),
+--     PRIMARY KEY(private_group, username),
+--     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+--     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
+-- );
+--
+-- CREATE TABLE group_members (
+--     private_group BIGINT,
+--     member VARCHAR(20),
+--     member_rank INT,
+--     PRIMARY KEY(private_group, member),
+--     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+--     FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
+-- );
 
 CREATE TABLE tags (
     tag_name VARCHAR(15),
