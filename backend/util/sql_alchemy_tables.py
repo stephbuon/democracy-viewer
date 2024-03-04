@@ -12,6 +12,7 @@ class DatasetMetadata(SQL_BASE):
     is_public = Column("is_public", Boolean)
     clicks = Column("clicks", Integer)
     record_count = Column("record_count", BigInteger)
+    preprocessing_type = Column("preprocessing_type", String(5))
     date_posted = Column("date_posted", Date)
     
 class DatasetTextCols(SQL_BASE):
