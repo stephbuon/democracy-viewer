@@ -4,7 +4,6 @@ import util.proportions as proportions
 import util.counts as counts
 import util.tf_idf as tf_idf
 # Other imports
-import pandas as pd
 import sys
 import json
 import time
@@ -109,15 +108,15 @@ start_time = time.time()
 if params["metric"] == "counts":
     output = counts.counts(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "ll":
-    output = dhmeasures.LogLikelihood(data, params["group_list"], params["word_list"], "group", "word", "n")
+    output = dhmeasures.LogLikelihood(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "jsd":
-    output = dhmeasures.JSD(data, params["group_list"], params["word_list"], "group", "word", "n")
+    output = dhmeasures.JSD(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "ojsd":
-    output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
+    output = dhmeasures.OriginalJSD(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "tf-idf":
-    output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
+    output = tf_idf.tf_idf(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "proportion":
-    output = proportions.proportions(data, params["group_list"], params["word_list"], "group", "word", "n")
+    output = proportions.proportions(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 else:
     sys.exit("Invalid metric: " + params["metric"])
 print("Computation time: {} minutes".format((time.time() - start_time) / 60))

@@ -4,6 +4,7 @@ from sqlalchemy import Engine, MetaData, join, select
 # Update directory to import util
 from util.sql_alchemy_tables import DatasetSplitText
 
+# Select records by group and word lists
 def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]):
     table = meta.tables[table_name]
     query = (
@@ -19,7 +20,7 @@ def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str
     )
     
     if column != None:
-        query = query.add_columns(table.c.get(column).label("group"))
+        query = query.add_columns(table.c.get(column))
         
     query = query.where(DatasetSplitText.table_name == table_name)
     
@@ -43,7 +44,9 @@ def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str
         "count": list(map(lambda x: x[2], records))
     })
     if column != None:
-        df[column] = list(map(lambda x: x[3], records))
+        df["group"] = list(map(lambda x: x[3], records))
         
     return df
         
+# Get number of records that include a word
+# def word_record_count(engine: Engine, table_name: str, word: str)

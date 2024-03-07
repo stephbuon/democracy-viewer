@@ -5,18 +5,26 @@ from rpy2.robjects import pandas2ri
 from rpy2.robjects.vectors import StrVector
 from rpy2.robjects import conversion
 from rpy2.robjects.packages import STAP
+# Database interaction
+from sqlalchemy import Engine, MetaData
+from util.sql_queries import basic_selection
 
 pandas2ri.activate()
 
-def tf_idf(data, group_list, word_list, group, word, n):
+def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]):
     # Import tf_idf function from tf_idf.R
     with open("graphs/util/tf_idf.R", "r") as file:
         tf_idf = file.read()
     tf_idf = STAP(tf_idf, "tf_idf")
 
+    data = basic_selection(engine, meta, table_name, column, values, word_list)
     # Run tf_idf runction
-    output = tf_idf.tf_idf(data, StrVector(group_list), StrVector(word_list), group, word, n)
-    output = conversion.rpy2py(output)
+    # print(data.head())
+    # print(values)
+    # print(word_list)
+    # output = tf_idf.tf_idf(data, StrVector(values), StrVector(word_list), "group", "word", "n")
+    # output = conversion.rpy2py(output)
+    
     
     return output
 

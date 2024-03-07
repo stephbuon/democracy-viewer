@@ -7,7 +7,7 @@ def counts(engine: Engine, meta: MetaData, table_name: str, column: str | None, 
     # Goup by word and group (if defined)
     group_cols = [ "word" ]
     if column != None:
-        group_cols.append(column)
+        group_cols.append("group")
     # Store ids as list
     ids = data.groupby(group_cols)["id"].apply(list).reset_index(name = "ids")
     data.drop("id", axis = 1, inplace = True)

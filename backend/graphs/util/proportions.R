@@ -1,9 +1,6 @@
 library(dplyr)
 
-proportions = function(data, group_list, word_list, group, word, n) {
-  word = dplyr::enquo(word)
-  group = dplyr::enquo(group)
-  n = dplyr::enquo(n)
+proportions = function(data, group_list, word_list) {
   
   # Get the total word counts for each group
   group_counts = data %>%
