@@ -29,37 +29,45 @@ const createGraph = async(knex, dataset, params, user = null) => {
         throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
     }
 
+    params.table_name = dataset;
     // Convert params.group_list and params.word_list to arrays if they aren't already
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
-    let input;
-    // Get split text records
-    input = await model_graphs.getGroupSplits(
-        dataset, 
-        params.group_name, 
-        params.group_list
-    );
+    // let input;
+    // // Get split text records
+    // input = await model_graphs.getGroupSplits(
+    //     dataset, 
+    //     params.group_name, 
+    //     params.group_list
+    // );
 
-    if (params.metric === "counts" && params.word_list.length === 0) {
-        return sumCol(input, "n");
-    }
+    // if (params.metric === "counts" && params.word_list.length === 0) {
+    //     return sumCol(input, "n");
+    // }
 
     // If input has no results, return an empty array
-    if (input.length === 0) {
-        return [];
-    }
+    // if (input.length === 0) {
+    //     return [];
+    // }
     // Create input file with data for python program
-    const file1 = "graphs/files/input/" + dataset + "_" + Date.now() + ".csv";
-    await files.generateCSV(file1, input);
+    const file1 = "graphs/files/input/" + dataset + "_" + Date.now() + ".json";
+    // await files.generateCSV(file1, input);
     // Create input file with parameters for python program
-    const file2 = file1.replace(".csv", ".json");
-    files.generateJSON(file2, params);
+    // const file2 = file1.replace(".csv", ".json");
+    files.generateJSON(file1, params);
 
     // Add file names as command line arguments
     const options = {
-        args: [ file1, file2 ]
+        args: [ file1 ]
     }
+
+    // If distributed connection, add encoded token to args
+    if (user && user.database) {
+        const token = await encodeConnection(require("knex")(defaultConfig()), user.database);
+        options.args.push(token);
+    }
+    
     // If a python path is provided in .env, use it
     // Else use the default path
     if (process.env.PYTHON_PATH) {
@@ -74,7 +82,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
         });
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {
-            files.deleteFiles([ file1, file2 ]);
+            files.deleteFiles([ file1 ]);
             throw new Error(err);
         } else {
             console.log(err)
@@ -82,14 +90,16 @@ const createGraph = async(knex, dataset, params, user = null) => {
     }
    
     // Read python output files and return results
-    const file3 = file1.replace("/input/", "/output/");
-    const file4 = file2.replace("/input/", "/output/");
-    return await files.readCSV(file3).then(async(data) => {
-        const ids = files.readJSON(file4);
-        files.deleteFiles([ file1, file2 ]);
+    // const file3 = file1.replace("/input/", "/output/");
+    // const file4 = file2.replace("/input/", "/output/");
+    // return await files.readCSV(file3).then(async(data) => {
+    //     const ids = files.readJSON(file4);
+    //     files.deleteFiles([ file1, file2 ]);
 
-        return joinData(data, params, ids);
-    });
+    //     return joinData(data, params, ids);
+    // });
+    const file2 = file1.replace("/input/", "/output/");
+    return files.readJSON(file2);
 }
 
 // Join ids with calculated data
