@@ -210,7 +210,9 @@ export const Upload = (props) => {
                   onChange={(x) => {
                     setFile(x.target.files[0]);
                     setPassFile(x.target.files[0]);
+                    click(1); // This explicitly sets clicked to 1, indicating a file upload action
                   }}
+                  
                 />
                 <label htmlFor="file_input" style={{marginBottom: '50px'}}>
                   <img

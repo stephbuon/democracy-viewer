@@ -179,7 +179,7 @@ export const DatasetResultsPage = (props) => {
       </Snackbar>
         <Grid container component="main" sx={{ height: '100vh' }}>
               {/* Grid that conatins Search Bar */}
-            <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square>
+            <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square sx={{pt:25}}>
                 <Stack spacing={2}>
                     <Box
                         sx={{
