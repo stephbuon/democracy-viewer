@@ -1,3 +1,5 @@
+import time
+start_time = time.time()
 # Import metrics
 import util.dhmeasures as dhmeasures
 import util.proportions as proportions
@@ -6,16 +8,15 @@ import util.tf_idf as tf_idf
 # Other imports
 import sys
 import json
-import time
 import os
 import jwt
-from nltk.corpus import wordnet as wn
 # Database Interaction
 from sqlalchemy import create_engine, MetaData, select
 # Update directory to import util
 import util.sql_alchemy_tables as tables
 # Word processing
 from util.word_processing import lemmatize_nltk, stem_nltk
+print("Import time: {} minutes".format((time.time() - start_time) / 60))
 
 # Get input file from command line argument
 params_file = sys.argv[1]
