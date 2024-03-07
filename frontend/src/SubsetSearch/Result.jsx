@@ -7,77 +7,69 @@ import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableR
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
-export const Result = (props) => {
+export const Result = ({ value, dataset, columnWidths }) => {
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const navigate = useNavigate();
+    const keys = value && typeof value === 'object' ? Object.keys(value) : [];
 
-    const keys = props.value && typeof props.value === 'object' ? Object.keys(props.value) : [];
-
-
-    return <div>
-
-        <Box onClick={() => handleOpen()}>
-            {keys.map((key)=>
-            {
-                return <TableCell
-                sx={{
-                    width: .2
-                }}
-                >{props.value[key]}</TableCell>
-            })}
-        </Box>
-        <Modal
-            open={open}
-            onClose={() => handleClose()}
-        >
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: '15%',
-                    left: '15%',
-                    height: "70%",
-                    overflow: "scroll",
-                    width: "70%",
-                    bgcolor: 'background.paper',
-                    border: '1px solid #000',
-                    borderRadius: ".5em .5em"
-                }}
-            >
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>
-                                {props.dataset.title}
-                            </TableCell>
-                            <TableCell>
-                                &nbsp;
-                            </TableCell>
-                            <TableCell>
-                                &nbsp;
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {keys.map((key) => {
-                            return <TableRow id={key}>
-                                <TableCell>
-                                    {key}
-                                </TableCell>
-                                <TableCell>
-                                    {props.value[key]}
-                                </TableCell>
-                                <TableCell>
-                                    &nbsp;
-                                </TableCell>
-                            </TableRow>
-                        })}
-                    </TableBody>
-                </Table>
+    return (
+        <div>
+            <Box onClick={handleOpen} sx={{ display: 'grid', gridTemplateColumns: columnWidths.map(width => `${width}px`).join(' ') }}>
+                {keys.map((key, index) => (
+                    <TableCell
+                        key={index}
+                        sx={{
+                            maxWidth: `${columnWidths[index]}px`,
+                            width: `${columnWidths[index]}px`, // Ensure this matches the header's width
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        {value[key]}
+                    </TableCell>
+                ))}
             </Box>
-        </Modal>
 
-    </div>
-}
+            <Modal
+                open={open}
+                onClose={handleClose}
+            >
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: '15%',
+                        left: '15%',
+                        height: "70%",
+                        overflow: "scroll",
+                        width: "70%",
+                        bgcolor: 'background.paper',
+                        border: '1px solid #000',
+                        borderRadius: ".5em .5em"
+                    }}
+                >
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>{dataset.title}</TableCell>
+                                <TableCell>&nbsp;</TableCell>
+                                <TableCell>&nbsp;</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {keys.map((key) => (
+                                <TableRow key={key}>
+                                    <TableCell>{key}</TableCell>
+                                    <TableCell>{value[key]}</TableCell>
+                                    <TableCell>&nbsp;</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Box>
+            </Modal>
+        </div>
+    );
+};
