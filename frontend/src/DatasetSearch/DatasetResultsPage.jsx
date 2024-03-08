@@ -21,6 +21,8 @@ import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchA
 import { Result } from './Result';
 import { AdvancedFilter } from './AdvancedFilter';
 import './Loading.css'
+import { ChangeConnection, GetUserConnections } from '../apiFolder/DistributedBackendAPI';
+import { GetSession } from '../apiFolder/LoginRegister';
 
 
 export const DatasetResultsPage = (props) => {
@@ -36,6 +38,10 @@ export const DatasetResultsPage = (props) => {
     const [totalTags, setTotalTags] = useState([]);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+
+    const [connection, setConnection] = useState(undefined);
+    const [userConns, setUserConns] = useState([]);
+    const [alert, setAlert] = useState(1);
 
 
     //pagination
@@ -108,8 +114,7 @@ export const DatasetResultsPage = (props) => {
     }
 
     const loggedIn = () => {
-        if(props.currUser)
-        {
+        if (props.currUser) {
             return true;
         }
         return false;
@@ -133,12 +138,12 @@ export const DatasetResultsPage = (props) => {
     }
     const openSnackbar1 = () => {
         setSnackBarOpen1(true)
-      }
-    const handleSnackBarClose1 = (event, reason) => {
-    if (reason === 'clickaway') {
-        return;
     }
-    setSnackBarOpen1(false);
+    const handleSnackBarClose1 = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackBarOpen1(false);
     };
 
     useEffect(() => {
@@ -146,29 +151,51 @@ export const DatasetResultsPage = (props) => {
     }, [loadingResults]);
 
     useEffect(() => {
-        if(props.navigated)
-        {
+        if (props.currUser) {
+            GetSession().then((user) => {
+                setConnection(user.database)
+            }).catch(() => {
+                setConnection(undefined);
+            })
+        }
+        GetUserConnections().then((_conns) => {
+            setUserConns(_conns)
+        }).catch(() => setUserConns([]))
+        if (props.navigated) {
             props.setNavigated(false)
+            setAlert(1);
             openSnackbar1()
         }
         filterResults()
     }, []);
 
+    const change_connection = (chosen_dataset) => {
+        ChangeConnection(chosen_dataset).then((token) => {
+            setConnection(chosen_dataset)
+            localStorage.setItem('democracy-viewer', undefined)//wipe the curr userdata
+            let profile = props.currUser
+            profile.token = token
+            props.login(profile)
+        }).catch(() => {
+            setAlert(2);
+            openSnackbar1();
+        })
+    }
 
-
-    return (<div className='blue' style={{ marginTop: "-1in" }}> 
-    <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={snackBarOpen1}
-        autoHideDuration={6000}
-        onClose={() => handleSnackBarClose1()}
-      >
-        <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
-          Must choose dataset first
-        </Alert>
-      </Snackbar>
+    return (<div className='blue' style={{ marginTop: "-1in" }}>
+        <Snackbar
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            open={snackBarOpen1}
+            autoHideDuration={6000}
+            onClose={() => handleSnackBarClose1()}
+        >
+            <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
+                {alert == 1 && <>Must choose dataset first</>}
+                {alert == 2 && <>Could not use distributed connection</>}
+            </Alert>
+        </Snackbar>
         <Grid container component="main" sx={{ height: '100vh' }}>
-              {/* Grid that conatins Search Bar */}
+            {/* Grid that conatins Search Bar */}
             <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square>
                 <Stack spacing={2}>
                     <Box
@@ -202,6 +229,28 @@ export const DatasetResultsPage = (props) => {
                                             value={false}
                                             onClick={() => !loggedIn() && openSnackbar()}>Private
                                         </MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </div>
+                        </Box>
+                        <Box sx={{ m: 2 }}>
+                            <div align="center">
+                                <FormControl
+                                    sx={{ color: "blue" }}>
+                                    <Select
+                                        sx={{ color: "primary" }}
+                                        value={connection}
+                                        onChange={event => change_connection(event.target.value)}
+                                    >
+                                        <MenuItem value={undefined}>
+                                            Default
+                                        </MenuItem>
+                                        {userConns.length > 0 && userConns.map((conn) => {
+                                            return <MenuItem
+                                                id={conn.id}
+                                                value={conn.id}
+                                            >{conn.name}</MenuItem>
+                                        })}
                                     </Select>
                                 </FormControl>
                             </div>
@@ -361,6 +410,7 @@ export const DatasetResultsPage = (props) => {
                 You must be logged in to access private datasets.
             </Alert>
         </Snackbar>
+
     </div>
     );
 }

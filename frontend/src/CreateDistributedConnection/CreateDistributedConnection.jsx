@@ -12,16 +12,22 @@ import AddLinkIcon from '@mui/icons-material/AddLink';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { CreateConnection } from '../apiFolder/DistributedBackendAPI';
+import { CreateConnection, DownloadSchema } from '../apiFolder/DistributedBackendAPI';
 import { useNavigate } from 'react-router-dom';
 import { MenuItem, Select } from '@mui/material';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { useState, useEffect } from "react";
 
-
+let FileSaver = require('file-saver');
 
 const theme = createTheme();
 
 export default function CreateDistributedConnection(props) {
   const navigate = useNavigate();
+
+  const [snackBarOpen, setSnackBarOpen] = useState(false);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -37,7 +43,20 @@ export default function CreateDistributedConnection(props) {
     }
     CreateConnection(packet).then(async (res) => { //Use connection. Need the use connection endpoint
         navigate('/')
+    }).catch(ex => {
+      console.log("something went wrong making distributed connection")
+      openSnackbar()
     })
+  };
+
+  const openSnackbar = () => {
+        setSnackBarOpen(true)
+  }
+  const handleSnackBarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+        return;
+    }
+    setSnackBarOpen(false);
   };
 
   return (
@@ -81,7 +100,6 @@ export default function CreateDistributedConnection(props) {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  required
                   fullWidth
                   id="portNum"
                   label="Port Number"
@@ -99,7 +117,6 @@ export default function CreateDistributedConnection(props) {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  required
                   fullWidth
                   id="dbusername"
                   label="Database Username"
@@ -108,7 +125,6 @@ export default function CreateDistributedConnection(props) {
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  required
                   fullWidth
                   name="dbpassword"
                   label="Database Password"
@@ -146,6 +162,12 @@ export default function CreateDistributedConnection(props) {
                     <MenuItem
                         value='mysql'
                     >MySQL</MenuItem>
+                    <MenuItem
+                        value='mssql'
+                    >SQL</MenuItem>
+                    <MenuItem
+                        value='pg'
+                    >PostgreSQL</MenuItem>
                 </Select>
                 </Grid>
             </Grid>
@@ -159,7 +181,31 @@ export default function CreateDistributedConnection(props) {
             </Button>
           </Box>
         </Box>
+        You need to use our schema for our system to recognize your data. Please click below to download the setup file.
+        <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              onClick={() => {DownloadSchema().then(file => {
+                let blob = new Blob([file], { type: "text/plain;charset=utf-8" });
+                FileSaver.saveAs(blob, `democracy_viewer.mysql`);
+              })}}
+            >
+              Download Schema
+            </Button>
       </Container>
+      <Snackbar
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            open={snackBarOpen}
+            autoHideDuration={6000}
+            onClose={handleSnackBarClose}
+        >
+            <Alert onClose={handleSnackBarClose} severity="error">
+            Failed to connect to new database connection
+            </Alert>
+        </Snackbar>
+      
     </ThemeProvider>
   );
 }
