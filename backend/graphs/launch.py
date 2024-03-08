@@ -109,7 +109,7 @@ if params["metric"] == "counts":
 elif params["metric"] == "ll":
     output = dhmeasures.LogLikelihood(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "jsd":
-    output = dhmeasures.JSD(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
+    output = metrics.jsd(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "ojsd":
     output = dhmeasures.OriginalJSD(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "tf-idf":

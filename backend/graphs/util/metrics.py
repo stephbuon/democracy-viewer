@@ -25,7 +25,10 @@ def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str | None, 
     # Get group counts for words
     group_counts = queries.group_count_by_words(engine, meta, table_name, word_list, column)
     # Get total group count
-    total_groups = queries.group_count(engine, meta, table_name, column)
+    if column != None:
+        total_groups = queries.group_count(engine, meta, table_name, column)
+    else:
+        total_groups = queries.record_count(engine, meta, table_name)
     # Compute smoothed idf
     idf = {}
     for word in word_list:
@@ -60,7 +63,7 @@ def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str | None, 
     
     return output
 
-def proportions(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]):
+def proportions(engine: Engine, meta: MetaData, table_name: str, column: str, values: list[str], word_list: list[str]):
     data = queries.basic_selection(engine, meta, table_name, column, values, word_list)
     
     # Store ids as list
@@ -80,3 +83,48 @@ def proportions(engine: Engine, meta: MetaData, table_name: str, column: str | N
     output["ids"] = ids["ids"]
     
     return output
+
+def jsd(engine: Engine, meta: MetaData, table_name: str, column: str, values: list[str], word_list: list[str]):
+    data = queries.basic_selection(engine, meta, table_name, column, values, word_list)
+    
+    # Store ids as list
+    ids = data.groupby("group")["id"].apply(list).reset_index(name = "ids")
+    data.drop("id", axis = 1, inplace = True)
+    # Get distinct groups
+    groups = data["group"].unique()
+    # Get word and group counts
+    data = data.groupby(["word", "group"]).sum()
+    # Calculate probabilities
+    data["prob"] = data.groupby("group")["count"].transform(lambda x: x / x.sum())
+    data = data.drop("count", axis = 1).unstack("group").fillna(0).reset_index()
+    data.columns = data.columns.get_level_values(1)
+    data.drop("", axis = 1, inplace = True)
+    
+    # Compare all pairs of groups
+    output = []
+    for i in range(len(groups)):
+        for j in range(i+1, len(groups)):
+            # Subset data by current groups
+            probs: pd.DataFrame = data[data.columns.intersection([ groups[i], groups[j] ])].copy()
+            # Compute average distributio
+            m = np.sum(probs, axis = 1) / probs.shape[1]
+            # Compute KLD for each group
+            kld = np.sum(probs * np.log(probs.div(m, axis = 0)), axis = 1)
+            # Compute JSD
+            jsd_score = 0.5 * kld.sum()
+            # Get ids for each group
+            ids1 = ids[ids["group"] == groups[i]].reset_index()["ids"][0]
+            ids2 = ids[ids["group"] == groups[j]].reset_index()["ids"][0]
+            # Add result to output
+            output.append(
+                pd.DataFrame({
+                    "group1": [groups[i]],
+                    "group2": [groups[j]],
+                    "jsd": [jsd_score],
+                    "ids": [list(set(ids1 + ids2))]
+                })
+            )
+              
+    # Concatenate results
+    return pd.concat(output)
+    

@@ -52,7 +52,7 @@ def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str
         "count": list(map(lambda x: x[2], records))
     })
     if column != None:
-        df["group"] = list(map(lambda x: x[3], records))
+        df["group"] = list(map(lambda x: str.lower(x[3]), records))
         
     return df
         
@@ -87,13 +87,29 @@ def group_count_by_words(engine: Engine, meta: MetaData, table_name: str, word_l
         
     return records
 
-# get the total number of distinct group values
+# Get the total number of distinct group values
 def group_count(engine: Engine, meta: MetaData, table_name: str, column: str) -> int:
     # Get data table from metadata
     table = meta.tables[table_name]
         
     # Select distinct count
     query = select(func.count(distinct(table.c.get(column))))
+    
+    # Submit query and return count
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            count = row[0]
+        conn.commit()
+        
+    return count
+
+# Get the total number of records
+def record_count(engine: Engine, meta: MetaData, table_name: str) -> int:
+    # Get data table from metadata
+    table = meta.tables[table_name]
+        
+    # Select distinct count
+    query = select(func.count(distinct(table.c.get("id"))))
     
     # Submit query and return count
     with engine.connect() as conn:
