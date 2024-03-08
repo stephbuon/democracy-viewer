@@ -20,12 +20,12 @@ export const FilterDatasets = async (params, page) =>  {
     if(params.advanced)
     {
         //ADVANCED SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,params.type === 'private' && apiConfig());
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,apiConfig());
     }
     else
     {
         //SIMPLE SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.searchTerm}`,params.type === 'private' && apiConfig());
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.searchTerm}`,apiConfig());
     }
     if(res.status !== 200){
         console.log(`Couldn't get datasets information. ${res.status}`, params)
@@ -43,12 +43,12 @@ export const FilterDatasetsCount = async (params) =>  {
     if(params.advanced)
     {
         //ADVANCED SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/count/filter/?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,params.type === 'private' && apiConfig());
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/count/filter/?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,apiConfig());
     }
     else
     {
         //SIMPLE SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/count/filter/?type=${params.type}${params.searchTerm}`,params.type === 'private' && apiConfig());
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/count/filter/?type=${params.type}${params.searchTerm}`,apiConfig());
     }
     if(res.status !== 200){
         console.log(`Couldn't get datasets information. ${res.status}`, params)

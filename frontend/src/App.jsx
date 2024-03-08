@@ -21,8 +21,8 @@ export const App = () => {
   // variable definitions
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
   const [data, setData] = useState(demoV);
-  const [dataset, setDataset] = useState(demoV.dataset);
-  const [user, setUser] = useState(demoV.user);
+  const [dataset, setDataset] = useState(demoV ? demoV.dataset : undefined);
+  const [user, setUser] = useState(demoV ? demoV.user : undefined);
   const [navigated, setNavigated] = useState(false);
 
   // Log onstart

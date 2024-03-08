@@ -29,7 +29,7 @@ const authenticateJWT = (req, res, next) => {
       return res.sendStatus(401);
     }
   } catch (err) {
-    console.err("Failed to authenticate user token", err);
+    console.error("Failed to authenticate user token", err);
     res.status(500).json({message: err.toString()});
   }
 };
@@ -50,7 +50,7 @@ const optAuthenticateJWT = (req, res, next) => {
   
     next();
   } catch (err) {
-    console.err("Failed to authenticate user token", err);
+    console.error("Failed to authenticate user token", err);
     res.status(500).json({message: err.toString()});
   }
 };
