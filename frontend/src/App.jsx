@@ -1,5 +1,4 @@
 import { React, useState, useEffect } from "react";
-import { LoginRegister } from "./pages/login-register.jsx";
 import { Graph } from "./pages/graph.jsx";
 import { Layout } from "./pages/layout.jsx";
 import { Zoom } from "./pages/zoom.jsx";
@@ -15,6 +14,7 @@ import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import CreateDistributedConnection from "./CreateDistributedConnection/CreateDistributedConnection.jsx";
   
 export const App = () => {
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
@@ -78,14 +78,14 @@ export const App = () => {
             <Route path="/login" element={<Login login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/register" element={<Register login={login}/>} />
             <Route path="/profile/:username" element={<Profile currUser={user}/>} />
-            <Route path="/login-register" element={<LoginRegister login={login}/>}></Route>
             <Route path="/graph" element={<Graph dataset={dataset} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
-            <Route path='/datasetsearch' element={<DatasetResultsPage setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
-            <Route path="/upload" element={<Upload />}></Route>
+            <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
+            <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/uploadprogress" element={<UploadProgress navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/downloadprogress" element={<DownloadProgress dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
+            <Route path="/createdistributedconnection" element={<CreateDistributedConnection/>}/>
         </Routes>
       </BrowserRouter>
     </div>

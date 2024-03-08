@@ -7,6 +7,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 0ms;
+	width: 100%;
 }
 .loadingData2 {
     background-image: linear-gradient(90deg, #fff 0%, #fff 45%, #a3a3a3 48%,#a3a3a3 52%,#fff 55%,#fff 100% );
@@ -15,6 +16,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 50ms;
+	width: 100%;
 }
 .loadingData3 {
     background-image: linear-gradient(90deg, #fff 0%, #fff 45%, #a3a3a3 48%,#a3a3a3 52%,#fff 55%,#fff 100% );
@@ -23,6 +25,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 100ms;
+	width: 100%;
 }
 .loadingData4 {
     background-image: linear-gradient(90deg, #fff 0%, #fff 45%, #a3a3a3 48%,#a3a3a3 52%,#fff 55%,#fff 100% );
@@ -31,6 +34,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 150ms;
+	width: 100%;
 }
 .loadingData5 {
     background-image: linear-gradient(90deg, #fff 0%, #fff 45%, #a3a3a3 48%,#a3a3a3 52%,#fff 55%,#fff 100% );
@@ -39,6 +43,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 200ms;
+	width: 100%;
 }
 .loadingData6 {
     background-image: linear-gradient(90deg, #fff 0%, #fff 45%, #a3a3a3 48%,#a3a3a3 52%,#fff 55%,#fff 100% );
@@ -47,6 +52,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 250ms;
+	width: 100%;
 }
 .loadingData7 {
     background-image: linear-gradient(90deg, #fff 0%, #fff 45%, #a3a3a3 48%,#a3a3a3 52%,#fff 55%,#fff 100% );
@@ -55,6 +61,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 300ms;
+	width: 100%;
 }
 .loadingData8 {
     background-image: linear-gradient(90deg, #fff 0%, #fff 45%, #a3a3a3 48%,#a3a3a3 52%,#fff 55%,#fff 100% );
@@ -63,7 +70,7 @@
     background-size: 120% 100%;
 	animation: gradient 2s infinite;
 	animation-delay: 350ms;
-
+	width: 100%;
 }
 
 @keyframes gradient {

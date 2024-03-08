@@ -66,10 +66,15 @@ export const SubsetResultsPage = (props) => {
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
 
         console.log("QUERY ", _query.search)
-        setTimeout(() => {
-            setLoadingResults(false);
-            setLoadingPage(false);
-        }, 3000);
+        //
+        // setSearchResults([]);
+        // setTimeout(() => {
+        //     if(searchResults.length > 0)
+        //     {
+        //         setLoadingResults(false);
+        //         setLoadingPage(false);
+        //     }
+        // }, 3000);
         GetSubsetOfDataByPage(_query, 1).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
@@ -78,6 +83,9 @@ export const SubsetResultsPage = (props) => {
                 setSearchResults(res);
             }
             setPage(1);
+        }).finally(async () => {
+            setLoadingResults(false);
+            setLoadingPage(false);
         })
 
         GetNumOfEntries(_query).then(async (res) => {
@@ -95,10 +103,11 @@ export const SubsetResultsPage = (props) => {
         setLoadingPage(true)
         try {
             const resPromise = GetSubsetOfDataByPage(query, page + 1);
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // await new Promise(resolve => setTimeout(resolve, 500));
             const res = await resPromise;
             if (res) {
-                setSearchResults(prevResults => [...prevResults, ...res]);
+                let _searchResults = [...searchResults, ...res]
+                setSearchResults(_searchResults);
                 setPage(page + 1);
             }
         } catch (error) {
@@ -126,7 +135,7 @@ export const SubsetResultsPage = (props) => {
     //     setPage(page + 1);
     // }
 
-    //infinite scroll
+    //infinite scroll? Saw this online, but did not understand how it worked.
     // window.addEventListener("scroll", (event) => {
     //     let lastKnownScrollPosition = window.scrollY;
     //     // let limit = document.documentElement.offsetHeight
@@ -450,7 +459,7 @@ export const SubsetResultsPage = (props) => {
 
 
                     </div>
-                </Box>
+                </Box>}
 
 
                 <Box
@@ -460,6 +469,7 @@ export const SubsetResultsPage = (props) => {
                         margin: 0,
                         overflowX: 'auto',
                         marginTop: '2rem',
+                        width: '100%',
                     }}
                 >
                     <div
@@ -475,7 +485,6 @@ export const SubsetResultsPage = (props) => {
                                 <Result value={result} dataset={props.dataset} columnWidths={columnWidths} />
                             </div>
                         ))}
-
                     </div>
                 </Box>
 

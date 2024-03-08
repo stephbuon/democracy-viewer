@@ -21,19 +21,33 @@ const authenticateUser = async(knex, body) => {
 }
 
 // Update an authentication token with a database connection id
-const updateToken = (user, database) => {
+const addConnectionToToken = (user, database) => {
     if (!database) {
         throw new Error("Missing database connection id");
-      }
-  
-      const user_ = { ...user };
-      user_.database = database;
-      const accessToken = jwt.sign({ ...user_ }, accessTokenSecret);
+    }
 
-      return accessToken;
+    const user_ = { ...user };
+    user_.database = database;
+    const accessToken = jwt.sign({ ...user_ }, accessTokenSecret);
+
+    return accessToken;
+}
+
+// Update an authentication token by removing database connection id
+const removeConnectionFromToken = (user) => {
+    if (!user.database) {
+        throw new Error("Token does not have a database connection");
+    }
+
+    const user_ = { ...user };
+    delete user_.database;
+    const accessToken = jwt.sign({ ...user_ }, accessTokenSecret);
+
+    return accessToken;
 }
 
 module.exports = {
     authenticateUser,
-    updateToken
+    addConnectionToToken,
+    removeConnectionFromToken
 }

@@ -78,8 +78,8 @@ with open(params_file, "r") as file:
     
 # Get metadata to determine preprocessing type
 query = (
-    select(tables.DatasetMetadata.preprocessing_type)
-        .where(tables.DatasetMetadata.table_name == params["table_name"])
+    select(tables.DatasetMetadata)
+    .where(tables.DatasetMetadata.table_name == params["table_name"])
 )
 with engine.connect() as conn:
     for row in conn.execute(query):

@@ -32,9 +32,21 @@ router.get('/', authenticateJWT, async (req, res, next) => {
 });
 
 // Route to update a session with a database connection
-router.put('/', authenticateJWT, async(req, res, next) => {
+router.put('/database/add', authenticateJWT, async(req, res, next) => {
   try {
-    const result = control.updateToken(req.user, req.body.database);
+    const result = control.addConnectionToToken(req.user, req.body.database);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error("Failed to update token:", err);
+    res.status(500).json({message: err.toString()});
+  }
+  next();
+});
+
+// Route to update a session without a database connection
+router.put('/database/remove', authenticateJWT, async(req, res, next) => {
+  try {
+    const result = control.removeConnectionFromToken(req.user);
     res.status(200).json(result);
   } catch (err) {
     console.error("Failed to update token:", err);
