@@ -22,7 +22,7 @@ import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
 export const Graph = (props) => {
 // useState definitions
   const [data, setData] = useState([]);
-  const searchTerms = useState(["trade", "press", "industry", "work"]);
+  const searchTerms = useState([]);
   const [groupOptions, setGroupOptions] = useState(undefined);
   const [valueOptions, setValueOptions] = useState(undefined);
   const [groupList, setGroupList] = useState([]);
@@ -42,7 +42,6 @@ export const Graph = (props) => {
     { value: "tf-idf", label: "tf-idf" },
     { value: "ll", label: "Log Likelihood" },
     { value: "jsd", label: "Jensen-Shannon Divergence" },
-    { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
     // { value: "embedding", label: "Word Embeddings" }
   ]);
 
@@ -70,6 +69,7 @@ export const Graph = (props) => {
   // Updates column name dropdown values
   const updateGroupNames = () => {
     getGroupNames(props.dataset.table_name).then(async (res) => {
+      console.log(res)
       let _groupOptions = []
       for(let i = 0; i < res.length; i++){
         _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})

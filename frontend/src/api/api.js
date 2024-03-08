@@ -1,17 +1,17 @@
 import axios from 'axios';
 
-var token;
 const apiEndpoint = 'http://localhost:8000';
-var apiConfig;
 
 export const getToken = () => {
-  return token;
+  let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+  return demoV.user.token;
 }
 
 export const upload = (file) => new Promise((resolve, reject) => {
-    axios.post(`${apiEndpoint}/datasets/`, file, apiConfig, {
+    axios.post(`${apiEndpoint}/datasets/`, file, {
       headers: {
         "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${ getToken() }`
       }
     })
         .then(x => resolve(x.data))
@@ -36,9 +36,10 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
     endpoint += `&word_list=${word}`
   })
   // Get graph from endpoint
-  axios.get(endpoint, apiConfig, {
+  axios.get(endpoint, {
     headers: {
       "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
     }
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
@@ -48,9 +49,10 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
 
 export const getGroupNames = (dataset) => new Promise((resolve, reject) => {
   // Get graph from endpoint
-  axios.get(`${apiEndpoint}/datasets/columns/${dataset}`, apiConfig, {
+  axios.get(`${apiEndpoint}/datasets/columns/${dataset}`, {
     headers: {
       "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
     }
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
@@ -61,9 +63,10 @@ export const getGroupNames = (dataset) => new Promise((resolve, reject) => {
 //{{base_url}}/datasets/columns/{{hansard_1870}}/values/speaker
 export const getColumnValues = (dataset, group) => new Promise((resolve, reject) => {
   // Get graph from endpoint
-  axios.get(`${apiEndpoint}/datasets/columns/${dataset}/values/${group}`, apiConfig, {
+  axios.get(`${apiEndpoint}/datasets/columns/${dataset}/values/${group}`, {
     headers: {
       "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
     }
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
@@ -79,9 +82,10 @@ export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) =
   })
   endpoint = endpoint.slice(0, -1);
 
-  axios.get(endpoint, apiConfig, {
+  axios.get(endpoint, {
     headers: {
       "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
     }
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
