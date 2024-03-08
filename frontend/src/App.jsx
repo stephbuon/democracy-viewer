@@ -17,13 +17,22 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CreateDistributedConnection from "./CreateDistributedConnection/CreateDistributedConnection.jsx";
   
 export const App = () => {
+  
+  // variable definitions
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
   const [data, setData] = useState(demoV);
-  
-  const [dataset, setDataset] = useState(undefined);
-  const [user, setUser] = useState(undefined);
+  const [dataset, setDataset] = useState(demoV.dataset);
+  const [user, setUser] = useState(demoV.user);
   const [navigated, setNavigated] = useState(false);
 
+  // Log onstart
+  useEffect(() => {
+    console.log("Strating Democracy Viewer App")
+  },[]);
+
+  // Function definitions
+
+  //
   const chooseDataset = (choice) =>{
     setDataset(choice)
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -35,6 +44,7 @@ export const App = () => {
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
 
+  //
   const login = (profile) => {
     console.log(profile);
     setUser(profile)
@@ -47,27 +57,6 @@ export const App = () => {
     demoV.user = profile;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
-
-  useEffect(() => {
-    console.log("Strating Democracy Viewer App")
-    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
-    //TODO implement this (only when logged in?)
-    if(demoV != undefined)
-    {
-      if(demoV.user != undefined){setUser(demoV.user)}
-      if(demoV.dataset != undefined){setDataset(demoV.dataset)}
-    }
-  },[]);
-  
-  useEffect(()=>{
-    console.log("NOW USING NEW DATASET", dataset);
-  }, [dataset]);
-
-  useEffect(()=>{
-    console.log("NOW LOGGED IN", user);
-  }, [user]);
-
-  
 
   return (
     <div className="App">

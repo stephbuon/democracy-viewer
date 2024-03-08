@@ -25,6 +25,7 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   var endpoint = `${apiEndpoint}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
 
   groupList.forEach((group) => { // Add all groups in groupList to endpoint
+    console.log("Get graph test", group.value)
     endpoint += `&group_list=${group.value}`
   })
 
@@ -61,6 +62,24 @@ export const getGroupNames = (dataset) => new Promise((resolve, reject) => {
 export const getColumnValues = (dataset, group) => new Promise((resolve, reject) => {
   // Get graph from endpoint
   axios.get(`${apiEndpoint}/datasets/columns/${dataset}/values/${group}`, apiConfig, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) => {
+  var endpoint = `${apiEndpoint}/datasets/ids/${dataset}?` // Stores concatenated endpoint
+
+  ids.forEach((id) => { // Add all groups in groupList to endpoint
+    endpoint += `id=${id}&`
+  })
+  endpoint = endpoint.slice(0, -1);
+
+  axios.get(endpoint, apiConfig, {
     headers: {
       "Content-Type": "multipart/form-data",
     }
