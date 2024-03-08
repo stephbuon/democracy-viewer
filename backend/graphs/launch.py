@@ -1,23 +1,91 @@
+import time
+start_time = time.time()
 # Import metrics
-import util.dhmeasures as dhmeasures
-import util.proportions as proportions
-import util.counts as counts
-import util.tf_idf as tf_idf
-
+import util.metrics as metrics
 # Other imports
-import pandas as pd
 import sys
 import json
-from nltk.corpus import wordnet as wn
+import os
+import jwt
+# Database Interaction
+from sqlalchemy import create_engine, MetaData, select
+# Update directory to import util
+import util.sql_alchemy_tables as tables
+# Word processing
+from util.word_processing import lemmatize_nltk, stem_nltk
+print("Import time: {} minutes".format((time.time() - start_time) / 60))
 
-# Get input files from command line arguments
-data_file = sys.argv[1]
-params_file = sys.argv[2]
+# Get input file from command line argument
+params_file = sys.argv[1]
 
+# Load distributed connection if defined
+start_time = time.time()
+try:
+    DB_CREDS_TOKEN = sys.argv[2]
+except:
+    DB_CREDS_TOKEN = None
+if DB_CREDS_TOKEN != None:
+    secret = os.environ.get("TOKEN_SECRET")
+    DB_CREDS = jwt.decode(DB_CREDS_TOKEN, secret, "HS256")
+else: 
+    DB_CREDS = None
+
+if DB_CREDS == None:
+    # Connect to default database if no distributed connection
+    # Load environment variables
+    host = os.environ.get("HOST")
+    database = os.environ.get("DATABASE")
+    port = os.environ.get("PORT")
+    username = os.environ.get("DATABASE_USERNAME")
+    password = os.environ.get("PASSWORD")
+
+    # Connect to database
+    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
+        username, password, host, port, database
+    )
+else:
+    # Connect to distributed connection
+    client = DB_CREDS["client"]
+    creds = { key: DB_CREDS[key] for key in ["host", "db", "port", "username", "password"]}
+    # Create connection for client
+    if client == "mssql":
+        conn_str = "mssql+pyodbc://"
+    elif client == "mysql":
+        conn_str = "mysql+pymysql://"
+    elif client == "pg":
+        conn_str = "postgresql+psycopg2://"
+    else:
+        raise Exception("Unrecognized client:", client)
+    conn_str += creds["username"]
+    if "password" in creds.keys():
+        conn_str += ":{}".format(creds["password"])
+    conn_str += "@{}".format(creds["host"])
+    if "port" in creds.keys():
+        conn_str += ":{}".format(creds["port"])
+    conn_str += "/{}".format(creds["db"])
+    if client == "mssql":
+        conn_str += "?driver=ODBC+Driver+18+for+SQL+Server"
+        
+engine = create_engine(conn_str)
+meta = MetaData()
+meta.reflect(engine)
+print("Connection time: {} minutes".format((time.time() - start_time) / 60))
+
+start_time = time.time()
 # Parse input files
 with open(params_file, "r") as file:
     params = json.load(file)
-data = pd.read_csv(data_file)
+    
+# Get metadata to determine preprocessing type
+query = (
+    select(tables.DatasetMetadata)
+    .where(tables.DatasetMetadata.table_name == params["table_name"])
+)
+with engine.connect() as conn:
+    for row in conn.execute(query):
+        preprocessing_type = row[0]
+        break
+    conn.commit()
 
 # If group_list or word_list are not in params, set to empty list
 # Also remove Nones from lists
@@ -26,57 +94,28 @@ if "group_list" not in params.keys():
 if "word_list" not in params.keys():
     params["word_list"] = []
     
-# Lemmatize words in word_list
-params["word_list"] = list(map(wn.morphy, params["word_list"]))
-
-ids = []
-if len(params["group_list"]) > 0:
-    for group in params["group_list"]:
-        if len(params["word_list"]) > 0:
-            for word in params["word_list"]:
-                ids.append({
-                    "group": group,
-                    "word": word,
-                    "ids": list(data.loc[(data["group"] == group) & (data["word"] == word)]["id"])
-                })
-        else:
-            ids.append({
-                "group": group,
-                "ids": list(data.loc[(data["group"] == group)]["id"])
-            })
-elif len(params["word_list"]) > 0:
-    for word in params["word_list"]:
-        ids.append({
-            "word": word,
-            "ids": list(data.loc[(data["word"] == word)]["id"])
-        })
-else:
-    ids.append({
-        "ids": list(data["id"])
-    })
-with open(params_file.replace("/input/", "/output/"), "w") as file:
-    file.write(json.dumps(ids))
-    
-cols = ["word"]
-if "group" in data.columns:
-    cols.append("group")
-data = data.groupby(cols)["n"].sum().reset_index()
+# Lemmatize or stem words in word_list
+if preprocessing_type == "stem":
+    params["word_list"] = list(map(lambda x: stem_nltk(x)[0], params["word_list"]))
+elif preprocessing_type == "lemma":
+    params["word_list"] = list(map(lemmatize_nltk, params["word_list"]))
+print("Parameter processing time: {} minutes".format((time.time() - start_time) / 60))
 
 # Call function based on given metric
+start_time = time.time()
 if params["metric"] == "counts":
-    output = counts.counts(data, params["word_list"], "word")
+    output = metrics.counts(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "ll":
-    output = dhmeasures.LogLikelihood(data, params["group_list"], params["word_list"], "group", "word", "n")
+    output = metrics.log_likelihood(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "jsd":
-    output = dhmeasures.JSD(data, params["group_list"], params["word_list"], "group", "word", "n")
-elif params["metric"] == "ojsd":
-    output = dhmeasures.OriginalJSD(data, params["group_list"], params["word_list"], "group", "word", "n")
+    output = metrics.jsd(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "tf-idf":
-    output = tf_idf.tf_idf(data, params["group_list"], params["word_list"], "group", "word", "n") 
+    output = metrics.tf_idf(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "proportion":
-    output = proportions.proportions(data, params["group_list"], params["word_list"], "group", "word", "n")
+    output = metrics.proportions(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 else:
     sys.exit("Invalid metric: " + params["metric"])
+print("Computation time: {} minutes".format((time.time() - start_time) / 60))
 
-output_file = data_file.replace("/input/", "/output/")
-output.to_csv(output_file, index = False)
+output_file = params_file.replace("/input/", "/output/")
+output.to_json(output_file, orient = "records")
