@@ -176,6 +176,7 @@ export const DatasetResultsPage = (props) => {
             let profile = props.currUser
             profile.token = token
             props.login(profile)
+            props.setUser(profile)
         }).catch(() => {
             setConnection(-1);
             setAlert(2);
