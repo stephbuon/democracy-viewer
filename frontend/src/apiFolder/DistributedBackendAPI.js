@@ -22,15 +22,31 @@ export const CreateConnection = async (connection) =>  {
     return res.data;
 };
 
-export const ChangeConnection = async(database) => {//set connection_num to undefined if you want default
-    console.log("Using database", database);
-    const res = await axios.put(`${BACKEND_ENDPOINT}/databases`, {"database":database}, apiConfig());
-    if(res.status !== 201){
-        console.log(`Couldn't use connection. ${res.status}`)
-        return null;
+export const ChangeConnection = async(database) => {//set connection_num to -1 if you want default (unfortunately undefined had issues with react)
+    if(database !== -1)
+    {
+        console.log("Using database", database);
+    
+        const res = await axios.put(`${BACKEND_ENDPOINT}/session/database/add`, {"database":database}, apiConfig());
+        if(res.status !== 200){
+            console.log(`Couldn't use connection. ${res.status}`)
+            return null;
+        }
+        console.log("Returning", res.data);
+        return res.data;
     }
-    console.log("Returning", res.data);
-    return res.data;
+    else
+    {
+        console.log("Using default database", database);
+    
+        const res = await axios.put(`${BACKEND_ENDPOINT}/session/database/remove`, {}, apiConfig());
+        if(res.status !== 200){
+            console.log(`Couldn't update connection. ${res.status}`)
+            return null;
+        }
+        console.log("Returning", res.data);
+        return res.data;
+    }
 };
 
 export const GetUserConnections = async() => {

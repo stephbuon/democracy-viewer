@@ -39,7 +39,7 @@ export const DatasetResultsPage = (props) => {
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
-    const [connection, setConnection] = useState(undefined);
+    const [connection, setConnection] = useState(-1);
     const [userConns, setUserConns] = useState([]);
     const [alert, setAlert] = useState(1);
 
@@ -172,13 +172,16 @@ export const DatasetResultsPage = (props) => {
     const change_connection = (chosen_dataset) => {
         ChangeConnection(chosen_dataset).then((token) => {
             setConnection(chosen_dataset)
-            localStorage.setItem('democracy-viewer', undefined)//wipe the curr userdata
+            localStorage.removeItem('democracy-viewer')//wipe the curr userdata
             let profile = props.currUser
             profile.token = token
             props.login(profile)
         }).catch(() => {
+            setConnection(-1);
             setAlert(2);
             openSnackbar1();
+        }).finally(() => {
+            filterResults();
         })
     }
 
@@ -242,7 +245,7 @@ export const DatasetResultsPage = (props) => {
                                         value={connection}
                                         onChange={event => change_connection(event.target.value)}
                                     >
-                                        <MenuItem value={undefined}>
+                                        <MenuItem value={-1}>
                                             Default
                                         </MenuItem>
                                         {userConns.length > 0 && userConns.map((conn) => {
