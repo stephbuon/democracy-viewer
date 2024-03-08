@@ -78,7 +78,7 @@ def group_count_by_words(engine: Engine, meta: MetaData, table_name: str, word_l
     # Filter by word
     query = query.having(DatasetSplitText.word.in_(word_list))
     
-    # Submit query and convert to data frame
+    # Submit query and convert to dict
     records = {}
     with engine.connect() as conn:
         for row in conn.execute(query):
@@ -119,6 +119,62 @@ def record_count(engine: Engine, meta: MetaData, table_name: str) -> int:
         
     return count
 
-# Get total word count for given words in given groups
-# def word_count_by_group(engine: Engine, meta: MetaData, table_name: str, word_list: list[str], column: str | None) -> dict[str, int]:
+# Get the total word count in a corpus
+def total_word_count(engine: Engine, table_name: str) -> int:
+    # Select distinct count
+    query = (
+        select(func.sum(DatasetSplitText.count))
+        .where(DatasetSplitText.table_name == table_name)
+    )
     
+    # Submit query and return count
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            count = row[0]
+        conn.commit()
+        
+    return count
+
+# Get the count of the given words in a corpus
+def word_counts(engine: Engine, table_name: str, word_list: list[str]) -> dict[str, int]:
+    # Select distinct count
+    query = (
+        select(DatasetSplitText.word, func.sum(DatasetSplitText.count))
+        .where(DatasetSplitText.table_name == table_name, DatasetSplitText.word.in_(word_list))
+        .group_by(DatasetSplitText.word)
+    )
+    
+    # Submit query and convert to dict
+    records = {}
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            records[row[0]] = row[1]
+        conn.commit()
+        
+    return records
+
+# Get the word count of group values
+def group_counts(engine: Engine, meta: MetaData, table_name: str, column: str, values: list[str]) -> dict[str, int]:
+    # Get data table from metadata
+    table = meta.tables[table_name]
+        
+    # Select distinct count
+    query = (
+        select(table.c.get(column), func.sum(DatasetSplitText.count))
+        .join(table, table.c.get("id") == DatasetSplitText.record_id)
+        .where(DatasetSplitText.table_name == table_name, table.c.get(column).in_(values))
+        .group_by(table.c.get(column))
+    )
+    
+    # Submit query and convert to dict
+    records = {}
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            col = str.lower(row[0])
+            if col in records.keys():
+                records[col] += row[1]
+            else:
+                records[col] = row[1]
+        conn.commit()
+        
+    return records

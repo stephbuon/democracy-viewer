@@ -21,14 +21,11 @@ def counts(engine: Engine, meta: MetaData, table_name: str, column: str | None, 
     
     return output
 
-def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]):
+def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str, values: list[str], word_list: list[str]):
     # Get group counts for words
     group_counts = queries.group_count_by_words(engine, meta, table_name, word_list, column)
     # Get total group count
-    if column != None:
-        total_groups = queries.group_count(engine, meta, table_name, column)
-    else:
-        total_groups = queries.record_count(engine, meta, table_name)
+    total_groups = queries.group_count(engine, meta, table_name, column)
     # Compute smoothed idf
     idf = {}
     for word in word_list:
@@ -36,10 +33,8 @@ def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str | None, 
         
     # Get records by words and groups
     data = queries.basic_selection(engine, meta, table_name, column, values, word_list)
-    # Goup by word and group (if defined)
-    group_cols = [ "word" ]
-    if column != None:
-        group_cols.append("group")
+    # Group by word and group
+    group_cols = [ "word", "group" ]
     # Store ids as list
     ids = data.groupby("word")["id"].apply(list).reset_index(name = "ids")
     data.drop("id", axis = 1, inplace = True)
@@ -128,3 +123,46 @@ def jsd(engine: Engine, meta: MetaData, table_name: str, column: str, values: li
     # Concatenate results
     return pd.concat(output)
     
+def log_likelihood(engine: Engine, meta: MetaData, table_name: str, column: str, values: list[str], word_list: list[str]):
+    # Get the total number of words in the corpus
+    total_corpus_words = queries.total_word_count(engine, table_name)
+    # Get records by words and groups
+    data = queries.basic_selection(engine, meta, table_name, column, values, word_list)
+    # Get unique words and groups
+    words = data["word"].unique()
+    groups = data["group"].unique()
+    # Goup by word and group (if defined)
+    group_cols = [ "word", "group" ]
+    # Store ids as list
+    ids = data.groupby("word")["id"].apply(list).reset_index(name = "ids")
+    data.drop("id", axis = 1, inplace = True)
+    # Sum counts
+    data = data.groupby(group_cols).sum().unstack("group").fillna(0)
+    data.columns = data.columns.get_level_values(1)
+    output = []
+    for word in words:
+        # Initialize df for word
+        df = pd.DataFrame({
+            "word": [word]
+        })
+        for group in groups:
+            # Compute LL terms
+            a = data.loc[word, group]
+            b = data.loc[word,:].sum() - a
+            c = data.loc[:,group].sum() - a
+            d = total_corpus_words - a - b - c
+            e1 = (a + c) * (a + b) / total_corpus_words
+            e2 = (b + d) * (a + b) / total_corpus_words
+            if a > 0:
+                ll = 2 * (a * np.log(a / e1))
+            else:
+                ll = 0
+            if b > 0:
+                ll += 2 * b * np.log(b / e2)
+            # Add ll for group to df
+            df[group] = ll
+        # Add ids to df 
+        df["ids"] = [ids[ids["word"] == word].reset_index()["ids"][0]]
+        output.append(df)
+    
+    return pd.concat(output)

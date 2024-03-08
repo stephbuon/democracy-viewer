@@ -1,7 +1,6 @@
 import time
 start_time = time.time()
 # Import metrics
-import util.dhmeasures as dhmeasures
 import util.metrics as metrics
 # Other imports
 import sys
@@ -107,11 +106,9 @@ start_time = time.time()
 if params["metric"] == "counts":
     output = metrics.counts(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "ll":
-    output = dhmeasures.LogLikelihood(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
+    output = metrics.log_likelihood(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "jsd":
     output = metrics.jsd(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
-elif params["metric"] == "ojsd":
-    output = dhmeasures.OriginalJSD(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "tf-idf":
     output = metrics.tf_idf(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 elif params["metric"] == "proportion":

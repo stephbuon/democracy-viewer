@@ -14,8 +14,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
         "proportion",
         "tf-idf",
         "ll",
-        "jsd",
-        "ojsd"
+        "jsd"
     ];
     if (!metrics.includes(params.metric)) {
         throw new Error(`Invalid metric ${ params.metric }`);
