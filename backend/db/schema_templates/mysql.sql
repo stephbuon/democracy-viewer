@@ -5,9 +5,10 @@ CREATE TABLE dataset_metadata (
     username VARCHAR(20) NOT NULL,
     title VARCHAR(50),
     description VARCHAR(200),
-    is_public BIT DEFAULT false NOT NULL,
+    is_public BIT DEFAULT 0 NOT NULL,
     clicks INT DEFAULT 0 NOT NULL,
     record_count BIGINT DEFAULT 0 NOT NULL,
+    preprocessing_type VARCHAR(5) DEFAULT 'none' NOT NULL,
     date_posted DATE NOT NULL
 );
 

@@ -1,5 +1,7 @@
 const files = require("../util/file_management");
 const python = require("python-shell").PythonShell;
+const { encodeConnection } = require("./databases");
+const { defaultConfig } = require("../util/database_config");
 require('dotenv').config();
 
 const datasets = require("../models/datasets");
@@ -22,8 +24,8 @@ const createGraph = async(knex, dataset, params, user = null) => {
 
     // Check dataset metadata to make sure user has access to this dataset
     const metadata = await model.getMetadata(dataset);
-    if (!metadata.is_public && metadata.username !== user) {
-        throw new Error(`User ${ user } does not have access to the dataset ${ dataset }`);
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user.username } does not have access to the dataset ${ dataset }`);
     }
 
     params.table_name = dataset;
