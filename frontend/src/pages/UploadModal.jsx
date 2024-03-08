@@ -13,6 +13,11 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import Tooltip from '@mui/material/Tooltip';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import Chip from '@mui/material/Chip';
+
+
 
 
 import { CreateDataset, UploadDataset, AddTextColumn, AddTags, UpdateMetadata } from '../apiFolder/DatasetUploadAPI';
@@ -37,31 +42,35 @@ export const UploadModal = (props) => {
     const [loadedPage, setLoadedPage] = useState(1);
     const [useAPI, setUseAPI] = useState(false)
     const [apidatasetname, setApidatasetname] = useState(undefined)
+    const [author, setAuthor] = useState('');
+    const [date, setDate] = useState('');
+
 
 
     // const fs = require('fs');
     // const readline = require('readline');
 
     const FilledOut = () => {
-        if(loadedPage == 1)
-        {
+        if (loadedPage == 1) {
             if (!title || !description) { return false }
         }
-        else if(loadedPage == 2)
-        {
-            if(tags.length < 3){return false}
+        else if (loadedPage == 2) {
+            if (tags.length < 3) { return false }
         }
         return true
-        
+
     }
 
     const addTag = () => {
-        let _tags = tags
-        _tags.push(tag)
+        if (tag.trim() === "") return; // Prevent adding if tag is blank or just whitespace
+
+        let _tags = [...tags]; // Create a copy of tags for immutability
+        _tags.push(tag);
         setTags(_tags);
-        console.log("New tags", _tags)
-        setTag('')
+        console.log("New tags", _tags);
+        setTag(''); // Reset input field
     }
+
 
     const deleteTag = (_tag) => {
 
@@ -82,8 +91,7 @@ export const UploadModal = (props) => {
                 _texts.push(headers[i])
             }
         }
-        if (!useAPI)
-        {
+        if (!useAPI) {
             CreateDataset(props.file).then(async (datasetname) => {
                 let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
                 demoV.uploadData = datasetname;
@@ -102,8 +110,7 @@ export const UploadModal = (props) => {
             })
             // }).then(() => { window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer"); })
         }
-        else
-        {
+        else {
 
             let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
             demoV.uploadData = apidatasetname;
@@ -119,7 +126,7 @@ export const UploadModal = (props) => {
 
             window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
         }
-        
+
         props.CancelUpload();
         return;
     }
@@ -127,14 +134,12 @@ export const UploadModal = (props) => {
 
     useEffect(() => {
         console.log("Props", props)
-        if(props.useAPI)
-        {
+        if (props.useAPI) {
             setUseAPI(true)
             setApidatasetname(props.apidatasetname)
             setTitle(props.apidatasetname)
         }
-        else
-        {
+        else {
             setTitle(props.file.name.substr(0, props.file.name.length - 4))
         }
         setHeaders(props.headers)
@@ -164,7 +169,7 @@ export const UploadModal = (props) => {
                     <TableRow>
                         <TableCell className='col-10'>
                         </TableCell>
-                        <TableCell className='col-2' 
+                        <TableCell className='col-2'
                             sx={{
                                 textAlign: 'center'
                             }}>
@@ -180,81 +185,136 @@ export const UploadModal = (props) => {
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            <h3>Dataset Information</h3>
+                            <h3>Dataset Information
+                                <Tooltip title="Provide general information about the dataset.">
+                                    <IconButton size="small">
+                                        <HelpOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </h3>
                         </TableCell>
                     </TableRow>
-                    <TableRow>
-                        <TableCell
-                            sx={{
-                                textAlign: 'center'
-                            }}>
-                            Place Holder Text. Still in process of reformatting
-                            </TableCell>
-                    </TableRow>
+
+
                 </TableBody>
-                </Table>
+            </Table>
                 <Table>
-                <TableBody>
-                    <TableRow>
-                        <TableCell className='col-6'>
-                            Dataset Title:
-                        </TableCell>
-                        <TableCell className='col-6'>
-                            <TextField
-                                id="Title"
-                                label="Title"
-                                variant="filled"
-                                // disabled
-                                sx={{
-                                    background: 'rgb(255, 255, 255)',
-                                    color: 'rgb(0, 0, 0)'
-                                }}
-                                value={title}
-                                onChange={event => { setTitle(event.target.value) }}
-                            />
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell className='col-6'>
-                            Dataset Description:
-                        </TableCell>
-                        <TableCell className='col-6'>
-                            <TextField
-                                id="Description"
-                                label="Description"
-                                variant="filled"
-                                sx={{
-                                    background: 'rgb(255, 255, 255)',
-                                    color: 'rgb(0, 0, 0)'
-                                }}
-                                value={description}
-                                onChange={event => { setDescription(event.target.value) }}
-                            />
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell className='col-6'>
-                            Privacy:
-                        </TableCell>
-                        <TableCell className='col-6'>
-                            <FormControl>
-                                <Select
-                                    value={publicPrivate}
-                                    onChange={event => setPublicPrivate(event.target.value)}
+                    <TableBody>
+                        <TableRow>
+                            <TableCell className='col-6'>
+                                Title:
+                            </TableCell>
+                            <TableCell className='col-6'>
+                                <TextField
+                                    id="Title"
+                                    label="Title"
+                                    variant="filled"
+                                    // disabled
                                     sx={{
                                         background: 'rgb(255, 255, 255)',
                                         color: 'rgb(0, 0, 0)'
                                     }}
-                                >
-                                    <MenuItem value={true}>Public</MenuItem>
-                                    <MenuItem value={false} >Private</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </TableCell>
-                    </TableRow>
+                                    value={title}
+                                    onChange={event => { setTitle(event.target.value) }}
+                                />
+                            </TableCell>
 
-                </TableBody>
-            </Table></>}
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className='col-6'>
+                                Author:
+                            </TableCell>
+                            <TableCell className='col-6'>
+                                <TextField
+                                    id="Author"
+                                    label="Author"
+                                    variant="filled"
+                                    sx={{
+                                        background: 'rgb(255, 255, 255)',
+                                        color: 'rgb(0, 0, 0)'
+                                    }}
+                                    value={author} // Ensure you have a corresponding state for this
+                                    onChange={event => { setAuthor(event.target.value) }} // Ensure you have a corresponding handler function
+                                />
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className='col-6'>
+                                Date Collected:
+                            </TableCell>
+                            <TableCell className='col-6'>
+                                <TextField
+                                    id="Date"
+                                    label="Date"
+                                    type="date"
+                                    variant="filled"
+                                    InputLabelProps={{
+                                        shrink: true, // This is necessary for the date label to behave correctly
+                                    }}
+                                    sx={{
+                                        background: 'rgb(255, 255, 255)',
+                                        color: 'rgb(0, 0, 0)'
+                                    }}
+                                    value={date} // Ensure you have a corresponding state for this
+                                    onChange={event => { setDate(event.target.value) }} // Ensure you have a corresponding handler function
+                                />
+                            </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                            <TableCell className='col-6'>
+                                Description:
+                                <Tooltip title="A Summary of the Dataset.">
+                                    <IconButton size="small">
+                                        <HelpOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </TableCell>
+                            <TableCell className='col-6'>
+                                <TextField
+                                    id="Description"
+                                    label="Description"
+                                    variant="filled"
+                                    sx={{
+                                        background: 'rgb(255, 255, 255)',
+                                        color: 'rgb(0, 0, 0)'
+                                    }}
+                                    value={description}
+                                    onChange={event => { setDescription(event.target.value) }}
+                                />
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className='col-6'>
+                                Privacy:
+                                <Tooltip title="Private: Data can only be seen by owner and selected members. Public: Data can be seen by everyone and discovered in a search.">
+                                    <IconButton size="small">
+                                        <HelpOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </TableCell>
+                            <TableCell className='col-6'>
+
+                                <FormControl>
+                                    <Select
+                                        value={publicPrivate}
+                                        onChange={event => setPublicPrivate(event.target.value)}
+                                        sx={{
+                                            background: 'rgb(255, 255, 255)',
+                                            color: 'rgb(0, 0, 0)'
+                                        }}
+                                    >
+                                        <MenuItem value={true}>Public</MenuItem>
+                                        <MenuItem value={false}>Private</MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                            </TableCell>
+
+                        </TableRow>
+
+                    </TableBody>
+                </Table></>}
 
             {loadedPage === 2 && <><Table>
                 <TableBody>
@@ -263,57 +323,55 @@ export const UploadModal = (props) => {
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            <h3>Tags</h3>
+                            <h3>Tags
+                                <Tooltip title=" Tags are used to discover datasets.">
+                                    <IconButton size="small">
+                                        <HelpOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </h3>
                         </TableCell>
                     </TableRow>
-                    <TableRow>
-                        <TableCell
-                            sx={{
-                                textAlign: 'center'
-                            }}>
-                            Tags are used to discover datasets
-                            </TableCell>
-                    </TableRow>
+
                 </TableBody>
             </Table>
-            <Table>
-                <TableBody>
+                <Table>
+                    <TableBody>
 
-                    <TableRow>
-                        <TableCell className='col-6'>
-                            Tags:
-                        </TableCell>
-                        <TableCell className='col-6'>
-                            <TextField
-                                id="Tag"
-                                label="Tag"
-                                variant="filled"
-                                sx={{
-                                    background: 'rgb(255, 255, 255)',
-                                    color: 'rgb(0, 0, 0)'
-                                }}
-                                value={tag}
-                                onChange={event => { setTag(event.target.value) }}
-                            />
-                            <IconButton onClick={() => addTag()}>
-                                <AddIcon />
-                            </IconButton>
-                        </TableCell>
-                    </TableRow>
-
-                    {tags.map((_tag) => {
-                        return <TableRow id={_tag.idx}>
-                            <TableCell className='col-6'>&nbsp;</TableCell>
+                        <TableRow>
+                            <TableCell className='col-6'>Tags:</TableCell>
                             <TableCell className='col-6'>
-                                {_tag}
-                                <IconButton aria-label="delete" onClick={() => deleteTag(_tag)}>
-                                    <DeleteIcon />
+                                <TextField
+                                    id="Tag"
+                                    label="Tag"
+                                    variant="filled"
+                                    sx={{
+                                        background: 'rgb(255, 255, 255)',
+                                        color: 'rgb(0, 0, 0)',
+                                        marginBottom: '10px' // Add some space between the input and the tags
+                                    }}
+                                    value={tag}
+                                    onChange={event => { setTag(event.target.value) }}
+                                />
+                                <IconButton onClick={() => addTag()}>
+                                    <AddIcon />
                                 </IconButton>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', marginTop: '10px' }}>
+                                    {tags.map((tag, index) => (
+                                        <Chip
+                                            key={index}
+                                            label={tag}
+                                            onDelete={() => deleteTag(tag)}
+                                            sx={{ margin: 0.5 }}
+                                        />
+                                    ))}
+                                </Box>
                             </TableCell>
                         </TableRow>
-                    })}
-                </TableBody>
-            </Table></>}
+
+
+                    </TableBody>
+                </Table></>}
             {loadedPage === 3 && <><Table>
                 <TableBody>
                     <TableRow>
@@ -321,53 +379,51 @@ export const UploadModal = (props) => {
                             sx={{
                                 textAlign: 'center'
                             }}>
-                            <h3>Column Information</h3>
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell
-                            sx={{
-                                textAlign: 'center'
-                            }}>
-                            Note: Our system will auto detect data types if you leave the column as "AUTO". However if you would like individual words to be parsed and preprocessed please signify that as a "TEXT" column
+                            <h3>Column Information
+                                <Tooltip title="Our system will auto detect data types if you leave the column as AUTO. However if you would like individual words to be parsed and preprocessed please signify that as a TEXT column">
+                                    <IconButton size="small">
+                                        <HelpOutlineIcon fontSize="small" />
+                                    </IconButton>
+                                </Tooltip>
+                            </h3>
                         </TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
                 <Table>
                     <TableBody>
-
-                        {headers.map((header => {
-                            return <TableRow id={header}>
+                        {headers.map((header) => (
+                            <TableRow key={header}> {/* It's better to use a unique key here */}
                                 <TableCell className='col-6'>
                                     {header}
                                 </TableCell>
                                 <TableCell className='col-6'>
-                                    <FormControl>
+                                    <FormControl fullWidth>
                                         <Select
                                             defaultValue="AUTO"
-                                            value={columnTypes[header]}
-                                            onChange={event => setColumnTypes({ ...columnTypes, [header]: event.target.value })}
+                                            value={columnTypes[header] || 'AUTO'} // Fallback to 'AUTO' if undefined
+                                            onChange={(event) => setColumnTypes({ ...columnTypes, [header]: event.target.value })}
                                             sx={{
                                                 background: 'rgb(255, 255, 255)',
                                                 color: 'rgb(0, 0, 0)'
                                             }}
                                         >
-                                            <MenuItem value={"AUTO"}>AUTO</MenuItem>
-                                            <MenuItem value={"TEXT"}>TEXT</MenuItem>
+                                            <MenuItem value="AUTO">AUTO</MenuItem>
+                                            <MenuItem value="TEXT">TEXT</MenuItem>
+                                            <MenuItem value="DATE">DATE</MenuItem>
+                                            <MenuItem value="NUMERIC">NUMERIC</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </TableCell>
                             </TableRow>
-                        }))}
-
-
+                        ))}
                     </TableBody>
+
                 </Table></>}
-            <Table 
-            sx={{
-                width: "100%"
-            }}>
+            <Table
+                sx={{
+                    width: "100%"
+                }}>
                 <TableBody>
                     <TableRow >
 
@@ -389,44 +445,44 @@ export const UploadModal = (props) => {
                                 Back
                             </Button>
                         </TableCell>}
-                            {loadedPage < 3 && <TableCell className='col-6'>
+                        {loadedPage < 3 && <TableCell className='col-6'>
                             <div className='float-right'></div>
-                                {FilledOut() && <Button
-                                    variant="contained"
-                                    primary
-                                    onClick={() => setLoadedPage(loadedPage + 1)}
-                                >
-                                    Next
-                                </Button>}
-                                {!FilledOut() && <Button
-                                    variant="contained"
-                                    primary
-                                    disabled
-                                >
-                                    Next
-                                </Button>}
-                            </TableCell>}
-                            {loadedPage === 3 && <TableCell className='col-6'>
-                                <div className='float-right'></div>
-                                {FilledOut() && <Button
-                                    variant="contained"
-                                    primary
-                                    onClick={() => SendDataset()}
-                                >
-                                    Submit Dataset
-                                </Button>}
-                                {!FilledOut() && <Button
-                                    variant="contained"
-                                    primary
-                                    disabled
-                                >
-                                    Submit Dataset
-                                </Button>}
-                            </TableCell>}
+                            {FilledOut() && <Button
+                                variant="contained"
+                                primary
+                                onClick={() => setLoadedPage(loadedPage + 1)}
+                            >
+                                Next
+                            </Button>}
+                            {!FilledOut() && <Button
+                                variant="contained"
+                                primary
+                                disabled
+                            >
+                                Next
+                            </Button>}
+                        </TableCell>}
+                        {loadedPage === 3 && <TableCell className='col-6'>
+                            <div className='float-right'></div>
+                            {FilledOut() && <Button
+                                variant="contained"
+                                primary
+                                onClick={() => SendDataset()}
+                            >
+                                Submit Dataset
+                            </Button>}
+                            {!FilledOut() && <Button
+                                variant="contained"
+                                primary
+                                disabled
+                            >
+                                Submit Dataset
+                            </Button>}
+                        </TableCell>}
                     </TableRow>
                 </TableBody>
             </Table>
         </Box>
     )
-
 }
+
