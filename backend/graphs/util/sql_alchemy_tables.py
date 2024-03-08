@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, BigInteger, Date, ForeignKey, Text, Float
+from sqlalchemy import Column, Integer, String, Boolean, BigInteger, Date, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 SQL_BASE = declarative_base()
@@ -14,7 +14,7 @@ class DatasetMetadata(SQL_BASE):
     record_count = Column("record_count", BigInteger)
     preprocessing_type = Column("preprocessing_type", String(5))
     date_posted = Column("date_posted", Date)
-    
+
 class DatasetTextCols(SQL_BASE):
     __tablename__ = "dataset_text_cols"
     table_name = Column("table_name", String(250), ForeignKey(DatasetMetadata.table_name), primary_key = True)
