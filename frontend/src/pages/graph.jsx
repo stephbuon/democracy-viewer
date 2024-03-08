@@ -113,13 +113,13 @@ export const Graph = (props) => {
         let index = data.findIndex((x) => x.name == dataPoint.group);
         if (index >= 0) {
           data[index].x.push(dataPoint.word)
-          data[index].y.push(dataPoint.n)
+          data[index].y.push(dataPoint.count)
           data[index].ids += dataPoint.ids
         }
         else {
           data.push({
             x: [dataPoint.word],
-            y: [dataPoint.n],
+            y: [dataPoint.count],
             ids: dataPoint.ids,
             name: dataPoint.group,
             type: "bar"
