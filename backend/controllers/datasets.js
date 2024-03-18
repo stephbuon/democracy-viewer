@@ -181,7 +181,7 @@ const uploadDatasetPy = async(knex, name, user) => {
     }
 
     // Run python program to upload dataset
-    await python.run("util/upload_dataset.py", options).then(x => console.log(x)).catch(x => {
+    await python.run("python/util/upload_dataset.py", options).then(x => console.log(x)).catch(x => {
         console.error(x);
         throw new Error(x);
     });

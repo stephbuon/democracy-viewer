@@ -10,7 +10,7 @@ import jwt
 from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, MetaData, select
 # Update directory to import util
-import util.sql_alchemy_tables as tables
+import util.sqlalchemy_tables as tables
 # Word processing
 from util.word_processing import lemmatize_nltk, stem_nltk
 

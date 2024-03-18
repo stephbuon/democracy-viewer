@@ -1,7 +1,7 @@
 import time
 start_time = time.time()
 # Import metrics
-import util.graphs.metrics as metrics
+import util.metrics as metrics
 # Other imports
 import sys
 import json
@@ -10,7 +10,7 @@ import jwt
 # Database Interaction
 from sqlalchemy import create_engine, MetaData, select
 # Update directory to import util
-import util.sql_alchemy_tables as tables
+import util.sqlalchemy_tables as tables
 # Word processing
 from util.word_processing import lemmatize_nltk, stem_nltk
 print("Import time: {} minutes".format((time.time() - start_time) / 60))

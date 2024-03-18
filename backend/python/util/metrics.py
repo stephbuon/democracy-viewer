@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 # Database interaction
 from sqlalchemy import Engine, MetaData
-import graphs.util.sql_queries as queries
+import util.sql_queries as queries
 
 def counts(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]):
     data = queries.basic_selection(engine, meta, table_name, column, values, word_list)
