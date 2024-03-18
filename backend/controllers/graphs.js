@@ -34,7 +34,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
     // Create input file with data for python program
-    const file1 = "graphs/files/input/" + dataset + "_" + Date.now() + ".json";
+    const file1 = "python/files/input/" + dataset + "_" + Date.now() + ".json";
     files.generateJSON(file1, params);
 
     // Add file names as command line arguments
@@ -56,7 +56,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
 
     // Run python program that generates graph data
     try {
-        await python.run("graphs/launch.py", options).then(x => console.log(x)).catch(x => {
+        await python.run("python/graphs.py", options).then(x => console.log(x)).catch(x => {
             console.log(x);
             throw new Error(x);
         });

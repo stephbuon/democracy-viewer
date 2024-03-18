@@ -1,7 +1,7 @@
 import time
 start_time = time.time()
 # Import metrics
-import util.metrics as metrics
+import util.graphs.metrics as metrics
 # Other imports
 import sys
 import json

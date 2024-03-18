@@ -112,7 +112,7 @@ def split_text(data: pd.DataFrame):
         conn.commit()
         
     # Read and process stop words
-    stopwords = pd.read_csv("preprocessing/util/stopwords.csv")
+    stopwords = pd.read_csv("python/util/preprocessing/stopwords.csv")
     stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace('\W', '', regex=True)
     # Stem stop words if using stemming
     if preprocessing_type == "stem":

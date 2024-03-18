@@ -192,7 +192,7 @@ const uploadDatasetPy = async(knex, name, user) => {
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
     options["args"] = options["args"].filter(x => x != path)
-    await python.run("preprocessing/launch.py", options).then(x => console.log(x)).catch(x => {
+    await python.run("python/preprocessing.py", options).then(x => console.log(x)).catch(x => {
         console.error(x);
         throw new Error(x);
     });
