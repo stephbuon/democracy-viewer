@@ -4,12 +4,18 @@ export const BACKEND_ENDPOINT = "http://localhost:8000";
 
 
 const apiConfig = () => {
-    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    return {
-        headers:{
-            Authorization: `Bearer ${ demoV.user.token }`
+    let demoV = localStorage.getItem('democracy-viewer');
+    if (demoV) {
+        demoV = JSON.parse(demoV);
+        return {
+            headers:{
+                Authorization: `Bearer ${ demoV.user.token }`
+            }
         }
+    } else {
+        return {};
     }
+    
   };
 
 export const CreateDataset = async (dataset) =>  {

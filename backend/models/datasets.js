@@ -271,7 +271,7 @@ class datasets {
     async subsetTable(table, params, paginate = true, currentPage = 1) {
         // Get column names and filter for string columns
         const cols = await this.getColumnNames(table);
-        const colNames = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
+        const colNames = Object.keys(cols).filter(x => cols[x].type === "varchar");
 
         const query = this.knex(table).where(q => {
             // Get the query object keys

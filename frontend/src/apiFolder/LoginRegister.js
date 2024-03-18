@@ -2,6 +2,15 @@ import axios from 'axios';
 
 export const BACKEND_ENDPOINT = "http://localhost:8000";
 
+const apiConfig = () => {
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    return {
+        headers:{
+            Authorization: `Bearer ${ demoV.user.token }`
+        }
+    }
+  };
+
 export const LoginRequest = async (user) =>  {
     console.log("Logging In", user.username, user.password);
     const res = await axios.post(`${BACKEND_ENDPOINT}/session`, user);
@@ -23,3 +32,14 @@ export const RegisterRequest = async (user) =>  {
     console.log("Returning", res.data);
     return res.data;
 };
+
+export const GetSession = async () => {
+    console.log("Getting Session");
+    const res = await axios.get(`${BACKEND_ENDPOINT}/session`, apiConfig());
+    if(res.status !== 200){
+        console.log(`Couldn't get session. ${res.status}`)
+        return null;
+    }
+    console.log("Returning", res.data);
+    return res.data;
+}

@@ -1,13 +1,14 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from "react";
-
+import { Resizable } from "react-resizable";
+import 'react-resizable/css/styles.css';
 //MUI Imports
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
-import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
+import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Hidden } from '@mui/material';
 import { Stack } from '@mui/system';
 import Typography from '@mui/material/Typography';
 //Other Imports
@@ -65,10 +66,15 @@ export const SubsetResultsPage = (props) => {
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
 
         console.log("QUERY ", _query.search)
-        setTimeout(() => {
-            setLoadingResults(false);
-            setLoadingPage(false);
-        }, 3000);
+        //
+        // setSearchResults([]);
+        // setTimeout(() => {
+        //     if(searchResults.length > 0)
+        //     {
+        //         setLoadingResults(false);
+        //         setLoadingPage(false);
+        //     }
+        // }, 3000);
         GetSubsetOfDataByPage(_query, 1).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
@@ -77,6 +83,9 @@ export const SubsetResultsPage = (props) => {
                 setSearchResults(res);
             }
             setPage(1);
+        }).finally(async () => {
+            setLoadingResults(false);
+            setLoadingPage(false);
         })
 
         GetNumOfEntries(_query).then(async (res) => {
@@ -94,10 +103,11 @@ export const SubsetResultsPage = (props) => {
         setLoadingPage(true)
         try {
             const resPromise = GetSubsetOfDataByPage(query, page + 1);
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // await new Promise(resolve => setTimeout(resolve, 500));
             const res = await resPromise;
             if (res) {
-                setSearchResults(prevResults => [...prevResults, ...res]);
+                let _searchResults = [...searchResults, ...res]
+                setSearchResults(_searchResults);
                 setPage(page + 1);
             }
         } catch (error) {
@@ -125,7 +135,7 @@ export const SubsetResultsPage = (props) => {
     //     setPage(page + 1);
     // }
 
-    //infinite scroll
+    //infinite scroll? Saw this online, but did not understand how it worked.
     // window.addEventListener("scroll", (event) => {
     //     let lastKnownScrollPosition = window.scrollY;
     //     // let limit = document.documentElement.offsetHeight
@@ -159,7 +169,28 @@ export const SubsetResultsPage = (props) => {
     };
 
     const numberOfColumns = searchResults.length > 0 ? Object.keys(searchResults[0]).length : 1;
+    //NEW
+    const initialWidths = new Array(numberOfColumns).fill(100);
+    //NEW
+    const [columnWidths, setColumnWidths] = useState(initialWidths);
 
+    const handleResize = (index, newWidth) => {
+        setColumnWidths((currentWidths) =>
+            currentWidths.map((width, i) => i === index ? newWidth : width)
+        );
+    };
+
+
+
+    // Convert gridTemplateColumns to use columnWidths state
+    const gridTemplateColumns = columnWidths.map((width) => `${width}px`).join(' ');
+
+    useEffect(() => {
+        // Initialize or update column widths based on the number of columns
+        setColumnWidths(new Array(numberOfColumns).fill(100));
+    }, [numberOfColumns]);
+
+    //END OF NEW
 
     useEffect(() => {
         console.log(props)
@@ -208,7 +239,11 @@ export const SubsetResultsPage = (props) => {
 
     return (
         <div className='blue' >
-            <Box component="main" sx={{ marginTop: searching ? '50px' : (searched ? '280px' : '0px') }}>
+            <Box component="main"
+                sx={{
+                    marginTop: searching ? '50px' : (searched ? '280px' : '0px'),
+                    marginLeft: "100px", //Hardcoded
+                }}>
 
 
                 <Box
@@ -218,6 +253,7 @@ export const SubsetResultsPage = (props) => {
                         justifyContent: "center",
                         alignItems: "center",
                         marginBottom: '100px',
+                        marginLeft:'10px',
                         flexDirection: "column", // Add this to stack the elements vertically
 
                     }}
@@ -326,10 +362,9 @@ export const SubsetResultsPage = (props) => {
                 </Box>}
 
 
-                // Headers
+
                 <Box
                     style={{
-                        paddingLeft: '5rem',
                         display: 'flex',
                         justifyContent: 'center',
                         flexDirection: 'column',
@@ -344,47 +379,84 @@ export const SubsetResultsPage = (props) => {
                     <div
                         style={{
                             display: 'grid',
-                            gridTemplateColumns: `repeat(${numberOfColumns}, 1fr)`,
+                            gridTemplateColumns: gridTemplateColumns,
                             gap: '1rem',
                             marginTop: '2rem',
                         }}
                     >
-                        {!loadingResults && searchResults.length > 0 && Object.keys(searchResults[0]).map((key) => (
+                        {!loadingResults && searchResults.length > 0 && Object.keys(searchResults[0]).map((key, index) => (
                             <div
+                                key={key}
                                 style={{
                                     fontWeight: 'bold',
                                 }}
                             >
-                                {key}
+                                <Resizable
+                                    width={columnWidths[index]}
+                                    height={0}
+                                    onResize={(event, { size }) => handleResize(index, size.width)}
+                                    handle={
+                                        <span
+                                            className="react-resizable-handle"
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{
+                                                position: 'absolute',
+                                                right: 0,
+                                                bottom: 0,
+                                                width: '10px',
+                                                height: '100%',
+                                                cursor: 'col-resize',
+                                            }}
+                                        />
+                                    }
+                                >
+                                    <div style={{
+                                        width: `${columnWidths[index]}px`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-start',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        {key}
+                                    </div>
+                                </Resizable>
                             </div>
                         ))}
+
                     </div>
                 </Box>
-// Data
+
                 <Box
                     sx={{
-                        paddingLeft: '5rem',
                         display: 'flex',
                         justifyContent: 'center',
+                        flexDirection: 'column',
                         margin: 0,
-                        overflowX: 'auto',
-                        marginTop: '2rem',
-                        maxHeight: 'calc(100vh - rem)', // Adjust this to your liking; this controls how tall the data container is
-                        overflowY: 'scroll', // Allow vertical scrolling
+                        marginTop: '6rem',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 10,
+                        background: '#ffffff',
+                       
                     }}
                 >
                     <div
                         sx={{
                             display: 'grid',
-                            gridTemplateColumns: `repeat(${numberOfColumns}, 1fr)`,
+                            gridTemplateColumns: gridTemplateColumns,
                             gap: '1rem',
                         }}
                     >
-                        {!loadingResults && searchResults.map((result) => (
+
+                        {!loadingResults && searchResults.map((result, index) => (
                             <div key={result.id}>
-                                <Result value={result} dataset={props.dataset} />
+                                <Result value={result} dataset={props.dataset} columnWidths={columnWidths} />
                             </div>
                         ))}
+
 
                     </div>
                 </Box>
@@ -393,25 +465,26 @@ export const SubsetResultsPage = (props) => {
                 <Box
                     sx={{
                         display: 'flex',
-                        justifyContent: 'center',
+                        justifyContent: 'left',
                         margin: 0,
                         overflowX: 'auto',
                         marginTop: '2rem',
+                        width: '100%',
                     }}
                 >
                     <div
-                        sx={{
+                        style={{
                             display: 'grid',
-                            gridTemplateColumns: `repeat(${numberOfColumns}, 1fr)`,
+                            gridTemplateColumns: gridTemplateColumns,
                             gap: '1rem',
                         }}
                     >
-                        {(loadingResults || loadingNextPage) && (
-                            <>
-                                <div className="loadingData1">&nbsp;</div>
-                                {/* ... other loading divs ... */}
-                            </>
-                        )}
+
+                        {!loadingResults && searchResults.map((result, index) => (
+                            <div key={result.id}>
+                                <Result value={result} dataset={props.dataset} columnWidths={columnWidths} />
+                            </div>
+                        ))}
                     </div>
                 </Box>
 
