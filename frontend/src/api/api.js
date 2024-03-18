@@ -4,7 +4,11 @@ const apiEndpoint = 'http://localhost:8000';
 
 export const getToken = () => {
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-  return demoV.user.token;
+  if (demoV && demoV.user) {
+    return demoV.user.token;
+  } else {
+    return undefined;
+  }
 }
 
 export const upload = (file) => new Promise((resolve, reject) => {
