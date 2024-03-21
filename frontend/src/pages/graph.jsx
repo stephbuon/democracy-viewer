@@ -1,14 +1,13 @@
-// TODO Removing word embedding metric. Impliment other metrics
+// TODO Impliment other metrics
+// TODO add groupBy option for column or value
 
 // Imports for Graph page. This page is used for visualizing the selected dataset.
 // Props include: props.dataset
 // props.dataset - table_name
 
-import React, { useRef, useEffect, useState } from "react";
-import { TextField } from '@mui/material'
+import React, { useEffect, useState } from "react";
 import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select'
-import Plotly from "plotly.js-dist";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
 import { Grid, Paper, Button } from "@mui/material";
@@ -18,22 +17,18 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
+import { GraphComponent } from "../common/graphComponent.jsx";
 
 export const Graph = (props) => {
 // useState definitions
   const [data, setData] = useState([]);
-  const searchTerms = useState(["trade", "press", "industry", "work"]);
+  const [searchTerms, setSearchTerms] = useState(["trade", "press", "industry", "work"]);
   const [groupOptions, setGroupOptions] = useState(undefined);
   const [valueOptions, setValueOptions] = useState(undefined);
   const [groupList, setGroupList] = useState([]);
   const [group, setGroup] = useState("");
-  const [value, setValue] = useState("");
   const [buttonToggle, setButtonToggle] = useState(false);
   const [selectToggle, setSelectToggle] = useState(true);
-  const [topDecade, setTopDecade] = useState(1900);
-  const [bottomDecade, SetBottomDecade] = useState(1900);
-  const [vocabulary, setVocabulary] = useState("");
-  const [vocabOptions] = useState([{ value: 1, label: "All" }]);
   const [openModal, setOpenModal] = useState(false);const [searchValue, setSearchValue] = useState("");
   const [metric, setMetric] = useState("counts");
   const [metricOptions] = useState([
@@ -50,19 +45,37 @@ export const Graph = (props) => {
   var layout = { title: "" };
   var first = true;
   const navigate = useNavigate();
-  const graph = useRef(null);
 
   // Dataset has been selected -> Populates group options array for column name dropdown
   // Navigate to datasetSearch page otherwise
+  //settings:{group:group, groupList:groupList, search:searchTerms}}
   useEffect(() => {
+    console.log("This is a graph test", searchTerms)
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if (demoV == undefined || props.dataset == undefined) {
       navigate('/datasetSearch')
       props.setNavigated(true)
     }
-    else{
-      updateGroupNames();
+
+    updateGroupNames();
+    let graphData = JSON.parse(localStorage.getItem('graph-data'));
+    if(graphData != undefined && graphData.table == props.dataset.table_name){
+      console.log("Uploading graph", graphData);
+      setMetric(graphData.settings.metric);
+      setGroup(graphData.settings.group);
+      nameSelected(graphData.settings.group);
+
+      let searchList = []
+      graphData.settings.groupList.forEach((element) => {
+        let object = {label:element, value:element};
+        searchList.push(object)
+      })
+      setGroupList(searchList);
+      console.log("GroupList test", groupList, searchList)
+
+      setData(graphData.data)
     }
+    
   }, []);
 
 // Function definitions
@@ -78,16 +91,17 @@ export const Graph = (props) => {
     });
   }
 
-  // When enter is pressed on custom search text entry,
-  // Add current text to the word list and empty the textbox
+  // Called when enter is pressed on custom search text entry
+  // Adds current text to the word list and empties the textbox
   const addSearchTerm = (key) => {
     if(key == 'Enter'){
-      searchTerms[0].push(searchValue);
+      searchTerms.push(searchValue);
       setSearchValue("");
     }
   }
 
-  // When a column is selected, update array for column value dropdown
+  // Called when a column is selected
+  // updates array for column value dropdown
   const nameSelected = (g) => { 
     setSelectToggle(g == "");
 
@@ -100,24 +114,23 @@ export const Graph = (props) => {
     });
   }
 
-   // Runs on graph setting subit to generate a graph or update the existing graph
+   // Runs on graph settings subit
+   // Generate a graph or update the existing graph
   const updateGraph = () => {
-
     setButtonToggle(true); // Disable submit button until finished
-
-    getGraph(props.dataset.table_name, group, groupList, metric, searchTerms[0]).then(async (res) => {
+    
+    getGraph(props.dataset.table_name, group, groupList, metric, searchTerms).then(async (res) => {
       console.log("graph res test", res)
-      setData([]);
+      let tempData = []
       res.forEach((dataPoint) => { // Populate data array with request output
-        console.log("Datapoint test", dataPoint)
-        let index = data.findIndex((x) => x.name == dataPoint.group);
+        let index = tempData.findIndex((x) => x.name == dataPoint.group);
         if (index >= 0) {
-          data[index].x.push(dataPoint.word)
-          data[index].y.push(dataPoint.n)
-          data[index].ids += dataPoint.ids
+          tempData[index].x.push(dataPoint.word)
+          tempData[index].y.push(dataPoint.n)
+          tempData[index].ids += dataPoint.ids
         }
         else {
-          data.push({
+          tempData.push({
             x: [dataPoint.word],
             y: [dataPoint.n],
             ids: dataPoint.ids,
@@ -126,28 +139,10 @@ export const Graph = (props) => {
           })
         }
       });
-      console.log("Finished updating data", data)
-      if (first) { // Generate graph on first passthrough
-        Plotly.newPlot('graph', data, layout);
-
-        graph.current.on('plotly_click', function (data) { // Click event for zoom page
-          let dataPoint = data.points[0];
-          console.log("Selected datapoint", dataPoint);
-          props.setData({
-            group: dataPoint.data.name,
-            word: dataPoint.x,
-            count: dataPoint.y,
-            ids: dataPoint.data.ids,
-            dataset: props.dataset
-          });
-          navigate("/zoom");
-        });
-
-        first = false; // Stops first from running again
-      }
-      else { // Update existing graph on any other passthrough
-        Plotly.redraw('graph', data);
-      }
+      setData(tempData);
+      let graphData = {table:props.dataset.table_name, data:tempData, settings:{metric:metric, group:group, groupList:groupList, search:searchTerms}}
+      console.log("Saving graph data!", graphData)
+      localStorage.setItem('graph-data', JSON.stringify(graphData))
       setButtonToggle(false); // Enable submit button after completion
     });
   };
@@ -169,55 +164,53 @@ export const Graph = (props) => {
               {/* Settings menu */}
               <Paper className="mt-0" elevation={3} sx={{ padding: "16px", margin: "8px" }}>
 
-                {/* Metric, column name, and Column value dropdowns */}
-                <div>
+                {/* Metric select dropdown */}
+                <SelectField label="Metric"
+                  value={metric}
+                  setValue={setMetric}
+                  options={metricOptions}
+                  hideBlankOption={1} />
 
-                  <SelectField
-                    label="Metric"
-                    value={metric}
-                    setValue={setMetric}
-                    options={metricOptions}
-                    hideBlankOption={1}
-                  />
+                {/* Column select dropdown */}
+                <SelectField label="Column name"
+                  value={group}
+                  setValue={(x)=>{
+                    setGroup(x)
+                    nameSelected(x)
+                  }}
+                  options={groupOptions}
+                  on
+                  hideBlankOption={0} />
 
-                  <SelectField
-                    label="Column name"
-                    value={group}
-                    setValue={(x)=>{
-                      setGroup(x)
-                      nameSelected(x)
-                    }}
-                    options={groupOptions}
-                    on
-                    hideBlankOption={0}
-                  />
+                {/* Column value multiselect dropdown */}
+                <label htmlFor="valueSelect">Column Value</label>
+                {/* TODO No selection = top 10 */}
+                <Select options={valueOptions}
+                id="valueSelect"
+                className="mb-3"
+                closeMenuOnSelect={false}
+                isDisabled={selectToggle}
+                // value={groupList}
+                onChange={(x) => {
+                  setGroupList(x);
+                  console.log("search test", x)
+                }} isMulti></Select>
 
-                  <label htmlFor="valueSelect">Column Value</label>
-                  {/* TODO No selection = top 10 */}
-                  <Select options={valueOptions}
-                  id="valueSelect"
-                  className="mb-3"
-                  closeMenuOnSelect={false}
-                  isDisabled={selectToggle}
-                  onChange={(x) => {
-                    setGroupList(x)
-                  }} isMulti></Select>
-
-                </div>
 
                 {/* Custom search + terms list */}
                 <div>
-                  <TextField
-                    label="Custom Search:"
-                    value={searchValue}
-                    onChange={(event)=>setSearchValue(event.target.value)}
-                    onKeyPress={event => {addSearchTerm(event.key)}}
-                  />
-
-                  {searchTerms[0].map((term, index) =><li
+                  {/* Custom search textfield */}
+                  <label htmlFor="value">{ "Custom Search:" }</label>
+                  <input type="text" value={searchValue}
+                      onChange={ (event)=>setSearchValue(event.target.value) }
+                      onKeyPress={event => {addSearchTerm(event.key)}}
+                      className="form-control" />
+                  
+                  {/* Terms list */}
+                  {searchTerms.map((term, index) =><li
                   onClick={(event) => {
                     updateGroupNames();
-                    searchTerms[0].splice(event.target.id, 1)
+                    searchTerms.splice(event.target.id, 1)
                   }}
                   onMouseOver={(event) => {event.target.style.color='red'}}
                   onMouseOut={(event) => {event.target.style.color='black'}}
@@ -229,7 +222,7 @@ export const Graph = (props) => {
                 {/* Update graph button */}
                 <Button variant="contained" fullWidth sx={{ fontSize: "0.7rem", padding: "8px" }}
                 className="mb-3 mt-3"
-                disabled={buttonToggle || !(searchTerms[0].length > 0 && groupList.length > 0 && group != "")}
+                disabled={buttonToggle || !(searchTerms.length > 0 && groupList.length > 0 && group != "")}
                 onClick={updateGraph}>
                   Update graph
                 </Button>
@@ -263,9 +256,8 @@ export const Graph = (props) => {
           
           {/* Graph */}
           <Grid item xs={12} sm={9}>
-            <Box className="d-flex vh-100 align-items-center" sx={{ margin: "8px" }}>
-              <div id='graph' ref={graph}></div>
-            </Box>
+              {data.length > 0 && <GraphComponent data={data} table={props.dataset.table_name} setData={props.setData}
+              settings={{metric:metric}}/>}
           </Grid>
 
         </Grid>

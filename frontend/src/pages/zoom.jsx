@@ -1,21 +1,24 @@
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
+import Parser from 'html-react-parser';
 
 export const Zoom = ({ data }) => {
 
     // TESTING TEMP
     var innerHTML;
-    data.group = "MR. GLADSTONE"
-    data.count = 31
-    data.word = "industry"
-    data.ids = [1081131, 1113745, 124187, 309018, 333962, 333977, 368875, 395545, 461368, 461370, 461371, 461372, 5945, 6001, 6006, 6016, 6112, 6198, 6404, 6429, 6442, 651830, 69130, 71485, 743941, 77529, 77554, 77582]
+    // data.group = "MR. GLADSTONE"
+    // data.count = 31
+    // data.word = "industry"
+    // data.ids = [1081131, 1113745, 124187, 309018, 333962, 333977, 368875, 395545, 461368, 461370, 461371, 461372, 5945, 6001, 6006, 6016, 6112, 6198, 6404, 6429, 6442, 651830, 69130, 71485, 743941, 77529, 77554, 77582]
     //
 
 
     const [searchResults, setSearchResults] = useState([]);
 
+    // Gets record for data.ids and populates searchResults
     useEffect(() => {
-        getRecordsByIds(data.dataset.table_name, data.ids).then(async (res) => {
+        console.log("Zoom test", data)
+        getRecordsByIds(data.dataset, data.ids).then(async (res) => {
             if (!res) {
                 console.log("Odd zoom page error, no results of selected result?");
             }
@@ -26,9 +29,8 @@ export const Zoom = ({ data }) => {
         })
     }, []);
 
-    const highlight = (result, index) => {
+    const highlight = (result) => {
         console.log("Highlighting")
-        var textLabel = document.getElementById("text" + index);
         innerHTML = "";
 
         let tempText = result.text.replaceAll("\"", '')
@@ -44,8 +46,6 @@ export const Zoom = ({ data }) => {
             i = lowerText.indexOf(data.word)
         }
         innerHTML += tempText;
-        console.log("HTML TEST", innerHTML)
-        console.log(result, index)
       }
 
     // TODO Show all values from group containing selected word
@@ -123,19 +123,19 @@ export const Zoom = ({ data }) => {
                 {/* get id results */}
                 {searchResults.length > 0 && searchResults.map(function(result, i)
                     {
-                        highlight(result, i)
+                        highlight(result)
 
                         let debate = result.debate.replaceAll("\"", '')
                         let speaker = result.speaker.replaceAll("\"", '')
 
-                        return <div className="row border">
+                        return <div key={i} className="row border">
                                 <div className="col my-auto">
                                     {debate}
                                 </div>
                                 <div className="col my-auto">
                                     {speaker}
                                 </div>
-                                <div className="col my-auto">{innerHTML}</div>
+                                <div className="col my-auto">{Parser(innerHTML)}</div>
                             </div>
                     }
                 )}
