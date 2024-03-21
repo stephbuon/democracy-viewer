@@ -357,12 +357,12 @@ const getColumnNames = async(knex, table) => {
     // Get text columns
     const textCols = await getTextCols(knex, table);
     // Filter out text columns
-    const results = Object.keys(names).filter(x => {console.log(textCols); return textCols.indexOf(x) === -1});
+    const results = Object.keys(names).filter(x => textCols.indexOf(x) === -1);
     return results;
 }
 
 // Get unique values in a dataset column
-const getColumnValues = async(knex, table , column) => {
+const getColumnValues = async(knex, table, column) => {
     const model = new datasets(knex);
 
     const records = await model.getColumnValues(table, column);
@@ -392,7 +392,8 @@ const getSubset = async(knex, table, query, page) => {
 
     // Get string columns
     const cols = await model.getColumnNames(table);
-    const strCols = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
+    const strCols = Object.keys(cols).filter(x => cols[x].type === "varchar");
+    console.log(strCols)
     // Get subset records
     const records = await model.subsetTable(table, query, true, page);
     // Wrap string cols in quotes
@@ -427,7 +428,7 @@ const downloadSubset = async(knex, table, params, username = undefined) => {
     const downloadId = await model.addDownload(username, table, pages);
     // Get string columns
     const cols = await model.getColumnNames(table);
-    const strCols = Object.keys(cols).filter(x => cols[x].type === "nvarchar");
+    const strCols = Object.keys(cols).filter(x => cols[x].type === "varchar");
     let records = [];
     for (let i = 1; i <= pages; i++) {
         let curr = await model.subsetTable(table, params, true, i);

@@ -37,7 +37,6 @@ export const Graph = (props) => {
     { value: "tf-idf", label: "tf-idf" },
     { value: "ll", label: "Log Likelihood" },
     { value: "jsd", label: "Jensen-Shannon Divergence" },
-    { value: "ojsd", label: "Original Jensen-Shannon Divergence" },
     // { value: "embedding", label: "Word Embeddings" }
   ]);
 
@@ -83,6 +82,7 @@ export const Graph = (props) => {
   // Updates column name dropdown values
   const updateGroupNames = () => {
     getGroupNames(props.dataset.table_name).then(async (res) => {
+      console.log(res)
       let _groupOptions = []
       for(let i = 0; i < res.length; i++){
         _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
@@ -125,14 +125,14 @@ export const Graph = (props) => {
       res.forEach((dataPoint) => { // Populate data array with request output
         let index = tempData.findIndex((x) => x.name == dataPoint.group);
         if (index >= 0) {
-          tempData[index].x.push(dataPoint.word)
-          tempData[index].y.push(dataPoint.n)
-          tempData[index].ids += dataPoint.ids
+          data[index].x.push(dataPoint.word)
+          data[index].y.push(dataPoint.count)
+          data[index].ids += dataPoint.ids
         }
         else {
           tempData.push({
             x: [dataPoint.word],
-            y: [dataPoint.n],
+            y: [dataPoint.count],
             ids: dataPoint.ids,
             name: dataPoint.group,
             type: "bar"

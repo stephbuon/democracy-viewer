@@ -11,10 +11,14 @@ export const BACKEND_ENDPOINT = "http://localhost:8000";
 
 const apiConfig = () => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    return {
-        headers:{
-            Authorization: `Bearer ${ demoV.user.token }`
+    if (demoV && demoV.user) {
+        return {
+            headers:{
+                Authorization: `Bearer ${ demoV.user.token }`
+            }
         }
+    } else {
+        return {};
     }
   };
 

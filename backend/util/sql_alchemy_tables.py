@@ -12,6 +12,7 @@ class DatasetMetadata(SQL_BASE):
     is_public = Column("is_public", Boolean)
     clicks = Column("clicks", Integer)
     record_count = Column("record_count", BigInteger)
+    preprocessing_type = Column("preprocessing_type", String(5))
     date_posted = Column("date_posted", Date)
     
 class DatasetTextCols(SQL_BASE):
@@ -19,3 +20,10 @@ class DatasetTextCols(SQL_BASE):
     table_name = Column("table_name", String(250), ForeignKey(DatasetMetadata.table_name), primary_key = True)
     col = Column("col", String(100), primary_key = True)
     
+class DatasetSplitText(SQL_BASE):
+    __tablename__ = "dataset_split_text"
+    table_name = Column("table_name", String(250), ForeignKey(DatasetTextCols.table_name), primary_key = True)
+    record_id = Column("record_id", BigInteger, primary_key = True)
+    word = Column("word", String(100), primary_key = True)
+    count = Column("count", BigInteger)
+    col = Column("col", String(100), ForeignKey(DatasetTextCols.col), primary_key = True)

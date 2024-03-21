@@ -7,7 +7,7 @@ router.get('/:dataset', async(req, res, next) => {
     try {
         let result;
         if (req.user) {
-            result = await control.createGraph(req.knex, req.params.dataset, req.query, req.user.username);
+            result = await control.createGraph(req.knex, req.params.dataset, req.query, req.user);
         } else {
             result = await control.createGraph(req.knex, req.params.dataset, req.query);
         }
