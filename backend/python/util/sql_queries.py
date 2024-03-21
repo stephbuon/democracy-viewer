@@ -2,7 +2,7 @@ import pandas as pd
 # Database Interaction
 from sqlalchemy import Engine, MetaData, select, join, func, distinct
 # Update directory to import util
-from util.sql_alchemy_tables import DatasetSplitText
+from util.sqlalchemy_tables import DatasetSplitText
 
 # Select records by group and word lists
 def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]) -> pd.DataFrame:

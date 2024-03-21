@@ -10,7 +10,7 @@ import jwt
 from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, MetaData, select
 # Update directory to import util
-import util.sql_alchemy_tables as tables
+import util.sqlalchemy_tables as tables
 # Word processing
 from util.word_processing import lemmatize_nltk, stem_nltk
 
@@ -112,7 +112,7 @@ def split_text(data: pd.DataFrame):
         conn.commit()
         
     # Read and process stop words
-    stopwords = pd.read_csv("preprocessing/util/stopwords.csv")
+    stopwords = pd.read_csv("python/util/preprocessing/stopwords.csv")
     stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace('\W', '', regex=True)
     # Stem stop words if using stemming
     if preprocessing_type == "stem":

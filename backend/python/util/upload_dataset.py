@@ -6,7 +6,7 @@ import time
 import jwt
 # Database interaction
 from sqlalchemy import create_engine, update, MetaData, Table
-import sql_alchemy_tables as tables
+import sqlalchemy_tables as tables
 from bcpandas import to_sql, SqlCreds
 
 METADATA_TABLE = "dataset_metadata"
