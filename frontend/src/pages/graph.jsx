@@ -125,9 +125,9 @@ export const Graph = (props) => {
       res.forEach((dataPoint) => { // Populate data array with request output
         let index = tempData.findIndex((x) => x.name == dataPoint.group);
         if (index >= 0) {
-          data[index].x.push(dataPoint.word)
-          data[index].y.push(dataPoint.count)
-          data[index].ids += dataPoint.ids
+          tempData[index].x.push(dataPoint.word)
+          tempData[index].y.push(dataPoint.count)
+          tempData[index].ids += dataPoint.ids
         }
         else {
           tempData.push({

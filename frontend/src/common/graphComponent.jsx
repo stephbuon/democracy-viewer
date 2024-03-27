@@ -13,7 +13,8 @@ export const GraphComponent = ({ data, table, setData }) => {
 
     // UseEffect definition
     useEffect(() => {
-        Plotly.newPlot('graph', data, layout);
+        console.log(data)
+        Plotly.newPlot('graph', data, layout, { displayModeBar: false });
         graph.current.on('plotly_click', function (data) { // Click event for zoom page
             let dataPoint = data.points[0];
             console.log("Selected datapoint", dataPoint, table);
