@@ -7,12 +7,12 @@ services:
     # restart on crashes
     restart: always
     # working directory in container to place files
-    working_dir: /usr/src/app
+    working_dir: /usr/src/app/backend
     # startup command
     command: bash -c "node index"
     # map code volumes from local to inside working directory, changes made locally will update into the container
     volumes:
-      - ./backend:/usr/src/app
+      - ./backend:/usr/src/app/backend
     # ports to map, YOU CANNOT RUN ANYTHING ELSE ON PORT 8000
     ports:
       - 8000:8000
@@ -28,12 +28,12 @@ services:
     # restart on crashes
     restart: always
     # working directory in container to place files
-    working_dir: /usr/src/app
+    working_dir: /usr/src/app/frontend
     # startup command 
     command: bash -c "npm run start"
     # map code volumes from local to inside working directory, changes made locally will update into the container
     volumes:
-      - ./frontend:/usr/src/app
+      - ./frontend:/usr/src/app/frontend
     # specify dependency on mysql db
     depends_on:
       - backend
