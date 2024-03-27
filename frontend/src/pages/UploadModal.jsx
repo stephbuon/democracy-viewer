@@ -16,6 +16,8 @@ import AddIcon from '@mui/icons-material/Add';
 import Tooltip from '@mui/material/Tooltip';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Chip from '@mui/material/Chip';
+import LinearProgress from '@mui/material/LinearProgress';
+
 
 
 
@@ -164,17 +166,24 @@ export const UploadModal = (props) => {
                 borderRadius: ".5em .5em"
             }}
         >
+            <Box sx={{
+                width: '100%',
+                marginTop: '30px',
+                marginBottom: '0px', // Reduce the bottom margin
+                '& .MuiLinearProgress-root': {
+                    height: '15px',
+                    borderRadius: '5px'
+                }
+            }}>
+                <LinearProgress variant="determinate" value={(loadedPage / 3) * 100} />
+            </Box>
+
             <Table>
                 <TableHead>
                     <TableRow>
                         <TableCell className='col-10'>
                         </TableCell>
-                        <TableCell className='col-2'
-                            sx={{
-                                textAlign: 'center'
-                            }}>
-                            <h2> {loadedPage} / 3 </h2>
-                        </TableCell>
+
                     </TableRow>
                 </TableHead>
             </Table>
