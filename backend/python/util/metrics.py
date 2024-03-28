@@ -1,5 +1,5 @@
-import pandas as pd
-import numpy as np
+from numpy import log, log2, sum
+from pandas import DataFrame, concat, merge
 # Database interaction
 from sqlalchemy import Engine, MetaData
 import util.sql_queries as queries
@@ -29,7 +29,7 @@ def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str, values:
     # Compute smoothed idf
     idf = {}
     for word in word_list:
-        idf[word] = np.log2(1 + (total_groups / group_counts[word]))
+        idf[word] = log2(1 + (total_groups / group_counts[word]))
         
     # Get records by words and groups
     data = queries.basic_selection(engine, meta, table_name, column, values, word_list)
@@ -41,7 +41,7 @@ def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str, values:
     # Sum counts
     output = data.groupby(group_cols).sum().reset_index()
     # Log normalize counts (tf)
-    output["count"] = 1 + np.log2(output["count"])
+    output["count"] = 1 + log2(output["count"])
     # Join with idf
     idf_lst = []
     for i, row in output.iterrows():
@@ -69,7 +69,7 @@ def proportions(engine: Engine, meta: MetaData, table_name: str, column: str, va
     # Get group total counts
     group_counts = output.groupby("group")["count"].sum().reset_index()
     group_counts.rename(columns = { "count": "total" }, inplace = True)
-    output = pd.merge(output, group_counts, on = "group")
+    output = merge(output, group_counts, on = "group")
     # Calculate proportion by group
     output["proportion"] = output["count"] / output["total"]
     output.drop(["count", "total"], axis = 1, inplace = True) 
@@ -100,11 +100,11 @@ def jsd(engine: Engine, meta: MetaData, table_name: str, column: str, values: li
     for i in range(len(groups)):
         for j in range(i+1, len(groups)):
             # Subset data by current groups
-            probs: pd.DataFrame = data[data.columns.intersection([ groups[i], groups[j] ])].copy()
+            probs: DataFrame = data[data.columns.intersection([ groups[i], groups[j] ])].copy()
             # Compute average distributio
-            m = np.sum(probs, axis = 1) / probs.shape[1]
+            m = sum(probs, axis = 1) / probs.shape[1]
             # Compute KLD for each group
-            kld = np.sum(probs * np.log(probs.div(m, axis = 0)), axis = 1)
+            kld = sum(probs * log(probs.div(m, axis = 0)), axis = 1)
             # Compute JSD
             jsd_score = 0.5 * kld.sum()
             # Get ids for each group
@@ -112,7 +112,7 @@ def jsd(engine: Engine, meta: MetaData, table_name: str, column: str, values: li
             ids2 = ids[ids["group"] == groups[j]].reset_index()["ids"][0]
             # Add result to output
             output.append(
-                pd.DataFrame({
+                DataFrame({
                     "group1": [groups[i]],
                     "group2": [groups[j]],
                     "jsd": [jsd_score],
@@ -121,7 +121,7 @@ def jsd(engine: Engine, meta: MetaData, table_name: str, column: str, values: li
             )
               
     # Concatenate results
-    return pd.concat(output)
+    return concat(output)
     
 def log_likelihood(engine: Engine, meta: MetaData, table_name: str, column: str, values: list[str], word_list: list[str]):
     # Get the total number of words in the corpus
@@ -142,7 +142,7 @@ def log_likelihood(engine: Engine, meta: MetaData, table_name: str, column: str,
     output = []
     for word in words:
         # Initialize df for word
-        df = pd.DataFrame({
+        df = DataFrame({
             "word": [word]
         })
         for group in groups:
@@ -154,15 +154,15 @@ def log_likelihood(engine: Engine, meta: MetaData, table_name: str, column: str,
             e1 = (a + c) * (a + b) / total_corpus_words
             e2 = (b + d) * (a + b) / total_corpus_words
             if a > 0:
-                ll = 2 * (a * np.log(a / e1))
+                ll = 2 * (a * log(a / e1))
             else:
                 ll = 0
             if b > 0:
-                ll += 2 * b * np.log(b / e2)
+                ll += 2 * b * log(b / e2)
             # Add ll for group to df
             df[group] = ll
         # Add ids to df 
         df["ids"] = [ids[ids["word"] == word].reset_index()["ids"][0]]
         output.append(df)
     
-    return pd.concat(output)
+    return concat(output)

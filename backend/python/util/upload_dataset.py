@@ -1,27 +1,27 @@
-import pandas as pd
-import sys
 from dotenv import load_dotenv
-import os
-import time
-import jwt
+from jwt import decode
+from os import environ
+from pandas import DataFrame, read_csv
+from sys import argv
+from time import time
 # Database interaction
-from sqlalchemy import create_engine, update, MetaData, Table
-import sqlalchemy_tables as tables
 from bcpandas import to_sql, SqlCreds
+from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String, BigInteger, Float, Text
+from sqlalchemy_tables import DatasetMetadata
 
 METADATA_TABLE = "dataset_metadata"
 # Get table name and file name from command line argument
-TABLE_NAME = sys.argv[1]
-FILE_NAME = sys.argv[2]
+TABLE_NAME = argv[1]
+FILE_NAME = argv[2]
 # Load distributed connection if defined
-start_time = time.time()
+start_time = time()
 try:
-    DB_CREDS_TOKEN = sys.argv[3]
+    DB_CREDS_TOKEN = argv[3]
 except:
     DB_CREDS_TOKEN = None
 if DB_CREDS_TOKEN != None:
-    secret = os.environ.get("TOKEN_SECRET")
-    DB_CREDS = jwt.decode(DB_CREDS_TOKEN, secret, "HS256")
+    secret = environ.get("TOKEN_SECRET")
+    DB_CREDS = decode(DB_CREDS_TOKEN, secret, "HS256")
 else: 
     DB_CREDS = None
 
@@ -29,11 +29,11 @@ if DB_CREDS == None:
     # Connect to default database if no distributed connection
     # Load environment variables
     load_dotenv()
-    host = os.environ.get("HOST")
-    database = os.environ.get("DATABASE")
-    port = os.environ.get("PORT")
-    username = os.environ.get("DATABASE_USERNAME")
-    password = os.environ.get("PASSWORD")
+    host = environ.get("HOST")
+    database = environ.get("DATABASE")
+    port = environ.get("PORT")
+    username = environ.get("DATABASE_USERNAME")
+    password = environ.get("PASSWORD")
 
     # Connect to database
     conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
@@ -65,15 +65,15 @@ else:
 engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(engine)
-print("Connection time: {} minutes".format((time.time() - start_time) / 60))
+print("Connection time: {} minutes".format((time() - start_time) / 60))
 
 # Load and process the data
 # Create table in database
 def prep_data():
-    start = time.time()
+    start = time()
     
     # Read file
-    df = pd.read_csv(FILE_NAME)
+    df = read_csv(FILE_NAME)
     
     # Replace spaces in column names with underscores
     df.columns = df.columns.str.replace(' ', '_').str.replace("\r", "").str.replace("\n", "")
@@ -82,8 +82,8 @@ def prep_data():
     
     # Update metadata to include number of records
     query = (
-        update(tables.DatasetMetadata)
-            .where(tables.DatasetMetadata.table_name == TABLE_NAME)
+        update(DatasetMetadata)
+            .where(DatasetMetadata.table_name == TABLE_NAME)
             .values(record_count = len(df))
     )    
     
@@ -110,17 +110,17 @@ def prep_data():
             df = df.drop(col, axis = 1)
             
     # Create new table in database
-    columns = [ tables.Column("id", tables.BigInteger, autoincrement = True, primary_key = True) ]
+    columns = [ Column("id", BigInteger, autoincrement = True, primary_key = True) ]
     for col in df.columns:
         col_type = df[col].dtype
         if col_type == "int":
-            columns.append(tables.Column(col, tables.Integer))
+            columns.append(Column(col, Integer))
         elif col_type == "float":
-            columns.append(tables.Column(col, tables.Float))
+            columns.append(Column(col, Float))
         elif maxLengths[col] > 4000:
-            columns.append(tables.Column(col, tables.Text))
+            columns.append(Column(col, Text))
         else:
-            columns.append(tables.Column(col, tables.String(maxLengths[col])))
+            columns.append(Column(col, String(maxLengths[col])))
     new_table = Table(TABLE_NAME, meta, *columns)
     new_table.create(engine)
     
@@ -128,13 +128,13 @@ def prep_data():
         conn.execute(query)
         conn.commit()
     
-    print("Prepping data: {} minutes".format((time.time() - start) / 60))
+    print("Prepping data: {} minutes".format((time() - start) / 60))
     
     return df
 
 # Insert data into database
-def insert_records(df: pd.DataFrame):
-    start = time.time()
+def insert_records(df: DataFrame):
+    start = time()
     if DB_CREDS == None or client == "mssql":
         creds = SqlCreds.from_engine(engine)
         to_sql(
@@ -155,8 +155,8 @@ def insert_records(df: pd.DataFrame):
                 chunksize = min(50000, len(df))
             )
             conn.commit()
-    print("Inserting data: {} minutes".format((time.time() - start) / 60))
+    print("Inserting data: {} minutes".format((time() - start) / 60))
 
 df = prep_data()
 insert_records(df)
-print("Total time: {} minutes".format((time.time() - start_time) / 60))
+print("Total time: {} minutes".format((time() - start_time) / 60))

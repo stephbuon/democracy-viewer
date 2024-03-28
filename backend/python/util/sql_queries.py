@@ -1,11 +1,11 @@
-import pandas as pd
+from pandas import DataFrame
 # Database Interaction
-from sqlalchemy import Engine, MetaData, select, join, func, distinct
+from sqlalchemy import Engine, MetaData, select, func, distinct
 # Update directory to import util
 from util.sqlalchemy_tables import DatasetSplitText
 
 # Select records by group and word lists
-def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]) -> pd.DataFrame:
+def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]) -> DataFrame:
     # Get data table from metadata
     table = meta.tables[table_name]
     query = (
@@ -46,7 +46,7 @@ def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str
         for row in conn.execute(query):
             records.append(row)
         conn.commit()
-    df = pd.DataFrame({
+    df = DataFrame({
         "id": list(map(lambda x: x[0], records)),
         "word": list(map(lambda x: x[1], records)),
         "count": list(map(lambda x: x[2], records))

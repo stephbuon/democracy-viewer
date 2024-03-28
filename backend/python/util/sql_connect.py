@@ -1,28 +1,27 @@
-import jwt
-import os
-from sqlalchemy import create_engine
-import sys
+from jwt import decode
+from os import environ
+from sys import argv
 
 def sql_connect():
     try:
-        DB_CREDS_TOKEN = sys.argv[2]
+        DB_CREDS_TOKEN = argv[2]
     except:
         DB_CREDS_TOKEN = None
         
     if DB_CREDS_TOKEN != None:
-        secret = os.environ.get("TOKEN_SECRET")
-        DB_CREDS = jwt.decode(DB_CREDS_TOKEN, secret, "HS256")
+        secret = environ.get("TOKEN_SECRET")
+        DB_CREDS = decode(DB_CREDS_TOKEN, secret, "HS256")
     else: 
         DB_CREDS = None
 
     if DB_CREDS == None:
         # Connect to default database if no distributed connection
         # Load environment variables
-        host = os.environ.get("HOST")
-        database = os.environ.get("DATABASE")
-        port = os.environ.get("PORT")
-        username = os.environ.get("DATABASE_USERNAME")
-        password = os.environ.get("PASSWORD")
+        host = environ.get("HOST")
+        database = environ.get("DATABASE")
+        port = environ.get("PORT")
+        username = environ.get("DATABASE_USERNAME")
+        password = environ.get("PASSWORD")
         client = "mssql"
 
         # Connect to database
