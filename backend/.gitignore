@@ -30,8 +30,7 @@ package-lock.json
 # csv/json files
 downloads/*
 uploads/*
-graphs/files/*
-preprocessing/files/*
+python/files/*
 
 # python
 *__pycache__
