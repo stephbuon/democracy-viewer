@@ -25,9 +25,7 @@ RUN npm -v && sleep 3
 COPY package.json .
 RUN npm install
 
-# Install Python
-# ADD install_python.sh .
-# RUN sudo ./install_python
+# Check Python version
 RUN python3 --version && sleep 3
 
 # Install Python dependencies
