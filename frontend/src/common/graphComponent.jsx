@@ -17,7 +17,7 @@ export const GraphComponent = ({ data, table, setData }) => {
         Plotly.newPlot('graph', data, layout, { displayModeBar: false });
         graph.current.on('plotly_click', function (data) { // Click event for zoom page
             let dataPoint = data.points[0];
-            console.log("Selected datapoint", dataPoint, table);
+            console.log("Selected datapoint", dataPoint);
             setData({
               group: dataPoint.data.name,
               word: dataPoint.x,
