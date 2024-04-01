@@ -43,24 +43,27 @@ export const GraphSettings = ( props ) => {
 
     // UseEffect definition. Updates graph settings from local storage and group names from api
     useEffect(() => {
-        let graphData = JSON.parse(localStorage.getItem('graph-data'));
-        if(graphData != undefined && graphData.table == props.dataset.table_name){
-            setMetric(graphData.settings.metric);
-            setGroup(graphData.settings.group);
-            nameSelected(graphData.settings.group);
-
-            let searchList = []
-            graphData.settings.groupList.forEach((element) => {
-                let object = {label:element, value:element};
-                searchList.push(object)
-            })
-            setGroupList(searchList);
-            console.log("GroupList test", groupList, searchList)
-
-            props.setData(graphData.data)
+        if (props.dataset) {
+            let graphData = JSON.parse(localStorage.getItem('graph-data'));
+            if(graphData != undefined && graphData.table == props.dataset.table_name){
+                setMetric(graphData.settings.metric);
+                setGroup(graphData.settings.group);
+                nameSelected(graphData.settings.group);
+    
+                let searchList = []
+                graphData.settings.groupList.forEach((element) => {
+                    let object = {label:element, value:element};
+                    searchList.push(object)
+                })
+                setGroupList(searchList);
+                console.log("GroupList test", groupList, searchList)
+    
+                props.setData(graphData.data)
+            }
+            updateGroupNames();
         }
-        updateGroupNames();
-    }, []);
+        
+    }, [props.dataset]);
 
     // Function definitions
 
