@@ -374,6 +374,7 @@ export const SubsetResultsPage = (props) => {
                         top: 0,
                         zIndex: 10,
                         background: '#ffffff',
+                        overflow: 'scroll'
                     }}
                 >
                     <div
@@ -427,22 +428,6 @@ export const SubsetResultsPage = (props) => {
                         ))}
 
                     </div>
-                </Box>
-
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexDirection: 'column',
-                        margin: 0,
-                        marginTop: '6rem',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        background: '#ffffff',
-                       
-                    }}
-                >
                     <div
                         sx={{
                             display: 'grid',
