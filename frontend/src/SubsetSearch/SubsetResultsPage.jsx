@@ -459,7 +459,7 @@ export const SubsetResultsPage = (props) => {
 
 
                     </div>
-                </Box>}
+                </Box>
 
 
                 <Box

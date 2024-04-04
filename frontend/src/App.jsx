@@ -17,13 +17,22 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CreateDistributedConnection from "./CreateDistributedConnection/CreateDistributedConnection.jsx";
   
 export const App = () => {
+  
+  // variable definitions
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
   const [data, setData] = useState(demoV);
-  
-  const [dataset, setDataset] = useState(undefined);
-  const [user, setUser] = useState(undefined);
+  const [dataset, setDataset] = useState(demoV ? demoV.dataset : undefined);
+  const [user, setUser] = useState(demoV ? demoV.user : undefined);
   const [navigated, setNavigated] = useState(false);
 
+  // Log onstart
+  useEffect(() => {
+    console.log("Strating Democracy Viewer App")
+  },[]);
+
+  // Function definitions
+
+  //
   const chooseDataset = (choice) =>{
     setDataset(choice)
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -35,6 +44,7 @@ export const App = () => {
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
 
+  //
   const login = (profile) => {
     console.log(profile);
     setUser(profile)
@@ -48,27 +58,6 @@ export const App = () => {
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
 
-  useEffect(() => {
-    console.log("Strating Democracy Viewer App")
-    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'))
-    //TODO implement this (only when logged in?)
-    if(demoV != undefined)
-    {
-      if(demoV.user != undefined){setUser(demoV.user)}
-      if(demoV.dataset != undefined){setDataset(demoV.dataset)}
-    }
-  },[]);
-  
-  useEffect(()=>{
-    console.log("NOW USING NEW DATASET", dataset);
-  }, [dataset]);
-
-  useEffect(()=>{
-    console.log("NOW LOGGED IN", user);
-  }, [user]);
-
-  
-
   return (
     <div className="App">
       <BrowserRouter>
@@ -81,7 +70,7 @@ export const App = () => {
             <Route path="/graph" element={<Graph dataset={dataset} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
-            <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
+            <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/uploadprogress" element={<UploadProgress navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/downloadprogress" element={<DownloadProgress dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
