@@ -57,15 +57,26 @@ export const App = () => {
     demoV.user = profile;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
+  const logout = () => {
+    setUser(undefined)
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if(!demoV)
+    {
+      demoV = {user:undefined, dataset:undefined}
+    }
+    console.log(demoV)
+    demoV.user = undefined;
+    localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+  }
 
   return (
     <div className="App">
       <BrowserRouter>
-        <Layout user={user}/>
+        <Layout user={user} logout={()=>logout()}/>
         <Routes>
             <Route path="/" element={<Homepage />} />
-            <Route path="/login" element={<Login login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
-            <Route path="/register" element={<Register login={login}/>} />
+            <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
+            <Route path="/register" element={<Register currUser={user} login={login}/>} />
             <Route path="/profile/:username" element={<Profile currUser={user}/>} />
             <Route path="/graph" element={<Graph dataset={dataset} setData={setData} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
@@ -74,7 +85,7 @@ export const App = () => {
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/uploadprogress" element={<UploadProgress navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/downloadprogress" element={<DownloadProgress dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
-            <Route path="/createdistributedconnection" element={<CreateDistributedConnection/>}/>
+            <Route path="/createdistributedconnection" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
         </Routes>
       </BrowserRouter>
     </div>
