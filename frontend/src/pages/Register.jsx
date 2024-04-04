@@ -14,6 +14,7 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { LoginRequest, RegisterRequest } from '../apiFolder/LoginRegister';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 
 
@@ -21,6 +22,19 @@ const theme = createTheme();
 
 export default function Register(props) {
   const navigate = useNavigate();
+  const loggedIn = () => {
+    if(props.currUser)
+    {
+      return true;
+    }
+    return false;
+  }
+  useEffect(()=>{
+    if(loggedIn())
+    {
+      navigate('/')
+    }
+  },[]);
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
