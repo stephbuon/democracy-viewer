@@ -1,5 +1,6 @@
 from time import time
 start_time = time()
+total_start_time = time()
 # Import metrics
 import util.metrics as metrics
 # Other imports
@@ -12,7 +13,7 @@ from util.sql_connect import sql_connect
 from util.sqlalchemy_tables import DatasetMetadata
 # Word processing
 from util.word_processing import lemmatize_nltk, stem_nltk
-print("Import time: {} minutes".format((time() - start_time) / 60))
+print("Import time: {} seconds".format(time() - start_time))
 
 # Get input file from command line argument
 params_file = argv[1]
@@ -23,7 +24,7 @@ conn_str, client = sql_connect()
 engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(engine)
-print("Connection time: {} minutes".format((time() - start_time) / 60))
+print("Connection time: {} seconds".format(time() - start_time))
 
 start_time = time()
 # Parse input files
@@ -53,7 +54,7 @@ if preprocessing_type == "stem":
     params["word_list"] = list(map(lambda x: stem_nltk(x)[0], params["word_list"]))
 elif preprocessing_type == "lemma":
     params["word_list"] = list(map(lemmatize_nltk, params["word_list"]))
-print("Parameter processing time: {} minutes".format((time() - start_time) / 60))
+print("Parameter processing time: {} seconds".format(time() - start_time))
 
 # Call function based on given metric
 start_time = time()
@@ -69,7 +70,9 @@ elif params["metric"] == "proportion":
     output = metrics.proportions(engine, meta, params["table_name"], params["group_name"], params["group_list"], params["word_list"])
 else:
     exit("Invalid metric: " + params["metric"])
-print("Computation time: {} minutes".format((time() - start_time) / 60))
+print("Computation time: {} seconds".format(time() - start_time))
 
 output_file = params_file.replace("/input/", "/output/")
 output.to_json(output_file, orient = "records")
+
+print("Total time: {} seconds".format(time() - total_start_time))
