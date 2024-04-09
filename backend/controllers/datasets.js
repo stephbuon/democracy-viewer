@@ -357,7 +357,7 @@ const getColumnNames = async(knex, table) => {
     // Get text columns
     const textCols = await getTextCols(knex, table);
     // Filter out text columns
-    const results = Object.keys(names).filter(x => textCols.indexOf(x) === -1);
+    const results = Object.keys(names).filter(x => x != "id" && textCols.indexOf(x) === -1);
     return results;
 }
 

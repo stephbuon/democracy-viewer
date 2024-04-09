@@ -1,20 +1,20 @@
-import pandas as pd
-import numpy as np
-import sys
+from copy import deepcopy
 from dotenv import load_dotenv
-import copy
-import time
+from numpy import ceil
+from pandas import DataFrame, concat, read_csv
+from sys import argv, exit
+from time import time
 # Database interaction
 from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, MetaData, select
 # SQL helpers
 from util.sql_connect import sql_connect
-import util.sqlalchemy_tables as tables
+from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText, DatasetTextCols
 # Word processing
 from util.word_processing import lemmatize_nltk, stem_nltk
 
 # Get table name from command line argument
-TABLE_NAME = sys.argv[1]
+TABLE_NAME = argv[1]
 load_dotenv()
 
 # Load distributed connection if defined
@@ -26,13 +26,13 @@ meta.reflect(engine)
 print("Connection time: {} minutes".format((time.time() - start_time) / 60))
 
 # Insert tokens into database
-def insert_tokens(df: pd.DataFrame):
+def insert_tokens(df: DataFrame):
     start = time.time()
     if client == "mssql":
         creds = SqlCreds.from_engine(engine)
         to_sql(
             df,
-            tables.DatasetSplitText.__tablename__,
+            DatasetSplitText.__tablename__,
             creds,
             index = False,
             if_exists = "append",
@@ -41,7 +41,7 @@ def insert_tokens(df: pd.DataFrame):
     else:
         with engine.connect() as conn:
             df.to_sql(
-                tables.DatasetSplitText.__tablename__, 
+                DatasetSplitText.__tablename__, 
                 conn, 
                 if_exists = "append", 
                 index = False, 
@@ -51,13 +51,13 @@ def insert_tokens(df: pd.DataFrame):
     print("Inserting data: {} minutes".format((time.time() - start) / 60))
 
 # Split the text of the given data frame
-def split_text(data: pd.DataFrame):
+def split_text(data: DataFrame):
     start = time.time()
     
     # Get metadata to determine preprocessing type
     query = (
-        select(tables.DatasetMetadata.preprocessing_type)
-            .where(tables.DatasetMetadata.table_name == TABLE_NAME)
+        select(DatasetMetadata.preprocessing_type)
+            .where(DatasetMetadata.table_name == TABLE_NAME)
     )
     with engine.connect() as conn:
         for row in conn.execute(query):
@@ -66,7 +66,7 @@ def split_text(data: pd.DataFrame):
         conn.commit()
         
     # Read and process stop words
-    stopwords = pd.read_csv("python/util/preprocessing/stopwords.csv")
+    stopwords = read_csv("python/util/preprocessing/stopwords.csv")
     stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace('\W', '', regex=True)
     # Stem stop words if using stemming
     if preprocessing_type == "stem":
@@ -75,7 +75,7 @@ def split_text(data: pd.DataFrame):
     stopwords = stopwords.drop_duplicates()
     
     # Create a deep copy of data
-    split_data = copy.deepcopy(data)
+    split_data = deepcopy(data)
     # Lemmatize, stem, or split text based on preprocessing type
     if preprocessing_type == "lemma":
         split_data["text"] = split_data["text"].apply(lemmatize_nltk)
@@ -117,8 +117,8 @@ def get_data():
     start = time.time()
     # Get number of records and calculate number of pages
     query = (
-        select(tables.DatasetMetadata.record_count)
-            .where(tables.DatasetMetadata.table_name == TABLE_NAME)
+        select(DatasetMetadata.record_count)
+            .where(DatasetMetadata.table_name == TABLE_NAME)
     )
     with engine.connect() as conn:
         for row in conn.execute(query):
@@ -126,11 +126,11 @@ def get_data():
             break
         conn.commit()
     PAGE_LENGTH = 50000
-    PAGES = int(np.ceil(records / PAGE_LENGTH))
+    PAGES = int(ceil(records / PAGE_LENGTH))
     # Get text columns
     query = (
-        select(tables.DatasetTextCols.col)
-            .where(tables.DatasetTextCols.table_name == TABLE_NAME)
+        select(DatasetTextCols.col)
+            .where(DatasetTextCols.table_name == TABLE_NAME)
     )
     text_cols = []
     with engine.connect() as conn:
@@ -139,7 +139,7 @@ def get_data():
         conn.commit()
     if len(text_cols) == 0:
         print("No text columns to process")
-        sys.exit(0)
+        exit(0)
     # Get table from metadata
     table = meta.tables[TABLE_NAME]
     # Array to store all processing threads
@@ -158,13 +158,13 @@ def get_data():
                 for row in conn.execute(query):
                     records.append(row)
                 conn.commit()
-            data = pd.DataFrame({
+            data = DataFrame({
                 "id": list(map(lambda x: x[0], records)),
                 "text": list(map(lambda x: x[1], records)),
                 "col": col
             })
             df.append(data)
-    df = pd.concat(df)
+    df = concat(df)
     print("Loading data: {} minutes".format((time.time() - start) / 60))
     return df
               
