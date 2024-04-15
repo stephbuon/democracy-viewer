@@ -18,6 +18,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
+import background from "../images/graphs_background.png"
 
 export const Graph = (props) => {
 // useState definitions
@@ -159,7 +160,7 @@ export const Graph = (props) => {
 
   return (
     <>
-      <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
+      <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px", backgroundImage: `url(${ background })`, backgroundRepeat: "no-repeat", backgroundSize: "100% 100%", backgroundColor:'#0766BD' }}>
         <Grid container justifyContent="center">
 
           {/* Side menu for graph settings */}
