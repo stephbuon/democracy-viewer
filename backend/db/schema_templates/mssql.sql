@@ -5,6 +5,8 @@ CREATE TABLE dataset_metadata (
     username VARCHAR(20) NOT NULL,
     title VARCHAR(50),
     description VARCHAR(200),
+    author VARCHAR(50),
+    date_collected DATE,
     is_public BIT DEFAULT 0 NOT NULL,
     clicks INT DEFAULT 0 NOT NULL,
     record_count BIGINT DEFAULT 0 NOT NULL,

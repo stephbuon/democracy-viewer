@@ -1,34 +1,40 @@
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
+import Parser from 'html-react-parser';
 
-export const Zoom = ({ data }) => {
-
-    // TESTING TEMP
-    var innerHTML;
-    data.group = "MR. GLADSTONE"
-    data.count = 31
-    data.word = "industry"
-    data.ids = [1081131, 1113745, 124187, 309018, 333962, 333977, 368875, 395545, 461368, 461370, 461371, 461372, 5945, 6001, 6006, 6016, 6112, 6198, 6404, 6429, 6442, 651830, 69130, 71485, 743941, 77529, 77554, 77582]
-    //
-
-
+export const Zoom = () => {
+    // UseState definitions
     const [searchResults, setSearchResults] = useState([]);
+    const [loadedData, setLoadedData] = useState([])
 
+    let graphData = JSON.parse(localStorage.getItem('selected'));
+    const [data, setData] = useState(graphData.selected);
+
+    // Variable definitions
+    var innerHTML;
+    var scrollSpot = 0;
+    var valueTrack = 0;
+
+    // Gets record for data.ids and populates searchResults
     useEffect(() => {
-        getRecordsByIds(data.dataset.table_name, data.ids).then(async (res) => {
+        const scrollBox = document.querySelector("div#scroll-box");
+        scrollBox.addEventListener('scroll', (event) => {
+            handleScroll(event)
+        });
+
+        getRecordsByIds(data.dataset, data.ids).then(async (res) => {
             if (!res) {
-                console.log("Odd zoom page error, no results of selected result?");
+                console.log("Zoom error, no results found");
             }
             else {
                 setSearchResults(res)
-                console.log("Zoom test", searchResults, res);
+                setLoadedData(res.slice(0, Math.min(10, res.length)))
             }
         })
     }, []);
 
-    const highlight = (result, index) => {
-        console.log("Highlighting")
-        var textLabel = document.getElementById("text" + index);
+    // Funcion definitions
+    const highlight = (result) => {
         innerHTML = "";
 
         let tempText = result.text.replaceAll("\"", '')
@@ -44,9 +50,14 @@ export const Zoom = ({ data }) => {
             i = lowerText.indexOf(data.word)
         }
         innerHTML += tempText;
-        console.log("HTML TEST", innerHTML)
-        console.log(result, index)
       }
+
+      const handleScroll = (event) => {
+        // if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || isLoading) {
+        //   return;
+        // }
+        // fetchData();
+      };
 
     // TODO Show all values from group containing selected word
     /*
@@ -121,24 +132,26 @@ export const Zoom = ({ data }) => {
                 </div>
 
                 {/* get id results */}
-                {searchResults.length > 0 && searchResults.map(function(result, i)
-                    {
-                        highlight(result, i)
+                <div id="scroll-box" style={{overflow:"scroll"}}>
+                    {searchResults.length > 0 && loadedData.map(function(result, i)
+                        {
+                            highlight(result)
 
-                        let debate = result.debate.replaceAll("\"", '')
-                        let speaker = result.speaker.replaceAll("\"", '')
+                            let debate = result.debate.replaceAll("\"", '')
+                            let speaker = result.speaker.replaceAll("\"", '')
 
-                        return <div className="row border">
-                                <div className="col my-auto">
-                                    {debate}
+                            return <div key={i} className="row border">
+                                    <div className="col my-auto">
+                                        {debate}
+                                    </div>
+                                    <div className="col my-auto">
+                                        {speaker}
+                                    </div>
+                                    <div className="col my-auto">{Parser(innerHTML)}</div>
                                 </div>
-                                <div className="col my-auto">
-                                    {speaker}
-                                </div>
-                                <div className="col my-auto">{innerHTML}</div>
-                            </div>
-                    }
-                )}
+                        }
+                    )}
+                </div>
 
             </div>
         </div>
