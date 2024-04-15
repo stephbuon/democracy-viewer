@@ -29,7 +29,6 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   var endpoint = `${apiEndpoint}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
 
   groupList.forEach((group) => { // Add all groups in groupList to endpoint
-    console.log("Get graph test", group.value)
     endpoint += `&group_list=${group.value}`
   })
 
@@ -79,7 +78,6 @@ export const getColumnValues = (dataset, group) => new Promise((resolve, reject)
 });
 
 export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) => {
-  console.log("ID TEST", ids)
   var endpoint = `${apiEndpoint}/datasets/ids/${dataset}?` // Stores concatenated endpoint
 
   ids.forEach((id) => { // Add all groups in groupList to endpoint
