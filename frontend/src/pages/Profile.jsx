@@ -48,7 +48,7 @@ const Profile = (props) => {
     }, [ params.username ]);
 
     if (!user) {
-        return <>You must be logged in to view your profile</>
+        return <></>
     }
 
     return (
@@ -181,7 +181,7 @@ const Profile = (props) => {
                 </Box>
             </Box>
 
-            <EditProfile user = { user } setUser = { setUser } open = { modalOpen } setOpen = { setModalOpen }/>
+            <EditProfile user = { user } setUser = {x => setUser(x) } open = { modalOpen } setOpen = {x => setModalOpen(x) }/>
         </ThemeProvider>
     );
 }
