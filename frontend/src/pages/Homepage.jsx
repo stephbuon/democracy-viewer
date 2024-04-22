@@ -54,7 +54,7 @@ export default function Homepage() {
               A community to analyze and share data sets. Text Mining Development offers an array of visualization tools to support statistical and close readings of text.
             </Typography>
             <Stack
-              sx={{ pt: 0 }}
+              sx={{ pt: 4 }}
               direction="row"
               spacing={2}
               justifyContent="center"
@@ -76,16 +76,14 @@ export default function Homepage() {
                     height: 200,
                     width: '100%'
                   }}
-                  image={require("../images/search.png")}
-                  alt="search image"
-                  //image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
+                  image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
                     Search
                   </Typography>
                   <Typography align='center'>
-                    Browse Datasets or Conduct an Advanced Search
+                    Browse datasets or conduct an Advanced search
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -107,17 +105,14 @@ export default function Homepage() {
                     height: 200,
                     width: '100%'
                   }}
-
-                  image={require("../images/subset.png")}
-                  alt="subset image"
-                  //image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
+                  image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
                     Subset
                   </Typography>
                   <Typography align='center'>
-                    Find Records in a Dataset
+                    Find records in a dataset
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -141,10 +136,8 @@ export default function Homepage() {
                     height: 200,
                     width: '100%'
                   }}
-                  image={require("../images/upload.png")}
-                  alt="upload image"
-                  //image="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_1280.png"
-                  //alt="random"
+                  image="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_1280.png"
+                  alt="random"
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
@@ -173,15 +166,14 @@ export default function Homepage() {
                     height: 200,
                     width: '100%'
                   }}
-                  image={require("../images/graph.png")}
-                  alt="graph image"
+                  image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
                     Graph
                   </Typography>
                   <Typography align='center'>
-                    View Customizable and Interactive Graphs
+                    View customizable and interactive graphs
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
