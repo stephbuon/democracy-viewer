@@ -88,43 +88,43 @@ export const Layout = (props) => {
           <List component="nav">
             <ListItemButton component={Link} to="/" sx={{ pt: 3 }} >
               <ListItemIcon>
-                <Home />
+                <Home sx = {{ color: "#FFFFFF" }}/>
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
             <ListItemButton component={Link} to="/datasetsearch" sx={{ pt: 3 }}>
               <ListItemIcon>
-                <Search />
+                <Search sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Search" />
             </ListItemButton>
             <ListItemButton component={Link} to="/subsetsearch" sx={{ pt: 3 }}>
               <ListItemIcon>
-                <ManageSearchIcon />
+                <ManageSearchIcon sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Subset Search" />
             </ListItemButton>
             <ListItemButton sx={{ pt: 3 }}>
               <ListItemIcon>
-                <PeopleIcon />
+                <PeopleIcon sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Groups" />
             </ListItemButton>
             <ListItemButton component={Link} to='/graph'>
               <ListItemIcon>
-                <BarChartIcon />
+                <BarChartIcon sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Upload/Edit Data Sets" />
             </ListItemButton>
             {props.user !== undefined && <ListItemButton component={Link} to={`/Profile/${ props.user.username }`}>
               <ListItemIcon>
-                <Person />
+                <Person sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Profile" />
             </ListItemButton>}
             {props.user === undefined && <ListItemButton component={Link} to={`/login`}>
               <ListItemIcon>
-                <Person />
+                <Person sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Profile" />
             </ListItemButton>}

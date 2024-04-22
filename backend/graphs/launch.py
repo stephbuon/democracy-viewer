@@ -40,7 +40,7 @@ if DB_CREDS == None:
     password = os.environ.get("PASSWORD")
 
     # Connect to database
-    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
+    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+17+for+SQL+Server".format(
         username, password, host, port, database
     )
 else:
