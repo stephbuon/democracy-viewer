@@ -7,7 +7,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Grid } from "@mui/material";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
 import { Box, Grid, Paper, Button } from "@mui/material";
@@ -17,7 +16,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
-import background from "../images/graphs_background.png"
+import background from "../images/GUI_gradient_background.png"
 
 export const Graph = (props) => {
 // useState definitions
@@ -95,7 +94,13 @@ export const Graph = (props) => {
       {data != undefined && <GraphSettings dataset={data} setData={setData} show={settings} setSettings={setSettings}
       updateGraph={updateGraph} buttonText={modalText}/>}
 
-      <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
+      <Box component="div" sx={{ 
+        marginLeft: "20px", 
+        marginRight: "16px",
+        backgroundImage:`url(${background})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover", }}
+      >
         <Grid container justifyContent="center">
           <div>
             <Button variant="contained"

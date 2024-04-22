@@ -47,7 +47,7 @@ export const Layout = (props) => {
   return (
     <>
       <AppBar position="fixed">
-        <Toolbar>
+        <Toolbar sx={{ backgroundColor: "#0766BD" }}>
           <IconButton
             size="large"
             edge="start"
@@ -82,6 +82,7 @@ export const Layout = (props) => {
               width: open ? 240 : 72,
               transition: 'width 225ms cubic-bezier(0.4, 0, 0.2, 1)',
               marginTop: '64px',
+              backgroundColor: "#9FE0F4"
             },
           }}
         >
