@@ -10,6 +10,7 @@ from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, MetaData, select
 # SQL helpers
 from util.sql_connect import sql_connect
+import util.sql_queries as queries
 from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText, DatasetTextCols
 # Word processing
 from spacy import load as load_spacy
@@ -127,64 +128,8 @@ def split_text(data: DataFrame):
     
     print("Data processing: {} minutes".format((time() - start) / 60))
     return split_data
-    
-# Get data out of database
-def get_data():
-    start = time()
-    # Get number of records and calculate number of pages
-    query = (
-        select(DatasetMetadata.record_count)
-            .where(DatasetMetadata.table_name == TABLE_NAME)
-    )
-    with engine.connect() as conn:
-        for row in conn.execute(query):
-            records = row[0]
-            break
-        conn.commit()
-    PAGE_LENGTH = 50000
-    PAGES = int(ceil(records / PAGE_LENGTH))
-    # Get text columns
-    query = (
-        select(DatasetTextCols.col)
-            .where(DatasetTextCols.table_name == TABLE_NAME)
-    )
-    text_cols = []
-    with engine.connect() as conn:
-        for row in conn.execute(query):
-            text_cols.append(row[0])
-        conn.commit()
-    if len(text_cols) == 0:
-        print("No text columns to process")
-        exit(0)
-    # Get table from metadata
-    table = meta.tables[TABLE_NAME]
-    # Array to store all processing threads
-    df = []
-    for col in text_cols:
-        for page in range(PAGES):
-            # Get next 50,000 records from db
-            query = (
-                select(table.c.get("id"), table.c.get(col))
-                    .order_by(table.c.get("id"))
-                    .offset(page * PAGE_LENGTH)
-                    .limit(PAGE_LENGTH)
-            )
-            records = []
-            with engine.connect() as conn:
-                for row in conn.execute(query):
-                    records.append(row)
-                conn.commit()
-            data = DataFrame({
-                "id": list(map(lambda x: x[0], records)),
-                "text": list(map(lambda x: x[1], records)),
-                "col": col
-            })
-            df.append(data)
-    df = concat(df)
-    print("Loading data: {} minutes".format((time() - start) / 60))
-    return df
               
-data = get_data()
+data = queries.get_text(engine, meta, TABLE_NAME)
 df = split_text(data)
 print("Tokens processed: {}".format(len(df)))
 insert_tokens(df)

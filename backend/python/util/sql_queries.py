@@ -1,8 +1,124 @@
-from pandas import DataFrame
+from numpy import ceil, array
+from pandas import DataFrame, concat
+from time import time
 # Database Interaction
 from sqlalchemy import Engine, MetaData, select, func, distinct
 # Update directory to import util
-from util.sqlalchemy_tables import DatasetSplitText
+from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText, DatasetTextCols
+
+# Get all of the metadata of a dataset
+def get_metadata(engine: Engine, meta: MetaData, table_name: str) -> dict:
+    # Make query
+    query = (
+        select()
+            .where(DatasetMetadata.table_name == table_name)
+    )
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            output = row
+            break
+        conn.commit()
+        
+    # Give column names as keys
+    record = {}
+    for i, col in enumerate(meta.tables[DatasetMetadata.__tablename__].columns.keys()):
+        record[col] = output[i]
+        
+    return record
+
+# Get the text columns of a dataset
+def get_text_cols(engine: Engine, table_name: str) -> list[str]:
+    query = (
+        select(DatasetTextCols.col)
+            .where(DatasetTextCols.table_name == table_name)
+    )
+    text_cols = []
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            text_cols.append(row[0])
+        conn.commit()
+    if len(text_cols) == 0:
+        print("No text columns to process")
+        exit(1)
+    else:
+        return text_cols
+
+# Select the text of all text columns for all records
+def get_text(engine: Engine, meta: MetaData, table_name: str) -> DataFrame:
+    start = time()
+    
+    # Get total number of records
+    metadata = get_metadata(engine, meta, table_name)
+    records_cnt = metadata["record_count"]
+    page_length = 50000
+    pages = int(ceil(records_cnt / page_length))
+    
+    # Get all text columns
+    text_cols = get_text_cols(engine, table_name)
+    
+    # Get table from metadata
+    table = meta.tables[table_name]
+    # Array to store all processing threads
+    df = []
+    for col in text_cols:
+        for page in range(pages):
+            # Get next 50,000 records from db
+            query = (
+                select(table.c.get("id"), table.c.get(col))
+                    .order_by(table.c.get("id"))
+                    .offset(page * page_length)
+                    .limit(page_length)
+            )
+            records = []
+            with engine.connect() as conn:
+                for row in conn.execute(query):
+                    records.append(row)
+                conn.commit()
+            data = DataFrame({
+                "id": list(map(lambda x: x[0], records)),
+                "text": list(map(lambda x: x[1], records)),
+                "col": col
+            })
+            df.append(data)
+    df = concat(df)
+    print("Loading data: {} minutes".format((time() - start) / 60))
+    
+    return df
+
+# Get the values of a subset of columns for each record
+def get_columns(engine: Engine, meta: MetaData, table_name: str, columns: list[str]):
+    # Get total number of records
+    metadata = get_metadata(engine, meta, table_name)
+    records_cnt = metadata["record_count"]
+    page_length = 50000
+    pages = int(ceil(records_cnt / page_length))
+    
+    # Select data from table
+    table = meta.tables[table_name]
+    columns.insert(0, "id")
+    select_stmnt = select([ table.c[col] for col in columns ])
+    df = []
+    for page in range(pages):
+        # Get next 50,000 records from db
+        query = (
+            select_stmnt
+                .order_by(table.c.get("id"))
+                .offset(page * page_length)
+                .limit(page_length)
+        )
+        records = []
+        with engine.connect() as conn:
+            for row in conn.execute(query):
+                records.append(row)
+            conn.commit()
+        records = array(records)
+        data = DataFrame()
+        for i, col in enumerate(columns):
+            data[col] = data[:,i]
+        df.append(data)
+        
+    df = concat(df)
+    return df
 
 # Select records by group and word lists
 def basic_selection(engine: Engine, meta: MetaData, table_name: str, column: str | None, values: list[str], word_list: list[str]) -> DataFrame:
