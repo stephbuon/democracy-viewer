@@ -13,11 +13,11 @@ CREATE TABLE users (
     website VARCHAR(50)
 );
 
--- CREATE TABLE private_groups (
---     id BIGINT PRIMARY KEY IDENTITY,
---     name VARCHAR(50),
---     description NVARCHAR(255)
--- );
+CREATE TABLE private_groups (
+    id BIGINT PRIMARY KEY IDENTITY,
+    name VARCHAR(50),
+    description NVARCHAR(255)
+);
 
 CREATE TABLE dataset_metadata (
     table_name VARCHAR(250) PRIMARY KEY NOT NULL,
@@ -36,22 +36,22 @@ CREATE TABLE dataset_metadata (
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
--- CREATE TABLE group_invites (
---     private_group BIGINT,
---     username VARCHAR(20),
---     PRIMARY KEY(private_group, username),
---     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
---     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
--- );
---
--- CREATE TABLE group_members (
---     private_group BIGINT,
---     member VARCHAR(20),
---     member_rank INT,
---     PRIMARY KEY(private_group, member),
---     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
---     FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
--- );
+CREATE TABLE group_invites (
+    private_group BIGINT,
+    username VARCHAR(20),
+    PRIMARY KEY(private_group, username),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
+);
+
+CREATE TABLE group_members (
+    private_group BIGINT,
+    member VARCHAR(20),
+    member_rank INT,
+    PRIMARY KEY(private_group, member),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
+);
 
 CREATE TABLE tags (
     tag_name VARCHAR(15) NOT NULL,
@@ -82,10 +82,15 @@ CREATE TABLE dataset_split_text (
     table_name VARCHAR(250) NOT NULL,
     record_id BIGINT NOT NULL,
     word VARCHAR(100) NOT NULL,
+    pos VARCHAR(5) NOT NULL,
+    tag VARCHAR(5) NOT NULL,
+    dep VARCHAR(10) NOT NULL,
+    head VARCHAR(100) NOT NULL,
+    children VARCHAR(250) NOT NULL,
     count BIGINT NOT NULL,
     col VARCHAR(100) NOT NULL,
     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
-    PRIMARY KEY(table_name, record_id, word, col)
+    PRIMARY KEY(table_name, record_id, word, pos, tag, dep, col)
 );
 
 CREATE TABLE database_connections (
