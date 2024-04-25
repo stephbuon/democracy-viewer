@@ -15,6 +15,7 @@ import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CreateDistributedConnection from "./CreateDistributedConnection/CreateDistributedConnection.jsx";
+import Acknowledgements from "./Acknownledgements/Acknowledgements.jsx";
   
 export const App = () => {
   
@@ -87,6 +88,7 @@ export const App = () => {
             <Route path="/uploadprogress" element={<UploadProgress navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/downloadprogress" element={<DownloadProgress dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/createdistributedconnection" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
+            <Route path="/acknowledgements" element={<Acknowledgements/>}/>
         </Routes>
       </BrowserRouter>
     </div>
