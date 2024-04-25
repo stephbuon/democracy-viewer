@@ -36,8 +36,18 @@ export default function Login(props) {
     }
     setSnackBarOpen1(false);
   };
-
+  const loggedIn = () => {
+    if(props.currUser)
+    {
+      return true;
+    }
+    return false;
+  }
   useEffect(() => {
+    if(loggedIn())
+    {
+      navigate('/')
+    }
     if(props.navigated)
     {
         props.setNavigated(false)

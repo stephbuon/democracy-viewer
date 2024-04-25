@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItem,ListItemIcon,ListItemText,Box,} from '@mui/material';
-import {Menu as MenuIcon,Home as HomeIcon,BarChart as BarChartIcon,Person,Home,Search,} from '@mui/icons-material';
+import {Menu as MenuIcon,Home as HomeIcon,Person,Home,Search,} from '@mui/icons-material';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import UploadIcon from '@mui/icons-material/Upload';
 import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import ListItemButton from '@mui/material/ListItemButton';
 import Divider from '@mui/material/Divider';
@@ -62,9 +64,14 @@ export const Layout = (props) => {
             {getCurrentPage()}
           </Typography>
           {location.pathname !== '/login' ? (
+            <>{props.user === undefined && 
             <Button color="inherit" component={Link} to="/login">
               Login or register
-            </Button>
+            </Button>}
+            {props.user !== undefined && 
+            <Button color="inherit" onClick={()=>{props.logout(); navigate('/')}}>
+              Logout
+            </Button>}</>
           ) : (
             <Button color="inherit" component={Link} to="/">
               Back
@@ -96,7 +103,7 @@ export const Layout = (props) => {
               <ListItemIcon>
                 <Search />
               </ListItemIcon>
-              <ListItemText primary="Search" />
+              <ListItemText primary="Dataset Search" />
             </ListItemButton>
             <ListItemButton component={Link} to="/subsetsearch" sx={{ pt: 3 }}>
               <ListItemIcon>
@@ -106,13 +113,13 @@ export const Layout = (props) => {
             </ListItemButton>
             <ListItemButton sx={{ pt: 3 }}>
               <ListItemIcon>
-                <PeopleIcon />
+                <ShowChartIcon/>
               </ListItemIcon>
-              <ListItemText primary="Groups" />
+              <ListItemText primary="Graphs" />
             </ListItemButton>
             <ListItemButton component={Link} to='/graph'>
               <ListItemIcon>
-                <BarChartIcon />
+                <UploadIcon />
               </ListItemIcon>
               <ListItemText primary="Upload/Edit Data Sets" />
             </ListItemButton>
