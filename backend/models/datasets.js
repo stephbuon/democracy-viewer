@@ -2,6 +2,9 @@ const metadata_table = "dataset_metadata";
 const tag_table = "tags";
 const text_col_table = "dataset_text_cols";
 const download_table = "dataset_download";
+const split_text_table = "dataset_split_text";
+const python = require("python-shell").PythonShell;
+const files = require("../util/file_management");
 
 class datasets {
     constructor(knex) {
@@ -269,56 +272,98 @@ class datasets {
 
     // Get a subset of a dataset
     async subsetTable(table, params, paginate = true, currentPage = 1) {
-        // Get column names and filter for string columns
-        const cols = await this.getColumnNames(table);
-        const colNames = Object.keys(cols).filter(x => cols[x].type === "varchar");
+        // Get dataset metadata
+        const metadata = await this.getMetadata(table);
 
-        const query = this.knex(table).where(q => {
-            // Get the query object keys
-            const keys = Object.keys(params);
+        // If dv_search in keys, process terms
+        let terms = [];
+        let processed_terms = undefined;
+        if (Object.keys(params).includes("dv_search")) {
+            // Split search string into words
+            terms = params["dv_search"].split(" ");
 
-            // Iterate through keys and and where clause for each
-            keys.forEach(key => {
-                if (key === "pageLength") {
-                    // Skip any key that is "pageLength"
-                } else if (key === "col_search") {
-                    // If the key is col_search, search for search terms in all columns
-
-                    // Split search string into words
-                    const terms = params[key].split(" ");
-
-                    // Iterate through search words
-                    for (let i = 0; i < terms.length; i++) {
-                        q.where(q => {
-                            // Iterate through column names
-                            for (let j = 0; j < colNames.length; j++) {
-                                // Get results where column value like term (if column contains strings)
-                                q.orWhereILike(colNames[j], `%${ terms[i] }%`);
-                            }
-                        });
-                    }
-                } else if (!Array.isArray(params[key])) {
-                    // If not an array, find exact value
-                    q.where({ [key]: params[key] })
-                } else if (params[key][0] === "like") {
-                    // If first value is "like", find strings like all terms in this value
-                    const terms = params[key][1].split(" ");
-                    terms.forEach(term => {
-                        q.whereILike(key, `%${ term }%`);
-                    });
-                } else if (params[key][0] === "greater") {
-                    // If first value is "greater", find values greater than this value
-                    q.where(key, ">=", params[key][1]);
-                } else if (params[key][0] === "less") {
-                    // If first value is "less", find values less than this value
-                    q.where(key, "<=", params[key][1]);
-                } else {
-                    // Else, find values between these values
-                    q.where(key, ">=", params[key][0]);
-                    q.where(key, "<=", params[key][1]);
+            // If preprocessing_type is not none, process in Python
+            if (metadata.preprocessing_type != "none") {
+                // Setup Python config
+                const file = "python/files/input/" + table + "_" + Date.now() + ".json";
+                // Add file names as command line arguments
+                const options = {
+                    args: [ file, metadata.preprocessing_type, ...terms ]
                 }
-            });
-        });
+                
+                // If a python path is provided in .env, use it
+                // Else use the default path
+                if (process.env.PYTHON_PATH) {
+                    options["pythonPath"] = process.env.PYTHON_PATH;
+                }
+
+                // Run python program that generates graph data
+                try {
+                    await python.run("python/processing_helper.py", options).then(x => console.log(x)).catch(x => {
+                        console.log(x);
+                        throw new Error(x);
+                    });
+                    processed_terms = files.readJSON(file);
+                } catch(err) {
+                    if (files.fileExists(file)) {
+                        throw new Error(err);
+                    } else {
+                        console.log(err)
+                    }
+                }
+            }
+        }
+
+        const query = this.knex(table)
+            .select(`${ table }.*`)
+            .innerJoin(split_text_table, `${ table }.id`, `${ split_text_table }.record_id`)
+            .where(`${ split_text_table }.table_name`, "=", table)
+            .where(q => {
+                // Get the query object keys
+                const keys = Object.keys(params);
+
+                // Iterate through keys and and where clause for each
+                keys.forEach(key => {
+                    if (key === "pageLength") {
+                        // Skip any key that is "pageLength"
+                    } else if (key === "dv_search") {
+                        // If the key is dv_search, search for search terms in split text
+
+                        // Iterate through search words
+                        for (let i = 0; i < terms.length; i++) {
+                            q.where(q => {
+                                // Get records where word like term
+                                if (processed_terms && processed_terms[i] != terms[i]) {
+                                    q.orWhereILike(`${ split_text_table }.word`, `%${ terms[i] }%`);
+                                    q.orWhereILike(`${ split_text_table }.word`, `%${ processed_terms[i] }%`);
+                                } else {
+                                    q.whereILike(`${ split_text_table }.word`, `%${ terms[i] }%`);
+                                }
+                            });
+                        }
+                    } else if (!Array.isArray(params[key])) {
+                        // If not an array, find exact value
+                        q.where(`${ table }.${ key }`, "=", params[key])
+                    } else if (params[key][0] === "like") {
+                        // If first value is "like", find strings like all terms in this value
+                        const terms = params[key][1].split(" ");
+                        terms.forEach(term => {
+                            q.whereILike(`${ table }.${ key }`, `%${ term }%`);
+                        });
+                    } else if (params[key][0] === "greater") {
+                        // If first value is "greater", find values greater than this value
+                        q.where(`${ table }.${ key }`, ">=", params[key][1]);
+                    } else if (params[key][0] === "less") {
+                        // If first value is "less", find values less than this value
+                        q.where(`${ table }.${ key }`, "<=", params[key][1]);
+                    } else {
+                        // Else, find values between these values
+                        q.where(`${ table }.${ key }`, ">=", params[key][0]);
+                        q.where(`${ table }.${ key }`, "<=", params[key][1]);
+                    }
+                });
+            }
+        );
 
         let results;
         if (paginate === true) {

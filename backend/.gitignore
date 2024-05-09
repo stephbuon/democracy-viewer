@@ -30,8 +30,12 @@ package-lock.json
 # csv/json files
 downloads/*
 uploads/*
-graphs/files/*
-preprocessing/files/*
+python/files/input/*
+python/files/output/*
+python/files/embeddings/*
+!python/files/input/README.md
+!python/files/output/README.md
+!python/files/embeddings/README.md
 
 # python
 *__pycache__
@@ -48,3 +52,4 @@ accounts.csv
 add_account.sql
 
 datasets
+latifa_embeddings

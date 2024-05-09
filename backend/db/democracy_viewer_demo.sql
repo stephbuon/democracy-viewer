@@ -1,4 +1,4 @@
--- CREATE DATABASE democracy_viewer_demo;
+-- CREATE DATABASE democracy_viewer;
 
 CREATE TABLE users (
     username VARCHAR(20) PRIMARY KEY NOT NULL,
@@ -13,11 +13,11 @@ CREATE TABLE users (
     website VARCHAR(50)
 );
 
--- CREATE TABLE private_groups (
---     id BIGINT PRIMARY KEY IDENTITY,
---     name VARCHAR(50),
---     description NVARCHAR(255)
--- );
+# CREATE TABLE private_groups (
+#     id SERIAL PRIMARY KEY,
+#     name VARCHAR(50),
+#     description NVARCHAR(255)
+# );
 
 CREATE TABLE dataset_metadata (
     table_name VARCHAR(250) PRIMARY KEY NOT NULL,
@@ -25,31 +25,35 @@ CREATE TABLE dataset_metadata (
 --     private_group BIGINT,
     title VARCHAR(50),
     description VARCHAR(200),
-    is_public BIT DEFAULT 0 NOT NULL,
+    author VARCHAR(50),
+    date_collected DATE,
+    is_public BINARY DEFAULT FALSE NOT NULL,
     clicks INT DEFAULT 0 NOT NULL,
     record_count BIGINT DEFAULT 0 NOT NULL,
     preprocessing_type VARCHAR(5) DEFAULT 'none' NOT NULL,
+    embeddings BINARY DEFAULT FALSE NOT NULL,
+    pos BINARY DEFAULT FALSE NOT NULL,
     date_posted DATE NOT NULL,
-    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
--- CREATE TABLE group_invites (
---     private_group BIGINT,
---     username VARCHAR(20),
---     PRIMARY KEY(private_group, username),
---     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
---     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
--- );
---
--- CREATE TABLE group_members (
---     private_group BIGINT,
---     member VARCHAR(20),
---     member_rank INT,
---     PRIMARY KEY(private_group, member),
---     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
---     FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
--- );
+# CREATE TABLE group_invites (
+#     private_group BIGINT,
+#     username VARCHAR(20),
+#     PRIMARY KEY(private_group, username),
+#     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+#     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
+# );
+
+# CREATE TABLE group_members (
+#     private_group BIGINT,
+#     member VARCHAR(20),
+#     member_rank INT,
+#     PRIMARY KEY(private_group, member),
+#     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+#     FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
+# );
 
 CREATE TABLE tags (
     tag_name VARCHAR(15) NOT NULL,
@@ -59,14 +63,14 @@ CREATE TABLE tags (
 );
 
 CREATE TABLE dataset_download (
-    id BIGINT PRIMARY KEY IDENTITY NOT NULL,
+    id SERIAL PRIMARY KEY,
     username VARCHAR(20),
     table_name VARCHAR(250) NOT NULL,
     timestamp DATETIME NOT NULL,
     current_page INTEGER NOT NULL,
     total_pages INTEGER NOT NULL,
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
-    FOREIGN KEY(username) REFERENCES users(username),
+    FOREIGN KEY(username) REFERENCES users(username)
 );
 
 CREATE TABLE dataset_text_cols (
@@ -77,17 +81,22 @@ CREATE TABLE dataset_text_cols (
 );
 
 CREATE TABLE dataset_split_text (
+    id SERIAL PRIMARY KEY,
     table_name VARCHAR(250) NOT NULL,
     record_id BIGINT NOT NULL,
     word VARCHAR(100) NOT NULL,
+    pos VARCHAR(5),
+    tag VARCHAR(5),
+    dep VARCHAR(10),
+    head VARCHAR(100),
+    children VARCHAR(250),
     count BIGINT NOT NULL,
     col VARCHAR(100) NOT NULL,
-    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE,
-    PRIMARY KEY(table_name, record_id, word, col)
+    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE
 );
 
 CREATE TABLE database_connections (
-    id BIGINT PRIMARY KEY IDENTITY NOT NULL,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     owner VARCHAR(20) NOT NULL,
     host VARCHAR(288) NOT NULL,

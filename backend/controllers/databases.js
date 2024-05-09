@@ -13,6 +13,7 @@ const newConnection = async(knex, name, owner, host, port, db, username, passwor
         conn = require("knex")(config.getConfig(client, host, db, username, port, password));
         await conn.raw("SELECT 1");
     } catch(err) {
+        console.error(err);
         throw new Error("Failed to connect to new database connection");
     }
 
