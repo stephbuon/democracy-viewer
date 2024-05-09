@@ -27,12 +27,12 @@ CREATE TABLE dataset_metadata (
     description VARCHAR(200),
     author VARCHAR(50),
     date_collected DATE,
-    is_public BINARY DEFAULT FALSE NOT NULL,
+    is_public BOOLEAN DEFAULT FALSE NOT NULL,
     clicks INT DEFAULT 0 NOT NULL,
     record_count BIGINT DEFAULT 0 NOT NULL,
     preprocessing_type VARCHAR(5) DEFAULT 'none' NOT NULL,
-    embeddings BINARY DEFAULT FALSE NOT NULL,
-    pos BINARY DEFAULT FALSE NOT NULL,
+    embeddings BOOLEAN DEFAULT FALSE NOT NULL,
+    pos BOOLEAN DEFAULT FALSE NOT NULL,
     date_posted DATE NOT NULL,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
@@ -81,17 +81,16 @@ CREATE TABLE dataset_text_cols (
 );
 
 CREATE TABLE dataset_split_text (
-    id SERIAL PRIMARY KEY,
     table_name VARCHAR(250) NOT NULL,
     record_id BIGINT NOT NULL,
     word VARCHAR(100) NOT NULL,
-    pos VARCHAR(5),
-    tag VARCHAR(5),
-    dep VARCHAR(10),
-    head VARCHAR(100),
-    children VARCHAR(250),
+    pos VARCHAR(5) DEFAULT 'N/A' NOT NULL,
+    tag VARCHAR(5) DEFAULT 'N/A' NOT NULL,
+    dep VARCHAR(10) DEFAULT 'N/A' NOT NULL,
+    head VARCHAR(100) DEFAULT 'N/A' NOT NULL,
     count BIGINT NOT NULL,
     col VARCHAR(100) NOT NULL,
+    PRIMARY KEY(table_name, record_id, word, pos, tag, dep, head, col),
     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE
 );
 
