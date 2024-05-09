@@ -2,15 +2,10 @@ from jwt import decode
 from os import environ
 from sys import argv
 
-def sql_connect():
-    try:
-        DB_CREDS_TOKEN = argv[2]
-    except:
-        DB_CREDS_TOKEN = None
-        
-    if DB_CREDS_TOKEN != None:
+def sql_connect(creds_token: str | None):
+    if creds_token != None:
         secret = environ.get("TOKEN_SECRET")
-        DB_CREDS = decode(DB_CREDS_TOKEN, secret, "HS256")
+        DB_CREDS = decode(creds_token, secret, "HS256")
     else: 
         DB_CREDS = None
 
@@ -22,10 +17,10 @@ def sql_connect():
         port = environ.get("PORT")
         username = environ.get("DATABASE_USERNAME")
         password = environ.get("PASSWORD")
-        client = "mssql"
+        client = "mysql"
 
         # Connect to database
-        conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+17+for+SQL+Server".format(
+        conn_str = "mysql+pymysql://{}:{}@{}:{}/{}".format(
             username, password, host, port, database
         )
     else:

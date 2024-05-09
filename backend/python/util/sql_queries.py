@@ -10,7 +10,7 @@ from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText, DatasetTex
 def get_metadata(engine: Engine, meta: MetaData, table_name: str) -> dict:
     # Make query
     query = (
-        select()
+        select(DatasetMetadata)
             .where(DatasetMetadata.table_name == table_name)
     )
     with engine.connect() as conn:

@@ -1,13 +1,11 @@
-from dotenv import load_dotenv
-from jwt import decode
-from os import environ
 from pandas import DataFrame, read_csv
 from sys import argv
 from time import time
 # Database interaction
+from util.sql_connect import sql_connect
 from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, update, MetaData, Table, Column, Integer, String, BigInteger, Float, Text
-from sqlalchemy_tables import DatasetMetadata
+from util.sqlalchemy_tables import DatasetMetadata
 
 METADATA_TABLE = "dataset_metadata"
 # Get table name and file name from command line argument
@@ -19,49 +17,7 @@ try:
     DB_CREDS_TOKEN = argv[3]
 except:
     DB_CREDS_TOKEN = None
-if DB_CREDS_TOKEN != None:
-    secret = environ.get("TOKEN_SECRET")
-    DB_CREDS = decode(DB_CREDS_TOKEN, secret, "HS256")
-else: 
-    DB_CREDS = None
-
-if DB_CREDS == None:
-    # Connect to default database if no distributed connection
-    # Load environment variables
-    load_dotenv()
-    host = environ.get("HOST")
-    database = environ.get("DATABASE")
-    port = environ.get("PORT")
-    username = environ.get("DATABASE_USERNAME")
-    password = environ.get("PASSWORD")
-
-    # Connect to database
-    conn_str = "mssql+pyodbc://{}:{}@{}:{}/{}?driver=ODBC+Driver+18+for+SQL+Server".format(
-            username, password, host, port, database
-        )
-else:
-    # Connect to distributed connection
-    client = DB_CREDS["client"]
-    creds = { key: DB_CREDS[key] for key in ["host", "db", "port", "username", "password"]}
-    # Create connection for client
-    if client == "mssql":
-        conn_str = "mssql+pyodbc://"
-    elif client == "mysql":
-        conn_str = "mysql+pymysql://"
-    elif client == "pg":
-        conn_str = "postgresql+psycopg2://"
-    else:
-        raise Exception("Unrecognized client:", client)
-    conn_str += creds["username"]
-    if "password" in creds.keys():
-        conn_str += ":{}".format(creds["password"])
-    conn_str += "@{}".format(creds["host"])
-    if "port" in creds.keys():
-        conn_str += ":{}".format(creds["port"])
-    conn_str += "/{}".format(creds["db"])
-    if client == "mssql":
-        conn_str += "?driver=ODBC+Driver+18+for+SQL+Server"
-        
+conn_str, client = sql_connect(DB_CREDS_TOKEN)
 engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(engine)
@@ -135,7 +91,7 @@ def prep_data():
 # Insert data into database
 def insert_records(df: DataFrame):
     start = time()
-    if DB_CREDS == None or client == "mssql":
+    if client == "mssql":
         creds = SqlCreds.from_engine(engine)
         to_sql(
             df,

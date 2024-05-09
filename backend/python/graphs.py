@@ -20,7 +20,11 @@ params_file = argv[1]
 
 # Load distributed connection if defined
 start_time = time()
-conn_str, client = sql_connect()
+try:
+    DB_CREDS_TOKEN = argv[2]
+except:
+    DB_CREDS_TOKEN = None
+conn_str, client = sql_connect(DB_CREDS_TOKEN)
 engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(engine)
