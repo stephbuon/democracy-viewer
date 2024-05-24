@@ -1,11 +1,9 @@
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
-import CameraIcon from '@mui/icons-material/PhotoCamera';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
 import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -18,29 +16,23 @@ import { Link } from "react-router-dom";
 import { BrowserRouter as Router, Switch, Route, Redirect, } from "react-router-dom";
 import Login from './Login';
 
-
-//Need to add if logged in to all buttons 
-
-
 const theme = createTheme();
 
 export default function Homepage() {
   return (
-
-
     <ThemeProvider theme={theme}>
       <CssBaseline />
-
       <main>
         {/* Hero unit */}
         <Box
           sx={{
             bgcolor: 'background.paper',
-            pt: 8,
-            pb: 6,
+            pt: 5,
+            pb: 3,
+            flexGrow: 1
           }}
         >
-          <Container maxWidth="sm">
+          <Container sx={{ py: 4, maxWidth: '90%' }} maxWidth={false}>
             <Typography
               component="h1"
               variant="h2"
@@ -48,10 +40,10 @@ export default function Homepage() {
               color="text.primary"
               gutterBottom
             >
-              Text Mining Development
+              Democracy Viewer
             </Typography>
-            <Typography variant="h5" align="center" color="text.secondary" paragraph>
-              A community to analyze and share data sets. Text Mining Development offers an array of visualization tools to support statistical and close readings of text.
+            <Typography variant="h5" align="center" color="text.secondary" paragraph sx={{ whiteSpace: 'nowrap' }}>
+              Democratizing text-based data analytics  <br /> Data sharing across the humanities and social sciences
             </Typography>
             <Stack
               sx={{ pt: 4 }}
@@ -62,22 +54,12 @@ export default function Homepage() {
             </Stack>
           </Container>
         </Box>
-        <Container sx={{ py: 4 }} maxWidth="md">
-
-          <Grid container spacing={4}>
-            <Grid item xs={12} sm={6} md={3}>
+        <Container sx={{ py: 4, maxWidth: '90%' }} maxWidth={false}>
+          <Grid container spacing={4} justifyContent="center">
+            <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
-                <CardMedia
-                  component="img"
-                  sx={{
-                    // 16:9
-                    height: 200,
-                    width: '100%'
-                  }}
-                  image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
-                />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
                     Search
@@ -87,58 +69,14 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/datasetsearch" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
+                <Button href="/datasetsearch" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
-
             </Grid>
-
-            {/* TEMPORARY FOR VERTICAL SLICE */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
-                <CardMedia
-                  component="img"
-                  sx={{
-                    // 16:9
-                    height: 200,
-                    width: '100%'
-                  }}
-                  image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
-                />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Subset
-                  </Typography>
-                  <Typography align='center'>
-                    Find records in a dataset
-                  </Typography>
-                </CardContent>
-                <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/subsetsearch" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
-                </CardActions>
-              </Card>
-
-            </Grid>
-
-
-
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-              >
-                <CardMedia
-                  component="img"
-                  sx={{
-                    // 16:9
-                    height: 200,
-                    width: '100%'
-                  }}
-                  image="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_1280.png"
-                  alt="random"
-                />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
                     Upload
@@ -148,44 +86,27 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/upload" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
+                  <Button href="/upload" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
-
             </Grid>
-
-            {/* TEMPORARY FOR VERTICAL SLICE */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
-                <CardMedia
-                  component="img"
-                  sx={{
-                    // 16:9
-                    height: 200,
-                    width: '100%'
-                  }}
-                  image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
-                />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Graph
+                    Visualize
                   </Typography>
                   <Typography align='center'>
-                    View customizable and interactive graphs
+                    Customize and interact with visualization/ graph analysis
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/graph" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
+                  <Button href="/graph" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
-
             </Grid>
-
-
-
-
           </Grid>
         </Container>
       </main>
@@ -200,9 +121,12 @@ export default function Homepage() {
           color="text.secondary"
           component="p"
         >
-          Something will go here eventually
+        <a href="https://github.com/stephbuon/democracy-viewer-demo/tree/main" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+            Visit our GitHub Page
+        </a>
         </Typography>
       </Box>
+
       {/* End footer */}
     </ThemeProvider>
   );

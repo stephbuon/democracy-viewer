@@ -200,15 +200,6 @@ export const Upload = (props) => {
             <Card
               sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >
-              <CardMedia
-                component="img"
-                sx={{
-                  // 16:9
-                  height: 200,
-                  width: '100%'
-                }}
-                image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
-              />
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="h2" align='center'>
                   Select File
@@ -252,15 +243,6 @@ export const Upload = (props) => {
             <Card
               sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >
-              <CardMedia
-                component="img"
-                sx={{
-                  // 16:9
-                  height: 200,
-                  width: '100%'
-                }}
-                image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
-              />
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="h2" align='center'>
                   API

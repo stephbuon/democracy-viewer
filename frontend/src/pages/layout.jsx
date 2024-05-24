@@ -48,7 +48,7 @@ export const Layout = (props) => {
 
   return (
     <>
-      <AppBar position="fixed">
+      <AppBar position="fixed" sx={{ bgcolor: 'white', color: '#333', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
         <Toolbar>
           <IconButton
             size="large"
@@ -137,6 +137,7 @@ export const Layout = (props) => {
             </ListItemButton>}
             
             <Divider sx={{ my: 1 }} />
+            
 
           </List>
         </Drawer>
@@ -145,5 +146,3 @@ export const Layout = (props) => {
     </>
   );
 }
-
-

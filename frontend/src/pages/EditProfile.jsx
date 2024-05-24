@@ -108,7 +108,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                         <TextField
                             margin="normal"
                             id="linkedin_link"
-                            label="LinkenIn Link"
+                            label="LinkedIn Link"
                             name="linkedin_link"
                             defaultValue = { user.linkedin_link ? user.linkedin_link : "" }
                         />

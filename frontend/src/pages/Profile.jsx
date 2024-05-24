@@ -70,114 +70,85 @@ const Profile = (props) => {
                 >
                     <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <Grid container spacing={3}>
-                            {/* Chart */}
-                            <Grid item xs={12}>
-                                <Paper
-                                    elevation={12}
-                                    sx={{
-                                        p: 2,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        flexDirection: 'column',
-                                        height: 240,
-                                    }}
-                                >
-                                    {/* How do we upload avatar here? */}
-                                    <Avatar alt={ user.username } src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
-                                    <Divider flexItem sx={{ mt: 2, mb: 4 }} />
-                                    <Typography variant="h4" component="h4">
-                                        { user.first_name } { user.last_name } { user.suffix }
-                                    </Typography>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} md={4} lg={3}>
-                                <Paper
-                                    elevation={12}
-                                    sx={{
-                                        p: 2,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: 240,
+                <Grid container spacing={3} justifyContent="center" alignItems="center">
+                    {/* User information */}
+                    <Grid item xs={12} md={8}>
+                        <Paper
+                            elevation={12}
+                            sx={{
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                height: 240,
+                                width: '100%',
+                            }}
+                        >
+                            {/* User avatar */}
+                            <Avatar alt={ user.username } src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
+                            <Divider flexItem sx={{ mt: 2, mb: 4 }} />
+                            <Typography variant="h4" component="h4">
+                                { user.first_name } { user.last_name } { user.suffix }
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12} md={4} lg={3}>
+                        <Paper
+                            elevation={12}
+                            sx={{
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 240,
+                            }}
+                        >
+                            <List>
+                                <ListItemText>
+                                    <Person /> username - { user.username }
+                                </ListItemText>
+                                {user.orcid && (
+                                    <ListItemText>
+                                        <PermIdentity /> OrcID - { (user.orcid.match(/.{1,4}/g) || []).join("-") }
+                                    </ListItemText>
+                                )}
+                                {user.title && (
+                                    <ListItemText>
+                                        <Title /> { user.title }
+                                    </ListItemText>
+                                )}
+                                {user.linkedin_link && (
+                                    <ListItemText>
+                                        <LinkedIn color="primary" /> <Link href={ user.linkedin_link }>{ user.linkedin_link }</Link>
+                                    </ListItemText>
+                                )}
+                                {user.website && (
+                                    <ListItemText>
+                                        <Link href={ user.website }>{ user.website }</Link>
+                                    </ListItemText>
+                                )}
+                                {user.email && (
+                                    <ListItemText>
+                                        <Email /> <Link href={`mailto: ${ user.email }`}>{ user.email }</Link>
+                                    </ListItemText>
+                                )}
+                                {editable === true && (
+                                    <ListItemText>
+                                        <Button
+                                            type="button"
+                                            variant="contained"
+                                            sx={{ mt: 3, mb: 2, bgcolor: 'black', color: 'white' }}
+                                            onClick={() => setModalOpen(true)}
+                                        >
+                                        Edit Profile
+                                        </Button>
+                                    </ListItemText>
+                                )}
+                            </List>
+                        </Paper>
+                    </Grid>
+                </Grid>
+            </Container>
 
-                                    }}
-                                >
-                                    <List>
-
-                                        <ListItemText>
-                                            <Person /> username - { user.username }
-                                        </ListItemText>
-
-                                        {
-                                            user.orcid &&
-                                            <ListItemText>
-                                                <PermIdentity /> OrcID - { (user.orcid.match(/.{1,4}/g) || []).join("-") }
-                                            </ListItemText>
-                                        }
-                                        
-                                        {
-                                            user.title &&
-                                            <ListItemText>
-                                                <Title /> { user.title }
-                                            </ListItemText>
-                                        }
-                                        
-                                        {
-                                            user.linkedin_link &&
-                                            <ListItemText>
-                                                <LinkedIn color="primary" /> <Link href={ user.linkedin_link }>{ user.linkedin_link }</Link>
-                                            </ListItemText>
-                                        }
-
-                                        {
-                                            user.website &&
-                                            <ListItemText>
-                                                <Link href={ user.website }>{ user.website }</Link>
-                                            </ListItemText>
-                                        }
-                                        
-                                        {
-                                            user.email &&
-                                            <ListItemText>
-                                                <Email /> <Link href={`mailto: ${ user.email }`}>{ user.email }</Link>
-                                            </ListItemText>
-                                        }
-                                        
-                                        {
-                                            editable === true &&
-                                            <ListItemText>
-                                                <Button
-                                                    type="button"
-                                                    variant="contained"
-                                                    sx={{ mt: 3, mb: 2 }}
-                                                    onClick={()=>setModalOpen(true)}
-                                                >
-                                                Edit Profile
-                                                </Button>
-                                            </ListItemText>
-                                        }
-                                    </List>
-                                    {/* Will add in edit button to edit personal information */}
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} md={4} lg={9}>
-                                <Paper
-                                    elevation={12}
-                                    sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                                    <CardMedia
-                                        component="img"
-                                        sx={{
-                                            // 16:9
-                                            height: 200,
-                                            width: '100%'
-                                        }}
-                                        image="https://media.istockphoto.com/id/1144573725/photo/financial-business-charts-graphs-and-diagrams-3d-illustration-render.jpg?s=612x612&w=0&k=20&c=s4IjGwWu7k1c8r-V5Gzt7LGVnMHTnOexTlSm_j_MafY="
-                                    />
-                                </Paper>
-                            </Grid>
-                        </Grid>
-
-                    </Container>
                 </Box>
             </Box>
 
