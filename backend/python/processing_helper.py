@@ -8,9 +8,9 @@ file_name = argv[1]
 process_type = argv[2]
 
 if process_type == "stem":
-    process_function = wp.stem_nltk
+    process_function = wp.stem
 elif process_type == "lemma":
-    process_function = wp.lemmatize_nltk
+    process_function = wp.lemmatize
 elif process_type == "none":
     print("No preprocessing was done on this dataset")
     exit(0)
