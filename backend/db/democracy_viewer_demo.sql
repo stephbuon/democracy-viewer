@@ -34,6 +34,7 @@ CREATE TABLE dataset_metadata (
     embeddings BOOLEAN DEFAULT FALSE NOT NULL,
     pos BOOLEAN DEFAULT FALSE NOT NULL,
     date_posted DATE NOT NULL,
+    embed_col VARCHAR(50) DEFAULT NULL,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );

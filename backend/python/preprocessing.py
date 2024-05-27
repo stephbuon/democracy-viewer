@@ -1,9 +1,8 @@
 from collections import Counter
 from copy import deepcopy
 from dotenv import load_dotenv
-from numpy import ceil
 from pandas import DataFrame, concat, read_csv
-from sys import argv, exit
+from sys import argv
 from time import time
 # Database interaction
 from bcpandas import to_sql, SqlCreds
@@ -11,7 +10,7 @@ from sqlalchemy import create_engine, MetaData, select
 # SQL helpers
 from util.sql_connect import sql_connect
 import util.sql_queries as queries
-from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText, DatasetTextCols
+from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText
 # Word processing
 from spacy import load as load_spacy
 from util.word_processing import stem_nltk
