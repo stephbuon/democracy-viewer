@@ -145,7 +145,7 @@ export const UploadModal = (props) => {
             setTitle(props.file.name.substr(0, props.file.name.length - 4))
         }
         setHeaders(props.headers)
-    }, []);
+    }, [props]);
 
     useEffect(() => {
         console.log("ColumnTypes", columnTypes)

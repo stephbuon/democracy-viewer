@@ -13,10 +13,11 @@ import { Stack } from '@mui/system';
 import Typography from '@mui/material/Typography';
 //Other Imports
 import { DownloadSubset, DownloadFullDataset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+// import { DataTable } from "../common/DataTable/DataTable";
+import { PaginatedDataTable } from '../common/PaginatedDataTable';
 
-import "./MoveBar.css"
-import "./Loading.css"
-import { Result } from './Result';
+// import "../common/DataTable/MoveBar.css"
+// import "../common/DataTable/Loading.css"
 
 
 export const SubsetResultsPage = (props) => {
@@ -31,9 +32,9 @@ export const SubsetResultsPage = (props) => {
     const [totalNumOfPages, setTotalNumOfPages] = useState(0);
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState("");
+    const [loadingPage, setLoadingPage] = useState(true);
     const [loadingNextPage, setLoadingNextPage] = useState(false)
     const [loadingResults, setLoadingResults] = useState(false);
-    const [loadingPage, setLoadingPage] = useState(true);
 
 
     const doMoveAnimation = () => {
@@ -96,27 +97,28 @@ export const SubsetResultsPage = (props) => {
         })
         setQuery(_query);
     }
-//Changed
-const GetNewPage = async (selectedPage) => {
-    if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
 
-    setLoadingNextPage(true);
-    setLoadingPage(true);
+    //Changed
+    const GetNewPage = async (selectedPage) => {
+        if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
 
-    try {
-        const res = await GetSubsetOfDataByPage(query, selectedPage);
-        if (res) {
-            setSearchResults(res);
-            // Correctly handle asynchronous state update
-            setPage(prevPage => selectedPage);
+        setLoadingNextPage(true);
+        setLoadingPage(true);
+
+        try {
+            const res = await GetSubsetOfDataByPage(query, selectedPage);
+            if (res) {
+                setSearchResults(res);
+                // Correctly handle asynchronous state update
+                setPage(prevPage => selectedPage);
+            }
+        } catch (error) {
+            console.error('Error fetching new page:', error);
+        } finally {
+            setLoadingNextPage(false);
+            setLoadingPage(false);
         }
-    } catch (error) {
-        console.error('Error fetching new page:', error);
-    } finally {
-        setLoadingNextPage(false);
-        setLoadingPage(false);
-    }
-};
+    };
 
     //Old function
     // const GetNewPage = () => {
@@ -168,65 +170,6 @@ const GetNewPage = async (selectedPage) => {
         }
     };
 
-    const numberOfColumns = searchResults.length > 0 ? Object.keys(searchResults[0]).length : 1;
-    //NEW
-    const initialWidths = new Array(numberOfColumns).fill(100);
-    //NEW
-    const [columnWidths, setColumnWidths] = useState(initialWidths);
-
-    const handleResize = (index, newWidth) => {
-        setColumnWidths((currentWidths) =>
-            currentWidths.map((width, i) => i === index ? newWidth : width)
-        );
-    };
-//Changed
-
-
-const renderPageNumbers = () => {
-    const pageNumbers = [];
-    let startPage, endPage;
-
-    if (totalNumOfPages <= 10) {
-        startPage = 1;
-        endPage = totalNumOfPages;
-    } else {
-        if (page <= 6) {
-            startPage = 1;
-            endPage = 10;
-        } else if (page + 4 >= totalNumOfPages) {
-            startPage = totalNumOfPages - 9;
-            endPage = totalNumOfPages;
-        } else {
-            startPage = page - 5;
-            endPage = page + 4;
-        }
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-    }
-
-    return pageNumbers.map(num => (
-        <Button
-            key={num}
-            variant={page === num ? "contained" : "outlined"}
-            onClick={() => GetNewPage(num)}
-            disabled={page === num}
-        >
-            {num}
-        </Button>
-    ));
-};
-    // Convert gridTemplateColumns to use columnWidths state
-    const gridTemplateColumns = columnWidths.map((width) => `${width}px`).join(' ');
-
-    useEffect(() => {
-        // Initialize or update column widths based on the number of columns
-        setColumnWidths(new Array(numberOfColumns).fill(100));
-    }, [numberOfColumns]);
-
-    //END OF NEW
-
     useEffect(() => {
         console.log(props)
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -240,39 +183,7 @@ const renderPageNumbers = () => {
         console.log("page", loadingPage)
     }, [loadingPage]);
 
-    useEffect(() => {
-        const handleScroll = (event) => {
-            // if(loadingResults) {return}
-            let lastKnownScrollPosition = window.scrollY;
-            let limit = Math.max(document.body.scrollHeight, document.body.offsetHeight,
-                document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
-            if (lastKnownScrollPosition > (limit - 1000) && !loadingNextPage && page < totalNumOfPages && page > 0) {
-                GetNewPage();
-                console.log("SHOULD BE GRABBING NEW PAGE")
-
-
-                //     if(page < totalNumOfPages)
-                //     {
-                //         setLoadingNextPage(true);
-                //     }
-                //     setTimeout(() => {
-                //         if(!loadingNextPage)
-                //         {
-
-                //         }
-                //     }, 1000);
-
-            }
-        };
-
-        window.addEventListener("scroll", handleScroll);
-
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
-    }, [page, loadingNextPage, totalNumOfPages, loadingPage]);
-
-    return (
+    return <>
         <div className='blue' >
             <Box component="main"
                 sx={{
@@ -288,7 +199,7 @@ const renderPageNumbers = () => {
                         justifyContent: "center",
                         alignItems: "center",
                         marginBottom: '100px',
-                        marginLeft:'10px',
+                        marginLeft: '10px',
                         flexDirection: "column", // Add this to stack the elements vertically
 
                     }}
@@ -346,176 +257,63 @@ const renderPageNumbers = () => {
                             Search
                         </Button>
                     </Box>
-                </Box>
-
-                {searched && !loadingResults && <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: '20px'
-                    }}>
-                    <Box
+                    {searched && !loadingResults && <Box
                         sx={{
                             display: 'flex',
                             justifyContent: 'center',
-                            marginTop: '50px',
-                        }}
-                    >{totalNumResults} results returned</Box>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{
+                            gap: '20px'
+                        }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                marginTop: '50px',
+                            }}
+                        >{totalNumResults} results returned</Box>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{
 
-                            color: 'white',
-                            marginLeft: '2em',
-                            marginTop: '50px',
-                            '&:hover': {
-                                background: 'rgb(200, 200, 200)'
-                            }
-                        }}
-                        onClick={() => {
-                            let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-                            demoV.downloadData = { table_name: props.dataset.table_name, search: "" };
-                            localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-                            window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer");
-                        }}
-                    >Download full dataset</Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{
+                                color: 'white',
+                                marginLeft: '2em',
+                                marginTop: '50px',
+                                '&:hover': {
+                                    background: 'rgb(200, 200, 200)'
+                                }
+                            }}
+                            onClick={() => {
+                                let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+                                demoV.downloadData = { table_name: props.dataset.table_name, search: "" };
+                                localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
+                                window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer");
+                            }}
+                        >Download full dataset</Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{
 
-                            color: 'white',
-                            marginLeft: '2em',
-                            marginTop: '50px',
-                            '&:hover': {
-                                background: 'rgb(200, 200, 200)'
-                            }
-                        }}
-                        onClick={() => window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer")}
-                    >Download these {totalNumResults} results</Button>
-                </Box>}
-
-
-
-                <Box
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexDirection: 'column',
-                        margin: 0,
-                        marginTop: '6rem',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        background: '#ffffff',
-                        overflow: 'scroll'
-                    }}
-                >
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: gridTemplateColumns,
-                            gap: '1rem',
-                            marginTop: '2rem',
-                        }}
-                    >
-                        {!loadingResults && searchResults.length > 0 && Object.keys(searchResults[0]).map((key, index) => (
-                            <div
-                                key={key}
-                                style={{
-                                    fontWeight: 'bold',
-                                }}
-                            >
-                                <Resizable
-                                    width={columnWidths[index]}
-                                    height={0}
-                                    onResize={(event, { size }) => handleResize(index, size.width)}
-                                    handle={
-                                        <span
-                                            className="react-resizable-handle"
-                                            onClick={(e) => e.stopPropagation()}
-                                            style={{
-                                                position: 'absolute',
-                                                right: 0,
-                                                bottom: 0,
-                                                width: '10px',
-                                                height: '100%',
-                                                cursor: 'col-resize',
-                                            }}
-                                        />
-                                    }
-                                >
-                                    <div style={{
-                                        width: `${columnWidths[index]}px`,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'flex-start',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        {key}
-                                    </div>
-                                </Resizable>
-                            </div>
-                        ))}
-
-                    </div>
-                    <div
-                        sx={{
-                            display: 'grid',
-                            gridTemplateColumns: gridTemplateColumns,
-                            gap: '1rem',
-                        }}
-                    >
-
-                        {!loadingResults && searchResults.map((result, index) => (
-                            <div key={result.id}>
-                                <Result value={result} dataset={props.dataset} columnWidths={columnWidths} />
-                            </div>
-                        ))}
-
-
-                    </div>
+                                color: 'white',
+                                marginLeft: '2em',
+                                marginTop: '50px',
+                                '&:hover': {
+                                    background: 'rgb(200, 200, 200)'
+                                }
+                            }}
+                            onClick={() => window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer")}
+                        >Download these {totalNumResults} results</Button>
+                    </Box>}
                 </Box>
-
-
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'left',
-                        margin: 0,
-                        overflowX: 'auto',
-                        marginTop: '2rem',
-                        width: '100%',
-                    }}
-                >
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: gridTemplateColumns,
-                            gap: '1rem',
-                        }}
-                    >
-
-                        {!loadingResults && searchResults.map((result, index) => (
-                            <div key={result.id}>
-                                <Result value={result} dataset={props.dataset} columnWidths={columnWidths} />
-                            </div>
-                        ))}
-                    </div>
-                </Box>
-
-
-
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-    {renderPageNumbers()}
-</Box>
+        </div >
 
-
-        </div >)
+        <PaginatedDataTable
+            searchResults={searchResults}
+            page={page}
+            totalNumOfPages={totalNumOfPages}
+            GetNewPage={GetNewPage}
+        />
+    </>
 
 }
