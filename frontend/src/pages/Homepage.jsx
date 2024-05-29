@@ -43,7 +43,7 @@ export default function Homepage() {
               Democracy Viewer
             </Typography>
             <Typography variant="h5" align="center" color="text.secondary" paragraph sx={{ whiteSpace: 'nowrap' }}>
-              Democratizing text-based data analytics  <br /> Data sharing across the humanities and social sciences
+              Democratizing text-based data analytics  <br /> & <br /> data sharing across the humanities and social sciences
             </Typography>
             <Stack
               sx={{ pt: 4 }}
@@ -65,7 +65,7 @@ export default function Homepage() {
                     Search
                   </Typography>
                   <Typography align='center'>
-                    Browse datasets or conduct an Advanced search
+                    Browse available datasets, <br/>pinpoint specific columns & sections
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -82,7 +82,7 @@ export default function Homepage() {
                     Upload
                   </Typography>
                   <Typography align='center'>
-                    Upload a Data Set
+                    Upload a local Data Set/ <br />Connect to Datapoint API
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -99,7 +99,7 @@ export default function Homepage() {
                     Visualize
                   </Typography>
                   <Typography align='center'>
-                    Customize and interact with visualization/ graph analysis
+                    Customize and interact with visualization of analysis
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>

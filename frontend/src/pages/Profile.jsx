@@ -133,11 +133,10 @@ const Profile = (props) => {
                                 )}
                                 {editable === true && (
                                     <ListItemText>
-                                        <Button
-                                            type="button"
+                                          <Button
                                             variant="contained"
-                                            sx={{ mt: 3, mb: 2, bgcolor: 'black', color: 'white' }}
-                                            onClick={() => setModalOpen(true)}
+                                            component="label"
+                                            sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
                                         >
                                         Edit Profile
                                         </Button>

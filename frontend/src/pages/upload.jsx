@@ -1,3 +1,4 @@
+// TO_DO: make the two frames shorter
 import { React, useState, useEffect } from "react";
 import { upload } from "../api/api.js";
 
@@ -196,50 +197,45 @@ export const Upload = (props) => {
       <Container maxWidth="md">
 
         <Grid container spacing={4}>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={13} sm={7} md={5}>
             <Card
               sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >
-              <CardContent sx={{ flexGrow: 1 }}>
+              <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                 <Typography gutterBottom variant="h5" component="h2" align='center'>
-                  Select File
+                  Local file
                 </Typography>
-                <Typography align='center'>
-                  Select and Upload File
-                </Typography>
+                  <Typography align='center'>
+                    Upload data sets files from laptop
+                  </Typography>
 
               </CardContent>
               <CardActions style={{ justifyContent: 'center' }}>
-                <input
-                  accept="*/*" // If you want to limit to image files, otherwise omit
-                  style={{ display: 'none' }}
-                  id="file_input"
-                  type="file"
-                  onChange={(x) => {
-                    setFile(x.target.files[0]);
-                    setPassFile(x.target.files[0]);
-                    click(1); // This explicitly sets clicked to 1, indicating a file upload action
-                  }}
-                  
-                />
-                <label htmlFor="file_input" style={{marginBottom: '50px'}}>
-                  <img
-                    src="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_1280.png" // Replace with your image URL
-                    alt="Choose File"
-                    style={{
-                      cursor: 'pointer', // Change the cursor to indicate it's clickable
-                      width: '150px', // Set the width as needed
-                      height: '150px', // Set the height as needed
+              <Button
+                variant="contained"
+                component="label"
+                sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+              >
+                  Select
+                  <input
+                    type="file"
+                    accept="*/*"
+                    hidden
+                    onChange={(x) => {
+                      setFile(x.target.files[0]);
+                      setPassFile(x.target.files[0]);
+                      click(1); // This explicitly sets clicked to 1, indicating a file upload action
                     }}
                   />
-                </label>
+                </Button>
               </CardActions>
+
             </Card>
 
           </Grid>
 
 
-          <Grid item xs={12} sm={6} md={8}>
+          <Grid item xs={15} sm={9} md={7}>
             <Card
               sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
             >
@@ -283,14 +279,18 @@ export const Upload = (props) => {
                     </TableCell>
                   </TableRow>
                 </TableBody>
+            
+                <CardActions style={{ justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    component="label"
+                    sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+                    onClick={() => APIcsv()}
+                  >
+                    Get csv
+                  </Button>
+                </CardActions>
               </Table>
-              <CardActions style={{ justifyContent: 'center' }}>
-                <Button
-                  onClick={() => APIcsv()}
-                >
-                  Get csv
-                </Button>
-              </CardActions>
             </Card>
 
           </Grid>
@@ -303,7 +303,11 @@ export const Upload = (props) => {
             <TableCell>
               <center>
 
-                {ready() && <Button
+                {ready() && 
+                <Button
+                variant="contained"
+                component="label"
+                sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
                   onClick={() => { setFileLoaded(true) }}
                 >
                   Continue
