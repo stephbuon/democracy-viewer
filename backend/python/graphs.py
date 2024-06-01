@@ -12,6 +12,7 @@ from sqlalchemy import create_engine, MetaData, select
 # Import sql helpers
 from util.sql_connect import sql_connect
 from util.sqlalchemy_tables import DatasetMetadata
+from util.sql_queries import get_metadata
 # Word processing
 from util.word_processing import lemmatize, stem
 print("Import time: {} seconds".format(time() - start_time))
@@ -37,15 +38,7 @@ with open(params_file, "r") as file:
     params = load(file)
     
 # Get metadata to determine preprocessing type
-query = (
-    select(DatasetMetadata)
-    .where(DatasetMetadata.table_name == params["table_name"])
-)
-with engine.connect() as conn:
-    for row in conn.execute(query):
-        preprocessing_type = row[0]
-        break
-    conn.commit()
+metadata = get_metadata(engine, meta, params["table_name"])
 
 # If group_list or word_list are not in params, set to empty list
 # Also remove Nones from lists
@@ -56,10 +49,10 @@ if "word_list" not in params.keys():
     
 # Lemmatize or stem words in word_list
 if params["metric"] not in ["embed"]:
-    if preprocessing_type == "stem":
-        params["word_list"] = list(map(lambda x: stem(x)[0], params["word_list"]))
-    elif preprocessing_type == "lemma":
-        params["word_list"] = list(map(lemmatize, params["word_list"]))
+    if metadata["preprocessing_type"] == "stem":
+        params["word_list"] = list(map(lambda x: stem(x, metadata["language"])[0], params["word_list"]))
+    elif metadata["preprocessing_type"] == "lemma":
+        params["word_list"] = list(map(lambda x: lemmatize(x, metadata["language"])[0], params["word_list"]))
 print("Parameter processing time: {} seconds".format(time() - start_time))
 
 # Call function based on given metric

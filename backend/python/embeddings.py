@@ -1,16 +1,10 @@
-from collections import Counter
-from copy import deepcopy
 from dotenv import load_dotenv
-from pandas import DataFrame, concat, read_csv
 from sys import argv
 from time import time
 # Database interaction
-from bcpandas import to_sql, SqlCreds
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import create_engine, MetaData
 # SQL helpers
 from util.sql_connect import sql_connect
-import util.sql_queries as queries
-from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText
 # Embeddings helper
 from util.embeddings_save import compute_embeddings
 

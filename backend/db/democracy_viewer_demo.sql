@@ -35,6 +35,7 @@ CREATE TABLE dataset_metadata (
     pos BOOLEAN DEFAULT FALSE NOT NULL,
     date_posted DATE NOT NULL,
     embed_col VARCHAR(50) DEFAULT NULL,
+    language VARCHAR(20) DEFAULT 'English' NOT NULL,
     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
@@ -81,19 +82,19 @@ CREATE TABLE dataset_text_cols (
     PRIMARY KEY(table_name, col)
 );
 
-CREATE TABLE dataset_split_text (
-    table_name VARCHAR(250) NOT NULL,
-    record_id BIGINT NOT NULL,
-    word VARCHAR(100) NOT NULL,
-    pos VARCHAR(5) DEFAULT 'N/A' NOT NULL,
-    tag VARCHAR(5) DEFAULT 'N/A' NOT NULL,
-    dep VARCHAR(10) DEFAULT 'N/A' NOT NULL,
-    head VARCHAR(100) DEFAULT 'N/A' NOT NULL,
-    count BIGINT NOT NULL,
-    col VARCHAR(100) NOT NULL,
-    PRIMARY KEY(table_name, record_id, word, pos, tag, dep, head, col),
-    FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE
-);
+# CREATE TABLE dataset_split_text (
+#     table_name VARCHAR(250) NOT NULL,
+#     record_id BIGINT NOT NULL,
+#     word VARCHAR(100) NOT NULL,
+#     pos VARCHAR(5) DEFAULT 'N/A' NOT NULL,
+#     tag VARCHAR(5) DEFAULT 'N/A' NOT NULL,
+#     dep VARCHAR(10) DEFAULT 'N/A' NOT NULL,
+#     head VARCHAR(100) DEFAULT 'N/A' NOT NULL,
+#     count BIGINT NOT NULL,
+#     col VARCHAR(100) NOT NULL,
+#     PRIMARY KEY(table_name, record_id, word, pos, tag, dep, head, col),
+#     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE
+# );
 
 CREATE TABLE database_connections (
     id SERIAL PRIMARY KEY,
