@@ -315,7 +315,7 @@ class datasets {
         }
 
         const query = this.knex(table)
-            .select(`${ table }.*`)
+            // .select(`${ table }.*`)
             .innerJoin(split_text_table, `${ table }.id`, `${ split_text_table }.record_id`)
             .where(`${ split_text_table }.table_name`, "=", table)
             .where(q => {
@@ -368,10 +368,12 @@ class datasets {
         let results;
         if (paginate === true) {
             const perPage = params.pageLength ? params.pageLength : 50;
-            results = await query.orderBy("id").paginate({ perPage, currentPage });
+            console.log(currentPage)
+            results = await query.select(`${ table }.*`).distinct().orderBy("id").paginate({ perPage, currentPage });
             return results.data;
         } else if (paginate === false) {
-            results = await query;
+            console.log("why am i here")
+            results = await query.select(`${ table }.*`).distinct().orderBy("id");
             return results;
         } else {
             results = await query.count({ count: "*" });

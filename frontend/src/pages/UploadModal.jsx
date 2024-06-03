@@ -114,10 +114,10 @@ export const UploadModal = (props) => {
             setApidatasetname(props.apidatasetname);
             setTitle(props.apidatasetname);
         } else {
-            setTitle(props.file.name.substr(0, props.file.name.length - 4));
+            setTitle(props.file.name.substr(0, props.file.name.length - 4))
         }
-        setHeaders(props.headers);
-    }, []);
+        setHeaders(props.headers)
+    }, [props]);
 
     useEffect(() => {
     }, [columnTypes]);

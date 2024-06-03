@@ -21,6 +21,7 @@
     "ng2-charts": "^4.1.1",
     "plotly": "^1.0.6",
     "plotly.js-dist": "^2.18.2",
+    "primereact": "^10.6.6",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.2",
     "react-chartjs-2": "^5.2.0",
