@@ -1,4 +1,3 @@
-// TO_DO: make the two frames shorter
 import { React, useState, useEffect } from "react";
 import { upload } from "../api/api.js";
 
@@ -13,16 +12,12 @@ import Stack from '@mui/material/Stack';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
 import Grid from '@mui/material/Grid';
 
-
 import { UploadModal } from './UploadModal';
-import { Table, TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Paper, TextField } from '@mui/material';
+import { Table, TableBody, TableRow, TableCell, TextField } from '@mui/material';
 import { GetCSVFromAPI } from "../apiFolder/DatasetUploadAPI.js";
 import { useNavigate } from "react-router-dom";
-
-// import fs from 'fs';
 
 export const Upload = (props) => {
   const [file, setFile] = useState(undefined);
@@ -35,8 +30,6 @@ export const Upload = (props) => {
   const [Token, setToken] = useState("");
   const [clicked, setClicked] = useState(undefined);
   const [alert, setAlert] = useState(true);
-
-
 
   const [snackBarOpen, setSnackBarOpen] = useState(false);
 
@@ -55,7 +48,6 @@ export const Upload = (props) => {
   const processCSV = (str, delim = ',') => {
     setFileHeaders(str.slice(0, str.indexOf('\n')).split(delim));
   }
-
 
   const openDataSetInfo = () => {
     setFileLoaded(true);
@@ -80,7 +72,6 @@ export const Upload = (props) => {
   useEffect(() => {
     file && console.log(file);
 
-    // console.log('hello',file == undefined)
     if (file != undefined) {
       console.log(file)
       if (file.name.search('.csv') === -1) {
@@ -138,6 +129,7 @@ export const Upload = (props) => {
       navigate('/login');
     }
   }, []);
+
   return (
     <>
       <Container maxWidth="sm">
@@ -177,14 +169,11 @@ export const Upload = (props) => {
       >
         <div>
           {clicked == 1 && <UploadModal
-            // advancedFilterResults={(x) => advancedFilterResults(x)}
             CancelUpload={() => CancelUpload()}
             file={passFile}
             headers={fileHeaders}
           />}
-
           {clicked == 2 && <UploadModal
-            // advancedFilterResults={(x) => advancedFilterResults(x)}
             CancelUpload={() => CancelUpload()}
             file={passFile}
             useAPI={true}
@@ -193,29 +182,26 @@ export const Upload = (props) => {
           />}
         </div>
       </Modal>
-//Added
       <Container maxWidth="md">
-
-        <Grid container spacing={4}>
+        <Grid container spacing={4} justifyContent="space-between">
           <Grid item xs={13} sm={7} md={5}>
             <Card
-              sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+              sx={{ height: '80%', display: 'flex', flexDirection: 'column' }}
             >
               <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                 <Typography gutterBottom variant="h5" component="h2" align='center'>
                   Local file
                 </Typography>
-                  <Typography align='center'>
-                    Upload data sets files from laptop
-                  </Typography>
-
+                <Typography align='center'>
+                  Upload data sets files from laptop
+                </Typography>
               </CardContent>
               <CardActions style={{ justifyContent: 'center' }}>
-              <Button
-                variant="contained"
-                component="label"
-                sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-              >
+                <Button
+                  variant="contained"
+                  component="label"
+                  sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+                >
                   Select
                   <input
                     type="file"
@@ -229,15 +215,12 @@ export const Upload = (props) => {
                   />
                 </Button>
               </CardActions>
-
             </Card>
-
           </Grid>
 
-
-          <Grid item xs={15} sm={9} md={7}>
+          <Grid item xs={15} sm={9} md={7} position="relative">
             <Card
-              sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+              sx={{ height: '90%', display: 'flex', flexDirection: 'column' }}
             >
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="h2" align='center'>
@@ -250,16 +233,14 @@ export const Upload = (props) => {
               <Table>
                 <TableBody>
                   <TableRow>
-
-
                     <TableCell className='col-6'
                       sx={[
                         clicked == 2 && {
                           background: 'grey',
                         }
                       ]}
-                      onClick={() => click(2)}>
-
+                      onClick={() => click(2)}
+                    >
                       <TextField
                         margin="normal"
                         fullWidth
@@ -274,57 +255,42 @@ export const Upload = (props) => {
                         value={Token}
                         onChange={event => { setToken(event.target.value) }}
                       />
-
                       <center></center>
                     </TableCell>
                   </TableRow>
                 </TableBody>
-            
-                <CardActions style={{ justifyContent: 'center' }}>
-                  <Button
-                    variant="contained"
-                    component="label"
-                    sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-                    onClick={() => APIcsv()}
-                  >
-                    Get csv
-                  </Button>
-                </CardActions>
               </Table>
+              <CardActions style={{ justifyContent: 'center' }}>
+                <Button
+                  variant="contained"
+                  component="label"
+                  sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+                  onClick={() => APIcsv()}
+                >
+                  Get csv
+                </Button>
+              </CardActions>
             </Card>
-
+            <Box sx={{ position: 'absolute', top: -25, right: 0 }}>
+              {ready() && 
+              <Button
+                variant="contained"
+                sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+                onClick={() => { setFileLoaded(true) }}
+              >
+                Continue
+              </Button>}
+              {!ready() && <Button
+                variant="contained"
+                disabled
+                sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+              >
+                Continue
+              </Button>}
+            </Box>
           </Grid>
         </Grid>
       </Container>
-
-      <Table>
-        <TableBody>
-          <TableRow>
-            <TableCell>
-              <center>
-
-                {ready() && 
-                <Button
-                variant="contained"
-                component="label"
-                sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-                  onClick={() => { setFileLoaded(true) }}
-                >
-                  Continue
-                </Button>}
-                {!ready() && <Button
-                  disabled
-                >
-                  Continue
-                </Button>}
-              </center>
-
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-
-
     </>
   );
 };
