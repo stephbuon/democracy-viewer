@@ -1,10 +1,5 @@
-// TODO Impliment other metrics
-// TODO add groupBy option for column or value
 
-// Imports for Graph page. This page is used for visualizing the selected dataset.
-// Props include: props.dataset
-// props.dataset - table_name
-
+// Imports
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Grid } from "@mui/material";
@@ -26,49 +21,98 @@ export const Graph = (props) => {
   const [settings, setSettings] = useState(true);
   const [modalText, setModalText] = useState("Create Graph");
   const [graph, setGraph] = useState(false);
+  const [loading, setLoading] = useState(false);
 
 // variable definitions
   const navigate = useNavigate();
 
 // Function definitions
 
-   // Runs on graph settings subit
+   // Runs on graph settings submit
    // Generate a graph or update the existing graph
   const updateGraph = (group, groupList, metric, searchTerms) => {
+    setGraph(false);
+    setLoading(true);
+
     getGraph(data.dataset.table_name, group, groupList, metric, searchTerms).then(async (res) => {
-      let tempData = {};
-      tempData.graph = [];
-      tempData.table_name = data.dataset.table_name;
-      res.forEach((dataPoint) => { // Populate data array with request output
-        let index = tempData.graph.findIndex((x) => x.name == dataPoint.group);
-        if (index >= 0) { // Runs if datapoint 
-          tempData.graph[index].x.push(dataPoint.word)
-          tempData.graph[index].y.push(dataPoint.count)
-          dataPoint.ids.forEach((id) => tempData.graph[index].ids.push(id));
-        }
-        else {
-          tempData.graph.push({
-            x: [dataPoint.word],
-            y: [dataPoint.count],
-            ids: dataPoint.ids,
-            name: dataPoint.group,
-            type: "bar"
-          })
-        }
-      });
+      let tempData = {
+        graph: [],
+        table_name: data.dataset.table_name,
+        metric: metric,
+        titleList:[]
+      };
+
+      if(metric == "counts"){
+        tempData.xLabel = "Word"
+        tempData.yLabel = "Count"
+        tempData.titleList = searchTerms;
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          let index = tempData.graph.findIndex((x) => x.name == dataPoint.group);
+          if (index >= 0) { // Runs if datapoint already exists in tempData
+            tempData.graph[index].x.push(dataPoint.word)
+            tempData.graph[index].y.push(dataPoint.count)
+            dataPoint.ids.forEach((id) => tempData.graph[index].ids.push(id));
+          }
+          else {
+            tempData.graph.push({
+              x: [dataPoint.word],
+              y: [dataPoint.count],
+              ids: dataPoint.ids,
+              name: dataPoint.group,
+              type: "bar"
+            })
+          }
+        });
+      }
+      else if(metric == "tf-idf"){
+        let keys = Object.keys(res[0])
+
+        tempData.xLabel = keys[1]
+        tempData.yLabel = keys[2]
+        tempData.titleList.push(keys[1], keys[2])
+
+        tempData.graph.push({
+          x:[],
+          y:[],
+          ids:[],
+          text:[],
+          mode:"markers",
+          type:"scatter"
+        })
+        tempData.wordList = [];
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          console.log("Datapoint test", dataPoint)
+          tempData.graph[0].x.push(dataPoint[keys[1]])
+          tempData.graph[0].y.push(dataPoint[keys[2]])
+          tempData.graph[0].ids.push(dataPoint.ids);
+          tempData.graph[0].text.push(dataPoint[keys[0]])
+          tempData.wordList.push(dataPoint.word);
+        });
+      }
+      else {
+        console.log("Metric not implimented")
+      }
       localStorage.setItem('graph-data', JSON.stringify(tempData))
-      console.log("Saved graph data")
+      console.log("Saved graph data", tempData)
       setGraphData(tempData);
       setGraph(true);
+      setLoading(false);
     });
   };
 
-  // Closes modal and updates graph data
+  // Opens modal
   const handleOpen = (event) => {
     setSettings(true);
   }
 
-  // Use Effect definition - Gets dataset information from local storage
+  // Resets to blank graph
+  const resetGraph = (event) => {
+    setGraph(false);
+  }
+
+  // UseEffect: Gets dataset information from local storage
   // Dataset has been selected -> Populates group options array for column name dropdown
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
@@ -87,30 +131,43 @@ export const Graph = (props) => {
     }
   }, []);
 
+  // UseEffect: Updates screen on graph change
   useEffect(() => {
   }, [graph])
 
   return (
     <>
-      {data != undefined && <GraphSettings dataset={data} setData={setData} show={settings} setSettings={setSettings}
-      updateGraph={updateGraph} buttonText={modalText}/>}
+      {data != undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
+      updateGraph={updateGraph} generated={graph}/>}
 
-      <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
+      <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"10%"}}>
         <Grid container justifyContent="center">
-          <div>
+          
+          {"Open Graph settings button"}
+          <Grid item xs={5}>
             <Button variant="contained"
-            onClick={handleOpen}
+              onClick={handleOpen}
+              className="mt-2"
+              style={{marginLeft:"5%"}}
+            >Open graph settings</Button>
+          </Grid>
+
+          {"Reset graph button"}
+          <Grid item xs={5}>
+            <Button variant="contained"
+            onClick={resetGraph}
             className="mt-2"
             style={{marginLeft:"5%"}}
-            >Open graph settings</Button>
+            >Reset Graph</Button>
+          </Grid>
 
-            
-          </div>
-          {/* Graph */}
-          {!graph && <p>loading...</p>}
-          {graph && <Grid item xs={12} sm={9}>
-            <GraphComponent border data={graphData} setData={setData}/>
-          </Grid>}
+          {"Graph component if graph exists"}
+          <Grid item xs={12}>
+            {/* Graph */}
+            {loading && <p>loading...</p>}
+            {graph && <GraphComponent border data={graphData} setData={setData}/>}
+          </Grid>
+        
         </Grid>
       </Box>
     </>

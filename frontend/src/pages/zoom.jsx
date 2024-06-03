@@ -1,3 +1,4 @@
+// Imports
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
 import Parser from 'html-react-parser';
@@ -5,17 +6,19 @@ import Parser from 'html-react-parser';
 export const Zoom = () => {
     // UseState definitions
     const [searchResults, setSearchResults] = useState([]);
-    const [loadedData, setLoadedData] = useState([])
+    const [loadedData, setLoadedData] = useState([]);
+    const [keys, setKeys] = useState([]);
 
     let graphData = JSON.parse(localStorage.getItem('selected'));
-    const [data, setData] = useState(graphData.selected);
+    const [data, setData] = useState(graphData);
 
     // Variable definitions
     var innerHTML;
     var scrollSpot = 0;
     var valueTrack = 0;
+    var show = false;
 
-    // Gets record for data.ids and populates searchResults
+    // UseEffect: Gets record for all data.ids and populates searchResults
     useEffect(() => {
         const scrollBox = document.querySelector("div#scroll-box");
         scrollBox.addEventListener('scroll', (event) => {
@@ -29,131 +32,103 @@ export const Zoom = () => {
             else {
                 setSearchResults(res)
                 setLoadedData(res.slice(0, Math.min(10, res.length)))
+                setKeys(Object.keys(res))
             }
         })
     }, []);
 
-    // Funcion definitions
-    const highlight = (result) => {
-        innerHTML = "";
+    // UseEffect: Prints data on change, updates graph on data change
+    useEffect(() => {
+        console.log("Zoom test", data)
+    }, [data]);
 
-        let tempText = result.text.replaceAll("\"", '')
-        let lowerText = tempText.toLowerCase()
+    // Funcion definitions
+    const highlight = (result) => { // Cleans result and highlights all instances of data.word
+        let output = "";
+        let text = result.text.replaceAll("\"", '')
+        let lowerText = text.toLowerCase()
         let i = lowerText.indexOf(data.word)
 
         while(i != -1){
-            innerHTML += tempText.substring(0, i)
-            innerHTML += "<mark>" + data.word + "</mark>" + innerHTML.substring(i + data.word.length);
+            output += text.substring(0, i)
+            output += "<mark>" + data.word + "</mark>";
             
-            tempText = tempText.substring(i + data.word.length)
+            text = text.substring(i + data.word.length)
             lowerText = lowerText.substring(i + data.word.length)
             i = lowerText.indexOf(data.word)
         }
-        innerHTML += tempText;
+        return output + text;
       }
 
-      const handleScroll = (event) => {
-        // if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || isLoading) {
-        //   return;
-        // }
-        // fetchData();
-      };
 
-    // TODO Show all values from group containing selected word
-    /*
-    return (
-        <div>
-            <div className="navbar-brand fs-3 text-center">{data.group} has {data.count} results for the word '{data.word}'</div>
-            <p className="text-justify text-center">{data.description}</p>
-        </div>
-    );
-    */
-    return (
+    return (<>
         <div>
             <div className="container text-center p-5">
-                {/* labels */}
+                {/* Top labels */}
                 <div className="row pb-2">
                     <div className="col"></div>
                     <div className="col">
-                        <b>Group</b>
+                        <b>x</b>
                     </div>
                     <div className="col">
-                        <b>Count</b>
-                    </div>
-                    <div className="col">
-                        <b>Word</b>
+                        <b>y</b>
                     </div>
                 </div>
 
-                {/* data */}
+                {/* Word data */}
                 <div className="row">
                     <div className="col">
                         <b>Selected datapoint</b>
                     </div>
                     <div className="col">
-                        {data.group}
+                        {data.x}
                     </div>
                     <div className="col">
-                        {data.count}
-                    </div>
-                    <div className="col">
-                        {data.word}
+                        {data.y}
                     </div>
                 </div>
 
-                {/* related data */}
-                <div className="row pb-2">
-                    <div className="col">
-                        <b>Most common data in goup</b>
-                    </div>
-                    <div className="col">
-                        {"MR. GLADSTONE"}
-                    </div>
-                    <div className="col">
-                        {700 + "?"}
-                    </div>
-                    <div className="col">
-                        {"[common word]"}
+                <div id="scroll-box" className="pt-4 bp-2" style={{overflow:"scroll", overflowX: "scroll"}}>
+                    {/* Subset search title */}
+                    <div className="row" style={{overflowX:"auto", whiteSpace:"nowrap"}}>
+                        <div className="col border" xs={5}>
+                            <b>{"Index"}</b>
+                        </div>
+                        {searchResults.length > 0 && Object.keys(loadedData[0]).map(function(result, i)
+                            {
+                                return  <div key={"label" + i} className="col border" xs={5} style={{display:"inline-block", float:"none"}}>
+                                    <b>{result}</b>
+                                </div>
+                            })
+                        }
                     </div>
 
-                </div>
-
-                {/* subset search title */}
-                <div className="row pt-4 bp-2">
-                    <div className="col border">
-                        <b>Debate</b>
-                    </div>
-                    <div className="col border">
-                        <b>Speaker</b>
-                    </div>
-                    <div className="col border">
-                        <b>Text</b>
-                    </div>
-                </div>
-
-                {/* get id results */}
-                <div id="scroll-box" style={{overflow:"scroll"}}>
+                    {/* Subset search data display */}
                     {searchResults.length > 0 && loadedData.map(function(result, i)
                         {
                             highlight(result)
 
-                            let debate = result.debate.replaceAll("\"", '')
-                            let speaker = result.speaker.replaceAll("\"", '')
+                            // let debate = result.debate.replaceAll("\"", '')
+                            // let speaker = result.speaker.replaceAll("\"", '')
 
-                            return <div key={i} className="row border">
-                                    <div className="col my-auto">
-                                        {debate}
-                                    </div>
-                                    <div className="col my-auto">
-                                        {speaker}
-                                    </div>
-                                    <div className="col my-auto">{Parser(innerHTML)}</div>
+                            let values = Object.values(result);
+                            return  <div key={"result" + i} className="row border">
+                                <div className="col" xs={5}>
+                                    {i}
                                 </div>
-                        }
-                    )}
+                                {values.map(function(item, j)
+                                {
+                                    return <div key={"result" + i + "value" + j} className="col" xs={5}>
+                                        {String(item)}
+                                    </div>
+                                }
+                                )}
+                                </div>
+                        })
+                    }
                 </div>
-
             </div>
         </div>
+        </>
     );
 }
