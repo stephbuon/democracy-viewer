@@ -1,4 +1,5 @@
-// Imports
+// TODO: 
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Modal from '@mui/material/Modal';
@@ -17,19 +18,20 @@ export const GraphSettings = ( props ) => {
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
     const [selectToggle, setSelectToggle] = useState(true);
+    const [generated, setGenerated] = useState(false);
     const [metricOptions] = useState([
     { value: "counts", label: "Word Counts" },
     { value: "proportion", label: "Proportion" },
     { value: "tf-idf", label: "tf-idf" },
     { value: "ll", label: "Log Likelihood" },
     { value: "jsd", label: "Jensen-Shannon Divergence" },
-    // { value: "embedding", label: "Word Embeddings" } Removed
+    // { value: "embedding", label: "Word Embeddings" }
   ]);
 
     // Variable definitions
     const navigate = useNavigate();
 
-    // UseEffect: Updates graph settings from local storage and group names from api
+    // UseEffect definition. Updates graph settings from local storage and group names from api
     useEffect(() => {
         let graphData = JSON.parse(localStorage.getItem('graph-data'));
         if(graphData != undefined && graphData.dataset != undefined && graphData.dataset.table == props.dataset.dataset.table_name){
@@ -43,6 +45,7 @@ export const GraphSettings = ( props ) => {
                 searchList.push(object)
             })
             setGroupList(searchList);
+            // props.setData(graphData.data)
         }
         updateGroupNames();
     }, []);
@@ -63,10 +66,11 @@ export const GraphSettings = ( props ) => {
         if(reason == undefined){
             props.setSettings(false);
             props.updateGraph(group, groupList, metric, searchTerms);
+            setGenerated(true);
         }
     }
 
-    // Handles cancel to close settings if a graph exists
+    // Closes modal and updates graph data
     const handleCancel = (event) => {
         props.setSettings(false);
     }
@@ -103,7 +107,6 @@ export const GraphSettings = ( props ) => {
             style={{width:"75%", marginTop:"50px"}}
             >
             <Paper className="mt-0" elevation={3} sx={{ padding: "16px", margin: "8px"}}>
-                {"Title"}
                 <h2 id="child-modal-title">Graph Settings</h2>
 
                 {/* Metric select dropdown */}
@@ -134,6 +137,7 @@ export const GraphSettings = ( props ) => {
                     setGroupList(x);
                 }} isMulti></Select>
 
+
                 {/* Custom search + terms list */}
                 <div>
                     {/* Custom search textfield */}
@@ -156,21 +160,19 @@ export const GraphSettings = ( props ) => {
                     key={index}>{term}</li>)}
                 </div>
 
-                {"Generate/update graph button"}
                 <Button variant="contained"
                 onClick={handleClose}
                 className="mt-2"
                 style={{marginLeft:"2%"}}
                 disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
-                >{props.generated ? 'Update graph' : 'Create graph'}</Button>
+                >{props.buttonText}</Button>
 
-                {"Cancel button"}
                 <Button variant="contained"
                 onClick={handleCancel}
                 className="mt-2"
                 style={{marginLeft:"1%"}}
                 color="error"
-                hidden={!props.generated}
+                hidden={!generated}
                 >Cancel</Button>
 
             </Paper>
