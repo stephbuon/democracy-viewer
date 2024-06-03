@@ -3,9 +3,8 @@ import axios from 'axios';
 export const BACKEND_ENDPOINT = "http://localhost:8000";
 
 const apiConfig = () => {
-    let demoV = localStorage.getItem('democracy-viewer');
-    if (demoV) {
-        demoV = JSON.parse(demoV);
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if (demoV && demoV.user) {
         return {
             headers:{
                 Authorization: `Bearer ${ demoV.user.token }`
@@ -14,7 +13,6 @@ const apiConfig = () => {
     } else {
         return {};
     }
-    
   };
 
 export const GetSubsetOfDataByPage = async (query, page) =>  {

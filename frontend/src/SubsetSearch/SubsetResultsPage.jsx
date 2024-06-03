@@ -96,27 +96,27 @@ export const SubsetResultsPage = (props) => {
         })
         setQuery(_query);
     }
+//Changed
+const GetNewPage = async (selectedPage) => {
+    if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
 
-    const GetNewPage = async () => {
-        if (loadingPage) { return }
-        setLoadingNextPage(true);
-        setLoadingPage(true)
-        try {
-            const resPromise = GetSubsetOfDataByPage(query, page + 1);
-            // await new Promise(resolve => setTimeout(resolve, 500));
-            const res = await resPromise;
-            if (res) {
-                let _searchResults = [...searchResults, ...res]
-                setSearchResults(_searchResults);
-                setPage(page + 1);
-            }
-        } catch (error) {
-            console.error('Error fetching new page:', error);
-        } finally {
-            setLoadingNextPage(false);
-            setLoadingPage(false);
+    setLoadingNextPage(true);
+    setLoadingPage(true);
+
+    try {
+        const res = await GetSubsetOfDataByPage(query, selectedPage);
+        if (res) {
+            setSearchResults(res);
+            // Correctly handle asynchronous state update
+            setPage(prevPage => selectedPage);
         }
-    };
+    } catch (error) {
+        console.error('Error fetching new page:', error);
+    } finally {
+        setLoadingNextPage(false);
+        setLoadingPage(false);
+    }
+};
 
     //Old function
     // const GetNewPage = () => {
@@ -179,9 +179,44 @@ export const SubsetResultsPage = (props) => {
             currentWidths.map((width, i) => i === index ? newWidth : width)
         );
     };
+//Changed
 
 
+const renderPageNumbers = () => {
+    const pageNumbers = [];
+    let startPage, endPage;
 
+    if (totalNumOfPages <= 10) {
+        startPage = 1;
+        endPage = totalNumOfPages;
+    } else {
+        if (page <= 6) {
+            startPage = 1;
+            endPage = 10;
+        } else if (page + 4 >= totalNumOfPages) {
+            startPage = totalNumOfPages - 9;
+            endPage = totalNumOfPages;
+        } else {
+            startPage = page - 5;
+            endPage = page + 4;
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+    }
+
+    return pageNumbers.map(num => (
+        <Button
+            key={num}
+            variant={page === num ? "contained" : "outlined"}
+            onClick={() => GetNewPage(num)}
+            disabled={page === num}
+        >
+            {num}
+        </Button>
+    ));
+};
     // Convert gridTemplateColumns to use columnWidths state
     const gridTemplateColumns = columnWidths.map((width) => `${width}px`).join(' ');
 
@@ -374,6 +409,7 @@ export const SubsetResultsPage = (props) => {
                         top: 0,
                         zIndex: 10,
                         background: '#ffffff',
+                        overflow: 'scroll'
                     }}
                 >
                     <div
@@ -427,22 +463,6 @@ export const SubsetResultsPage = (props) => {
                         ))}
 
                     </div>
-                </Box>
-
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexDirection: 'column',
-                        margin: 0,
-                        marginTop: '6rem',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        background: '#ffffff',
-                       
-                    }}
-                >
                     <div
                         sx={{
                             display: 'grid',
@@ -491,6 +511,10 @@ export const SubsetResultsPage = (props) => {
 
 
             </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+    {renderPageNumbers()}
+</Box>
+
 
         </div >)
 
