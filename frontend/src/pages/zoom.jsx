@@ -1,22 +1,6 @@
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
 
-<<<<<<< HEAD
-export const Zoom = () => {
-    // UseState definitions
-    const [searchResults, setSearchResults] = useState([]);
-    const [loadedData, setLoadedData] = useState([])
-
-    let graphData = JSON.parse(localStorage.getItem('selected'));
-    const [data, setData] = useState(graphData.selected);
-
-    // Variable definitions
-    var innerHTML;
-    var scrollSpot = 0;
-    var valueTrack = 0;
-
-    // Gets record for data.ids and populates searchResults
-=======
 export const Zoom = ({ data }) => {
 
     // TESTING TEMP
@@ -30,7 +14,6 @@ export const Zoom = ({ data }) => {
 
     const [searchResults, setSearchResults] = useState([]);
 
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
     useEffect(() => {
         getRecordsByIds(data.dataset.table_name, data.ids).then(async (res) => {
             if (!res) {
@@ -38,23 +21,14 @@ export const Zoom = ({ data }) => {
             }
             else {
                 setSearchResults(res)
-<<<<<<< HEAD
-                setLoadedData(res.slice(0, Math.min(10, res.length)))
-=======
                 console.log("Zoom test", searchResults, res);
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
             }
         })
     }, []);
 
-<<<<<<< HEAD
-    // Funcion definitions
-    const highlight = (result) => {
-=======
     const highlight = (result, index) => {
         console.log("Highlighting")
         var textLabel = document.getElementById("text" + index);
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
         innerHTML = "";
 
         let tempText = result.text.replaceAll("\"", '')
@@ -70,22 +44,10 @@ export const Zoom = ({ data }) => {
             i = lowerText.indexOf(data.word)
         }
         innerHTML += tempText;
-<<<<<<< HEAD
-      }
-
-      const handleScroll = (event) => {
-        // if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || isLoading) {
-        //   return;
-        // }
-        // fetchData();
-      };
-
-=======
         console.log("HTML TEST", innerHTML)
         console.log(result, index)
       }
 
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
     // TODO Show all values from group containing selected word
     /*
     return (
@@ -144,43 +106,6 @@ export const Zoom = ({ data }) => {
                     </div>
 
                 </div>
-<<<<<<< HEAD
-
-                {/* subset search title */}
-                <div className="row pt-4 bp-2">
-                    <div className="col border">
-                        <b>Debate</b>
-                    </div>
-                    <div className="col border">
-                        <b>Speaker</b>
-                    </div>
-                    <div className="col border">
-                        <b>Text</b>
-                    </div>
-                </div>
-
-                {/* get id results */}
-                <div id="scroll-box" style={{overflow:"scroll"}}>
-                    {searchResults.length > 0 && loadedData.map(function(result, i)
-                        {
-                            highlight(result)
-
-                            let debate = result.debate.replaceAll("\"", '')
-                            let speaker = result.speaker.replaceAll("\"", '')
-
-                            return <div key={i} className="row border">
-                                    <div className="col my-auto">
-                                        {debate}
-                                    </div>
-                                    <div className="col my-auto">
-                                        {speaker}
-                                    </div>
-                                    <div className="col my-auto">{Parser(innerHTML)}</div>
-                                </div>
-                        }
-                    )}
-                </div>
-=======
 
                 {/* subset search title */}
                 <div className="row pt-4 bp-2">
@@ -214,7 +139,6 @@ export const Zoom = ({ data }) => {
                             </div>
                     }
                 )}
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
 
             </div>
         </div>

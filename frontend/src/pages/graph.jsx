@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-// TODO Impliment other metrics
-// TODO add groupBy option for column or value
-
-// Imports for Graph page. This page is used for visualizing the selected dataset.
-// Props include: props.dataset
-// props.dataset - table_name
-
-import React, { useEffect, useState } from "react";
-=======
 // TODO Removing word embedding metric. Impliment other metrics
 
 // Imports for Graph page. This page is used for visualizing the selected dataset.
@@ -19,7 +9,6 @@ import { TextField } from '@mui/material'
 import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select'
 import Plotly from "plotly.js-dist";
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
 import { Grid, Paper, Button } from "@mui/material";
@@ -32,13 +21,6 @@ import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
 
 export const Graph = (props) => {
 // useState definitions
-<<<<<<< HEAD
-  const [data, setData] = useState(undefined);
-  const [graphData, setGraphData] = useState(undefined);
-  const [settings, setSettings] = useState(true);
-  const [modalText, setModalText] = useState("Create Graph");
-  const [graph, setGraph] = useState(false);
-=======
   const [data, setData] = useState([]);
   const searchTerms = useState([]);
   const [groupOptions, setGroupOptions] = useState(undefined);
@@ -62,7 +44,6 @@ export const Graph = (props) => {
     { value: "jsd", label: "Jensen-Shannon Divergence" },
     // { value: "embedding", label: "Word Embeddings" }
   ]);
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
 
 // other variable definitions
   var layout = { title: "" };
@@ -70,48 +51,6 @@ export const Graph = (props) => {
   const navigate = useNavigate();
   const graph = useRef(null);
 
-<<<<<<< HEAD
-// Function definitions
-
-   // Runs on graph settings subit
-   // Generate a graph or update the existing graph
-  const updateGraph = (group, groupList, metric, searchTerms) => {
-    getGraph(data.dataset.table_name, group, groupList, metric, searchTerms).then(async (res) => {
-      let tempData = {};
-      tempData.graph = [];
-      tempData.table_name = data.dataset.table_name;
-      res.forEach((dataPoint) => { // Populate data array with request output
-        let index = tempData.graph.findIndex((x) => x.name == dataPoint.group);
-        if (index >= 0) { // Runs if datapoint 
-          tempData.graph[index].x.push(dataPoint.word)
-          tempData.graph[index].y.push(dataPoint.count)
-          dataPoint.ids.forEach((id) => tempData.graph[index].ids.push(id));
-        }
-        else {
-          tempData.graph.push({
-            x: [dataPoint.word],
-            y: [dataPoint.count],
-            ids: dataPoint.ids,
-            name: dataPoint.group,
-            type: "bar"
-          })
-        }
-      });
-      localStorage.setItem('graph-data', JSON.stringify(tempData))
-      console.log("Saved graph data")
-      setGraphData(tempData);
-      setGraph(true);
-    });
-  };
-
-  // Closes modal and updates graph data
-  const handleOpen = (event) => {
-    setSettings(true);
-  }
-
-  // Use Effect definition - Gets dataset information from local storage
-=======
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
   // Dataset has been selected -> Populates group options array for column name dropdown
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
@@ -125,32 +64,6 @@ export const Graph = (props) => {
     }
   }, []);
 
-<<<<<<< HEAD
-  useEffect(() => {
-  }, [graph])
-
-  return (
-    <>
-      {data != undefined && <GraphSettings dataset={data} setData={setData} show={settings} setSettings={setSettings}
-      updateGraph={updateGraph} buttonText={modalText}/>}
-
-      <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
-        <Grid container justifyContent="center">
-          <div>
-            <Button variant="contained"
-            onClick={handleOpen}
-            className="mt-2"
-            style={{marginLeft:"5%"}}
-            >Open graph settings</Button>
-
-            
-          </div>
-          {/* Graph */}
-          {!graph && <p>loading...</p>}
-          {graph && <Grid item xs={12} sm={9}>
-            <GraphComponent border data={graphData} setData={setData}/>
-          </Grid>}
-=======
 // Function definitions
 
   // Updates column name dropdown values
@@ -355,7 +268,6 @@ export const Graph = (props) => {
             </Box>
           </Grid>
 
->>>>>>> parent of fc366b5 (Merge branch 'main' of https://github.com/stephbuon/democracy-viewer-demo)
         </Grid>
       </Box>
     </>
