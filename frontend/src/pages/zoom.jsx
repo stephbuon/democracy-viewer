@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
-import Parser from 'html-react-parser';
 
+<<<<<<< HEAD
 export const Zoom = () => {
     // UseState definitions
     const [searchResults, setSearchResults] = useState([]);
@@ -16,25 +16,45 @@ export const Zoom = () => {
     var valueTrack = 0;
 
     // Gets record for data.ids and populates searchResults
-    useEffect(() => {
-        const scrollBox = document.querySelector("div#scroll-box");
-        scrollBox.addEventListener('scroll', (event) => {
-            handleScroll(event)
-        });
+=======
+export const Zoom = ({ data }) => {
 
-        getRecordsByIds(data.dataset, data.ids).then(async (res) => {
+    // TESTING TEMP
+    var innerHTML;
+    data.group = "MR. GLADSTONE"
+    data.count = 31
+    data.word = "industry"
+    data.ids = [1081131, 1113745, 124187, 309018, 333962, 333977, 368875, 395545, 461368, 461370, 461371, 461372, 5945, 6001, 6006, 6016, 6112, 6198, 6404, 6429, 6442, 651830, 69130, 71485, 743941, 77529, 77554, 77582]
+    //
+
+
+    const [searchResults, setSearchResults] = useState([]);
+
+>>>>>>> parent of dfaedf8 (Merge pull request #63 from stephbuon/Chris_Organization_Zoom_Updates)
+    useEffect(() => {
+        getRecordsByIds(data.dataset.table_name, data.ids).then(async (res) => {
             if (!res) {
-                console.log("Zoom error, no results found");
+                console.log("Odd zoom page error, no results of selected result?");
             }
             else {
                 setSearchResults(res)
+<<<<<<< HEAD
                 setLoadedData(res.slice(0, Math.min(10, res.length)))
+=======
+                console.log("Zoom test", searchResults, res);
+>>>>>>> parent of dfaedf8 (Merge pull request #63 from stephbuon/Chris_Organization_Zoom_Updates)
             }
         })
     }, []);
 
+<<<<<<< HEAD
     // Funcion definitions
     const highlight = (result) => {
+=======
+    const highlight = (result, index) => {
+        console.log("Highlighting")
+        var textLabel = document.getElementById("text" + index);
+>>>>>>> parent of dfaedf8 (Merge pull request #63 from stephbuon/Chris_Organization_Zoom_Updates)
         innerHTML = "";
 
         let tempText = result.text.replaceAll("\"", '')
@@ -50,6 +70,7 @@ export const Zoom = () => {
             i = lowerText.indexOf(data.word)
         }
         innerHTML += tempText;
+<<<<<<< HEAD
       }
 
       const handleScroll = (event) => {
@@ -59,6 +80,12 @@ export const Zoom = () => {
         // fetchData();
       };
 
+=======
+        console.log("HTML TEST", innerHTML)
+        console.log(result, index)
+      }
+
+>>>>>>> parent of dfaedf8 (Merge pull request #63 from stephbuon/Chris_Organization_Zoom_Updates)
     // TODO Show all values from group containing selected word
     /*
     return (
@@ -117,6 +144,7 @@ export const Zoom = () => {
                     </div>
 
                 </div>
+<<<<<<< HEAD
 
                 {/* subset search title */}
                 <div className="row pt-4 bp-2">
@@ -152,6 +180,41 @@ export const Zoom = () => {
                         }
                     )}
                 </div>
+=======
+
+                {/* subset search title */}
+                <div className="row pt-4 bp-2">
+                    <div className="col border">
+                        <b>Debate</b>
+                    </div>
+                    <div className="col border">
+                        <b>Speaker</b>
+                    </div>
+                    <div className="col border">
+                        <b>Text</b>
+                    </div>
+                </div>
+
+                {/* get id results */}
+                {searchResults.length > 0 && searchResults.map(function(result, i)
+                    {
+                        highlight(result, i)
+
+                        let debate = result.debate.replaceAll("\"", '')
+                        let speaker = result.speaker.replaceAll("\"", '')
+
+                        return <div className="row border">
+                                <div className="col my-auto">
+                                    {debate}
+                                </div>
+                                <div className="col my-auto">
+                                    {speaker}
+                                </div>
+                                <div className="col my-auto">{innerHTML}</div>
+                            </div>
+                    }
+                )}
+>>>>>>> parent of dfaedf8 (Merge pull request #63 from stephbuon/Chris_Organization_Zoom_Updates)
 
             </div>
         </div>
