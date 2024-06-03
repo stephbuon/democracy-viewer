@@ -96,7 +96,7 @@ def get_columns(engine: Engine, meta: MetaData, table_name: str, columns: list[s
     # Select data from table
     table = meta.tables[table_name]
     columns.insert(0, "id")
-    select_stmnt = select([ table.c[col] for col in columns ])
+    select_stmnt = select(*[ table.c[col] for col in columns ])
     df = []
     for page in range(pages):
         # Get next 50,000 records from db
@@ -114,10 +114,11 @@ def get_columns(engine: Engine, meta: MetaData, table_name: str, columns: list[s
         records = array(records)
         data = DataFrame()
         for i, col in enumerate(columns):
-            data[col] = data[:,i]
+            data[col] = records[:,i]
         df.append(data)
         
     df = concat(df)
+    df["id"] = df["id"].astype(int)
     return df
 
 # Select records by group and word lists

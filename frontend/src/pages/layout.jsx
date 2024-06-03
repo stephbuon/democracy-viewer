@@ -48,12 +48,12 @@ export const Layout = (props) => {
 
   return (
     <>
-      <AppBar position="fixed" sx={{ bgcolor: 'white', color: '#333', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
+      <AppBar position="fixed" sx={{ bgcolor: '#333', color: 'white', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
         <Toolbar>
           <IconButton
             size="large"
             edge="start"
-            color="inherit"
+            color="black"
             aria-label="menu"
             sx={{ mr: 2 }}
             onClick={handleDrawerToggle}

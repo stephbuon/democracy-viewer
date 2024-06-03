@@ -18,6 +18,7 @@ class DatasetMetadata(SQL_BASE):
     embeddings = Column("embeddings", Boolean)
     pos = Column("pos", Boolean)
     date_posted = Column("date_posted", Date)
+    embed_col = Column("embed_col", String(50))
 
 class DatasetTextCols(SQL_BASE):
     __tablename__ = "dataset_text_cols"

@@ -1,19 +1,18 @@
 from collections import Counter
 from copy import deepcopy
 from dotenv import load_dotenv
-from numpy import ceil
 from pandas import DataFrame, concat, read_csv
-from sys import argv, exit
+from sys import argv
 from time import time
 # Database interaction
 from bcpandas import to_sql, SqlCreds
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import create_engine, MetaData
 # SQL helpers
 from util.sql_connect import sql_connect
 import util.sql_queries as queries
-from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText, DatasetTextCols
+from util.sqlalchemy_tables import DatasetSplitText
 # Word processing
-from spacy import load as load_spacy
+from util.spacy_models import load_spacy_model
 from util.word_processing import stem_nltk
 
 # Get table name from command line argument
@@ -33,7 +32,7 @@ meta.reflect(engine)
 print("Connection time: {} minutes".format((time() - start_time) / 60))
 
 # Extract lemmas, pos, and dependencies from tokens
-def process_sentence(text: str, nlp = load_spacy("en_core_web_sm")):
+def process_sentence(text: str, nlp = load_spacy_model()):
     doc = nlp(text)
     counter = Counter((
         token.lemma_.lower(), token.pos_.lower(), token.tag_.lower(), 
@@ -81,21 +80,13 @@ def split_text(data: DataFrame):
     start = time()
     
     # Get metadata to determine preprocessing type
-    query = (
-        select(DatasetMetadata.preprocessing_type)
-            .where(DatasetMetadata.table_name == TABLE_NAME)
-    )
-    with engine.connect() as conn:
-        for row in conn.execute(query):
-            preprocessing_type = row[0]
-            break
-        conn.commit()
+    metadata = queries.get_metadata(engine, meta, TABLE_NAME)
         
     # Read and process stop words
     stopwords = read_csv("python/util/stopwords.csv")
     stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace("\W", "", regex=True)
     # Stem stop words if using stemming
-    if preprocessing_type == "stem":
+    if metadata["preprocessing_type"] == "stem":
         stopwords["stop_word"] = stopwords["stop_word"].apply(stem_nltk)
         stopwords = stopwords.explode("stop_word")
     stopwords = stopwords.drop_duplicates()
@@ -103,9 +94,9 @@ def split_text(data: DataFrame):
     # Create a deep copy of data
     split_data = deepcopy(data)
     # Lemmatize, stem, or split text based on preprocessing type
-    if preprocessing_type == "lemma":
+    if metadata["preprocessing_type"] == "lemma":
         # Load spacy language
-        nlp = load_spacy("en_core_web_sm")
+        nlp = load_spacy_model(metadata["language"])
         
         # Create new row for each word
         split_data["processed"] = split_data["text"].apply(lambda x: process_sentence(x, nlp))
@@ -114,9 +105,9 @@ def split_text(data: DataFrame):
         # Remove words with unwanted pos
         split_data = split_data[~split_data["pos"].isin(["num", "part", "punct", "sym", "x"])].dropna()
     else:
-        if preprocessing_type == "stem":
+        if metadata["preprocessing_type"] == "stem":
             split_data["text"] = split_data["text"].apply(stem_nltk)
-        elif preprocessing_type == "none":
+        elif metadata["preprocessing_type"] == "none":
             split_data["text"] = split_data["text"].str.split()
             
         # Create a new row for each word
