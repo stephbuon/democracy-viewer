@@ -18,6 +18,10 @@ export const Zoom = () => {
     var valueTrack = 0;
     var show = false;
 
+    const handleScroll = (event) => {
+
+    }
+
     // UseEffect: Gets record for all data.ids and populates searchResults
     useEffect(() => {
         const scrollBox = document.querySelector("div#scroll-box");

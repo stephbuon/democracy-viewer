@@ -67,9 +67,9 @@ export const AddTags = async (dataset, tags) =>  {
     return res.data;
 };
 
-export const UpdateMetadata = async (dataset, title, description,is_public) =>  {
-    console.log("Updating metadata", dataset, title, description,is_public, apiConfig());
-    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset}`, {title, description,is_public}, apiConfig());
+export const UpdateMetadata = async (dataset, params) =>  {
+    console.log("Updating metadata", dataset, params, apiConfig());
+    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset}`, params, apiConfig());
     if(res.status !== 200){
         console.log(`Couldn't update metadata. ${res.status}`)
         return null;

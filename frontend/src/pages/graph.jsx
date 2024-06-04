@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { Box, Button, Grid } from "@mui/material";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
-import { Box, Grid, Paper, Button } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import IconButton from "@mui/material/IconButton";
 import Dialog from "@mui/material/Dialog";
