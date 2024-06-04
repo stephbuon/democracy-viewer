@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 // Delete old files to prevent clutter
-const cleanup = require("./files/cleanup");
+const cleanup = require("./cleanup");
 setInterval(cleanup, 3600000);
 
 // Import middleware

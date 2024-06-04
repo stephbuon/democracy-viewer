@@ -1,7 +1,7 @@
 const findRemoveSync = require('find-remove');
 
 const deleteFiles = () => {
-    const result = findRemoveSync("../backend/files", {
+    const result = findRemoveSync("./files", {
         age: { seconds: 86400 },
         extensions: '.csv'
     });
