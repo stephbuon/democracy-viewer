@@ -28,6 +28,7 @@ yarn.lock
 package-lock.json
 
 # csv/json files
+files/*.csv
 downloads/*
 uploads/*
 python/files/input/*

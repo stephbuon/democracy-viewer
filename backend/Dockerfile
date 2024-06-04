@@ -4,10 +4,6 @@ FROM python:3.11
 WORKDIR /usr/src/app
 
 # Other installs
-RUN apt update
-RUN apt upgrade --yes
-RUN apt install --yes libcurl4-openssl-dev
-RUN apt-get install --yes libbz2-dev liblzma-dev
 RUN apt-get update
 RUN apt-get install curl
 
