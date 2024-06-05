@@ -34,9 +34,12 @@ export const CreateDataset = async (dataset) =>  {
     return res.data;
 };
 
-export const UploadDataset = async (dataset) =>  {
-    console.log("Uploading", dataset, apiConfig());
-    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/upload/${dataset}`, {}, apiConfig());
+export const UploadDataset = async (table_name, metadata, text, tags) =>  {
+    console.log("Uploading", table_name, apiConfig());
+    const params = {
+        table_name, metadata, text, tags
+    }
+    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/upload`, params, apiConfig());
     if(res.status !== 201){
         console.log(`Couldn't upload. ${res.status}`)
         return null;

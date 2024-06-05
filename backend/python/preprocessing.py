@@ -106,7 +106,7 @@ def split_text(data: DataFrame):
         split_data = split_data[~split_data["pos"].isin(["num", "part", "punct", "sym", "x"])].dropna()
     else:
         if metadata["preprocessing_type"] == "stem":
-            split_data["text"] = split_data["text"].apply(stem_nltk)
+            split_data["text"] = split_data["text"].apply(lambda x: stem(x, metadata["language"]))
         elif metadata["preprocessing_type"] == "none":
             split_data["text"] = split_data["text"].str.split()
             

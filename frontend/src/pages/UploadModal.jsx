@@ -47,7 +47,7 @@ export const UploadModal = (props) => {
     const [send, setSend] = useState(false);
     const [loadedPage, setLoadedPage] = useState(1);
     const [useAPI, setUseAPI] = useState(false);
-    const [apidatasetname, setApidatasetname] = useState(undefined);
+    const [datasetName, setDatasetName] = useState("");
     const [author, setAuthor] = useState('');
     const [date, setDate] = useState('');
     // Preprocessing
@@ -92,58 +92,26 @@ export const UploadModal = (props) => {
                 _texts.push(headers[i]);
             }
         }
-        if (!useAPI) {
-            CreateDataset(props.file).then(async (datasetname) => {
-                let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-                demoV.uploadData = datasetname;
-                localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-                if (_texts.length > 0) {
-                    AddTextColumn(datasetname, _texts);
-                }
-                if (tags.length > 0) {
-                    AddTags(datasetname, tags);
-                }
-                UploadDataset(datasetname);
-                UpdateMetadata(datasetname, {
-                    title, description, is_public: publicPrivate,
-                    processing_type: tokenization, embeddings,
-                    pos, embed_col: embedCol, language
-                });
-                setTimeout(() => {
-                    window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
-                }, 1000);
-            });
-        } else {
-            let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-            demoV.uploadData = apidatasetname;
-            localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-            UploadDataset(apidatasetname);
-            UpdateMetadata(apidatasetname, {
-                title, description, is_public: publicPrivate,
-                processing_type: tokenization, embeddings,
-                pos, embed_col: embedCol, language
-            });
-            if (_texts.length > 0) {
-                AddTextColumn(apidatasetname, _texts);
-            }
-            if (tags.length > 0) {
-                AddTags(apidatasetname, tags);
-            }
-            window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
-        }
+        const metadata = {
+            title, description, is_public: publicPrivate,
+            preprocessing_type: tokenization, embeddings,
+            pos, embed_col: embedCol, language
+        };
+        
+        
+        let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+        demoV.uploadData = datasetName;
+        localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
+        UploadDataset(datasetName, metadata, _texts, tags);
+        // window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
+        
         props.CancelUpload();
         return;
     }
 
     useEffect(() => {
-        if (props.useAPI) {
-            setUseAPI(true);
-            setApidatasetname(props.apidatasetname);
-            setTitle(props.apidatasetname);
-        } else {
-            setTitle(props.file.name.substr(0, props.file.name.length - 4))
-        }
-        setHeaders(props.headers)
+        setDatasetName(props.name);
+        setHeaders(props.headers);
     }, [props]);
 
     useEffect(() => {

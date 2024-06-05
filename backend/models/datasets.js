@@ -60,7 +60,7 @@ class datasets {
     // Add a tag for a dataset
     async addTag(table_name, tags) {
         // Format table name and tags as an array of objects
-        const data = tags.map(x => ({ table_name, tag_name: x }));
+        const data = [...new Set(tags)].map(x => ({ table_name, tag_name: x }));
         // Insert records
         const insert = await this.knex(tag_table).insert([ ...data ]);
         return insert;
