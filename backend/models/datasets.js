@@ -3,8 +3,7 @@ const tag_table = "tags";
 const text_col_table = "dataset_text_cols";
 const download_table = "dataset_download";
 const split_text_table = "dataset_split_text";
-const python = require("python-shell").PythonShell;
-const files = require("../util/file_management");
+const runPython = require("../util/python_config");
 
 class datasets {
     constructor(knex) {
@@ -291,31 +290,7 @@ class datasets {
             if (metadata.preprocessing_type != "none") {
                 // Setup Python config
                 const file = "python/files/input/" + table + "_" + Date.now() + ".json";
-                // Add file names as command line arguments
-                const options = {
-                    args: [ file, metadata.preprocessing_type, ...terms ]
-                }
-                
-                // If a python path is provided in .env, use it
-                // Else use the default path
-                if (process.env.PYTHON_PATH) {
-                    options["pythonPath"] = process.env.PYTHON_PATH;
-                }
-
-                // Run python program that generates graph data
-                try {
-                    await python.run("python/processing_helper.py", options).then(x => console.log(x)).catch(x => {
-                        console.log(x);
-                        throw new Error(x);
-                    });
-                    processed_terms = files.readJSON(file);
-                } catch(err) {
-                    if (files.fileExists(file)) {
-                        throw new Error(err);
-                    } else {
-                        console.log(err)
-                    }
-                }
+                await runPython("python/processing_helper.py", [ file, metadata.preprocessing_type, ...terms ])
             }
         }
 
