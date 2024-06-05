@@ -6,19 +6,6 @@ const csv_write =require("objects-to-csv");
 
 const maxUploadSize = 100 * 1024 * 1024;
 
-// Clear the given directory of unwanted files
-const clearDirectory = (path) => {
-    // Get all files in the downloads folder
-    const files = fs.readdirSync(path);
-
-    // Iterate through files and delete anything not named "README.md"
-    files.forEach(file => {
-        if (file !== "README.md") {
-            fs.unlinkSync(path + file);
-        }
-    });
-}
-
 // Delete an individual file or multiple files
 const deleteFiles = (files) => {
     if (Array.isArray(files)) {
@@ -103,7 +90,7 @@ const uploadFile = util.promisify(
     multer({
         storage: multer.diskStorage({
             destination: (req, file, cb) => {
-                cb(null, "./uploads");
+                cb(null, "./files/uploads");
             },
             filename: (req, file, cb) => {
                 cb(null, file.originalname);
@@ -113,8 +100,12 @@ const uploadFile = util.promisify(
     }).single("file")
 );
 
+// Rename a file
+const renameFile = (oldName, newName) => {
+    fs.renameSync(oldName, newName);
+}
+
 module.exports = {
-    clearDirectory,
     deleteFiles,
     fileExists,
     generateCSV,
@@ -122,5 +113,6 @@ module.exports = {
     generateFile,
     readCSV,
     readJSON,
-    uploadFile
+    uploadFile,
+    renameFile
 }

@@ -52,5 +52,5 @@ python/files/embeddings/*
 accounts.csv
 add_account.sql
 
-datasets
+datasets/*
 latifa_embeddings

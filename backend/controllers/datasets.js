@@ -1,24 +1,29 @@
 const util = require("../util/file_management");
 const axios = require("axios").default;
-const python = require("python-shell").PythonShell;
-const { encodeConnection } = require("./databases");
-const { defaultConfig } = require("../util/database_config");
-
+const runPython = require("../util/python_config");
 const datasets = require("../models/datasets"); 
 
 // Upload a new dataset from a csv file
-const createDataset = async(knex, path, username) => {
-    const model = new datasets(knex);
-
+const createDataset = async(path, username) => {
     // Get the file name from the file path
-    let name = path.split("/");
-    name = name[name.length - 1].split(".");
-    name = name[0] + "_" + Date.now();
+    let filepath = path.split("/");
+    const comps = filepath.pop().split(".");
+    filepath = filepath.join("/");
+    const extension = comps.pop();
+    const name = comps[comps.length - 1].replace(extension, "");
+    const table_name = `${ name }_${ username }_${ Date.now() }`;
+    const newName = `${ filepath }/${ table_name }.${ extension }`;
+    // Rename file
+    util.renameFile(path, newName);
 
-    // Create empty metadata for data set
-    await model.createMetadata(name, username);
+    // Get the first 5 records from the dataset
+    await runPython("python/get_head.py", [ newName ]);
+    const data = util.readJSON(newName.replace(extension, "json"))
 
-    return name;
+    return {
+        table_name,
+        data
+    };
 }
 
 // Import a new dataset from an api
@@ -46,7 +51,7 @@ const createDatasetAPI = async(knex, endpoint, username, token = null) => {
 
     // Create table name and file name using user's username
     const name = `${ username }_${ Date.now() }`;
-    const filename = `uploads/${ username }.csv`;
+    const filename = `files/uploads/${ username }.csv`;
     
     let output = {};
     if (typeof data === "string") {
@@ -78,132 +83,36 @@ const createDatasetAPI = async(knex, endpoint, username, token = null) => {
     return output;
 }
 
-// Upload dataset records using JavaScript
-const uploadDatasetJS = async(knex, name, user) => {
-    const model = new datasets(knex);
-
-    // Get the current metadata for this dataset
-    const curr = await model.getMetadata(name);
-
-    // If the user of this dataset does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
-    }
-
-    // Get file name from table name
-    const fileName = name.split("_").slice(0, -1).join("_");
-    const path = `uploads/${fileName}.csv`;
-
-    // Parse the provided csv file
-    return await util.readCSV(path).then(async(data) => {
-        // Update metadata with number of records
-        await model.updateMetadata(name, { record_count: data.length });
-
-        // If there is a column called id, change it to id_
-        if (data[0].id) {
-            data = data.map(x => {
-                x.id_ = { ...x.id };
-                delete x.id;
-                return x;
-            })
-        }
-    
-        // Determine the maximum length for each column
-        const maxLengths = {};
-        data.map((row) => {
-            Object.keys(row).forEach(key => {
-                if (!maxLengths[key] || row[key].length > maxLengths[key]) {
-                    maxLengths[key] = row[key].length;
-                }
-            });
-        });
-
-        // Filter out columns with a length of 0
-        Object.keys(maxLengths).forEach(x => {
-            if (maxLengths[x] === 0) {
-                delete maxLengths[x];
-            }
-        });
-    
-        // Create a new table with the file name and column names
-        await model.createDataset(name, Object.keys(data[0]), maxLengths);
-
-        // Loop through the data and insert rows
-        const per_insert = Math.floor(2100 / Object.keys(data[0]).length) - Object.keys(data[0]).length;
-        for (let i = 0; i < data.length; i += per_insert) {
-            await model.addRows(name, data.slice(i, i + per_insert));
-        }
-    
-        // Return the first 10 rows of the new dataset and the table name
-        const results = await model.getHead(name);
-        const output = {
-            table_name: name,
-            data: results
-        }
-        return output;
-    });
-}
-
 // Upload dataset records using Python
-const uploadDatasetPy = async(knex, name, user) => {
+const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     const model = new datasets(knex);
 
     // Extract username from user
     const username = user.username;
 
-    // Get the current metadata for this dataset
-    const curr = await model.getMetadata(name);
-
     // If the user of this dataset does not match the user making the updates, throw error
-    if (curr.username !== username) {
+    if (!name.includes(username)) {
         throw new Error(`User ${ username } is not the owner of this dataset`);
     }
 
+    // Upload metadata
+    await model.createMetadata(name, username, metadata);
+    // Upload text columns
+    await model.addTextCols(name, textCols);
+    // Upload tags
+    await model.addTag(name, tags);
+
     // Get file name from table name
-    const fileName = name.split("_").slice(0, -1).join("_");
-    const path = `uploads/${fileName}.csv`;
+    const path = `files/uploads/${name}.csv`;
 
-    // Add file names as command line arguments
-    const options = {
-        args: [ name, path ]
-    }
-
-    // If distributed connection, add encoded token to args
-    if (user.database) {
-        const token = await encodeConnection(require("knex")(defaultConfig()), user.database);
-        options.args.push(token);
-    }
-
-    // If a python path is provided in .env, use it
-    // Else use the default path
-    if (process.env.PYTHON_PATH) {
-        options["pythonPath"] = process.env.PYTHON_PATH;
-    }
-
-    // Run python program to upload dataset
-    await python.run("python/upload_dataset.py", options).then(x => console.log(x)).catch(x => {
-        console.error(x);
-        throw new Error(x);
-    });
+    await runPython("python/upload_dataset.py", [ name, path ], user.database)
     
     // Delete file now that it has been uploaded
     util.deleteFiles(path)
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    options["args"] = options["args"].filter(x => x != path)
-    await python.run("python/preprocessing.py", options).then(x => console.log(x)).catch(x => {
-        console.error(x);
-        throw new Error(x);
-    });
-
-    // Return the first 10 rows of the new dataset and the table name
-    const results = await model.getHead(name);
-    const output = {
-        table_name: name,
-        data: results
-    }
-    return output;
+    await runPython("python/preprocessing.py", [ name ], user.database)
 }
 
 // Add a tag for a dataset
@@ -419,7 +328,7 @@ const downloadSubset = async(knex, table, params, username = undefined) => {
     const model = new datasets(knex);
 
     // Clear the downloads folder on the server
-    util.clearDirectory("./downloads/");
+    util.clearDirectory("./files/downloads/");
     // Get all records in this dataset
     const count = await model.subsetTableCount(table, params);
     const pages = Math.ceil(count / 50000);
@@ -445,7 +354,7 @@ const downloadSubset = async(knex, table, params, username = undefined) => {
         await model.updateDownload(downloadId);
     }
     // Generate csv from records
-    const fileName = util.generateCSV(`./downloads/${ table }.csv`, records);
+    const fileName = util.generateCSV(`./files/downloads/${ table }.csv`, records);
     // Delete the download record
     await model.deleteDownload(downloadId);
     // Return generated file name
@@ -540,8 +449,7 @@ const deleteTextCol = async(knex, user, table, col) => {
 module.exports = {
     createDataset,
     createDatasetAPI,
-    uploadDatasetJS,
-    uploadDatasetPy,
+    uploadDataset,
     addTag,
     addTextCols,
     changeColType,

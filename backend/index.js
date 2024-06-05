@@ -4,7 +4,7 @@ const cors = require("cors");
 
 // Delete old files to prevent clutter
 const cleanup = require("./cleanup");
-setInterval(cleanup, 3600000);
+setInterval(cleanup, 60000);
 
 // Import middleware
 const requestLog = require("./middleware/logging");

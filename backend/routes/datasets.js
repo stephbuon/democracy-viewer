@@ -15,8 +15,7 @@ router.post('/', authenticateJWT, async(req, res, next) => {
             res.status(400).json({ message: "No uploaded file" });
         } else {
             // Create dataset in database from file
-            console.log(req.file.path);
-            const result = await control.createDataset(req.knex, req.file.path, req.user.username);
+            const result = await control.createDataset(req.file.path, req.user.username);
             res.status(201).json(result);
         }
         
@@ -40,10 +39,10 @@ router.post('/api', authenticateJWT, async(req, res, next) => {
 });
 
 // Route to upload dataset records into database
-router.post('/upload/:name', authenticateJWT, async(req, res, next) => {
+router.post('/upload', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.uploadDatasetPy(req.knex, req.params.name, req.user);
-        res.status(201).json(result);
+        await control.uploadDataset(req.knex, req.body.table_name, req.body.metadata, req.body.text, req.body.tags, req.user);
+        res.status(201).end();
     } catch (err) {
         console.error('Failed to upload dataset:', err);
         res.status(500).json({ message: err.toString() });

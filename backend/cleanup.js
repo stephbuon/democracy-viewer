@@ -2,8 +2,8 @@ const findRemoveSync = require('find-remove');
 
 const deleteFiles = () => {
     const result = findRemoveSync("./files", {
-        age: { seconds: 86400 },
-        extensions: '.csv'
+        age: { seconds: 60 },
+        extensions: [".csv", ".json", ".xls", ".xlsx", ".pkl"]
     });
 
     const cnt = Object.keys(result).length;

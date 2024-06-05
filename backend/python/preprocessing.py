@@ -13,7 +13,7 @@ import util.sql_queries as queries
 from util.sqlalchemy_tables import DatasetSplitText
 # Word processing
 from util.spacy_models import load_spacy_model
-from util.word_processing import stem_nltk
+from util.word_processing import stem
 
 # Get table name from command line argument
 TABLE_NAME = argv[1]
@@ -87,7 +87,7 @@ def split_text(data: DataFrame):
     stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace("\W", "", regex=True)
     # Stem stop words if using stemming
     if metadata["preprocessing_type"] == "stem":
-        stopwords["stop_word"] = stopwords["stop_word"].apply(stem_nltk)
+        stopwords["stop_word"] = stopwords["stop_word"].apply(lambda x: stem(x, metadata["language"]))
         stopwords = stopwords.explode("stop_word")
     stopwords = stopwords.drop_duplicates()
     
