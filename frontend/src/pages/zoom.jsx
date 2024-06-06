@@ -2,68 +2,67 @@
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
 import Parser from 'html-react-parser';
+import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
 
 export const Zoom = () => {
     // UseState definitions
     const [searchResults, setSearchResults] = useState([]);
-    const [loadedData, setLoadedData] = useState([]);
-    const [keys, setKeys] = useState([]);
+    const [page, setPage] = useState(1);
+    const [graphData, setGraphData] = useState(undefined);
+    const [totalPages, setTotalPages] = useState(1);
+    const max_page_size = 50;
 
-    let graphData = JSON.parse(localStorage.getItem('selected'));
-    const [data, setData] = useState(graphData);
+    const getPage = (currPage) => {
+        const ids = graphData.ids.slice(max_page_size * (currPage - 1), max_page_size * currPage);
 
-    // Variable definitions
-    var innerHTML;
-    var scrollSpot = 0;
-    var valueTrack = 0;
-    var show = false;
-
-    const handleScroll = (event) => {
-
-    }
-
-    // UseEffect: Gets record for all data.ids and populates searchResults
-    useEffect(() => {
-        const scrollBox = document.querySelector("div#scroll-box");
-        scrollBox.addEventListener('scroll', (event) => {
-            handleScroll(event)
-        });
-
-        getRecordsByIds(data.dataset, data.ids).then(async (res) => {
+        getRecordsByIds(graphData.dataset, ids).then(async (res) => {
             if (!res) {
                 console.log("Zoom error, no results found");
             }
             else {
                 setSearchResults(res)
-                setLoadedData(res.slice(0, Math.min(10, res.length)))
-                setKeys(Object.keys(res))
             }
         })
+    }
+
+    const nextPage = () => {
+        getPage(page + 1);
+        setPage(page + 1);
+    }
+
+    // UseEffect: Gets record for all data.ids and populates searchResults
+    useEffect(() => {
+        setGraphData(JSON.parse(localStorage.getItem('selected')));
     }, []);
 
-    // UseEffect: Prints data on change, updates graph on data change
     useEffect(() => {
-        console.log("Zoom test", data)
-    }, [data]);
+        if (graphData) {
+            getPage(page);
+            setTotalPages(Math.ceil(graphData.ids.length / max_page_size));
+        }
+    }, [graphData]);
 
     // Funcion definitions
     const highlight = (result) => { // Cleans result and highlights all instances of data.word
         let output = "";
         let text = result.text.replaceAll("\"", '')
         let lowerText = text.toLowerCase()
-        let i = lowerText.indexOf(data.word)
+        let i = lowerText.indexOf(graphData.word)
 
         while(i != -1){
             output += text.substring(0, i)
-            output += "<mark>" + data.word + "</mark>";
+            output += "<mark>" + graphData.word + "</mark>";
             
-            text = text.substring(i + data.word.length)
-            lowerText = lowerText.substring(i + data.word.length)
-            i = lowerText.indexOf(data.word)
+            text = text.substring(i + graphData.word.length)
+            lowerText = lowerText.substring(i + graphData.word.length)
+            i = lowerText.indexOf(graphData.word)
         }
         return output + text;
       }
 
+    if (!graphData) {
+        return <>Loading...</>
+    }
 
     return (<>
         <div>
@@ -85,52 +84,19 @@ export const Zoom = () => {
                         <b>Selected datapoint</b>
                     </div>
                     <div className="col">
-                        {data.x}
+                        {graphData.x}
                     </div>
                     <div className="col">
-                        {data.y}
+                        {graphData.y}
                     </div>
                 </div>
 
-                <div id="scroll-box" className="pt-4 bp-2" style={{overflow:"scroll", overflowX: "scroll"}}>
-                    {/* Subset search title */}
-                    <div className="row" style={{overflowX:"auto", whiteSpace:"nowrap"}}>
-                        <div className="col border" xs={5}>
-                            <b>{"Index"}</b>
-                        </div>
-                        {searchResults.length > 0 && Object.keys(loadedData[0]).map(function(result, i)
-                            {
-                                return  <div key={"label" + i} className="col border" xs={5} style={{display:"inline-block", float:"none"}}>
-                                    <b>{result}</b>
-                                </div>
-                            })
-                        }
-                    </div>
-
-                    {/* Subset search data display */}
-                    {searchResults.length > 0 && loadedData.map(function(result, i)
-                        {
-                            highlight(result)
-
-                            // let debate = result.debate.replaceAll("\"", '')
-                            // let speaker = result.speaker.replaceAll("\"", '')
-
-                            let values = Object.values(result);
-                            return  <div key={"result" + i} className="row border">
-                                <div className="col" xs={5}>
-                                    {i}
-                                </div>
-                                {values.map(function(item, j)
-                                {
-                                    return <div key={"result" + i + "value" + j} className="col" xs={5}>
-                                        {String(item)}
-                                    </div>
-                                }
-                                )}
-                                </div>
-                        })
-                    }
-                </div>
+                <PaginatedDataTable
+                    searchResults = {searchResults}
+                    page = {page}
+                    totalNumOfPages = {totalPages}
+                    GetNewPage = {nextPage}
+                />
             </div>
         </div>
         </>

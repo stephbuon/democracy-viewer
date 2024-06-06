@@ -1,7 +1,7 @@
 const files = require("../util/file_management");
-const python = require("python-shell").PythonShell;
 const { encodeConnection } = require("./databases");
 const { defaultConfig } = require("../util/database_config");
+const runPython = require("../util/python_config");
 require('dotenv').config();
 
 const datasets = require("../models/datasets");
@@ -60,10 +60,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
 
     // Run python program that generates graph data
     try {
-        await python.run("python/graphs.py", options).then(x => console.log(x)).catch(x => {
-            console.log(x);
-            throw new Error(x);
-        });
+        await runPython("python/graphs.py", [ file1 ], user ? user.database : undefined);
         files.deleteFiles([ file1 ]);
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {

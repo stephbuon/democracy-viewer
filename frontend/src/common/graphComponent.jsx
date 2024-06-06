@@ -22,31 +22,36 @@ export const GraphComponent = ({ data, setData }) => {
     }
 
     // Other variable definitions
-    var layout = {
-        title: data.metric[0].toUpperCase() + data.metric.slice(1) + " for " + listToString(data.titleList),
-        width: 1000,
-        height: 500,
-        margin: {
-            l: 50,
-            r: 50,
-            b: 100,
-            t: 50,
-            pad: 4
-        },
-        xaxis: {
-            automargin: true,
-            title: {
-              text: data.xLabel,
-              standoff: 20
-            }},
-          yaxis: {
-            automargin: true,
-            tickangle: 0,
-            title: {
-              text: data.yLabel,
-              standoff: 40
-            }}
-    };
+    try {
+        var layout = {
+            title: data.metric[0].toUpperCase() + data.metric.slice(1) + " for " + listToString(data.titleList),
+            width: 1000,
+            height: 500,
+            margin: {
+                l: 50,
+                r: 50,
+                b: 100,
+                t: 50,
+                pad: 4
+            },
+            xaxis: {
+                automargin: true,
+                title: {
+                  text: data.xLabel,
+                  standoff: 20
+                }},
+              yaxis: {
+                automargin: true,
+                tickangle: 0,
+                title: {
+                  text: data.yLabel,
+                  standoff: 40
+                }}
+        };
+    } catch {
+        localStorage.removeItem("graph-data");
+    }
+    
     const navigate = useNavigate();
     const graph = useRef(null);
 
@@ -56,12 +61,11 @@ export const GraphComponent = ({ data, setData }) => {
         Plotly.newPlot('graph', data.graph, layout, {displayModeBar: false});
         graph.current.on('plotly_click', function (event) { // Click event for zoom page
             let dataPoint = event.points[0];
-            let tempData = {};
             console.log("TEST!!", dataPoint, "and", data);
-            tempData = {
+            let tempData = {
                 x: dataPoint.x,
                 y: dataPoint.y,
-                ids: dataPoint.data.ids[dataPoint.pointIndex],
+                ids: dataPoint.data.ids,
                 dataset: data.table_name
                 }
             localStorage.setItem('selected', JSON.stringify(tempData))

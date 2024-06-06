@@ -124,9 +124,13 @@ export const Graph = (props) => {
 
     let graph = JSON.parse(localStorage.getItem('graph-data'));
     if(graph){
-      setGraphData(graph);
-      setGraph(true);
-      setSettings(false);
+      if (graph["table_name"] === demoV["dataset"]["table_name"]) {
+        setGraphData(graph);
+        setGraph(true);
+        setSettings(false);
+      } else {
+        localStorage.removeItem("graph-data")
+      }
     }
   }, []);
 

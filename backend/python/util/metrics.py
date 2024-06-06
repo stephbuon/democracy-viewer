@@ -17,7 +17,7 @@ def counts(engine: Engine, meta: MetaData, table_name: str, column: str | None, 
     # Sum counts
     output = data.groupby(group_cols).sum().reset_index()
     # Add ids
-    output["ids"] = ids["ids"]
+    output["ids"] = list(set(ids["ids"]))
     
     return output
 
@@ -54,7 +54,7 @@ def tf_idf(engine: Engine, meta: MetaData, table_name: str, column: str, values:
     # Rearrange columns
     output = output.pivot(index = "word", columns = "group", values = "tf_idf").reset_index().fillna(0)
     # Add ids
-    output["ids"] = ids["ids"]
+    output["ids"] = list(set(ids["ids"]))
     
     return output
 
@@ -75,7 +75,7 @@ def proportions(engine: Engine, meta: MetaData, table_name: str, column: str, va
     output.drop(["count", "total"], axis = 1, inplace = True) 
         
     # Add ids
-    output["ids"] = ids["ids"]
+    output["ids"] = list(set(ids["ids"]))
     
     return output
 
@@ -162,7 +162,10 @@ def log_likelihood(engine: Engine, meta: MetaData, table_name: str, column: str,
             # Add ll for group to df
             df[group] = ll
         # Add ids to df 
-        df["ids"] = [ids[ids["word"] == word].reset_index()["ids"][0]]
+        df["ids"] = list(set([ids[ids["word"] == word].reset_index()["ids"][0]]))
         output.append(df)
     
-    return concat(output)
+    if len(output) > 0:
+        return concat(output)
+    else:
+        return DataFrame()
