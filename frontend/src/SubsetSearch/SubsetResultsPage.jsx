@@ -1,16 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useState, useEffect, useCallback } from "react";
-import { Resizable } from "react-resizable";
+import { useState, useEffect } from "react";
 import 'react-resizable/css/styles.css';
 //MUI Imports
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import Modal from '@mui/material/Modal';
-import Table from '@mui/material/Table';
-import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Hidden } from '@mui/material';
-import { Stack } from '@mui/system';
-import Typography from '@mui/material/Typography';
 //Other Imports
 import { DownloadSubset, DownloadFullDataset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 // import { DataTable } from "../common/DataTable/DataTable";
@@ -283,6 +277,7 @@ export const SubsetResultsPage = (props) => {
                                 }
                             }}
                             onClick={() => {
+                                DownloadFullDataset()
                                 let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
                                 demoV.downloadData = { table_name: props.dataset.table_name, search: "" };
                                 localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
