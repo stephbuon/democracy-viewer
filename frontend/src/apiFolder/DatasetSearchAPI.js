@@ -19,17 +19,13 @@ export const FilterDatasets = async (params, page) =>  {
     console.log("Filtering Datasets", params);
     // console.log(`GET  -  ${BACKEND_ENDPOINT}/datasets/filter?type=${params.type}${params.searchTerm}`)
 
-    let res;
-    if(params.advanced)
-    {
-        //ADVANCED SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,apiConfig());
+    const config = { ...apiConfig() };
+    if (params) {
+        config.params = params;
     }
-    else
-    {
-        //SIMPLE SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.searchTerm}`,apiConfig());
-    }
+
+    const res = await axios.get(`${ BACKEND_ENDPOINT }/datasets/filter/${ page }`, config)
+
     if(res.status !== 200){
         console.log(`Couldn't get datasets information. ${res.status}`, params)
         return null;

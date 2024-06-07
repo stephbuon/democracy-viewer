@@ -85,7 +85,7 @@ export const SubsetResultsPage = (props) => {
 
         GetNumOfEntries(_query).then(async (res) => {
             setTotalNumResults(res);
-            let tot = res / 50;
+            let tot = Math.ceil(res / 50);
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
         })

@@ -95,3 +95,15 @@ export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) =
     reject(x);
   });
 });
+
+export const deleteDataset = (dataset) => new Promise((resolve, reject) => {
+    axios.delete(`${ apiEndpoint }/datasets/${ dataset }`, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${ getToken() }`
+      }
+    }).then(x => resolve(x.data)).catch(x => {
+      alert(x);
+      reject(x);
+    });
+});

@@ -7,6 +7,8 @@ import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableR
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import { Popularize } from '../apiFolder/DatasetSearchAPI';
+import AlertDialog from './AlertDialog';
+import { deleteDataset } from '../api/api';
 
 export const Result = (props) => {
     const [open, setOpen] = useState(false);
@@ -47,6 +49,24 @@ export const Result = (props) => {
                     borderRadius: ".5em .5em"
                 }}
             >
+                {
+                    props.editable && <>
+                        <Button
+                            onClick = {() => {}}
+                        >
+                            Edit
+                        </Button>
+                        <AlertDialog
+                            buttonText={"Delete"}
+                            titleText={`Are you sure you want to delete the dataset "${ props.result.title }"?`}
+                            bodyText={"This action cannot be undone."}
+                            action={() => {
+                                deleteDataset(props.result.table_name).then(x => window.location.reload())
+                            }}
+                        />
+                    </>
+                }
+                
                 <Table>
                     <TableHead>
                         <TableRow>

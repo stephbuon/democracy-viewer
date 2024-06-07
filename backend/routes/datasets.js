@@ -175,9 +175,9 @@ router.get('/filter/:page', async(req, res, next) => {
     try {
         let results;
         if (req.user) {
-            results = await control.getFilteredDatasets(req.knex, req.query, req.user.username, true, req.params.page);
+            results = await control.getFilteredDatasets(req.knex, req.query, req.user.username, req.params.page);
         } else {
-            results = await control.getFilteredDatasets(req.knex, req.query, undefined, true, req.params.page);
+            results = await control.getFilteredDatasets(req.knex, req.query, undefined, req.params.page);
         }
         res.status(200).json(results);
     } catch (err) {
