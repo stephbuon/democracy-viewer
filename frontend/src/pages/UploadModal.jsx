@@ -1,27 +1,21 @@
-import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import Flag from "react-flagkit";
 
 // MUI Imports
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import { TableBody, TableHead, FormControl, FormControlLabel, FormGroup, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
+import { FormControl, FormControlLabel, FormGroup, MenuItem, Select, InputLabel } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
-import ListItemText from '@mui/material/ListItemText';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import Tooltip from '@mui/material/Tooltip';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import Chip from '@mui/material/Chip';
 import LinearProgress from '@mui/material/LinearProgress';
 import Link from '@mui/material/Link';
 
-import { CreateDataset, UploadDataset, AddTextColumn, AddTags, UpdateMetadata } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset } from '../apiFolder/DatasetUploadAPI';
+import { DatasetInformation } from '../common/DatasetInformation';
+import { DatasetTags } from "../common/DatasetTags";
 
 // Languages that allow stemming
 // Some of these languages are not yet available in democracy viewer
@@ -33,20 +27,14 @@ const stemLanguages = [
 ]
 
 export const UploadModal = (props) => {
-    const navigate = useNavigate();
-    const params = useParams();
-
     const [title, setTitle] = useState('');
-    const [username, setUsername] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(false);
     const [description, setDescription] = useState('');
     const [columnTypes, setColumnTypes] = useState({});
     const [headers, setHeaders] = useState([]);
     const [tags, setTags] = useState([]);
-    const [tag, setTag] = useState('');
-    const [send, setSend] = useState(false);
+   
     const [loadedPage, setLoadedPage] = useState(1);
-    const [useAPI, setUseAPI] = useState(false);
     const [datasetName, setDatasetName] = useState("");
     const [author, setAuthor] = useState('');
     const [date, setDate] = useState('');
@@ -66,23 +54,6 @@ export const UploadModal = (props) => {
             if (Object.values(columnTypes).filter(x => x === "TEXT").length === 0) { return false; }
         }
         return true;
-    }
-
-    const addTag = () => {
-        if (tag.trim() === "") return;
-        let _tags = [...tags];
-        _tags.push(tag);
-        setTags(_tags);
-        setTag('');
-    }
-
-    const deleteTag = (_tag) => {
-        let _tags = tags;
-        let index = _tags.indexOf(_tag);
-        if (index > -1) {
-            _tags.splice(index, 1);
-        }
-        setTags([..._tags]);
     }
 
     const SendDataset = () => {
@@ -164,105 +135,25 @@ export const UploadModal = (props) => {
             </Box>
 
             {loadedPage === 1 && (
-                <Box sx={{ padding: 2 }}>
-                    <Typography variant="h5" align="center" gutterBottom>
-                        Dataset Information
-                        <Tooltip title="Provide general information about the dataset. Noticed that the information will be shared to public if you select 'public' for privacy.">
-                            <IconButton size="small">
-                                <HelpOutlineIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        <TextField
-                            id="Title"
-                            label="Title"
-                            variant="filled"
-                            fullWidth
-                            sx={{ background: 'rgb(255, 255, 255)' }}
-                            value={title}
-                            onChange={event => { setTitle(event.target.value); }}
-                        />
-                        <TextField
-                            id="Author"
-                            label="Author"
-                            variant="filled"
-                            fullWidth
-                            sx={{ background: 'rgb(255, 255, 255)' }}
-                            value={author}
-                            onChange={event => { setAuthor(event.target.value); }}
-                        />
-                        <TextField
-                            id="Date"
-                            label="Date"
-                            type="date"
-                            variant="filled"
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
-                            sx={{ background: 'rgb(255, 255, 255)' }}
-                            value={date}
-                            onChange={event => { setDate(event.target.value); }}
-                        />
-                        <TextField
-                            id="Description"
-                            label="Description"
-                            variant="filled"
-                            fullWidth
-                            sx={{ background: 'rgb(255, 255, 255)' }}
-                            value={description}
-                            onChange={event => { setDescription(event.target.value); }}
-                        />
-                        <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                            <InputLabel>Privacy</InputLabel>
-                            <Select
-                                value={publicPrivate}
-                                onChange={event => setPublicPrivate(event.target.value)}
-                            >
-                                <MenuItem value={true}>Public</MenuItem>
-                                <MenuItem value={false}>Private</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Box>
-                </Box>
+                <DatasetInformation
+                    title={title}
+                    setTitle={setTitle}
+                    author={author}
+                    setAuthor={setAuthor}
+                    date={date}
+                    setDate={setDate}
+                    description={description}
+                    setDescription={setDescription}
+                    publicPrivate={publicPrivate}
+                    setPublicPrivate={setPublicPrivate}
+                />
             )}
 
             {loadedPage === 2 && (
-                <Box sx={{ padding: 2 }}>
-                    <Typography variant="h5" align="center" gutterBottom>
-                        Tags
-                        <Tooltip title="Tags are used to discover datasets.">
-                            <IconButton size="small">
-                                <HelpOutlineIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                            <TextField
-                                id="Tag"
-                                label="Tag"
-                                variant="filled"
-                                fullWidth
-                                sx={{ background: 'rgb(255, 255, 255)' }}
-                                value={tag}
-                                onChange={event => { setTag(event.target.value); }}
-                            />
-                            <IconButton onClick={() => addTag()}>
-                                <AddIcon />
-                            </IconButton>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {tags.map((tag, index) => (
-                                <Chip
-                                    key={index}
-                                    label={tag}
-                                    onDelete={() => deleteTag(tag)}
-                                    sx={{ margin: 0.5 }}
-                                />
-                            ))}
-                        </Box>
-                    </Box>
-                </Box>
+                <DatasetTags
+                    tags={tags}
+                    setTags={setTags}
+                />
             )}
 
             {loadedPage === 3 && (

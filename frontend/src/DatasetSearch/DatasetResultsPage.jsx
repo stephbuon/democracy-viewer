@@ -1,4 +1,3 @@
-import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
 //MUI Imports
@@ -21,18 +20,14 @@ import { ChangeConnection, GetUserConnections } from '../apiFolder/DistributedBa
 import { GetSession } from '../apiFolder/LoginRegister';
 import { DatasetTable } from '../common/DatasetTable';
 
+const pageLength = 50;
 
 export const DatasetResultsPage = (props) => {
-    const navigate = useNavigate();
-    const params = useParams()
-
-
     //temp values
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
-    const [totalTags, setTotalTags] = useState([]);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
@@ -45,7 +40,6 @@ export const DatasetResultsPage = (props) => {
     const [pageFilter, setPageFilter] = useState(null);
     const [totalNumOfPages, setTotalNumOfPages] = useState(1);
     const [page, setPage] = useState(1);
-    const [loadingNextPage, setLoadingNextPage] = useState(false)
 
 
     const [loadingResults, setLoadingResults] = useState(false);
@@ -60,10 +54,12 @@ export const DatasetResultsPage = (props) => {
 
         let filter = {
             searchTerm: searchTerm ? `&search=${searchTerm}` : '',
-            type: publicPrivate ? 'public' : 'private'
+            type: publicPrivate ? 'public' : 'private',
+            pageLength
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
+        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
@@ -71,15 +67,17 @@ export const DatasetResultsPage = (props) => {
             else { setSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = Math.ceil(res / 50);
+            let tot = Math.ceil(res / pageLength);
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
         console.log("Filter", advancedFilter)
+        advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
+        setPage(1);
         FilterDatasets(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
@@ -89,7 +87,7 @@ export const DatasetResultsPage = (props) => {
             handleAdvancedFilterClose()
         })
         FilterDatasetsCount(advancedFilter).then(async (res) => {
-            let tot = Math.ceil(res / 50);
+            let tot = Math.ceil(res / pageLength);
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
         })
@@ -98,7 +96,6 @@ export const DatasetResultsPage = (props) => {
     const GetNewPage = async (selectedPage) => {
         if (selectedPage < 1 || selectedPage > totalNumOfPages) return;
 
-        setLoadingNextPage(true);
         setLoadingResults(true);
 
         try {
@@ -111,7 +108,6 @@ export const DatasetResultsPage = (props) => {
         } catch (error) {
             console.error('Error fetching new page:', error);
         } finally {
-            setLoadingNextPage(false);
             setLoadingResults(false);
         }
     };

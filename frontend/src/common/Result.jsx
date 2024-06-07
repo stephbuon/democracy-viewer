@@ -3,12 +3,14 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useState, useEffect } from "react";
+import { TableBody, TableHead, TableRow, TableCell } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
 import { Popularize } from '../apiFolder/DatasetSearchAPI';
 import AlertDialog from './AlertDialog';
 import { deleteDataset } from '../api/api';
+import { DatasetInformation } from './DatasetInformation';
+import { DatasetTags } from './DatasetTags';
 
 export const Result = (props) => {
     const [open, setOpen] = useState(false);
@@ -22,13 +24,23 @@ export const Result = (props) => {
         props.setDataset(props.result);
     }
 
-    useEffect(() => {
-        // console.log(result)
+    const [title, setTitle] = useState(props.result.title);
+    const [publicPrivate, setPublicPrivate] = useState(props.result.is_public);
+    const [description, setDescription] = useState(props.result.description);
+    const [author, setAuthor] = useState(props.result.author);
+    const [date, setDate] = useState(props.result.date);
+    const [tags, setTags] = useState(props.result.tags);
 
-    }, []);
+    const [infoDisabled, setInfoDisabled] = useState(true);
+    const [tagsDisabled, setTagsDisabled] = useState(true);
+
+    useEffect(() => {
+        if (infoDisabled && (title !== props.result.title || publicPrivate !== props.result.is_public || description !== props.result.description || author !== props.result.author || date !== props.result.date)) {
+            setInfoDisabled(false);
+        } else if (!infoDisabled && (title === props.result.title || publicPrivate === props.result.is_public || description === props.result.description || author === props.result.author || date === props.result.date))
+    }, [title, publicPrivate, description, author, date])
 
     return <div>
-
         <Box onClick={() => handleOpen()}>
             {props.result.title}
         </Box>
@@ -51,18 +63,41 @@ export const Result = (props) => {
             >
                 {
                     props.editable && <>
-                        <Button
-                            onClick = {() => {}}
-                        >
-                            Edit
-                        </Button>
+                        <AlertDialog
+                            buttonText={"Edit"}
+                            titleText={`Edit dataset "${ props.result.title }"`}
+                            bodyText={
+                                <DatasetInformation
+                                    title={title}
+                                    setTitle={setTitle}
+                                    author={author}
+                                    setAuthor={setAuthor}
+                                    date={date}
+                                    setDate={setDate}
+                                    description={description}
+                                    setDescription={setDescription}
+                                    publicPrivate={publicPrivate}
+                                    setPublicPrivate={setPublicPrivate}
+                                />
+                            }
+                            action={() => {}}
+                        />
+                        <AlertDialog
+                            buttonText={"Edit Tags"}
+                            titleText={`Edit dataset "${ props.result.title }"`}
+                            bodyText={
+                                <DatasetTags
+                                    tags={tags}
+                                    setTags={setTags}
+                                />
+                            }
+                            action={() => {}}
+                        />
                         <AlertDialog
                             buttonText={"Delete"}
                             titleText={`Are you sure you want to delete the dataset "${ props.result.title }"?`}
                             bodyText={"This action cannot be undone."}
-                            action={() => {
-                                deleteDataset(props.result.table_name).then(x => window.location.reload())
-                            }}
+                            action={() => deleteDataset(props.result.table_name).then(x => window.location.reload())}
                         />
                     </>
                 }
