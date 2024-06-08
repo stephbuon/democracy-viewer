@@ -37,8 +37,18 @@ export const Result = (props) => {
     useEffect(() => {
         if (infoDisabled && (title !== props.result.title || publicPrivate !== props.result.is_public || description !== props.result.description || author !== props.result.author || date !== props.result.date)) {
             setInfoDisabled(false);
-        } else if (!infoDisabled && (title === props.result.title || publicPrivate === props.result.is_public || description === props.result.description || author === props.result.author || date === props.result.date))
-    }, [title, publicPrivate, description, author, date])
+        } else if (!infoDisabled && (title === props.result.title || publicPrivate === props.result.is_public || description === props.result.description || author === props.result.author || date === props.result.date)) {
+            setInfoDisabled(true);
+        }
+    }, [title, publicPrivate, description, author, date]);
+
+    useEffect(() => {
+        if (tagsDisabled && JSON.stringify(tags.sort()) !== JSON.stringify(props.result.tags.sort())) {
+            setTagsDisabled(false);
+        } else if (!tagsDisabled && JSON.stringify(tags.sort()) === JSON.stringify(props.result.tags.sort())) {
+            setTagsDisabled(true);
+        }
+    }, [tags]);
 
     return <div>
         <Box onClick={() => handleOpen()}>
