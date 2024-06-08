@@ -2,6 +2,7 @@ const util = require("../util/file_management");
 const axios = require("axios").default;
 const runPython = require("../util/python_config");
 const datasets = require("../models/datasets"); 
+const s3 = require("../util/s3");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, username) => {
@@ -19,6 +20,7 @@ const createDataset = async(path, username) => {
     // Get the first 5 records from the dataset
     await runPython("python/get_head.py", [ newName ]);
     const data = util.readJSON(newName.replace(extension, "json"))
+    await s3.uploadToS3(filepath, "datasets", `${ table_name }.${ extension }`);
 
     return {
         table_name,
@@ -105,7 +107,7 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Get file name from table name
     const path = `files/uploads/${name}.csv`;
 
-    await runPython("python/upload_dataset.py", [ name, path ], user.database)
+    // await runPython("python/upload_dataset.py", [ name, path ], user.database)
     
     // Delete file now that it has been uploaded
     util.deleteFiles(path)

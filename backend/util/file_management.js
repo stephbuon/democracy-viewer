@@ -6,6 +6,11 @@ const csv_write =require("objects-to-csv");
 
 const maxUploadSize = 100 * 1024 * 1024;
 
+// Read a file into memory as a readable stream
+const readFile = (path) => {
+    return fs.createReadStream(path);
+}
+
 // Delete an individual file or multiple files
 const deleteFiles = (files) => {
     if (Array.isArray(files)) {
@@ -106,6 +111,7 @@ const renameFile = (oldName, newName) => {
 }
 
 module.exports = {
+    readFile,
     deleteFiles,
     fileExists,
     generateCSV,
