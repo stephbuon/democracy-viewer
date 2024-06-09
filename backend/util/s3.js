@@ -3,7 +3,7 @@ const { S3Client, S3 } = require("@aws-sdk/client-s3");
 const util = require("../util/file_management");
 require('dotenv').config();
 
-const uploadToS3 = async(localPath, s3Path, name) => {
+const upload = async(localPath, s3Path, name) => {
     const file = util.readFile(`${ localPath }/${ name }`);
 
     const resp = new Upload({
@@ -24,6 +24,11 @@ const uploadToS3 = async(localPath, s3Path, name) => {
     await resp.done();
 }
 
+const download = async(localpath, s3Path, name) => {
+
+}
+
 module.exports = {
-    uploadToS3
+    upload,
+    download
 }

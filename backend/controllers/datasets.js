@@ -20,7 +20,7 @@ const createDataset = async(path, username) => {
     // Get the first 5 records from the dataset
     await runPython("python/get_head.py", [ newName ]);
     const data = util.readJSON(newName.replace(extension, "json"))
-    await s3.uploadToS3(filepath, "datasets", `${ table_name }.${ extension }`);
+    await s3.upload(filepath, "datasets", `${ table_name }.${ extension }`);
 
     return {
         table_name,
