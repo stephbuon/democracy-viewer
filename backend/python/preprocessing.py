@@ -5,12 +5,11 @@ from pandas import DataFrame, concat, read_csv
 from sys import argv
 from time import time
 # Database interaction
-from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, MetaData
+from util.s3 import upload, download
 # SQL helpers
 from util.sql_connect import sql_connect
 import util.sql_queries as queries
-from util.sqlalchemy_tables import DatasetSplitText
 # Word processing
 from util.spacy_models import load_spacy_model
 from util.word_processing import stem
@@ -49,31 +48,29 @@ def expand_counter(row):
         }
         for word_pos, count in row["processed"].items() if word_pos[0] is not None
     ]
-
-# Insert tokens into database
-def insert_tokens(df: DataFrame):
+    
+# Retrieve data from s3 and keep required data
+def get_text() -> DataFrame:
     start = time()
-    if client == "mssql":
-        creds = SqlCreds.from_engine(engine)
-        to_sql(
-            df,
-            DatasetSplitText.__tablename__,
-            creds,
-            index = False,
-            if_exists = "append",
-            batch_size = min(50000, len(df))
-        )
-    else:
-        with engine.connect() as conn:
-            df.to_sql(
-                DatasetSplitText.__tablename__, 
-                conn, 
-                if_exists = "append", 
-                index = False, 
-                chunksize = min(50000, len(df))
-            )
-            conn.commit()
-    print("Inserting data: {} minutes".format((time() - start) / 60))
+    
+    # Get all text columns
+    text_cols = queries.get_text_cols(engine, TABLE_NAME)
+    
+    # Download raw data from s3
+    df_raw = download("datasets", TABLE_NAME)
+    # Reformat data to prep for preprocessing
+    df = []
+    for col in text_cols:
+        df.append(DataFrame({
+            "id": df_raw.index,
+            "text": df_raw[col],
+            "col": col
+        }))
+    df = concat(df)
+    
+    print("Loading data: {} seconds".format(time() - start))
+    
+    return df
 
 # Split the text of the given data frame
 def split_text(data: DataFrame):
@@ -135,9 +132,14 @@ def split_text(data: DataFrame):
     
     print("Data processing: {} minutes".format((time() - start) / 60))
     return split_data
+
+# Upload data to s3
+def upload_result(df: DataFrame):
+    start_time = time()
+    upload(df, "tokens", TABLE_NAME)
+    print("Upload time: {} seconds".format(time() - start_time))
               
-data = queries.get_text(engine, meta, TABLE_NAME)
+data = get_text()
 df = split_text(data)
 print("Tokens processed: {}".format(len(df)))
-insert_tokens(df)
 print("Total time: {} minutes".format((time() - start_time) / 60))

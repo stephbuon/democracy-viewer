@@ -10,6 +10,8 @@ if ext == "csv":
     data = read_csv(filename)
 elif ext == "xls" or ext == "xlsx":
     data = read_excel(filename)
+    new_filename = filename.replace(ext, "csv")
+    data.to_csv(new_filename, index = False)
 else:
     raise Exception("Invalid file extension:", ext)
 

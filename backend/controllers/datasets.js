@@ -2,7 +2,6 @@ const util = require("../util/file_management");
 const axios = require("axios").default;
 const runPython = require("../util/python_config");
 const datasets = require("../models/datasets"); 
-const s3 = require("../util/s3");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, username) => {
@@ -20,7 +19,6 @@ const createDataset = async(path, username) => {
     // Get the first 5 records from the dataset
     await runPython("python/get_head.py", [ newName ]);
     const data = util.readJSON(newName.replace(extension, "json"))
-    await s3.upload(filepath, "datasets", `${ table_name }.${ extension }`);
 
     return {
         table_name,
@@ -79,9 +77,6 @@ const createDatasetAPI = async(knex, endpoint, username, token = null) => {
         throw new Error(`Type ${ typeof data } is not valid`);
     }
 
-    // Create empty metadata for data set
-    await model.createMetadata(name, username);
-
     return output;
 }
 
@@ -104,13 +99,9 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Upload tags
     await model.addTag(name, tags);
 
-    // Get file name from table name
-    const path = `files/uploads/${name}.csv`;
-
-    // await runPython("python/upload_dataset.py", [ name, path ], user.database)
-    
-    // Delete file now that it has been uploaded
-    util.deleteFiles(path)
+    // Upload raw data to s3
+    const path = `files/uploads/${ name }.csv`;
+    await runPython("python/upload_dataset.py", [ name, path ], user.database)
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
@@ -408,7 +399,6 @@ const deleteDataset = async(knex, user, table) => {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
-    await model.deleteTable(table);
     await model.deleteMetadata(table);
 
     return null;
