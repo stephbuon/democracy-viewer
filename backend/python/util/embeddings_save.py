@@ -4,7 +4,8 @@ from nltk.tokenize import word_tokenize
 import pandas as pd
 # Database interaction
 from sqlalchemy import Engine, MetaData
-import util.sql_queries as queries
+import util.data_queries as data
+import util.sql_queries as sql
 
 def prepare_text(text,stopWords):
     tokens = word_tokenize(text.lower())
@@ -50,10 +51,10 @@ def model_similar_words_over_group(stopWords: set[str], df: pd.DataFrame, group_
 # (for data cleaning purpose)
 def compute_embeddings(engine: Engine, meta: MetaData, table_name: str):
     # NOTE: everything here should be input from SQL
-    df = queries.get_text(engine, meta, table_name)
+    df = data.get_text(engine, meta, table_name)
     
     # Get metadata on table to determine grouping column
-    metadata = queries.get_metadata(engine, meta, table_name)
+    metadata = sql.get_metadata(engine, meta, table_name)
     column = metadata.get("embed_col", None)
     
     # set up stop words from github
@@ -62,7 +63,7 @@ def compute_embeddings(engine: Engine, meta: MetaData, table_name: str):
 
     if column is not None:
         # select top words over GROUP and save
-        df_text = queries.get_columns(engine, meta, table_name, [column])
+        df_text = data.get_columns(engine, meta, table_name, [column])
         df_merged = pd.merge(df, df_text, on = "id")
         model_similar_words_over_group(stopWords, df_merged, column, table_name)
     else:

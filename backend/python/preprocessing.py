@@ -6,10 +6,11 @@ from sys import argv
 from time import time
 # Database interaction
 from sqlalchemy import create_engine, MetaData
-from util.s3 import upload, download
+from util.s3 import upload
 # SQL helpers
 from util.sql_connect import sql_connect
-import util.sql_queries as queries
+import util.data_queries as data
+import util.sql_queries as sql
 # Word processing
 from util.spacy_models import load_spacy_model
 from util.word_processing import stem
@@ -48,36 +49,13 @@ def expand_counter(row):
         }
         for word_pos, count in row["processed"].items() if word_pos[0] is not None
     ]
-    
-# Retrieve data from s3 and keep required data
-def get_text() -> DataFrame:
-    start = time()
-    
-    # Get all text columns
-    text_cols = queries.get_text_cols(engine, TABLE_NAME)
-    
-    # Download raw data from s3
-    df_raw = download("datasets", TABLE_NAME)
-    # Reformat data to prep for preprocessing
-    df = []
-    for col in text_cols:
-        df.append(DataFrame({
-            "id": df_raw.index,
-            "text": df_raw[col],
-            "col": col
-        }))
-    df = concat(df)
-    
-    print("Loading data: {} seconds".format(time() - start))
-    
-    return df
 
 # Split the text of the given data frame
-def split_text(data: DataFrame):
+def split_text(df: DataFrame):
     start = time()
     
     # Get metadata to determine preprocessing type
-    metadata = queries.get_metadata(engine, meta, TABLE_NAME)
+    metadata = sql.get_metadata(engine, meta, TABLE_NAME)
         
     # Read and process stop words
     stopwords = read_csv("python/util/stopwords.csv")
@@ -89,7 +67,7 @@ def split_text(data: DataFrame):
     stopwords = stopwords.drop_duplicates()
     
     # Create a deep copy of data
-    split_data = deepcopy(data)
+    split_data = deepcopy(df)
     # Lemmatize, stem, or split text based on preprocessing type
     if metadata["preprocessing_type"] == "lemma":
         # Load spacy language
@@ -139,7 +117,8 @@ def upload_result(df: DataFrame):
     upload(df, "tokens", TABLE_NAME)
     print("Upload time: {} seconds".format(time() - start_time))
               
-data = get_text()
-df = split_text(data)
+df = data.get_text(engine, TABLE_NAME)
+df = split_text(df)
 print("Tokens processed: {}".format(len(df)))
+upload_result(df)
 print("Total time: {} minutes".format((time() - start_time) / 60))
