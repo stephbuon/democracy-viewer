@@ -5,12 +5,12 @@ from pandas import DataFrame, concat, read_csv
 from sys import argv
 from time import time
 # Database interaction
-from bcpandas import to_sql, SqlCreds
 from sqlalchemy import create_engine, MetaData
+from util.s3 import upload
 # SQL helpers
 from util.sql_connect import sql_connect
-import util.sql_queries as queries
-from util.sqlalchemy_tables import DatasetSplitText
+import util.data_queries as data
+import util.sql_queries as sql
 # Word processing
 from util.spacy_models import load_spacy_model
 from util.word_processing import stem
@@ -50,37 +50,12 @@ def expand_counter(row):
         for word_pos, count in row["processed"].items() if word_pos[0] is not None
     ]
 
-# Insert tokens into database
-def insert_tokens(df: DataFrame):
-    start = time()
-    if client == "mssql":
-        creds = SqlCreds.from_engine(engine)
-        to_sql(
-            df,
-            DatasetSplitText.__tablename__,
-            creds,
-            index = False,
-            if_exists = "append",
-            batch_size = min(50000, len(df))
-        )
-    else:
-        with engine.connect() as conn:
-            df.to_sql(
-                DatasetSplitText.__tablename__, 
-                conn, 
-                if_exists = "append", 
-                index = False, 
-                chunksize = min(50000, len(df))
-            )
-            conn.commit()
-    print("Inserting data: {} minutes".format((time() - start) / 60))
-
 # Split the text of the given data frame
-def split_text(data: DataFrame):
+def split_text(df: DataFrame):
     start = time()
     
     # Get metadata to determine preprocessing type
-    metadata = queries.get_metadata(engine, meta, TABLE_NAME)
+    metadata = sql.get_metadata(engine, meta, TABLE_NAME)
         
     # Read and process stop words
     stopwords = read_csv("python/util/stopwords.csv")
@@ -92,7 +67,7 @@ def split_text(data: DataFrame):
     stopwords = stopwords.drop_duplicates()
     
     # Create a deep copy of data
-    split_data = deepcopy(data)
+    split_data = deepcopy(df)
     # Lemmatize, stem, or split text based on preprocessing type
     if metadata["preprocessing_type"] == "lemma":
         # Load spacy language
@@ -135,9 +110,15 @@ def split_text(data: DataFrame):
     
     print("Data processing: {} minutes".format((time() - start) / 60))
     return split_data
+
+# Upload data to s3
+def upload_result(df: DataFrame):
+    start_time = time()
+    upload(df, "tokens", TABLE_NAME)
+    print("Upload time: {} seconds".format(time() - start_time))
               
-data = queries.get_text(engine, meta, TABLE_NAME)
-df = split_text(data)
+df = data.get_text(engine, TABLE_NAME)
+df = split_text(df)
 print("Tokens processed: {}".format(len(df)))
-insert_tokens(df)
+upload_result(df)
 print("Total time: {} minutes".format((time() - start_time) / 60))

@@ -8,10 +8,9 @@ from util.embeddings_load import get_similar_words
 from json import load, dump
 from sys import argv
 # Database Interaction
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import create_engine, MetaData
 # Import sql helpers
 from util.sql_connect import sql_connect
-from util.sqlalchemy_tables import DatasetMetadata
 from util.sql_queries import get_metadata
 # Word processing
 from util.word_processing import lemmatize, stem
@@ -58,15 +57,15 @@ print("Parameter processing time: {} seconds".format(time() - start_time))
 # Call function based on given metric
 start_time = time()
 if params["metric"] == "counts":
-    output = metrics.counts(engine, meta, params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.counts(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
 elif params["metric"] == "ll":
-    output = metrics.log_likelihood(engine, meta, params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.log_likelihood(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
 elif params["metric"] == "jsd":
-    output = metrics.jsd(engine, meta, params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
 elif params["metric"] == "tf-idf":
-    output = metrics.tf_idf(engine, meta, params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
 elif params["metric"] == "proportion":
-    output = metrics.proportions(engine, meta, params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
 elif params["metric"] == "embed":
     output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []))
 else:

@@ -20,7 +20,7 @@ CREATE TABLE users (
 # );
 
 CREATE TABLE dataset_metadata (
-    table_name VARCHAR(250) PRIMARY KEY NOT NULL,
+    table_name VARCHAR(100) PRIMARY KEY NOT NULL,
     username VARCHAR(20) NOT NULL,
 --     private_group BIGINT,
     title VARCHAR(50),
@@ -29,7 +29,6 @@ CREATE TABLE dataset_metadata (
     date_collected DATE,
     is_public BOOLEAN DEFAULT FALSE NOT NULL,
     clicks INT DEFAULT 0 NOT NULL,
-    record_count BIGINT DEFAULT 0 NOT NULL,
     preprocessing_type VARCHAR(5) DEFAULT 'none' NOT NULL,
     embeddings BOOLEAN DEFAULT FALSE NOT NULL,
     pos BOOLEAN DEFAULT FALSE NOT NULL,
@@ -58,43 +57,18 @@ CREATE TABLE dataset_metadata (
 # );
 
 CREATE TABLE tags (
-    tag_name VARCHAR(15) NOT NULL,
-    table_name VARCHAR(250) NOT NULL,
+    tag_name VARCHAR(25) NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
     PRIMARY KEY(tag_name, table_name),
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
-CREATE TABLE dataset_download (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(20),
-    table_name VARCHAR(250) NOT NULL,
-    timestamp DATETIME NOT NULL,
-    current_page INTEGER NOT NULL,
-    total_pages INTEGER NOT NULL,
-    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
-    FOREIGN KEY(username) REFERENCES users(username)
-);
-
 CREATE TABLE dataset_text_cols (
-    table_name VARCHAR(250) NOT NULL,
-    col VARCHAR(100) NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    col VARCHAR(50) NOT NULL,
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
     PRIMARY KEY(table_name, col)
 );
-
-# CREATE TABLE dataset_split_text (
-#     table_name VARCHAR(250) NOT NULL,
-#     record_id BIGINT NOT NULL,
-#     word VARCHAR(100) NOT NULL,
-#     pos VARCHAR(5) DEFAULT 'N/A' NOT NULL,
-#     tag VARCHAR(5) DEFAULT 'N/A' NOT NULL,
-#     dep VARCHAR(10) DEFAULT 'N/A' NOT NULL,
-#     head VARCHAR(100) DEFAULT 'N/A' NOT NULL,
-#     count BIGINT NOT NULL,
-#     col VARCHAR(100) NOT NULL,
-#     PRIMARY KEY(table_name, record_id, word, pos, tag, dep, head, col),
-#     FOREIGN KEY(table_name, col) REFERENCES dataset_text_cols(table_name, col) ON DELETE CASCADE
-# );
 
 CREATE TABLE database_connections (
     id SERIAL PRIMARY KEY,

@@ -16,13 +16,13 @@ def load_spacy_model(language: str = "English") -> Language:
         return load_spacy("el_core_news_{}".format(MODEL_SIZE))
     elif language == "italian":
         return load_spacy("it_core_news_{}".format(MODEL_SIZE))
+    elif language == "latin":
+        return load_spacy("la_core_web_{}".format(MODEL_SIZE))
     elif language == "portuguese":
         return load_spacy("pt_core_news_{}".format(MODEL_SIZE))
     elif language == "russian":
         return load_spacy("ru_core_news_{}".format(MODEL_SIZE))
     elif language == "spanish":
         return load_spacy("es_core_news_{}".format(MODEL_SIZE))
-    elif language == "latin":
-        return load_spacy("la_core_web_{}".format(MODEL_SIZE))
     else:
         raise Exception("'{}' is not a supported langauge".format(language))

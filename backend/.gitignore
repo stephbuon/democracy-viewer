@@ -27,20 +27,22 @@ yarn-error.log*
 yarn.lock
 package-lock.json
 
-# csv/json files
-files/*
-python/files/input/*
-python/files/output/*
-python/files/embeddings/*
-!python/files/input/README.md
-!python/files/output/README.md
-!python/files/embeddings/README.md
+# Temp files
+files/*/*.json
+files/*/*.csv
+python/files/*/*.json
+python/files/*/*.csv
+*.parquet
+*.pkl
+*.xls
+*.xlsx
 
 # python
 *__pycache__
 *.ipynb_checkpoints
 *.vscode
 *.ipynb
+python/s3_test.py
 
 # r files
 *.Rhistory
