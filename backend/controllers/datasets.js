@@ -27,9 +27,7 @@ const createDataset = async(path, username) => {
 }
 
 // Import a new dataset from an api
-const createDatasetAPI = async(knex, endpoint, username, token = null) => {
-    const model = new datasets(knex);
-
+const createDatasetAPI = async(endpoint, username, token = null) => {
     // Add token if passed
     let apiConfig = {};
     if (token) {
@@ -116,7 +114,7 @@ const addTag = async(knex, user, table, tags) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -141,7 +139,7 @@ const addTextCols = async(knex, user, table, cols) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -158,24 +156,6 @@ const addTextCols = async(knex, user, table, cols) => {
     return records;
 }
 
-// Change the data type of a column in a dataset
-const changeColType = async(knex, table, body) => {
-    const model = new datasets(knex);
-
-    if (Array.isArray(body)) {
-        // If body is an array, change all types in array
-        for (let i = 0; i < body.length; i++) {
-            await model.changeColType(table, body[i].column, body[i].type);
-        }
-    } else {
-        // Else, change one column type
-        await model.changeColType(table, body.column, body.type);
-    }
-    // Get the first 10 rows of the dataset
-    const results = model.getHead(table);
-    return results;
-}
-
 // Update a dataset's metadata
 const updateMetadata = async(knex, user, table, params) => {
     const model = new datasets(knex);
@@ -184,7 +164,7 @@ const updateMetadata = async(knex, user, table, params) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (user !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
@@ -206,14 +186,6 @@ const getMetadata = async(knex, table) => {
     const model = new datasets(knex);
 
     const result = await model.getMetadata(table);
-    return result;
-}
-
-// Get datasets by user
-const getUserDatasets = async(knex, username) => {
-    const model = new datasets(knex);
-
-    const result = await model.getUserDatasets(username);
     return result;
 }
 
@@ -259,17 +231,14 @@ const getColumnNames = async(knex, table) => {
     // Get text columns
     const textCols = await getTextCols(knex, table);
     // Filter out text columns
-    const results = Object.keys(names).filter(x => x != "id" && textCols.indexOf(x) === -1);
+    const results = names.map(x => x.col).filter(textCols.indexOf(x) === -1);
     return results;
 }
 
 // Get unique values in a dataset column
-const getColumnValues = async(knex, table, column) => {
-    const model = new datasets(knex);
-
-    const records = await model.getColumnValues(table, column);
-    const results = records.map(x => x[column]);
-    return results;
+const getColumnValues = async(table, column) => {
+    const data = await util.downloadDataset(table, dataset = true);
+    return [ ...new Set(data.dataset.map(x => x[column])) ];
 }
 
 // Get filtered datasets
@@ -289,23 +258,20 @@ const getFilteredDatasetsCount = async(knex, query, username) => {
 }
 
 // Get a subset of a table
-const getSubset = async(knex, table, query, page) => {
+const getSubset = async(knex, table, query, user = undefined, page = 1, pageLength = 50) => {
     const model = new datasets(knex);
 
-    // Get string columns
-    const cols = await model.getColumnNames(table);
-    const strCols = Object.keys(cols).filter(x => cols[x].type === "varchar");
-    console.log(strCols)
-    // Get subset records
-    const records = await model.subsetTable(table, query, true, page);
-    // Wrap string cols in quotes
-    return records.map(x => {
-        strCols.forEach(col => {
-            x[col] = '"' + x[col] + '"';
-        });
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
 
-        return x;
-    });
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    const data = await util.downloadDataset(table, dataset = true);
+    
+    
 }
 
 // Get dataset subset count
@@ -395,7 +361,7 @@ const deleteDataset = async(knex, user, table) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -412,7 +378,7 @@ const deleteTag = async(knex, user, table, tag) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -429,7 +395,7 @@ const deleteTextCol = async(knex, user, table, col) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -444,11 +410,9 @@ module.exports = {
     uploadDataset,
     addTag,
     addTextCols,
-    changeColType,
     updateMetadata,
     incClicks,
     getMetadata,
-    getUserDatasets,
     getSubset,
     downloadSubset,
     getUploadPercent,

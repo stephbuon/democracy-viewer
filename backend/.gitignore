@@ -30,8 +30,8 @@ package-lock.json
 # Temp files
 files/*/*.json
 files/*/*.csv
-python/files/*/*.json
-python/files/*/*.csv
+files/*/*/*.json
+files/*/*/*.csv
 *.parquet
 *.pkl
 *.xls
@@ -44,13 +44,10 @@ python/files/*/*.csv
 *.ipynb
 python/s3_test.py
 
-# r files
-*.Rhistory
-*.RData
-
 # account management
 accounts.csv
 add_account.sql
 
 datasets/*
 latifa_embeddings
+test.js

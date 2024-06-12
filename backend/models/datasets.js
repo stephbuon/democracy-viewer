@@ -1,8 +1,8 @@
 const metadata_table = "dataset_metadata";
 const tag_table = "tags";
+const all_col_table = "dataset_all_cols";
 const text_col_table = "dataset_text_cols";
 const download_table = "dataset_download";
-const split_text_table = "dataset_split_text";
 const runPython = require("../util/python_config");
 
 class datasets {
@@ -30,18 +30,6 @@ class datasets {
         });
 
         return table;
-    }
-
-    // Add multiple rows to a dataset
-    async addRows(table, rows) {
-        const insert = await this.knex(table).insert([ ...rows ]);
-        return insert;
-    }
-
-    // Add a row to a dataset
-    async addRow(table, row) {
-        const insert = await this.knex(table).insert({ ...row });
-        return insert;
     }
 
     // Add initial metadata for a table
@@ -74,32 +62,11 @@ class datasets {
         return insert;
     }
 
-    // Insert a dataset upload record
-    async addDownload(username, table_name, total_pages, current_page = 0) {
-        // Insert record
-        const timestamp = new Date();
-        await this.knex(download_table).insert({ username, table_name, total_pages, current_page, timestamp });
-        // Get record id
-        let record;
-        if (username) {
-            record = await this.knex(download_table).select("id").where({ username, table_name, timestamp });
-        } else {
-            record = await this.knex(download_table).select("id").where({ table_name, timestamp }).whereNull("username");
-        }
-        return record[0].id;
-    }
-
     // Update the metadata of a table
     async updateMetadata(table_name, params) {
         const update = await this.knex(metadata_table).where({ table_name }).update({ ...params });
         const record = await this.knex(metadata_table).where({ table_name });
         return record;
-    }
-
-    // Change the data type of the given column in the given table
-    async changeColType(table, column, type) {
-        const update = await this.knex.raw(`ALTER TABLE ${ table } ALTER COLUMN ${ column } ${ type }`);
-        return update;
     }
 
     // Increment the dataset's clicks
@@ -109,27 +76,10 @@ class datasets {
         return record[0];
     }
 
-    // Increment the current page of a download
-    async updateDownload(id) {
-        await this.knex(download_table).where({ id }).increment("current_page", 1);
-    }
-
-    // Get the first n rows of a dataset (n = 10 by default)
-    async getHead(table, n = 10) {
-        const results = await this.knex(table).limit(n);
-        return results;
-    }
-
     // Get the metadata for the given table
     async getMetadata(table_name) {
         const record = await this.knex(metadata_table).where({ table_name });
         return record[0];
-    }
-
-    // Get all datasets owned by a given user
-    async getUserDatasets(username) {
-        const records = await this.knex(metadata_table).where({ username });
-        return records;
     }
 
     // Get all unique tags
@@ -146,19 +96,13 @@ class datasets {
 
     // Get text columns by dataset
     async getTextCols(table_name) {
-        const results = await this.knex(text_col_table).where({ table_name });
+        const results = await this.knex(text_col_table).where({ table_name }).select("col");
         return results;
     }
 
     // Get column names
     async getColumnNames(table_name) {
-        const results = await this.knex(table_name).columnInfo();
-        return results;
-    }
-
-    // Get unique column values
-    async getColumnValues(table_name, column) {
-        const results = await this.knex(table_name).select(column).orderBy(column).distinct();
+        const results = await this.knex(all_col_table).where({ table_name }).select("col");
         return results;
     }
 

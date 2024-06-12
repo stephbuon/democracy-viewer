@@ -63,10 +63,17 @@ CREATE TABLE tags (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
-CREATE TABLE dataset_text_cols (
+CREATE TABLE dataset_all_cols (
     table_name VARCHAR(100) NOT NULL,
     col VARCHAR(50) NOT NULL,
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    PRIMARY KEY(table_name, col)
+);
+
+CREATE TABLE dataset_text_cols (
+    table_name VARCHAR(100) NOT NULL,
+    col VARCHAR(50) NOT NULL,
+    FOREIGN KEY(table_name, col) REFERENCES dataset_all_cols(table_name, col) ON DELETE CASCADE,
     PRIMARY KEY(table_name, col)
 );
 
