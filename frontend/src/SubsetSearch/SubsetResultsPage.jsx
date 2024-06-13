@@ -52,8 +52,7 @@ export const SubsetResultsPage = (props) => {
 
     const fetchSubset = () => {
         let _query = {
-            table_name: props.dataset.table_name,
-            search: searchTerm !== '' ? `?col_search=${searchTerm}` : ''
+            simpleSearch: searchTerm
         }
 
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -70,7 +69,7 @@ export const SubsetResultsPage = (props) => {
         //         setLoadingPage(false);
         //     }
         // }, 3000);
-        GetSubsetOfDataByPage(_query, 1).then(async (res) => {
+        GetSubsetOfDataByPage(props.dataset.table_name, _query).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
             }
@@ -100,7 +99,7 @@ export const SubsetResultsPage = (props) => {
         setLoadingPage(true);
 
         try {
-            const res = await GetSubsetOfDataByPage(query, selectedPage);
+            const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage);
             if (res) {
                 setSearchResults(res);
                 // Correctly handle asynchronous state update

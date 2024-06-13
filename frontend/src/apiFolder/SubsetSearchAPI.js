@@ -15,9 +15,12 @@ const apiConfig = () => {
     }
   };
 
-export const GetSubsetOfDataByPage = async (query, page) =>  {
-    console.log("Getting Subset");
-    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/subset/${query.table_name}/${page}${query.search}`, apiConfig());
+export const GetSubsetOfDataByPage = async (table, query, page = 1, pageLength = 50) =>  {
+    const config = { ...apiConfig() };
+    if (query) {
+        config.params = query;
+    }
+    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/subset/${table}/${page}/${ pageLength }`, config);
     if(res.status !== 200){
         console.log(`Couldn't get subset information. ${res.status}`)
         return null;

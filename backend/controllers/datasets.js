@@ -1,7 +1,8 @@
 const util = require("../util/file_management");
 const axios = require("axios").default;
 const runPython = require("../util/python_config");
-const datasets = require("../models/datasets"); 
+const datasets = require("../models/datasets");
+const FlexSearch = require("flexsearch");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, username) => {
@@ -269,17 +270,43 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    const data = await util.downloadDataset(table, dataset = true);
-    
-    
+    // Check if subset has already been saved
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
+    let fullOutput;
+    if (util.fileExists(filename)) {
+        fullOutput = util.readJSON(filename, false);
+    } else {
+        // If subset has not already been saved, create subset
+        // Download data from s3
+        const data = await util.downloadDataset(table, dataset = true);
+
+        // Configure parser to search dataset
+        const index = new FlexSearch.Document({
+            document: {
+                id: "_id_",
+                index: Object.keys(data.dataset[0])
+            }
+        });
+        data.dataset.forEach((row, i) => index.add({ ...row, _id_: i, _tag_: row.place }));
+
+        // Filter dataset
+        const result = index.search(query.simpleSearch);
+
+        // Get records from search result
+        const ids = [ ...new Set(...result.map(x => x.result)) ];
+        fullOutput = ids.map(x => data.dataset[x]);
+
+        // Output results to local file
+        util.generateJSON(filename, fullOutput);
+    }
+
+    // Return requested page
+    return fullOutput.slice(pageLength * (page - 1), pageLength);
 }
 
 // Get dataset subset count
 const subsetTableCount = async(knex, table, query) => {
-    const model = new datasets(knex);
-
-    const result = await model.subsetTableCount(table, query);
-    return result;
+    
 }
 
 // Download a subset of a dataset
@@ -320,29 +347,21 @@ const downloadSubset = async(knex, table, params, username = undefined) => {
     return fileName;
 }
 
-// Get the percentage of a dataset that has been uploaded to the database
-const getUploadPercent = async(knex, table) => {
-    const model = new datasets(knex);
-
-    // Get the metadata record
-    const metadata = await model.getMetadata(table);
-    // Get the number of records in the given table
-    const records = await model.subsetTableCount(table, {});
-    if (metadata.record_count > 0) {
-        // Calculate percentage of records uploaded
-        return records / metadata.record_count;
-    } else {
-        // If record count is 0, throw error
-        throw new Error("Number of records is 0");
-    }
-}
-
 // Get dataset records by ids
 const getRecordsByIds = async(knex, table, ids) => {
     const model = new datasets(knex);
 
-    const result = await model.getRecordsByIds(table, ids);
-    return result;
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    const data = await util.downloadDataset(table, dataset = true);
+    
+    return ids.map(x => data[x]);
 }
 
 // Get dataset download record
@@ -387,23 +406,6 @@ const deleteTag = async(knex, user, table, tag) => {
     return null;
 }
 
-// Delete a text column fro a dataset
-const deleteTextCol = async(knex, user, table, col) => {
-    const model = new datasets(knex);
-
-    // Get the current metadata for this table
-    const curr = await model.getMetadata(table);
-
-    // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
-        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
-    }
-
-    await model.deleteTextCol(table, col);
-
-    return null;
-}
-
 module.exports = {
     createDataset,
     createDatasetAPI,
@@ -415,7 +417,6 @@ module.exports = {
     getMetadata,
     getSubset,
     downloadSubset,
-    getUploadPercent,
     getUniqueTags,
     getTags,
     getTextCols,
@@ -427,6 +428,5 @@ module.exports = {
     getRecordsByIds,
     getDownload,
     deleteDataset,
-    deleteTag,
-    deleteTextCol
+    deleteTag
 };
