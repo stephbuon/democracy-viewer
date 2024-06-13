@@ -29,7 +29,7 @@ router.post('/', authenticateJWT, async(req, res, next) => {
 // Route to create a dataset via an api
 router.post('/api', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.createDatasetAPI(req.knex, req.body.endpoint, req.user.username, req.body.token);
+        const result = await control.createDatasetAPI(req.body.endpoint, req.user.username, req.body.token);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to create dataset via API:', err);
@@ -74,18 +74,6 @@ router.post('/text', authenticateJWT, async(req, res, next) => {
     next();
 });
 
-// Route to change the type of dataset column
-router.put('/:table', authenticateJWT, async(req, res, next) => {
-    try {
-        const result = await control.changeColType(req.knex, req.params.table, req.body);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to update dataset column type:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
 // Route to change dataset metadata
 router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
     try {
@@ -117,18 +105,6 @@ router.get('/metadata/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset metadata:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
-// Route to get all datasets owned by a given user
-router.get('/user/:username', async(req, res, next) => {
-    try {
-        const result = await control.getUserDatasets(req.knex, req.params.username);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get user datasets:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -205,24 +181,12 @@ router.get('/count/filter', async(req, res, next) => {
 });
 
 // Route to subset a dataset
-router.get('/subset/:table/:page', async(req, res, next) => {
+router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
     try {
-        const results = await control.getSubset(req.knex, req.params.table, req.query, req.params.page);
+        const results = await control.getSubset(req.knex, req.params.table, req.query, req.user, req.params.page, req.params.pageLength);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset subset:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
-// Route to count the records of a dataset subset
-router.get('/count/subset/:table', async(req, res, next) => {
-    try {
-        const result = await control.subsetTableCount(req.knex, req.params.table, req.query);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get dataset subset count:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -276,7 +240,7 @@ router.get('/columns/:table', async(req, res, next) => {
 // Route to get dataset column names
 router.get('/columns/:table/values/:column', async(req, res, next) => {
     try {
-        const result = await control.getColumnValues(req.knex, req.params.table, req.params.column);
+        const result = await control.getColumnValues(req.params.table, req.params.column);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset column names:', err);

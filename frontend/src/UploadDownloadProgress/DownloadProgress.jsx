@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
 import { GetDownloadProgress } from '../apiFolder/UploadDownloadProgressAPI';
-import { DownloadSubset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+import { DownloadSubset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 
 
 //Other Imports
@@ -33,9 +33,9 @@ export const DownloadProgress = (props) => {
         console.log("DOWNLOADING",query)
         if (query != undefined)
         {
-            GetNumOfEntries(query).then(res => {
-                setNumPages(res / 1000)
-            })
+            // GetNumOfEntries(query).then(res => {
+            //     setNumPages(res / 1000)
+            // })
             // DownloadSubset(query).then((res) => {
             //     let blob = new Blob([...res], { type: "text/plain;charset=utf-8" });
             //     FileSaver.saveAs(blob, `${query.table_name}${query.search}.csv`);

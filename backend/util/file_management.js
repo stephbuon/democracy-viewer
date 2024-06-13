@@ -3,6 +3,7 @@ const multer = require("multer");
 const util = require("util");
 const csv_read = require("csv-parser");
 const csv_write =require("objects-to-csv");
+const runPython = require("./python_config");
 
 const maxUploadSize = 100 * 1024 * 1024;
 
@@ -83,9 +84,11 @@ const readCSV = (path, del = true) => new Promise((resolve, reject) => {
 });
 
 // Read a JSON file
-const readJSON = (path) => {
+const readJSON = (path, del = true) => {
     const str = fs.readFileSync(path);
-    fs.unlinkSync(path);
+    if (del) {
+        fs.unlinkSync(path);
+    }
     return JSON.parse(str);
 }
 
@@ -110,6 +113,55 @@ const renameFile = (oldName, newName) => {
     fs.renameSync(oldName, newName);
 }
 
+// Download a data files from S3
+const downloadDataset = async(name, dataset = false, tokens = false) => {
+    const output = {};
+
+    // Store dataset if already downloaded
+    if (dataset) {
+        const path = `files/nodejs/datasets/${ name }.json`;
+        if (fileExists(path)) {
+            output["dataset"] = readJSON(path, false);
+            dataset = false;
+        }
+    } 
+
+    // Store tokens if already downloaded
+    if (tokens) {
+        const path = `files/nodejs/tokens/${ name }.json`;
+        if (fileExists(path)) {
+            output["tokens"] = readJSON(path, false);
+            tokens = false;
+        }
+    }
+
+    // Determine parameter to send to python script
+    let downloadType;
+    if (dataset && tokens) {
+        downloadType = "both";
+    } else if (dataset) {
+        downloadType = "dataset";
+    } else if (tokens) {
+        downloadType = "tokens";
+    } else {
+        // Return output if python script isn't needed
+        return output;
+    }
+
+    // Download data from s3 with python
+    await runPython("python/download_dataset.py", [name, downloadType]);
+
+    // Update output
+    if (dataset) {
+        output["dataset"] = readJSON(`files/nodejs/datasets/${ name }.json`, false);
+    }
+    if (tokens) {
+        output["tokens"] = readJSON(`files/nodejs/tokens/${ name }.json`, false);
+    }
+
+    return output;
+}
+
 module.exports = {
     readFile,
     deleteFiles,
@@ -120,5 +172,6 @@ module.exports = {
     readCSV,
     readJSON,
     uploadFile,
-    renameFile
+    renameFile,
+    downloadDataset
 }

@@ -1,7 +1,8 @@
 const util = require("../util/file_management");
 const axios = require("axios").default;
 const runPython = require("../util/python_config");
-const datasets = require("../models/datasets"); 
+const datasets = require("../models/datasets");
+const FlexSearch = require("flexsearch");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, username) => {
@@ -18,7 +19,7 @@ const createDataset = async(path, username) => {
 
     // Get the first 5 records from the dataset
     await runPython("python/get_head.py", [ newName ]);
-    const data = util.readJSON(newName.replace(extension, "json"))
+    const data = util.readJSON(newName.replace(extension, "json"), false)
 
     return {
         table_name,
@@ -27,9 +28,7 @@ const createDataset = async(path, username) => {
 }
 
 // Import a new dataset from an api
-const createDatasetAPI = async(knex, endpoint, username, token = null) => {
-    const model = new datasets(knex);
-
+const createDatasetAPI = async(endpoint, username, token = null) => {
     // Add token if passed
     let apiConfig = {};
     if (token) {
@@ -94,18 +93,21 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
 
     // Upload metadata
     await model.createMetadata(name, username, metadata);
+    // Upload all columns
+    const path = `files/uploads/${ name }.json`;
+    const data = util.readJSON(path);
+    await model.addCols(name, Object.keys(data[0]));
     // Upload text columns
     await model.addTextCols(name, textCols);
     // Upload tags
     await model.addTag(name, tags);
 
     // Upload raw data to s3
-    const path = `files/uploads/${ name }.csv`;
-    await runPython("python/upload_dataset.py", [ name, path ], user.database)
+    await runPython("python/upload_dataset.py", [ name, path.replace(".json", ".csv") ], user.database);
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    await runPython("python/preprocessing.py", [ name ], user.database)
+    await runPython("python/preprocessing.py", [ name ], user.database);
 }
 
 // Add a tag for a dataset
@@ -116,7 +118,7 @@ const addTag = async(knex, user, table, tags) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -141,7 +143,7 @@ const addTextCols = async(knex, user, table, cols) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -158,24 +160,6 @@ const addTextCols = async(knex, user, table, cols) => {
     return records;
 }
 
-// Change the data type of a column in a dataset
-const changeColType = async(knex, table, body) => {
-    const model = new datasets(knex);
-
-    if (Array.isArray(body)) {
-        // If body is an array, change all types in array
-        for (let i = 0; i < body.length; i++) {
-            await model.changeColType(table, body[i].column, body[i].type);
-        }
-    } else {
-        // Else, change one column type
-        await model.changeColType(table, body.column, body.type);
-    }
-    // Get the first 10 rows of the dataset
-    const results = model.getHead(table);
-    return results;
-}
-
 // Update a dataset's metadata
 const updateMetadata = async(knex, user, table, params) => {
     const model = new datasets(knex);
@@ -184,7 +168,7 @@ const updateMetadata = async(knex, user, table, params) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (user !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
@@ -206,14 +190,6 @@ const getMetadata = async(knex, table) => {
     const model = new datasets(knex);
 
     const result = await model.getMetadata(table);
-    return result;
-}
-
-// Get datasets by user
-const getUserDatasets = async(knex, username) => {
-    const model = new datasets(knex);
-
-    const result = await model.getUserDatasets(username);
     return result;
 }
 
@@ -259,17 +235,14 @@ const getColumnNames = async(knex, table) => {
     // Get text columns
     const textCols = await getTextCols(knex, table);
     // Filter out text columns
-    const results = Object.keys(names).filter(x => x != "id" && textCols.indexOf(x) === -1);
+    const results = names.map(x => x.col).filter(x => textCols.indexOf(x) === -1);
     return results;
 }
 
 // Get unique values in a dataset column
-const getColumnValues = async(knex, table, column) => {
-    const model = new datasets(knex);
-
-    const records = await model.getColumnValues(table, column);
-    const results = records.map(x => x[column]);
-    return results;
+const getColumnValues = async(table, column) => {
+    const data = await util.downloadDataset(table, dataset = true);
+    return [ ...new Set(data.dataset.map(x => x[column])) ];
 }
 
 // Get filtered datasets
@@ -289,102 +262,110 @@ const getFilteredDatasetsCount = async(knex, query, username) => {
 }
 
 // Get a subset of a table
-const getSubset = async(knex, table, query, page) => {
+const getSubset = async(knex, table, query, user = undefined, page = 1, pageLength = 50) => {
     const model = new datasets(knex);
 
-    // Get string columns
-    const cols = await model.getColumnNames(table);
-    const strCols = Object.keys(cols).filter(x => cols[x].type === "varchar");
-    console.log(strCols)
-    // Get subset records
-    const records = await model.subsetTable(table, query, true, page);
-    // Wrap string cols in quotes
-    return records.map(x => {
-        strCols.forEach(col => {
-            x[col] = '"' + x[col] + '"';
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    // Check if subset has already been saved
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
+    let fullOutput = [];
+    if (util.fileExists(filename)) {
+        fullOutput = util.readJSON(filename, false);
+    } else {
+        // If subset has not already been saved, create subset
+        // Download data from s3
+        const data = await util.downloadDataset(table, dataset = true);
+
+        // Configure parser to search dataset
+        const index = new FlexSearch.Document({
+            document: {
+                id: "_id_",
+                index: Object.keys(data.dataset[0])
+            }
         });
+        data.dataset.forEach((row, i) => index.add({ ...row, _id_: i, _tag_: row.place }));
 
-        return x;
-    });
-}
+        // Filter dataset
+        const result = index.search(query.simpleSearch);
 
-// Get dataset subset count
-const subsetTableCount = async(knex, table, query) => {
-    const model = new datasets(knex);
+        // Get records from search result
+        const ids = [ ...new Set(...result.map(x => x.result)) ];
+        fullOutput = ids.map(x => data.dataset[x]);
 
-    const result = await model.subsetTableCount(table, query);
-    return result;
+        // Output results to local file
+        util.generateJSON(filename, fullOutput);
+    }
+
+    // Return requested page
+    return {
+        data: fullOutput.slice(pageLength * (page - 1), pageLength),
+        count: fullOutput.length
+    };
 }
 
 // Download a subset of a dataset
-const downloadSubset = async(knex, table, params, username = undefined) => {
+const downloadSubset = async(knex, table, query, user = undefined) => {
     const model = new datasets(knex);
 
-    // Clear the downloads folder on the server
-    util.clearDirectory("./files/downloads/");
-    // Get all records in this dataset
-    const count = await model.subsetTableCount(table, params);
-    const pages = Math.ceil(count / 50000);
-    params.pageLength = 50000;
-    // Add dataset download record and get id
-    const downloadId = await model.addDownload(username, table, pages);
-    // Get string columns
-    const cols = await model.getColumnNames(table);
-    const strCols = Object.keys(cols).filter(x => cols[x].type === "varchar");
-    let records = [];
-    for (let i = 1; i <= pages; i++) {
-        let curr = await model.subsetTable(table, params, true, i);
-        // Wrap string cols in quotes
-        curr = curr.map(x => {
-            strCols.forEach(col => {
-                x[col] = '"' + x[col] + '"';
-            });
-
-            return x;
-        });
-        records = [ ...records, ...curr ];
-        // Update download percentage
-        await model.updateDownload(downloadId);
-    }
-    // Generate csv from records
-    const fileName = util.generateCSV(`./files/downloads/${ table }.csv`, records);
-    // Delete the download record
-    await model.deleteDownload(downloadId);
-    // Return generated file name
-    return fileName;
-}
-
-// Get the percentage of a dataset that has been uploaded to the database
-const getUploadPercent = async(knex, table) => {
-    const model = new datasets(knex);
-
-    // Get the metadata record
+    // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
-    // Get the number of records in the given table
-    const records = await model.subsetTableCount(table, {});
-    if (metadata.record_count > 0) {
-        // Calculate percentage of records uploaded
-        return records / metadata.record_count;
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    // Check if subset has already been saved
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
+    if (util.fileExists(filename)) {
+        const fullOutput = util.readJSON(filename, false);
+        const newFilename = filename.replace(".json", ".csv");
+        await util.generateCSV(newFilename, fullOutput);
+        return newFilename;
     } else {
-        // If record count is 0, throw error
-        throw new Error("Number of records is 0");
+        throw new Error("No file exists for this subset");
     }
 }
 
 // Get dataset records by ids
-const getRecordsByIds = async(knex, table, ids) => {
+const getRecordsByIds = async(knex, table, ids, user = undefined) => {
     const model = new datasets(knex);
 
-    const result = await model.getRecordsByIds(table, ids);
-    return result;
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    const data = await util.downloadDataset(table, dataset = true);
+    
+    return ids.map(x => data[x]);
 }
 
 // Get dataset download record
-const getDownload = async(knex, username, table) => {
+const getDownload = async(knex, table, user = undefined) => {
     const model = new datasets(knex);
 
-    const result = await model.getDownload(username, table);
-    return result;
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    const data = await util.downloadDataset(table, dataset = true);
+    
+    return data;
 }
 
 // Delete a dataset and its metadata
@@ -395,7 +376,7 @@ const deleteDataset = async(knex, user, table) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
@@ -412,28 +393,11 @@ const deleteTag = async(knex, user, table, tag) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
+    if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
     await model.deleteTag(table, tag);
-
-    return null;
-}
-
-// Delete a text column fro a dataset
-const deleteTextCol = async(knex, user, table, col) => {
-    const model = new datasets(knex);
-
-    // Get the current metadata for this table
-    const curr = await model.getMetadata(table);
-
-    // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== "aws_server" && curr.username !== user) {
-        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
-    }
-
-    await model.deleteTextCol(table, col);
 
     return null;
 }
@@ -444,14 +408,11 @@ module.exports = {
     uploadDataset,
     addTag,
     addTextCols,
-    changeColType,
     updateMetadata,
     incClicks,
     getMetadata,
-    getUserDatasets,
     getSubset,
     downloadSubset,
-    getUploadPercent,
     getUniqueTags,
     getTags,
     getTextCols,
@@ -459,10 +420,8 @@ module.exports = {
     getColumnValues,
     getFilteredDatasets,
     getFilteredDatasetsCount,
-    subsetTableCount,
     getRecordsByIds,
     getDownload,
     deleteDataset,
-    deleteTag,
-    deleteTextCol
+    deleteTag
 };

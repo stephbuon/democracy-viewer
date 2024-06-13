@@ -25,7 +25,6 @@ def download(folder: str, name: str) -> DataFrame:
     if exists(download_path):
         print("{} already exists".format(name))
     else:
-        print("Here")
         s3_client = client(
             "s3",
             aws_access_key_id = environ.get("S3_KEY"),
