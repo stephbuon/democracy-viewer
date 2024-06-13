@@ -60,6 +60,15 @@ class datasets {
         return insert;
     }
 
+    // Add columns to all cols table
+    async addCols(table_name, cols) {
+        // Format table name and cols as an array of objects
+        const data = cols.map(x => ({ table_name, col: x }));
+        // Insert records
+        const insert = await this.knex(all_col_table).insert([ ...data ]);
+        return insert;
+    }
+
     // Update the metadata of a table
     async updateMetadata(table_name, params) {
         const update = await this.knex(metadata_table).where({ table_name }).update({ ...params });

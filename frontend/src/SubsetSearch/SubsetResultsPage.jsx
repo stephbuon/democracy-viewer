@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 //Other Imports
-import { DownloadSubset, DownloadFullDataset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+import { DownloadSubset, DownloadFullDataset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 // import { DataTable } from "../common/DataTable/DataTable";
 import { PaginatedDataTable } from '../common/PaginatedDataTable';
 
@@ -25,7 +25,7 @@ export const SubsetResultsPage = (props) => {
     const [totalNumResults, setTotalNumResults] = useState(0);
     const [totalNumOfPages, setTotalNumOfPages] = useState(0);
     const [page, setPage] = useState(0);
-    const [query, setQuery] = useState("");
+    const [query, setQuery] = useState({});
     const [loadingPage, setLoadingPage] = useState(true);
     const [loadingNextPage, setLoadingNextPage] = useState(false)
     const [loadingResults, setLoadingResults] = useState(false);
@@ -74,20 +74,18 @@ export const SubsetResultsPage = (props) => {
                 setSearchResults([]);
             }
             else {
-                setSearchResults(res);
+                setSearchResults(res.data);
+                setTotalNumResults(res.count);
+                let tot = Math.ceil(res.count / 50);
+                setTotalNumOfPages(tot);
+                console.log("Number of Pages", tot);
             }
             setPage(1);
         }).finally(async () => {
             setLoadingResults(false);
             setLoadingPage(false);
-        })
+        });
 
-        GetNumOfEntries(_query).then(async (res) => {
-            setTotalNumResults(res);
-            let tot = Math.ceil(res / 50);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
-        })
         setQuery(_query);
     }
 
@@ -276,7 +274,7 @@ export const SubsetResultsPage = (props) => {
                                 }
                             }}
                             onClick={() => {
-                                DownloadFullDataset()
+                                DownloadFullDataset(props.dataset.table_name)
                                 let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
                                 demoV.downloadData = { table_name: props.dataset.table_name, search: "" };
                                 localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
@@ -295,7 +293,7 @@ export const SubsetResultsPage = (props) => {
                                     background: 'rgb(200, 200, 200)'
                                 }
                             }}
-                            onClick={() => window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer")}
+                            onClick={() => DownloadSubset(props.dataset.table_name, query)}
                         >Download these {totalNumResults} results</Button>
                     </Box>}
                 </Box>

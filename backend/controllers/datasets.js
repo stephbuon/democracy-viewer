@@ -19,7 +19,7 @@ const createDataset = async(path, username) => {
 
     // Get the first 5 records from the dataset
     await runPython("python/get_head.py", [ newName ]);
-    const data = util.readJSON(newName.replace(extension, "json"))
+    const data = util.readJSON(newName.replace(extension, "json"), false)
 
     return {
         table_name,
@@ -93,18 +93,21 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
 
     // Upload metadata
     await model.createMetadata(name, username, metadata);
+    // Upload all columns
+    const path = `files/uploads/${ name }.json`;
+    const data = util.readJSON(path);
+    await model.addCols(name, Object.keys(data[0]));
     // Upload text columns
     await model.addTextCols(name, textCols);
     // Upload tags
     await model.addTag(name, tags);
 
     // Upload raw data to s3
-    const path = `files/uploads/${ name }.csv`;
-    await runPython("python/upload_dataset.py", [ name, path ], user.database)
+    await runPython("python/upload_dataset.py", [ name, path.replace(".json", ".csv") ], user.database);
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    await runPython("python/preprocessing.py", [ name ], user.database)
+    await runPython("python/preprocessing.py", [ name ], user.database);
 }
 
 // Add a tag for a dataset
@@ -232,7 +235,7 @@ const getColumnNames = async(knex, table) => {
     // Get text columns
     const textCols = await getTextCols(knex, table);
     // Filter out text columns
-    const results = names.map(x => x.col).filter(textCols.indexOf(x) === -1);
+    const results = names.map(x => x.col).filter(x => textCols.indexOf(x) === -1);
     return results;
 }
 
@@ -272,7 +275,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
 
     // Check if subset has already been saved
     const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
-    let fullOutput;
+    let fullOutput = [];
     if (util.fileExists(filename)) {
         fullOutput = util.readJSON(filename, false);
     } else {
@@ -301,54 +304,38 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     }
 
     // Return requested page
-    return fullOutput.slice(pageLength * (page - 1), pageLength);
-}
-
-// Get dataset subset count
-const subsetTableCount = async(knex, table, query) => {
-    
+    return {
+        data: fullOutput.slice(pageLength * (page - 1), pageLength),
+        count: fullOutput.length
+    };
 }
 
 // Download a subset of a dataset
-const downloadSubset = async(knex, table, params, username = undefined) => {
+const downloadSubset = async(knex, table, query, user = undefined) => {
     const model = new datasets(knex);
 
-    // Clear the downloads folder on the server
-    util.clearDirectory("./files/downloads/");
-    // Get all records in this dataset
-    const count = await model.subsetTableCount(table, params);
-    const pages = Math.ceil(count / 50000);
-    params.pageLength = 50000;
-    // Add dataset download record and get id
-    const downloadId = await model.addDownload(username, table, pages);
-    // Get string columns
-    const cols = await model.getColumnNames(table);
-    const strCols = Object.keys(cols).filter(x => cols[x].type === "varchar");
-    let records = [];
-    for (let i = 1; i <= pages; i++) {
-        let curr = await model.subsetTable(table, params, true, i);
-        // Wrap string cols in quotes
-        curr = curr.map(x => {
-            strCols.forEach(col => {
-                x[col] = '"' + x[col] + '"';
-            });
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
 
-            return x;
-        });
-        records = [ ...records, ...curr ];
-        // Update download percentage
-        await model.updateDownload(downloadId);
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
     }
-    // Generate csv from records
-    const fileName = util.generateCSV(`./files/downloads/${ table }.csv`, records);
-    // Delete the download record
-    await model.deleteDownload(downloadId);
-    // Return generated file name
-    return fileName;
+
+    // Check if subset has already been saved
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
+    if (util.fileExists(filename)) {
+        const fullOutput = util.readJSON(filename, false);
+        const newFilename = filename.replace(".json", ".csv");
+        await util.generateCSV(newFilename, fullOutput);
+        return newFilename;
+    } else {
+        throw new Error("No file exists for this subset");
+    }
 }
 
 // Get dataset records by ids
-const getRecordsByIds = async(knex, table, ids) => {
+const getRecordsByIds = async(knex, table, ids, user = undefined) => {
     const model = new datasets(knex);
 
     // Get the current metadata for this table
@@ -365,11 +352,20 @@ const getRecordsByIds = async(knex, table, ids) => {
 }
 
 // Get dataset download record
-const getDownload = async(knex, username, table) => {
+const getDownload = async(knex, table, user = undefined) => {
     const model = new datasets(knex);
 
-    const result = await model.getDownload(username, table);
-    return result;
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user making the updates, throw error
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    const data = await util.downloadDataset(table, dataset = true);
+    
+    return data;
 }
 
 // Delete a dataset and its metadata
@@ -424,7 +420,6 @@ module.exports = {
     getColumnValues,
     getFilteredDatasets,
     getFilteredDatasetsCount,
-    subsetTableCount,
     getRecordsByIds,
     getDownload,
     deleteDataset,
