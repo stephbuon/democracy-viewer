@@ -1,8 +1,9 @@
 // Imports
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
-import Parser from 'html-react-parser';
 import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
+import Highlighter from "react-highlight-words";
+import { getTextCols } from "../api/api.js";
 
 export const Zoom = () => {
     // UseState definitions
@@ -10,6 +11,7 @@ export const Zoom = () => {
     const [page, setPage] = useState(1);
     const [graphData, setGraphData] = useState(undefined);
     const [totalPages, setTotalPages] = useState(1);
+    const [textCols, setTextCols] = useState([]);
     const max_page_size = 50;
 
     const getPage = (currPage) => {
@@ -20,6 +22,20 @@ export const Zoom = () => {
                 console.log("Zoom error, no results found");
             }
             else {
+                // Highlighting
+                if (textCols.length > 0) {
+                    res.map(row => {
+                        textCols.forEach(col => {
+                            row[col] = (
+                                <Highlighter
+                                    searchWords={[ graphData.x ]}
+                                    textToHighlight={ row[col] }
+                                />
+                            )
+                        });
+                        return row;
+                    })
+                }
                 setSearchResults(res)
             }
         })
@@ -32,33 +48,18 @@ export const Zoom = () => {
 
     // UseEffect: Gets record for all data.ids and populates searchResults
     useEffect(() => {
-        setGraphData(JSON.parse(localStorage.getItem('selected')));
+        const graphData_ = JSON.parse(localStorage.getItem('selected'));
+        setGraphData({ ...graphData_ });
+        getTextCols(graphData.dataset).then(x => setTextCols(x));
     }, []);
 
     useEffect(() => {
-        if (graphData) {
+        if (graphData && textCols.length > 0) {
+            // Pagination
             getPage(page);
             setTotalPages(Math.ceil(graphData.ids.length / max_page_size));
         }
-    }, [graphData]);
-
-    // Funcion definitions
-    const highlight = (result) => { // Cleans result and highlights all instances of data.word
-        let output = "";
-        let text = result.text.replaceAll("\"", '')
-        let lowerText = text.toLowerCase()
-        let i = lowerText.indexOf(graphData.word)
-
-        while(i != -1){
-            output += text.substring(0, i)
-            output += "<mark>" + graphData.word + "</mark>";
-            
-            text = text.substring(i + graphData.word.length)
-            lowerText = lowerText.substring(i + graphData.word.length)
-            i = lowerText.indexOf(graphData.word)
-        }
-        return output + text;
-      }
+    }, [graphData, textCols]);
 
     if (!graphData) {
         return <>Loading...</>

@@ -27,6 +27,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-flagkit": "^2.0.4",
+    "react-highlight-words": "^0.20.0",
     "react-number-format": "^5.1.4",
     "react-resizable": "^3.0.5",
     "react-router-dom": "^6.10.0",

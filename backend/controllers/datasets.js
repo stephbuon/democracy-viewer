@@ -348,7 +348,7 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
 
     const data = await util.downloadDataset(table, dataset = true);
     
-    return ids.map(x => data[x]);
+    return ids.map(x => data.dataset[x]);
 }
 
 // Get dataset download record
