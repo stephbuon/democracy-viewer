@@ -7,7 +7,7 @@ import { TableBody, TableHead, TableRow, TableCell } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { Popularize } from '../apiFolder/DatasetSearchAPI';
-import AlertDialog from './AlertDialog';
+import { AlertDialog } from './AlertDialog';
 import { deleteDataset } from '../api/api';
 import { DatasetInformation } from './DatasetInformation';
 import { DatasetTags } from './DatasetTags';
@@ -30,6 +30,11 @@ export const Result = (props) => {
     const [author, setAuthor] = useState(props.result.author);
     const [date, setDate] = useState(props.result.date);
     const [tags, setTags] = useState(props.result.tags);
+
+    // Open edit dialogs
+    const [infoOpen, setInfoOpen] = useState(false);
+    const [tagsOpen, setTagsOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
 
     const [infoDisabled, setInfoDisabled] = useState(true);
     const [tagsDisabled, setTagsDisabled] = useState(true);
@@ -73,8 +78,12 @@ export const Result = (props) => {
             >
                 {
                     props.editable && <>
+                        <Button variant="outlined" onClick={() => setInfoOpen(true)}>
+                            Edit
+                        </Button>
                         <AlertDialog
-                            buttonText={"Edit"}
+                            open={infoOpen}
+                            setOpen={setInfoOpen}
                             titleText={`Edit dataset "${ props.result.title }"`}
                             bodyText={
                                 <DatasetInformation
@@ -92,8 +101,13 @@ export const Result = (props) => {
                             }
                             action={() => {}}
                         />
+
+                        <Button variant="outlined" onClick={() => setTagsOpen(true)}>
+                            Edit Tags
+                        </Button>
                         <AlertDialog
-                            buttonText={"Edit Tags"}
+                            open={tagsOpen}
+                            setOpen={setTagsOpen}
                             titleText={`Edit dataset "${ props.result.title }"`}
                             bodyText={
                                 <DatasetTags
@@ -103,8 +117,13 @@ export const Result = (props) => {
                             }
                             action={() => {}}
                         />
+
+                        <Button variant="outlined" onClick={() => setDeleteOpen(true)}>
+                            Delete
+                        </Button>
                         <AlertDialog
-                            buttonText={"Delete"}
+                            open={deleteOpen}
+                            setOpen={setDeleteOpen}
                             titleText={`Are you sure you want to delete the dataset "${ props.result.title }"?`}
                             bodyText={"This action cannot be undone."}
                             action={() => deleteDataset(props.result.table_name).then(x => window.location.reload())}

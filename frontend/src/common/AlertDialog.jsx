@@ -1,6 +1,5 @@
 // Based on: https://mui.com/material-ui/react-dialog/
 
-import { useState, Fragment } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -8,13 +7,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-export default function AlertDialog({ buttonText, titleText, bodyText, action, disabled }) {
-  const [open, setOpen] = useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
+export const AlertDialog = ({ open, setOpen, titleText, bodyText, action, disabled }) => {
   const handleClose = () => {
     setOpen(false);
   };
@@ -26,9 +19,6 @@ export default function AlertDialog({ buttonText, titleText, bodyText, action, d
 
   return (
     <>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        { buttonText }
-      </Button>
       <Dialog
         open={open}
         onClose={handleClose}

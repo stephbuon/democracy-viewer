@@ -6,8 +6,17 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 
 import "primereact/resources/themes/lara-light-indigo/theme.css";
+import { useEffect, useState } from 'react';
+import { AlertDialog } from './AlertDialog';
 
 export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNewPage }) => {
+    const [ clickRow, setClickRow ] = useState(-1);
+    const [ clickCol, setClickCol ] = useState(-1);  
+    const [ editOpen, setEditOpen ] = useState(false);
+    const [ editStart, setEditStart ] = useState(-1);
+    const [ editEnd, setEditEnd ] = useState(-1);
+    const [ editText, setEditText ] = useState("");
+
     const renderPageNumbers = () => {
         const pageNumbers = [];
         let startPage, endPage;
@@ -44,6 +53,31 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
         ));
     };
 
+    useEffect(() => {
+        const cells = document.querySelectorAll(".p-datatable-wrapper td");
+        cells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                setClickRow(cell.closest('tr').rowIndex - 1);
+                setClickCol(cell.cellIndex);
+            });
+
+            cell.addEventListener('mouseup', () =>
+            {
+                console.log(cell)
+                const allText = cell.innerText;
+                const selection = window.getSelection();
+                const start_ = selection.anchorOffset;
+                const end_ = selection.focusOffset;
+                const start = Math.min([ start_, end_ ]);
+                const end = Math.max([ start_, end_ ]);
+                setEditStart(start);
+                setEditEnd(end);
+                setEditText(allText.substring(start, end));
+                setEditOpen(true);
+            })
+        });
+    }, [searchResults]);
+
     if (!searchResults || searchResults.length === 0) {
         return <></>
     }
@@ -65,5 +99,13 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
         <Box sx={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
             {renderPageNumbers()}
         </Box>
+
+        <AlertDialog
+            open={editOpen}
+            setOpen={setEditOpen}
+            titleText={"Edit Dataset Content"}
+            bodyText={""}
+            action={() => {}}
+        />
     </>
 }
