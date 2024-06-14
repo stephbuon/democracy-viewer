@@ -17,6 +17,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Link } from "react-router-dom";
 import { BrowserRouter as Router, Switch, Route, Redirect, } from "react-router-dom";
 import Login from './Login';
+import background from "../images/GUI_gradient_background.png"
 
 
 //Need to add if logged in to all buttons 
@@ -40,6 +41,15 @@ export default function Homepage() {
             pb: 6,
           }}
         >
+        <Box component="div" sx={{ 
+        marginLeft: "20px", 
+        marginRight: "16px",
+        backgroundImage:`url(${background})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover", }}
+      >
+
+      </Box>
           <Container maxWidth="sm">
             <Typography
               component="h1"
