@@ -9,6 +9,7 @@ import TextField from '@mui/material/TextField';
 import { DownloadSubset, DownloadFullDataset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 // import { DataTable } from "../common/DataTable/DataTable";
 import { PaginatedDataTable } from '../common/PaginatedDataTable';
+import Highlighter from "react-highlight-words";
 
 // import "../common/DataTable/MoveBar.css"
 // import "../common/DataTable/Loading.css"
@@ -50,6 +51,22 @@ export const SubsetResultsPage = (props) => {
         fetchSubset();
     }
 
+    const highlight = (results) => {
+        const terms = searchTerm.split(" ");
+        results.map(row => {
+            Object.keys(row).forEach(col => {
+                row[col] = (
+                    <Highlighter
+                        searchWords={terms}
+                        textToHighlight={ row[col] }
+                    />
+                )
+            });
+            return row;
+        });
+        setSearchResults(results);
+    }
+
     const fetchSubset = () => {
         let _query = {
             simpleSearch: searchTerm
@@ -74,7 +91,7 @@ export const SubsetResultsPage = (props) => {
                 setSearchResults([]);
             }
             else {
-                setSearchResults(res.data);
+                highlight(res.data);
                 setTotalNumResults(res.count);
                 let tot = Math.ceil(res.count / 50);
                 setTotalNumOfPages(tot);
@@ -99,9 +116,9 @@ export const SubsetResultsPage = (props) => {
         try {
             const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage);
             if (res) {
-                setSearchResults(res);
                 // Correctly handle asynchronous state update
                 setPage(prevPage => selectedPage);
+                highlight(res.data);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);

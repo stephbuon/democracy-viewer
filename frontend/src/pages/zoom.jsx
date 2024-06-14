@@ -50,7 +50,7 @@ export const Zoom = () => {
     useEffect(() => {
         const graphData_ = JSON.parse(localStorage.getItem('selected'));
         setGraphData({ ...graphData_ });
-        getTextCols(graphData.dataset).then(x => setTextCols(x));
+        getTextCols(graphData_.dataset).then(x => setTextCols(x));
     }, []);
 
     useEffect(() => {

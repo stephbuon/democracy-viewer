@@ -261,6 +261,33 @@ const getFilteredDatasetsCount = async(knex, query, username) => {
     return result;
 }
 
+// Get the 2 letter language code for a given language
+const getLanguage = async(language) => {
+    if (language === "Chinese") {
+        return "zh";
+    } else if (language === "English") {
+        return "en";
+    } else if (language === "French") {
+        return "fr";
+    } else if (language === "German") {
+        return "de";
+    } else if (language === "Greek") {
+        return "el";
+    } else if (language === "Italian") {
+        return "it";
+    } else if (language === "Latin") {
+        return "la";
+    } else if (language === "Portuguese") {
+        return "pt";
+    } else if (language === "Russian") {
+        return "ru";
+    } else if (language === "Spanish") {
+        return "es";
+    } else {
+        throw new Error(`Unknown language: ${ language }`);
+    }
+}
+
 // Get a subset of a table
 const getSubset = async(knex, table, query, user = undefined, page = 1, pageLength = 50) => {
     const model = new datasets(knex);
@@ -283,22 +310,30 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
         // Download data from s3
         const data = await util.downloadDataset(table, dataset = true);
 
-        // Configure parser to search dataset
-        const index = new FlexSearch.Document({
-            document: {
-                id: "_id_",
-                index: Object.keys(data.dataset[0])
-            }
-        });
-        data.dataset.forEach((row, i) => index.add({ ...row, _id_: i, _tag_: row.place }));
+        if (query.simpleSearch) {
+            // Filter if query is defined
+            // Configure parser to search dataset
+            const index = new FlexSearch.Document({
+                document: {
+                    id: "__id__",
+                    index: Object.keys(data.dataset[0])
+                },
+                language: getLanguage(metadata.language),
+                tokenize: "forward"
+            });
+            data.dataset.forEach((row, i) => index.add({ ...row, __id__: i, _tag_: row.place }));
 
-        // Filter dataset
-        const result = index.search(query.simpleSearch);
+            // Filter dataset
+            const result = index.search(query.simpleSearch);
 
-        // Get records from search result
-        const ids = [ ...new Set(...result.map(x => x.result)) ];
-        fullOutput = ids.map(x => data.dataset[x]);
-
+            // Get records from search result
+            const ids = [ ...new Set(...result.map(x => x.result)) ];
+            fullOutput = ids.map(x => data.dataset[x]);
+        } else {
+            // If query is not defined, return everything
+            fullOutput = [ ...data.dataset ];
+        }
+        
         // Output results to local file
         util.generateJSON(filename, fullOutput);
     }
