@@ -66,7 +66,8 @@ export const UploadModal = (props) => {
         const metadata = {
             title, description, is_public: publicPrivate,
             preprocessing_type: tokenization, embeddings,
-            pos, embed_col: embedCol, language
+            pos, embed_col: embedCol, language,
+            date_collected: date, author
         };
         
         
@@ -177,8 +178,6 @@ export const UploadModal = (props) => {
                                     >
                                         <MenuItem value="AUTO">AUTO</MenuItem>
                                         <MenuItem value="TEXT">TEXT</MenuItem>
-                                        <MenuItem value="DATE">DATE</MenuItem>
-                                        <MenuItem value="NUMERIC">NUMERIC</MenuItem>
                                     </Select>
                                 </FormControl>
                             </Box>

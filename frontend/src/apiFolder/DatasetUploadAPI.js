@@ -70,6 +70,16 @@ export const AddTags = async (dataset, tags) =>  {
     return res.data;
 };
 
+export const DeleteTag = async (dataset, tag) =>  {
+    const res = await axios.delete(`${BACKEND_ENDPOINT}/datasets/${ dataset }/tags/${ tag }`, apiConfig());
+    if(res.status !== 201){
+        console.log(`Couldn't add tags. ${res.status}`)
+        return null;
+    }
+    console.log("Returning", res.data);
+    return res.data;
+};
+
 export const UpdateMetadata = async (dataset, params) =>  {
     console.log("Updating metadata", dataset, params, apiConfig());
     const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset}`, params, apiConfig());

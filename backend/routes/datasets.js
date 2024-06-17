@@ -74,6 +74,18 @@ router.post('/text', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to like a dataset
+router.post('/like/:table', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.addLike(req.knex, req.user.username, req.params.table);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to add dataset text column(s):', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to change dataset metadata
 router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
     try {
@@ -304,6 +316,18 @@ router.delete('/:table/text/:col', authenticateJWT, async(req, res, next) => {
         res.status(204).json(result);
     } catch (err) {
         console.error('Failed to delete text column:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a user's like
+router.delete('/like/:table', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.deleteLike(req.knex, req.user.username, req.params.table);
+        res.status(204).json(result);
+    } catch (err) {
+        console.error('Failed to delete like:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

@@ -33,9 +33,10 @@ const Profile = (props) => {
     const [totalNumOfPages, setTotalNumOfPages] = useState(1);
     const [page, setPage] = useState(1);
 
-    const setDataset = () => {
-
-    }
+    const [loadingLikeResults, setLoadingLikeResults] = useState(false);
+    const [likeSearchResults, setLikeSearchResults] = useState([]);
+    const [totalNumOfLikePages, setTotalNumOfLikePages] = useState(1);
+    const [likePage, setLikePage] = useState(1);
 
     const GetNewPage = (num) => {
         const filter = {
@@ -52,6 +53,21 @@ const Profile = (props) => {
        setPage(num);
     }
 
+    const getNewLikePage = (num) => {
+        const filter = {
+            liked: props.currUser.username,
+            pageLength
+        };
+        setLoadingLikeResults(true);
+        FilterDatasets(filter, num).then((res) => {
+            setLoadingLikeResults(false);
+
+            if (!res) { setLikeSearchResults([]) }
+            else { setLikeSearchResults(res) }
+        })
+       setLikePage(num);
+    }
+
     const params = useParams();
 
     useEffect(() => {
@@ -66,11 +82,12 @@ const Profile = (props) => {
             setEditable(true);
         }
 
-        const filter = {
+        let filter = {
             username: props.currUser.username,
             pageLength
         };
         setLoadingResults(true);
+        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
@@ -81,6 +98,24 @@ const Profile = (props) => {
             let tot = Math.ceil(res / pageLength);
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
+        })
+
+        filter = {
+            liked: props.currUser.username,
+            pageLength
+        };
+        setLoadingLikeResults(true);
+        setLikePage(1);
+        FilterDatasets(filter, 1).then((res) => {
+            setLoadingLikeResults(false);
+
+            if (!res) { setLikeSearchResults([]) }
+            else { setLikeSearchResults(res) }
+        })
+        FilterDatasetsCount(filter).then(async (res) => {
+            let tot = Math.ceil(res / pageLength);
+            setTotalNumOfLikePages(tot);
+            console.log("Number of Like Pages", tot);
         })
     }, [params.username]);
 
@@ -183,7 +218,7 @@ const Profile = (props) => {
                                     </List>
                                 </Paper>
                             </Grid>
-                            <Grid container spacing={3} justifyContent="center" alignItems="center">
+                            <Grid  item xs={12} md={6}>
                                 <Paper
                                     elevation={12}
                                     sx={{
@@ -196,15 +231,53 @@ const Profile = (props) => {
                                     }}
                                 >
                                     <h1>My Datasets</h1>
-                                    <DatasetTable
-                                        loadingResults={loadingResults}
-                                        searchResults={searchResults}
-                                        setDataset={setDataset}
-                                        page={page}
-                                        totalNumOfPages={totalNumOfPages}
-                                        GetNewPage={GetNewPage}
-                                        editable={editable}
-                                    />
+                                    {
+                                        searchResults.length > 0 &&
+                                        <DatasetTable
+                                            loadingResults={loadingResults}
+                                            searchResults={searchResults}
+                                            setDataset={props.setDataset}
+                                            page={page}
+                                            totalNumOfPages={totalNumOfPages}
+                                            GetNewPage={GetNewPage}
+                                            editable={editable}
+                                        />
+                                    }
+                                    {
+                                        searchResults.length === 0 &&
+                                        <span>You have no datasets</span>
+                                    }
+                                </Paper>
+                            </Grid>
+                            <Grid  item xs={12} md={6}>
+                                <Paper
+                                    elevation={12}
+                                    sx={{
+                                        p: 2,
+                                        m: 5,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <h1>Liked Datasets</h1>
+                                    {
+                                        likeSearchResults.length > 0 &&
+                                        <DatasetTable
+                                            loadingResults={loadingLikeResults}
+                                            searchResults={likeSearchResults}
+                                            setDataset={props.setDataset}
+                                            page={likePage}
+                                            totalNumOfPages={totalNumOfLikePages}
+                                            GetNewPage={getNewLikePage}
+                                            editable={false}
+                                        />
+                                    }
+                                    {
+                                        likeSearchResults.length === 0 &&
+                                        <span>You have no liked datasets</span>
+                                    }
                                 </Paper>
                             </Grid>
                         </Grid>

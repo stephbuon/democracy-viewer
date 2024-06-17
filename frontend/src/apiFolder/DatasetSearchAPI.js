@@ -70,7 +70,7 @@ export const GetAllTags = async () =>  {
 
 export const Popularize = async (dataset) =>  {
     console.log("Popularizing", dataset)
-    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/click/${dataset.table_name}`)
+    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/click/${dataset}`)
 
     if(res.status !== 200){
         console.log(`Couldn't popularize. ${res.status}`)

@@ -8,28 +8,26 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { Popularize } from '../apiFolder/DatasetSearchAPI';
 import { AlertDialog } from './AlertDialog';
-import { deleteDataset } from '../api/api';
+import { deleteDataset, addLike, deleteLike } from '../api/api';
+import { UpdateMetadata, AddTags, DeleteTag } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from './DatasetInformation';
 import { DatasetTags } from './DatasetTags';
 
 export const Result = (props) => {
+    const navigate = useNavigate();
+
+    const [loggedIn, setLoggedIn] = useState(false);
+    const [dataset, setDataset] = useState(props.result);
     const [open, setOpen] = useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const navigate = useNavigate();
-
-    const chooseDataset = () => {
-        Popularize(props.result)
-        props.setDataset(props.result);
-    }
-
-    const [title, setTitle] = useState(props.result.title);
-    const [publicPrivate, setPublicPrivate] = useState(props.result.is_public);
-    const [description, setDescription] = useState(props.result.description);
-    const [author, setAuthor] = useState(props.result.author);
-    const [date, setDate] = useState(props.result.date);
-    const [tags, setTags] = useState(props.result.tags);
+    const [title, setTitle] = useState(dataset.title);
+    const [publicPrivate, setPublicPrivate] = useState(dataset.is_public);
+    const [description, setDescription] = useState(dataset.description);
+    const [author, setAuthor] = useState(dataset.author);
+    const [date, setDate] = useState(dataset.date);
+    const [tags, setTags] = useState(dataset.tags);
 
     // Open edit dialogs
     const [infoOpen, setInfoOpen] = useState(false);
@@ -39,25 +37,88 @@ export const Result = (props) => {
     const [infoDisabled, setInfoDisabled] = useState(true);
     const [tagsDisabled, setTagsDisabled] = useState(true);
 
+    const chooseDataset = () => {
+        Popularize(dataset.table_name)
+        props.setDataset(dataset);
+    }
+
+    const updateInfo = () => {
+        const params = {
+            title: title !== dataset.title ? title : null,
+            is_public: publicPrivate !== dataset.is_public ? publicPrivate : null,
+            description: description !== dataset.description ? description : null,
+            author: author !== dataset.author ? author : null,
+            date: date !== dataset.date ? date : null
+        };
+
+        const keys = Object.keys(params).filter(x => params[x] === null);
+        keys.forEach(x => delete params[x]);
+
+        UpdateMetadata(dataset.table_name, params).then(x => {
+            const newDataset = { ...x, tags };
+            setDataset(newDataset);
+            props.setDataset(newDataset);
+        });
+    }
+
+    const updateTags = () => {
+        const newTags = tags.filter(x => dataset.tags.indexOf(x) === -1);
+        const deletedTags = dataset.tags.filter(x => tags.indexOf(x) === -1);
+
+        AddTags(dataset.table_name, newTags);
+        deletedTags.forEach(x => DeleteTag(dataset.table_name, x));
+
+        const newDataset = { ...dataset, tags };
+        setDataset(newDataset);
+        props.setDataset(newDataset);
+    }
+
+    const like = () => {
+        addLike(dataset.table_name);
+
+        const newDataset = { ...dataset, liked: true, likes: dataset.likes + 1 };
+        setDataset(newDataset);
+        props.setDataset(newDataset);
+    }
+
+    const dislike = () => {
+        deleteLike(dataset.table_name);
+
+        const newDataset = { ...dataset, liked: false, likes: dataset.likes - 1 };
+        setDataset(newDataset);
+        props.setDataset(newDataset);
+    }
+
     useEffect(() => {
-        if (infoDisabled && (title !== props.result.title || publicPrivate !== props.result.is_public || description !== props.result.description || author !== props.result.author || date !== props.result.date)) {
+        if (infoDisabled && (title !== dataset.title || publicPrivate !== dataset.is_public || description !== dataset.description || author !== dataset.author || date !== dataset.date)) {
             setInfoDisabled(false);
-        } else if (!infoDisabled && (title === props.result.title || publicPrivate === props.result.is_public || description === props.result.description || author === props.result.author || date === props.result.date)) {
+        } else if (!infoDisabled && (title === dataset.title || publicPrivate === dataset.is_public || description === dataset.description || author === dataset.author || date === dataset.date)) {
             setInfoDisabled(true);
         }
     }, [title, publicPrivate, description, author, date]);
 
     useEffect(() => {
-        if (tagsDisabled && JSON.stringify(tags.sort()) !== JSON.stringify(props.result.tags.sort())) {
+        if (tagsDisabled && JSON.stringify(tags.sort()) !== JSON.stringify(dataset.tags.sort())) {
             setTagsDisabled(false);
-        } else if (!tagsDisabled && JSON.stringify(tags.sort()) === JSON.stringify(props.result.tags.sort())) {
+        } else if (!tagsDisabled && JSON.stringify(tags.sort()) === JSON.stringify(dataset.tags.sort())) {
             setTagsDisabled(true);
         }
     }, [tags]);
 
+    useEffect(() => {
+        setDataset(props.result);
+
+        const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+        if (demoV && demoV.user) {
+            setLoggedIn(true);
+        } else {
+            setLoggedIn(false);
+        }
+    }, [props.result]);
+
     return <div>
         <Box onClick={() => handleOpen()}>
-            {props.result.title}
+            {dataset.title}
         </Box>
         <Modal
             open={open}
@@ -84,7 +145,7 @@ export const Result = (props) => {
                         <AlertDialog
                             open={infoOpen}
                             setOpen={setInfoOpen}
-                            titleText={`Edit dataset "${ props.result.title }"`}
+                            titleText={`Edit dataset "${ dataset.title }"`}
                             bodyText={
                                 <DatasetInformation
                                     title={title}
@@ -99,7 +160,7 @@ export const Result = (props) => {
                                     setPublicPrivate={setPublicPrivate}
                                 />
                             }
-                            action={() => {}}
+                            action={() => updateInfo()}
                         />
 
                         <Button variant="outlined" onClick={() => setTagsOpen(true)}>
@@ -108,14 +169,14 @@ export const Result = (props) => {
                         <AlertDialog
                             open={tagsOpen}
                             setOpen={setTagsOpen}
-                            titleText={`Edit dataset "${ props.result.title }"`}
+                            titleText={`Edit dataset "${ dataset.title }"`}
                             bodyText={
                                 <DatasetTags
                                     tags={tags}
                                     setTags={setTags}
                                 />
                             }
-                            action={() => {}}
+                            action={() => updateTags()}
                         />
 
                         <Button variant="outlined" onClick={() => setDeleteOpen(true)}>
@@ -124,11 +185,25 @@ export const Result = (props) => {
                         <AlertDialog
                             open={deleteOpen}
                             setOpen={setDeleteOpen}
-                            titleText={`Are you sure you want to delete the dataset "${ props.result.title }"?`}
+                            titleText={`Are you sure you want to delete the dataset "${ dataset.title }"?`}
                             bodyText={"This action cannot be undone."}
-                            action={() => deleteDataset(props.result.table_name).then(x => window.location.reload())}
+                            action={() => deleteDataset(dataset.table_name).then(x => window.location.reload())}
                         />
                     </>
+                }
+
+                {
+                    loggedIn && !dataset.liked &&
+                    <Button variant="outlined" onClick={() => like()}>
+                        Like
+                    </Button>
+                }
+
+                {
+                    loggedIn && dataset.liked &&
+                    <Button variant="outlined" onClick={() => dislike()}>
+                        Dislike
+                    </Button>
                 }
                 
                 <Table>
@@ -138,14 +213,14 @@ export const Result = (props) => {
                                 sx={{
 
                                 }}>
-                                {props.result.title}
+                                {dataset.title}
                             </TableCell>
                             <TableCell>
                                 &nbsp;
                             </TableCell>
                             <TableCell>
-                                {props.result.is_public && "Public"}
-                                {!props.result.is_public && "Private"}
+                                {dataset.is_public && "Public"}
+                                {!dataset.is_public && "Private"}
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -155,7 +230,7 @@ export const Result = (props) => {
                                 Owner:
                             </TableCell>
                             <TableCell>
-                                {props.result.username}
+                                {dataset.username}
                             </TableCell>
                             <TableCell />
                         </TableRow>
@@ -164,7 +239,53 @@ export const Result = (props) => {
                                 Description:
                             </TableCell>
                             <TableCell>
-                                {props.result.description}
+                                {dataset.description}
+                            </TableCell>
+                            <TableCell />
+                        </TableRow>
+
+                        {
+                            dataset.author &&
+                            <TableRow>
+                                <TableCell>
+                                    Author:
+                                </TableCell>
+                                <TableCell>
+                                    {dataset.author}
+                                </TableCell>
+                                <TableCell />
+                            </TableRow>
+                        }
+
+                        {
+                            dataset.date_collected &&
+                            <TableRow>
+                                <TableCell>
+                                    Date Collected:
+                                </TableCell>
+                                <TableCell>
+                                    {dataset.date_collected}
+                                </TableCell>
+                                <TableCell />
+                            </TableRow>
+                        }
+
+                        <TableRow>
+                            <TableCell>
+                                Views:
+                            </TableCell>
+                            <TableCell>
+                                {dataset.clicks}
+                            </TableCell>
+                            <TableCell />
+                        </TableRow>
+
+                        <TableRow>
+                            <TableCell>
+                                Likes:
+                            </TableCell>
+                            <TableCell>
+                                {dataset.likes}
                             </TableCell>
                             <TableCell />
                         </TableRow>
@@ -176,20 +297,20 @@ export const Result = (props) => {
                             <TableCell>
                                 Tags:
                             </TableCell>
-                            {props.result.tags.map((tag, index) => {
+                            {dataset.tags.map((tag, index) => {
                                 if (index < 5) {
                                     return <TableCell key={index}>
                                         {tag}
                                     </TableCell>
                                 }
                             })}
-                            {props.result.tags.length < 1 && <TableCell key={1} />}
-                            {props.result.tags.length < 2 && <TableCell key={2} />}
-                            {props.result.tags.length < 3 && <TableCell key={3} />}
-                            {props.result.tags.length < 4 && <TableCell key={4} />}
-                            {props.result.tags.length < 5 && <TableCell key={5} />}
-                            {props.result.tags.length < 6 && <TableCell key={6} />}
-                            {props.result.tags.length > 5 && <TableCell key={'...'}>
+                            {dataset.tags.length < 1 && <TableCell key={1} />}
+                            {dataset.tags.length < 2 && <TableCell key={2} />}
+                            {dataset.tags.length < 3 && <TableCell key={3} />}
+                            {dataset.tags.length < 4 && <TableCell key={4} />}
+                            {dataset.tags.length < 5 && <TableCell key={5} />}
+                            {dataset.tags.length < 6 && <TableCell key={6} />}
+                            {dataset.tags.length > 5 && <TableCell key={'...'}>
                                 ...
                             </TableCell>}
 

@@ -119,3 +119,27 @@ export const getTextCols = (dataset) => new Promise((resolve, reject) => {
     reject(x);
   });
 });
+
+export const addLike = (table) => new Promise((resolve, reject) => {
+  axios.post(`${ apiEndpoint }/datasets/like/${ table }`, {}, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const deleteLike = (table) => new Promise((resolve, reject) => {
+  axios.delete(`${ apiEndpoint }/datasets/like/${ table }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});

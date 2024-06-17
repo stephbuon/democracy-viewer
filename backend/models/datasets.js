@@ -2,6 +2,7 @@ const metadata_table = "dataset_metadata";
 const tag_table = "tags";
 const all_col_table = "dataset_all_cols";
 const text_col_table = "dataset_text_cols";
+const likes_table = "liked_datasets";
 
 class datasets {
     constructor(knex) {
@@ -69,6 +70,13 @@ class datasets {
         return insert;
     }
 
+    // Like a dataset
+    async addLike(user, table_name) {
+        await this.knex(likes_table).insert({ user, table_name });
+        const record = await this.knex(likes_table).where({ user, table_name });
+        return record[0];
+    }
+
     // Update the metadata of a table
     async updateMetadata(table_name, params) {
         const update = await this.knex(metadata_table).where({ table_name }).update({ ...params });
@@ -79,6 +87,20 @@ class datasets {
     // Increment the dataset's clicks
     async incClicks(table_name) {
         const update = await this.knex(metadata_table).where({ table_name }).increment("clicks", 1);
+        const record = await this.knex(metadata_table).where({ table_name });
+        return record[0];
+    }
+
+    // Increment the dataset's likes
+    async incLikes(table_name) {
+        const update = await this.knex(metadata_table).where({ table_name }).increment("likes", 1);
+        const record = await this.knex(metadata_table).where({ table_name });
+        return record[0];
+    }
+
+    // Decrement the dataset's likes
+    async decLikes(table_name) {
+        const update = await this.knex(metadata_table).where({ table_name }).decrement("likes", 1);
         const record = await this.knex(metadata_table).where({ table_name });
         return record[0];
     }
@@ -117,6 +139,7 @@ class datasets {
     async getFilteredDatasets(params, username, paginate = true, currentPage = 1) {
         const query = this.knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
+            .leftJoin(likes_table, `${ metadata_table }.table_name`, `${ likes_table }.table_name`)
             .where(q => {
                 // Filter by type (public/private)
                 const type = params.type;
@@ -199,6 +222,12 @@ class datasets {
                         q.where({ tag_name });
                     }
                 }
+
+                // Search for liked datasets
+                const liked = params.liked;
+                if (liked) {
+                    q.where(`${ likes_table }.user`, liked);
+                }
             });
 
         let results;
@@ -210,10 +239,11 @@ class datasets {
             results = await query;
         }
 
-        // Get tags for search results
+        // Get tags and likes for search results
         for (let i = 0; i < results.length; i++) {
             const tags = await this.getTags(results[i].table_name);
             results[i].tags = tags.map(x => x.tag_name);
+            results[i].liked = await this.getLike(username, results[i].table_name);
         }
 
         return results;
@@ -223,6 +253,12 @@ class datasets {
     async getFilteredDatasetsCount(params, username) {
         const results = await this.getFilteredDatasets(params, username, false);
         return results.length;
+    }
+
+    // Determine if a given user liked a given dataset
+    async getLike(user, table_name) {
+        const results = await this.knex(likes_table).where({ user, table_name });
+        return results.length > 0;
     }
 
     // Delete a dataset's metadata
@@ -235,6 +271,11 @@ class datasets {
     async deleteTag(table_name, tag_name) {
         const del = await this.knex(tag_table).where({ table_name, tag_name }).delete();
         return del;
+    }
+
+    // Delete a user's liked table
+    async deleteLike(user, table_name) {
+        await this.knex(likes_table).where({ user, table_name }).delete();
     }
 }
 

@@ -160,6 +160,16 @@ const addTextCols = async(knex, user, table, cols) => {
     return records;
 }
 
+// Like a dataset
+const addLike = async(knex, user, table) => {
+    const model = new datasets(knex);
+
+    await model.addLike(user, table);
+    const record = model.incLikes(table);
+
+    return record;
+}
+
 // Update a dataset's metadata
 const updateMetadata = async(knex, user, table, params) => {
     const model = new datasets(knex);
@@ -437,6 +447,14 @@ const deleteTag = async(knex, user, table, tag) => {
     return null;
 }
 
+// Unlike a dataset
+const deleteLike = async(knex, user, table) => {
+    const model = new datasets(knex);
+
+    await model.deleteLike(user, table);
+    const metadata = await model.decLikes(table);
+}
+
 module.exports = {
     createDataset,
     createDatasetAPI,
@@ -445,6 +463,7 @@ module.exports = {
     addTextCols,
     updateMetadata,
     incClicks,
+    addLike,
     getMetadata,
     getSubset,
     downloadSubset,
@@ -458,5 +477,6 @@ module.exports = {
     getRecordsByIds,
     getDownload,
     deleteDataset,
-    deleteTag
+    deleteTag,
+    deleteLike
 };
