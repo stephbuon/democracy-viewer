@@ -4,6 +4,7 @@ import { getRecordsByIds } from '../api/api.js';
 import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
+import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
 
 export const Zoom = () => {
     // UseState definitions
@@ -104,7 +105,7 @@ export const Zoom = () => {
                     totalNumOfPages = {totalPages}
                     GetNewPage = {nextPage}
                     table_name={graphData.dataset}
-                    downloadSubset={() => {}}
+                    downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
                     totalNumResults={graphData.ids.length}
                 />
             </div>

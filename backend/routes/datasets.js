@@ -231,10 +231,31 @@ router.get('/ids/:table', async(req, res, next) => {
         const result = await control.getRecordsByIds(req.knex, req.params.table, Array.isArray(req.query.id) ? req.query.id : [ req.query.id ]);
         res.status(200).json(result);
     } catch (err) {
-        console.error('Failed to get dataset subset count:', err);
+        console.error('Failed to get dataset ids:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
+});
+
+// Route to download a subset of a dataset by ids
+router.get('/download/ids/:table', async(req, res, next) => {
+    try {
+        // Generate file
+        const result = await control.downloadIds(req.knex, req.params.table, Array.isArray(req.query.id) ? req.query.id : [ req.query.id ]);
+        // Download file
+        res.status(200).download(result, (err) => {
+            // Error handling
+            if (err) {
+                console.log("Failed to download dataset ids:", err);
+                res.status(500).json({ message: err.toString() });
+                next();
+            }
+        });
+    } catch (err) {
+        console.error('Failed to download dataset ids:', err);
+        res.status(500).json({ message: err.toString() });
+        next();
+    }
 });
 
 // Route to get dataset column names

@@ -31,12 +31,25 @@ export const GetSubsetOfDataByPage = async (table, query, page = 1, pageLength =
 };
 
 export const DownloadSubset = async (table, query) =>  {
-    console.log("Attempting to subset from", table);
     const config = { ...apiConfig() };
     if (query) {
         config.params = query;
     }
     const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${table}`, config);//,{ keepAlive: true });
+    if(res.status !== 200){
+        console.log(`Couldn't download data. ${res.status}`)
+        return null;
+    }
+    download(res.data, `download_${ Date.now() }.csv`);
+    console.log("Download complete")
+};
+
+export const DownloadIds = async (table, id) =>  {
+    const config = { ...apiConfig() };
+    if (id) {
+        config.params = { id };
+    }
+    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/ids/${table}`, config);//,{ keepAlive: true });
     if(res.status !== 200){
         console.log(`Couldn't download data. ${res.status}`)
         return null;

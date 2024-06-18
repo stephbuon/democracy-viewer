@@ -405,7 +405,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
         util.generateJSON(filename, fullOutput);
     }
 
-    const newFilename = filename.replace(".json", ".csv");
+    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query) }.json`;
     await util.generateCSV(newFilename, fullOutput);
     return newFilename;
 }
@@ -427,8 +427,8 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
     return ids.map(x => data.dataset[x]);
 }
 
-// Get dataset download record
-const getDownload = async(knex, table, user = undefined) => {
+// Get dataset records by ids
+const downloadIds = async(knex, table, ids, user = undefined) => {
     const model = new datasets(knex);
 
     // Get the current metadata for this table
@@ -441,7 +441,10 @@ const getDownload = async(knex, table, user = undefined) => {
 
     const data = await util.downloadDataset(table, dataset = true);
     
-    return data;
+    const fullOutput = ids.map(x => data.dataset[x]);
+    const newFilename = `files/downloads/${ table }_${ Date.now() }.csv`;
+    await util.generateCSV(newFilename, fullOutput);
+    return newFilename;
 }
 
 // Delete a dataset and its metadata
@@ -506,7 +509,7 @@ module.exports = {
     getFilteredDatasets,
     getFilteredDatasetsCount,
     getRecordsByIds,
-    getDownload,
+    downloadIds,
     deleteDataset,
     deleteTag,
     deleteLike
