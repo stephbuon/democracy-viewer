@@ -28,7 +28,7 @@ export const Zoom = () => {
                         textCols.forEach(col => {
                             row[col] = (
                                 <Highlighter
-                                    searchWords={[ graphData.x ]}
+                                    searchWords={graphData.words}
                                     textToHighlight={ row[col] }
                                 />
                             )
@@ -77,6 +77,9 @@ export const Zoom = () => {
                     <div className="col">
                         <b>y</b>
                     </div>
+                    <div className="col">
+                        <b>Word(s)</b>
+                    </div>
                 </div>
 
                 {/* Word data */}
@@ -89,6 +92,9 @@ export const Zoom = () => {
                     </div>
                     <div className="col">
                         {graphData.y}
+                    </div>
+                    <div className="col">
+                        {graphData.words.join(", ")}
                     </div>
                 </div>
 

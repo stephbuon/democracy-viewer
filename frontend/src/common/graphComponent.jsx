@@ -58,19 +58,31 @@ export const GraphComponent = ({ data, setData }) => {
 
     // UseEffect: Generates graph object with zoom click event definition
     useEffect(() => {
-        console.log("zoom test", data)
         Plotly.newPlot('graph', data.graph, layout, {displayModeBar: false});
         graph.current.on('plotly_click', function (event) { // Click event for zoom page
-            let dataPoint = event.points[0];
-            console.log("TEST!!", dataPoint, "and", data);
-            let tempData = {
+            const dataPoint = event.points[0];
+            let idx;
+            if (typeof dataPoint.pointIndex === "number") {
+                idx = dataPoint.pointIndex;
+            } else {
+                idx = (dataPoint.pointIndex[0] + 1) * (dataPoint.pointIndex[1] + 1) - 1;
+            }
+            const tempData = {
                 x: dataPoint.x,
                 y: dataPoint.y,
-                ids: dataPoint.data.ids,
+                ids: dataPoint.data.ids[idx],
                 dataset: data.table_name
-                }
+            };
+            if (data.graph[0].type === "bar") {
+                tempData.words = [dataPoint.x];
+            } else if (data.graph[0].type === "scatter") {
+                tempData.words = [dataPoint.text];
+            } else if (data.graph[0].type === "heatmap") {
+                tempData.words = [...data.titleList];
+            } else {
+                throw new Error("Graph type not supported")
+            }
             localStorage.setItem('selected', JSON.stringify(tempData))
-            console.log("Saved selected datapoint", tempData, " from ", dataPoint, "and", data)
             navigate("/zoom");
           });
       }, [data]);

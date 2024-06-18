@@ -56,13 +56,13 @@ export const Graph = (props) => {
           if (index >= 0) { // Runs if datapoint already exists in tempData
             tempData.graph[index].x.push(dataPoint.x)
             tempData.graph[index].y.push(dataPoint.y)
-            dataPoint.ids.forEach((id) => tempData.graph[index].ids.push(id));
+            tempData.graph[index].ids.push(dataPoint.ids)
           }
           else {
             tempData.graph.push({
               x: [dataPoint.x],
               y: [dataPoint.y],
-              ids: dataPoint.ids,
+              ids: [dataPoint.ids],
               name: dataPoint.group,
               type: "bar"
             })
@@ -81,15 +81,13 @@ export const Graph = (props) => {
           text:[],
           mode:"markers",
           type:"scatter"
-        })
-        tempData.wordList = [];
+        });
 
         res.forEach((dataPoint) => { // Populate data array with request output
-          tempData.graph[0].x.push(dataPoint.x)
-          tempData.graph[0].y.push(dataPoint.y)
+          tempData.graph[0].x.push(dataPoint.x);
+          tempData.graph[0].y.push(dataPoint.y);
           tempData.graph[0].ids.push(dataPoint.ids);
-          tempData.graph[0].text.push(dataPoint.word)
-          tempData.wordList.push(dataPoint.word);
+          tempData.graph[0].text.push(dataPoint.word);
         });
       } else if (heatMaps.indexOf(metric) !== -1) {
         tempData.xLabel = "";
@@ -107,7 +105,6 @@ export const Graph = (props) => {
           type: "heatmap",
           hoverongaps: false
         })
-        tempData.wordList = searchTerms;
 
         const groups = groupList.map(x => x.label);
         groups.forEach(grp => {

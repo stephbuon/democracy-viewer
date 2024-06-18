@@ -18,7 +18,7 @@ const allMetricOptions = Object.keys(metrics).map(x => {
 export const GraphSettings = ( props ) => {
     // UseState definitions
     const [searchValue, setSearchValue] = useState("");
-    const [searchTerms, setSearchTerms] = useState(["trade", "press", "industry", "work"]);
+    const [searchTerms, setSearchTerms] = useState(["trade", "marry", "susan"]);
     const [groupOptions, setGroupOptions] = useState(undefined);
     const [valueOptions, setValueOptions] = useState(undefined);
     const [groupList, setGroupList] = useState([]);
