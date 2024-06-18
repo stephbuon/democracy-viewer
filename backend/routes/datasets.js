@@ -210,7 +210,7 @@ router.get('/download/subset/:table', async(req, res, next) => {
         // Generate file
         const result = await control.downloadSubset(req.knex, req.params.table, req.query, req.user ? req.user.username : undefined);
         // Download file
-        res.download(result, `${ req.params.table }.csv`, (err) => {
+        res.status(200).download(result, (err) => {
             // Error handling
             if (err) {
                 console.log("Failed to download dataset subset:", err);
@@ -268,18 +268,6 @@ router.get('/upload/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset upload percentage:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
-// Route to get the download record for a dataset
-router.get('/download/record/:table', async(req, res, next) => {
-    try {
-        const result = await control.getDownload(req.knex, req.user ? req.user.username : undefined, req.params.table);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get dataset download record:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

@@ -331,7 +331,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
                 language: getLanguage(metadata.language),
                 tokenize: "forward"
             });
-            data.dataset.forEach((row, i) => index.add({ ...row, __id__: i, _tag_: row.place }));
+            data.dataset.forEach((row, i) => index.add({ ...row, __id__: i }));
 
             // Filter dataset
             const result = index.search(query.simpleSearch);
@@ -369,14 +369,45 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
 
     // Check if subset has already been saved
     const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
+    let fullOutput;
     if (util.fileExists(filename)) {
-        const fullOutput = util.readJSON(filename, false);
-        const newFilename = filename.replace(".json", ".csv");
-        await util.generateCSV(newFilename, fullOutput);
-        return newFilename;
+        fullOutput = util.readJSON(filename, false);
     } else {
-        throw new Error("No file exists for this subset");
+        // If subset has not already been saved, create subset
+        // Download data from s3
+        const data = await util.downloadDataset(table, dataset = true);
+
+        if (query.simpleSearch) {
+            // Filter if query is defined
+            // Configure parser to search dataset
+            const index = new FlexSearch.Document({
+                document: {
+                    id: "__id__",
+                    index: Object.keys(data.dataset[0])
+                },
+                language: getLanguage(metadata.language),
+                tokenize: "forward"
+            });
+            data.dataset.forEach((row, i) => index.add({ ...row, __id__: i }));
+
+            // Filter dataset
+            const result = index.search(query.simpleSearch);
+
+            // Get records from search result
+            const ids = [ ...new Set(...result.map(x => x.result)) ];
+            fullOutput = ids.map(x => data.dataset[x]);
+        } else {
+            // If query is not defined, return everything
+            fullOutput = [ ...data.dataset ];
+        }
+        
+        // Output results to local file
+        util.generateJSON(filename, fullOutput);
     }
+
+    const newFilename = filename.replace(".json", ".csv");
+    await util.generateCSV(newFilename, fullOutput);
+    return newFilename;
 }
 
 // Get dataset records by ids

@@ -265,54 +265,6 @@ export const SubsetResultsPage = (props) => {
                             Search
                         </Button>
                     </Box>
-                    {searched && !loadingResults && <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            gap: '20px'
-                        }}>
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                justifyContent: 'center',
-                                marginTop: '50px',
-                            }}
-                        >{totalNumResults} results returned</Box>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{
-
-                                color: 'white',
-                                marginLeft: '2em',
-                                marginTop: '50px',
-                                '&:hover': {
-                                    background: 'rgb(200, 200, 200)'
-                                }
-                            }}
-                            onClick={() => {
-                                DownloadFullDataset(props.dataset.table_name)
-                                let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-                                demoV.downloadData = { table_name: props.dataset.table_name, search: "" };
-                                localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-                                window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer");
-                            }}
-                        >Download full dataset</Button>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{
-
-                                color: 'white',
-                                marginLeft: '2em',
-                                marginTop: '50px',
-                                '&:hover': {
-                                    background: 'rgb(200, 200, 200)'
-                                }
-                            }}
-                            onClick={() => DownloadSubset(props.dataset.table_name, query)}
-                        >Download these {totalNumResults} results</Button>
-                    </Box>}
                 </Box>
             </Box>
         </div >
@@ -322,6 +274,9 @@ export const SubsetResultsPage = (props) => {
             page={page}
             totalNumOfPages={totalNumOfPages}
             GetNewPage={GetNewPage}
+            table_name={props.dataset.table_name}
+            downloadSubset={() => DownloadSubset(props.dataset.table_name, query)}
+            totalNumResults={totalNumResults}
         />
     </>
 

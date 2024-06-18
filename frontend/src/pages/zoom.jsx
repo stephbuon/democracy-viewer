@@ -103,6 +103,9 @@ export const Zoom = () => {
                     page = {page}
                     totalNumOfPages = {totalPages}
                     GetNewPage = {nextPage}
+                    table_name={graphData.dataset}
+                    downloadSubset={() => {}}
+                    totalNumResults={graphData.ids.length}
                 />
             </div>
         </div>

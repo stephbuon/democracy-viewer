@@ -7,17 +7,18 @@ import { Column } from "primereact/column";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import { useEffect, useState } from 'react';
 import { AlertDialog } from './AlertDialog';
+import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
 
-export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNewPage }) => {
-    const [ clickRow, setClickRow ] = useState(-1);
-    const [ clickCol, setClickCol ] = useState(-1);  
-    const [ editOpen, setEditOpen ] = useState(false);
-    const [ editStart, setEditStart ] = useState(-1);
-    const [ editEnd, setEditEnd ] = useState(-1);
-    const [ editText, setEditText ] = useState("");
-    const [ newText, setNewText ] = useState("");
-    const [ disabled, setDisabled ] = useState(true);
-    const [ suggest, setSuggest ] = useState(false);
+export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNewPage, downloadSubset, table_name, totalNumResults }) => {
+    const [clickRow, setClickRow] = useState(-1);
+    const [clickCol, setClickCol] = useState(-1);
+    const [editOpen, setEditOpen] = useState(false);
+    const [editStart, setEditStart] = useState(-1);
+    const [editEnd, setEditEnd] = useState(-1);
+    const [editText, setEditText] = useState("");
+    const [newText, setNewText] = useState("");
+    const [disabled, setDisabled] = useState(true);
+    const [suggest, setSuggest] = useState(false);
 
     const renderPageNumbers = () => {
         const pageNumbers = [];
@@ -114,23 +115,66 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
     }
 
     return <>
-        <Tooltip arrow title = "Highlight text to suggest changes to the dataset">
-            <FormControlLabel 
-                control={<Checkbox defaultChecked={suggest}/>} 
-                label="Suggest Changes" 
-                onChange={event => setSuggest(!suggest)} 
-                style = {{ marginLeft: "100px" }}
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '20px'
+            }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    marginTop: '50px',
+                }}
+            >{totalNumResults} results returned</Box>
+            <Button
+                variant="contained"
+                color="primary"
+                sx={{
+
+                    color: 'white',
+                    marginLeft: '2em',
+                    marginTop: '50px',
+                    '&:hover': {
+                        background: 'rgb(200, 200, 200)'
+                    }
+                }}
+                onClick={() => DownloadSubset(table_name, {})}
+            >Download full dataset</Button>
+            <Button
+                variant="contained"
+                color="primary"
+                sx={{
+
+                    color: 'white',
+                    marginLeft: '2em',
+                    marginTop: '50px',
+                    '&:hover': {
+                        background: 'rgb(200, 200, 200)'
+                    }
+                }}
+                onClick={() => downloadSubset()}
+            >Download these {totalNumResults} results</Button>
+        </Box>
+
+        <Tooltip arrow title="Highlight text to suggest changes to the dataset">
+            <FormControlLabel
+                control={<Checkbox defaultChecked={suggest} />}
+                label="Suggest Changes"
+                onChange={event => setSuggest(!suggest)}
+                style={{ marginLeft: "100px" }}
             />
         </Tooltip>
 
-        <DataTable value={searchResults} scrollable scrollHeight="750px" showGridlines stripedRows style = {{ marginLeft: "100px" }}>
+        <DataTable value={searchResults} scrollable scrollHeight="750px" showGridlines stripedRows style={{ marginLeft: "100px" }}>
             {
                 Object.keys(searchResults[0]).map((col, i) => (
-                    <Column 
-                        key = {col} 
-                        field = {col} 
-                        header = {col}
-                        style = {{ minWidth: `${ col.length * 15 }px` }}
+                    <Column
+                        key={col}
+                        field={col}
+                        header={col}
+                        style={{ minWidth: `${col.length * 15}px` }}
                     />
                 ))
             }
@@ -145,7 +189,7 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
             setOpen={setEditOpen}
             titleText={"Edit Dataset Content"}
             bodyText={<>
-                <p>Suggest change to text "{ editText }"</p>
+                <p>Suggest change to text "{editText}"</p>
                 <TextField
                     id="Description"
                     // label="Description"
@@ -156,7 +200,7 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                     onChange={event => { setNewText(event.target.value); }}
                 />
             </>}
-            action={() => {}}
+            action={() => { }}
             disabled={disabled}
         />
     </>
