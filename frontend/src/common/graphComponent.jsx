@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from "react";
 import Plotly from "plotly.js-dist";
 import { Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { metrics } from "./metrics";
 
 export const GraphComponent = ({ data, setData }) => {
     // UseState definitions
@@ -24,7 +25,7 @@ export const GraphComponent = ({ data, setData }) => {
     // Other variable definitions
     try {
         var layout = {
-            title: data.metric[0].toUpperCase() + data.metric.slice(1) + " for " + listToString(data.titleList),
+            title: metrics[data.metric] + " for " + listToString(data.titleList),
             width: 1000,
             height: 500,
             margin: {

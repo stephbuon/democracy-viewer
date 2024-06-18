@@ -32,6 +32,7 @@ class DatasetMetadata(SQL_BASE):
     date_posted = Column("date_posted", Date)
     embed_col = Column("embed_col", String(50))
     language = Column("language", String(20))
+    likes = Column("likes", Integer)
     
 class Tags(SQL_BASE):
     __tablename__ = "tags"

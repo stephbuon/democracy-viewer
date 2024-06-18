@@ -6,6 +6,14 @@ import { getGroupNames, getColumnValues } from "../api/api.js"
 import { Paper, Button } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select';
+import { metrics } from "./metrics.js";
+
+const allMetricOptions = Object.keys(metrics).map(x => {
+    return {
+        "value": x,
+        "label": metrics[x]
+    }
+});
 
 export const GraphSettings = ( props ) => {
     // UseState definitions
@@ -17,22 +25,12 @@ export const GraphSettings = ( props ) => {
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
     const [selectToggle, setSelectToggle] = useState(true);
-    const [metricOptions] = useState([
-    { value: "counts", label: "Word Counts" },
-    { value: "proportion", label: "Proportion" },
-    { value: "tf-idf", label: "tf-idf" },
-    { value: "ll", label: "Log Likelihood" },
-    { value: "jsd", label: "Jensen-Shannon Divergence" },
-    // { value: "embedding", label: "Word Embeddings" } Removed
-  ]);
-
-    // Variable definitions
-    const navigate = useNavigate();
+    const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
 
     // UseEffect: Updates graph settings from local storage and group names from api
     useEffect(() => {
         let graphData = JSON.parse(localStorage.getItem('graph-data'));
-        if(graphData != undefined && graphData.dataset != undefined && graphData.dataset.table == props.dataset.dataset.table_name){
+        if(graphData !== undefined && graphData.dataset !== undefined && graphData.dataset.table === props.dataset.dataset.table_name){
             setMetric(graphData.graphData.settings.metric);
             setGroup(graphData.graphData.settings.group);
             nameSelected(graphData.graphData.settings.group);
@@ -45,6 +43,10 @@ export const GraphSettings = ( props ) => {
             setGroupList(searchList);
         }
         updateGroupNames();
+
+        if (!props.dataset.dataset.embeddings) {
+            setMetricOptions([ ...metricOptions ].filter(x => x.value !== "embedding"))
+        }
     }, []);
 
     // Function definitions

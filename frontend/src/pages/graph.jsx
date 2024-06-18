@@ -5,20 +5,25 @@ import { useNavigate } from "react-router-dom";
 import { Box, Button, Grid } from "@mui/material";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import IconButton from "@mui/material/IconButton";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
-import background from "../images/graphs_background.png"
+import { getGraph } from "../api/api.js"
+
+const barGraphs = [
+  "counts", "proportion"
+];
+
+const scatterPlots = [
+  "tf-idf", "ll", "embeddings"
+];
+
+const heatMaps = [
+  "jsd"
+]
 
 export const Graph = (props) => {
 // useState definitions
   const [data, setData] = useState(undefined);
   const [graphData, setGraphData] = useState(undefined);
   const [settings, setSettings] = useState(true);
-  const [modalText, setModalText] = useState("Create Graph");
   const [graph, setGraph] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -41,35 +46,33 @@ export const Graph = (props) => {
         titleList:[]
       };
 
-      if(metric == "counts"){
+      if(barGraphs.indexOf(metric) !== -1){
         tempData.xLabel = "Word"
         tempData.yLabel = "Count"
         tempData.titleList = searchTerms;
 
         res.forEach((dataPoint) => { // Populate data array with request output
-          let index = tempData.graph.findIndex((x) => x.name == dataPoint.group);
+          let index = tempData.graph.findIndex((x) => x.name === dataPoint.group);
           if (index >= 0) { // Runs if datapoint already exists in tempData
-            tempData.graph[index].x.push(dataPoint.word)
-            tempData.graph[index].y.push(dataPoint.count)
+            tempData.graph[index].x.push(dataPoint.x)
+            tempData.graph[index].y.push(dataPoint.y)
             dataPoint.ids.forEach((id) => tempData.graph[index].ids.push(id));
           }
           else {
             tempData.graph.push({
-              x: [dataPoint.word],
-              y: [dataPoint.count],
+              x: [dataPoint.x],
+              y: [dataPoint.y],
               ids: dataPoint.ids,
               name: dataPoint.group,
               type: "bar"
             })
           }
         });
-      }
-      else if(metric == "tf-idf"){
-        let keys = Object.keys(res[0])
-
-        tempData.xLabel = keys[1]
-        tempData.yLabel = keys[2]
-        tempData.titleList.push(keys[1], keys[2])
+      } else if(scatterPlots.indexOf(metric) !== -1){
+        const keys = [groupList[0].label, groupList[1].label];
+        tempData.xLabel = keys[0];
+        tempData.yLabel = keys[1];
+        tempData.titleList.push(keys[0], keys[1])
 
         tempData.graph.push({
           x:[],
@@ -82,16 +85,56 @@ export const Graph = (props) => {
         tempData.wordList = [];
 
         res.forEach((dataPoint) => { // Populate data array with request output
-          console.log("Datapoint test", dataPoint)
-          tempData.graph[0].x.push(dataPoint[keys[1]])
-          tempData.graph[0].y.push(dataPoint[keys[2]])
+          tempData.graph[0].x.push(dataPoint.x)
+          tempData.graph[0].y.push(dataPoint.y)
           tempData.graph[0].ids.push(dataPoint.ids);
-          tempData.graph[0].text.push(dataPoint[keys[0]])
+          tempData.graph[0].text.push(dataPoint.word)
           tempData.wordList.push(dataPoint.word);
         });
-      }
-      else {
-        console.log("Metric not implimented")
+      } else if (heatMaps.indexOf(metric) !== -1) {
+        tempData.xLabel = "";
+        tempData.yLabel = "";
+        tempData.titleList = searchTerms;
+
+        tempData.graph.push({
+          x: [],
+          y: [],
+          z: [],
+          zmin: 0,
+          zmax: 1,
+          ids: [],
+          mode: "markers",
+          type: "heatmap",
+          hoverongaps: false
+        })
+        tempData.wordList = searchTerms;
+
+        const groups = groupList.map(x => x.label);
+        groups.forEach(grp => {
+          tempData.graph[0].x.push(grp);
+          tempData.graph[0].y.push(grp);
+          tempData.graph[0].z.push([]);
+        })
+
+        groups.forEach((grp1, i) => {
+          groups.forEach((grp2, j) => {
+            if (i === j) {
+              tempData.graph[0].z[i].push(null);
+              tempData.graph[0].ids.push([]);
+            } else {
+              const dataPoint = res.filter(data => (data.x === grp1 && data.y === grp2) || (data.x === grp2 && data.y === grp1));
+              if (dataPoint.length > 0 && dataPoint[0].fill) {
+                tempData.graph[0].z[i].push(dataPoint[0].fill);
+                tempData.graph[0].ids.push(dataPoint[0].ids);
+              } else {
+                tempData.graph[0].z[i].push(null);
+                tempData.graph[0].ids.push([]);
+              }
+            }
+          });
+        });
+      } else {
+        throw new Error("Metric not implimented")
       }
       localStorage.setItem('graph-data', JSON.stringify(tempData))
       console.log("Saved graph data", tempData)
@@ -109,6 +152,8 @@ export const Graph = (props) => {
   // Resets to blank graph
   const resetGraph = (event) => {
     setGraph(false);
+    localStorage.removeItem("graph-data");
+    localStorage.removeItem('selected');
   }
 
   // UseEffect: Gets dataset information from local storage
@@ -116,7 +161,7 @@ export const Graph = (props) => {
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if (demoV == undefined) {
+    if (demoV === undefined) {
       navigate('/datasetSearch')
       props.setNavigated(true);
     }
@@ -140,7 +185,7 @@ export const Graph = (props) => {
 
   return (
     <>
-      {data != undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
+      {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
       updateGraph={updateGraph} generated={graph}/>}
 
       <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"10%"}}>

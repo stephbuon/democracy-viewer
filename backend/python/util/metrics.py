@@ -15,6 +15,8 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     output = df.groupby(group_cols).sum().reset_index()
+    # Rename columns
+    output.rename({ "word": "x", "count": "y" }, axis = 1, inplace = True)
     # Add ids
     output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
     
@@ -28,14 +30,17 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     # Compute smoothed idf
     idf = {}
     for word in word_list:
-        idf[word] = log2(1 + (total_groups / group_counts[word]))
+        if group_counts[word] > 0:
+            idf[word] = log2(1 + (total_groups / group_counts[word]))
+        else:
+            idf[word] = 0
         
     # Get records by words and groups
     df = data.basic_selection(table_name, column, values, word_list)
     # Group by word and group
     group_cols = [ "word", "group" ]
     # Store ids as list
-    ids = data.groupby("word")["record_id"].apply(list).reset_index(name = "ids")
+    ids = df.groupby("word")["record_id"].apply(list).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     output = df.groupby(group_cols).sum().reset_index()
@@ -52,13 +57,15 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     output.drop(["count", "idf"], axis = 1, inplace = True)
     # Rearrange columns
     output = output.pivot(index = "word", columns = "group", values = "tf_idf").reset_index().fillna(0)
+    # Rename columns
+    output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
     # Add ids
-    output["ids"] = list(map(lambda x: list(set(x)), ids["ids"]))
+    output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
     
     return output
 
 def proportions(table_name: str, column: str, values: list[str], word_list: list[str]):
-    df = data.basic_selection(table_name, column, values, word_list)
+    df = data.basic_selection(table_name, column, values, [])
     
     # Store ids as list
     ids = df.groupby(["word", "group"])["record_id"].apply(list).reset_index(name = "ids")
@@ -69,10 +76,14 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     group_counts = output.groupby("group")["count"].sum().reset_index()
     group_counts.rename(columns = { "count": "total" }, inplace = True)
     output = merge(output, group_counts, on = "group")
+    # Filter for word list
+    output = output[output["word"].isin(word_list)]
+    ids = ids[ids["word"].isin(word_list)]
     # Calculate proportion by group
     output["proportion"] = output["count"] / output["total"]
     output.drop(["count", "total"], axis = 1, inplace = True) 
-        
+    # Rename columns
+    output.rename({ "word": "x", "proportion": "y" }, axis = 1, inplace = True)
     # Add ids
     output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
     
@@ -89,7 +100,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str]):
     # Get word and group counts
     df = df.groupby(["word", "group"]).sum()
     # Calculate probabilities
-    df["prob"] = df.groupby("group")["count"].transform(lambda x: x / x.sum())
+    df["prob"] = df.groupby(["group"])["count"].transform(lambda x: x / x.sum())
     df = df.drop("count", axis = 1).unstack("group").fillna(0).reset_index()
     df.columns = df.columns.get_level_values(1)
     df.drop("", axis = 1, inplace = True)
@@ -100,7 +111,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str]):
         for j in range(i+1, len(groups)):
             # Subset data by current groups
             probs: DataFrame = df[df.columns.intersection([ groups[i], groups[j] ])].copy()
-            # Compute average distributio
+            # Compute average distribution
             m = sum(probs, axis = 1) / probs.shape[1]
             # Compute KLD for each group
             kld = sum(probs * log(probs.div(m, axis = 0)), axis = 1)
@@ -121,7 +132,10 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str]):
               
     # Concatenate results
     if len(output) > 0:
-        return concat(output)
+        output = concat(output)
+        # Rename columns
+        output.rename({ "group1": "x", "group2": "y", "jsd": "fill" }, axis = 1, inplace = True)
+        return output
     else:
         return DataFrame()
     
@@ -168,6 +182,9 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
         output.append(df2)
     
     if len(output) > 0:
-        return concat(output)
+        output = concat(output)
+        # Rename columns
+        output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
+        return output
     else:
         return DataFrame()
