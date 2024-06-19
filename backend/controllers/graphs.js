@@ -1,7 +1,7 @@
 const files = require("../util/file_management");
-const python = require("python-shell").PythonShell;
 const { encodeConnection } = require("./databases");
 const { defaultConfig } = require("../util/database_config");
+const runPython = require("../util/python_config");
 require('dotenv').config();
 
 const datasets = require("../models/datasets");
@@ -29,12 +29,16 @@ const createGraph = async(knex, dataset, params, user = null) => {
     }
 
     params.table_name = dataset;
+    // Use embed_col as group name if embedding metric
+    if (params.metric === "embed") {
+        params.group_name = metadata.embed_col;
+    }
     // Convert params.group_list and params.word_list to arrays if they aren't already
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
     // Create input file with data for python program
-    const file1 = "python/files/input/" + dataset + "_" + Date.now() + ".json";
+    const file1 = "files/python/input/" + dataset + "_" + Date.now() + ".json";
     files.generateJSON(file1, params);
 
     // Add file names as command line arguments
@@ -56,10 +60,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
 
     // Run python program that generates graph data
     try {
-        await python.run("python/graphs.py", options).then(x => console.log(x)).catch(x => {
-            console.log(x);
-            throw new Error(x);
-        });
+        await runPython("python/graphs.py", [ file1 ], user ? user.database : undefined);
         files.deleteFiles([ file1 ]);
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {

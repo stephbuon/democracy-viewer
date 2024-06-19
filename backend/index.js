@@ -2,6 +2,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
+// Delete old files to prevent clutter
+const cleanup = require("./cleanup");
+setInterval(cleanup, 3600000);
+
 // Import middleware
 const requestLog = require("./middleware/logging");
 const { createDatabaseConnection, deleteDatabaseConnection } = require("./middleware/databases");
