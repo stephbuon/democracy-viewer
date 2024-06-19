@@ -44,7 +44,7 @@ export const UploadModal = (props) => {
         if (loadedPage === 1) {
             if (!title || !description) { return false; }
         } else if (loadedPage === 2) {
-            if (tags.length < 3) { return false; }
+            if (tags.length < 1) { return false; } // only 1 tages required for user now
         }
         return true;
     }
@@ -154,7 +154,7 @@ export const UploadModal = (props) => {
                 <Box sx={{ padding: 2 }}>
                     <Typography variant="h5" align="center" gutterBottom>
                         Dataset Information
-                        <Tooltip title="Provide general information about the dataset. Noticed that the information will be shared to public if you select 'public' for privacy.">
+                        <Tooltip title="Provide general information about the dataset. Noticed that the information will be shared to public if you select 'public' for privacy. All required fileds need to be filled before moving to next step.">
                             <IconButton size="small">
                                 <HelpOutlineIcon fontSize="small" />
                             </IconButton>
@@ -163,7 +163,7 @@ export const UploadModal = (props) => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
                         <TextField
                             id="Title"
-                            label="Title"
+                            label="Dateset title"
                             variant="filled"
                             fullWidth
                             sx={{ background: 'rgb(255, 255, 255)' }}
@@ -172,7 +172,7 @@ export const UploadModal = (props) => {
                         />
                         <TextField
                             id="Author"
-                            label="Author"
+                            label="Author/ Source"
                             variant="filled"
                             fullWidth
                             sx={{ background: 'rgb(255, 255, 255)' }}
@@ -188,7 +188,13 @@ export const UploadModal = (props) => {
                             InputLabelProps={{ shrink: true }}
                             sx={{ background: 'rgb(255, 255, 255)' }}
                             value={date}
-                            onChange={event => { setDate(event.target.value); }}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                const year = parseInt(value.split('-')[0], 10);
+                                if (year > 999 && year < 10000) {
+                                    setDate(value);
+                                }
+                            }}
                         />
                         <TextField
                             id="Description"
@@ -217,7 +223,7 @@ export const UploadModal = (props) => {
                 <Box sx={{ padding: 2 }}>
                     <Typography variant="h5" align="center" gutterBottom>
                         Tags
-                        <Tooltip title="Tags are used to discover datasets.">
+                        <Tooltip title="Tags are used to describe datasets for future search and discovery.">
                             <IconButton size="small">
                                 <HelpOutlineIcon fontSize="small" />
                             </IconButton>
@@ -283,42 +289,52 @@ export const UploadModal = (props) => {
                 </Box>
             )}
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
-                {loadedPage > 1 && (
-                    <Button
-                        variant="contained"
-                        onClick={() => setLoadedPage(loadedPage - 1)}
-                    >
-                        Back
-                    </Button>
-                )}
-                {loadedPage < 3 && (
-                    <Button
-                        variant="contained"
-                        disabled={!FilledOut()}
-                        onClick={() => setLoadedPage(loadedPage + 1)}
-                    >
-                        Next
-                    </Button>
-                )}
-                {loadedPage === 3 && (
-                    <Button
-                        variant="contained"
-                        disabled={!FilledOut()}
-                        onClick={() => SendDataset()}
-                    >
-                        Submit Dataset
-                    </Button>
-                )}
-                {loadedPage === 1 && (
+            {loadedPage === 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
                     <Button
                         variant="contained"
                         onClick={() => props.CancelUpload()}
                     >
                         Cancel
                     </Button>
-                )}
-            </Box>
+                    <Button
+                        variant="contained"
+                        onClick={() => setLoadedPage(loadedPage + 1)}
+                        disabled={!FilledOut()}
+                    >
+                        Next
+                    </Button>
+                </Box>
+            )}
+            {loadedPage > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
+                    <Button
+                        variant="contained"
+                        onClick={() => setLoadedPage(loadedPage - 1)}
+                    >
+                        Back
+                    </Button>
+                    {loadedPage < 3 && (
+                        <Button
+                            variant="contained"
+                            onClick={() => setLoadedPage(loadedPage + 1)}
+                            disabled={!FilledOut()}
+                        >
+                            Next
+                        </Button>
+                    )}
+                    {loadedPage === 3 && (
+                        <Button
+                            variant="contained"
+                            onClick={() => SendDataset()}
+                            disabled={!FilledOut()}
+                        >
+                            Submit Dataset
+                        </Button>
+                    )}
+                </Box>
+            )}
+
         </Box>
     );
 }

@@ -29,6 +29,7 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   var endpoint = `${apiEndpoint}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
 
   groupList.forEach((group) => { // Add all groups in groupList to endpoint
+    console.log("Get graph test", group.value)
     endpoint += `&group_list=${group.value}`
   })
 

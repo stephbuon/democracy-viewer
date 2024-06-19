@@ -1,46 +1,36 @@
 // Imports
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
-import Parser from 'html-react-parser';
 
-export const Zoom = () => {
-    // UseState definitions
-    const [searchResults, setSearchResults] = useState([]);
-    const [loadedData, setLoadedData] = useState([]);
-    const [keys, setKeys] = useState([]);
+export const Zoom = ({ data }) => {
 
-    let graphData = JSON.parse(localStorage.getItem('selected'));
-    const [data, setData] = useState(graphData);
-
-    // Variable definitions
+    // TESTING TEMP
     var innerHTML;
-    var scrollSpot = 0;
-    var valueTrack = 0;
-    var show = false;
+    data.group = "MR. GLADSTONE"
+    data.count = 31
+    data.word = "industry"
+    data.ids = [1081131, 1113745, 124187, 309018, 333962, 333977, 368875, 395545, 461368, 461370, 461371, 461372, 5945, 6001, 6006, 6016, 6112, 6198, 6404, 6429, 6442, 651830, 69130, 71485, 743941, 77529, 77554, 77582]
+    //
 
-    // UseEffect: Gets record for all data.ids and populates searchResults
+
+    const [searchResults, setSearchResults] = useState([]);
+
     useEffect(() => {
-        const scrollBox = document.querySelector("div#scroll-box");
-        scrollBox.addEventListener('scroll', (event) => {
-            handleScroll(event)
-        });
-
-        getRecordsByIds(data.dataset, data.ids).then(async (res) => {
+        getRecordsByIds(data.dataset.table_name, data.ids).then(async (res) => {
             if (!res) {
-                console.log("Zoom error, no results found");
+                console.log("Odd zoom page error, no results of selected result?");
             }
             else {
                 setSearchResults(res)
-                setLoadedData(res.slice(0, Math.min(10, res.length)))
-                setKeys(Object.keys(res))
+                console.log("Zoom test", searchResults, res);
             }
         })
     }, []);
 
-    // UseEffect: Prints data on change, updates graph on data change
-    useEffect(() => {
-        console.log("Zoom test", data)
-    }, [data]);
+    const highlight = (result, index) => {
+        console.log("Highlighting")
+        var textLabel = document.getElementById("text" + index);
+        innerHTML = "";
 
     // Funcion definitions
     const highlight = (result) => { // Cleans result and highlights all instances of data.word
@@ -57,11 +47,21 @@ export const Zoom = () => {
             lowerText = lowerText.substring(i + data.word.length)
             i = lowerText.indexOf(data.word)
         }
-        return output + text;
+        innerHTML += tempText;
+        console.log("HTML TEST", innerHTML)
+        console.log(result, index)
       }
 
-
-    return (<>
+    // TODO Show all values from group containing selected word
+    /*
+    return (
+        <div>
+            <div className="navbar-brand fs-3 text-center">{data.group} has {data.count} results for the word '{data.word}'</div>
+            <p className="text-justify text-center">{data.description}</p>
+        </div>
+    );
+    */
+    return (
         <div>
             <div className="container text-center p-5">
                 {/* Top labels */}
@@ -103,30 +103,41 @@ export const Zoom = () => {
                         }
                     </div>
 
-                    {/* Subset search data display */}
-                    {searchResults.length > 0 && loadedData.map(function(result, i)
-                        {
-                            highlight(result)
-
-                            // let debate = result.debate.replaceAll("\"", '')
-                            // let speaker = result.speaker.replaceAll("\"", '')
-
-                            let values = Object.values(result);
-                            return  <div key={"result" + i} className="row border">
-                                <div className="col" xs={5}>
-                                    {i}
-                                </div>
-                                {values.map(function(item, j)
-                                {
-                                    return <div key={"result" + i + "value" + j} className="col" xs={5}>
-                                        {String(item)}
-                                    </div>
-                                }
-                                )}
-                                </div>
-                        })
-                    }
                 </div>
+
+                {/* subset search title */}
+                <div className="row pt-4 bp-2">
+                    <div className="col border">
+                        <b>Debate</b>
+                    </div>
+                    <div className="col border">
+                        <b>Speaker</b>
+                    </div>
+                    <div className="col border">
+                        <b>Text</b>
+                    </div>
+                </div>
+
+                {/* get id results */}
+                {searchResults.length > 0 && searchResults.map(function(result, i)
+                    {
+                        highlight(result, i)
+
+                        let debate = result.debate.replaceAll("\"", '')
+                        let speaker = result.speaker.replaceAll("\"", '')
+
+                        return <div className="row border">
+                                <div className="col my-auto">
+                                    {debate}
+                                </div>
+                                <div className="col my-auto">
+                                    {speaker}
+                                </div>
+                                <div className="col my-auto">{innerHTML}</div>
+                            </div>
+                    }
+                )}
+
             </div>
         </div>
         </>
