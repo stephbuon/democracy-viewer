@@ -2,6 +2,7 @@
 // Imports
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Box, Button, Grid } from "@mui/material";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
 import { getGraph } from "../api/api.js"
@@ -183,6 +184,7 @@ export const Graph = (props) => {
     <>
       {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
       updateGraph={updateGraph} generated={graph}/>}
+
       <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"10%"}}>
         <Grid container justifyContent="center">
           

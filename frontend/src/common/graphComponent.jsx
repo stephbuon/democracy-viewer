@@ -52,6 +52,7 @@ export const GraphComponent = ({ data, setData }) => {
     } catch {
         localStorage.removeItem("graph-data");
     }
+    
     const navigate = useNavigate();
     const graph = useRef(null);
 
