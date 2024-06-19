@@ -4,6 +4,7 @@ const util = require("util");
 const csv_read = require("csv-parser");
 const csv_write =require("objects-to-csv");
 const runPython = require("./python_config");
+const findRemoveSync = require('find-remove');
 
 const maxUploadSize = 100 * 1024 * 1024;
 
@@ -12,14 +13,16 @@ const readFile = (path) => {
     return fs.createReadStream(path);
 }
 
-// Delete an individual file or multiple files
-const deleteFiles = (files) => {
-    if (Array.isArray(files)) {
-        // Delete multiple files
-        files.forEach(f => fs.unlinkSync(f));
-    } else {
-        // Delete one file
-        fs.unlinkSync(files);
+// Delete all files for a given dataset
+const deleteDatasetFiles = (name) => {
+    const result = findRemoveSync("files", { prefix: name });
+
+    const cnt = Object.keys(result).length;
+    console.log(`${ new Date() }: deleted ${ cnt } file(s)`);
+
+    if (cnt > 0) {
+        console.log("Files deleted:");
+        Object.keys(result).forEach(x => console.log(`\t- ${ x }`));
     }
 }
 
@@ -164,7 +167,7 @@ const downloadDataset = async(name, dataset = false, tokens = false) => {
 
 module.exports = {
     readFile,
-    deleteFiles,
+    deleteDatasetFiles,
     fileExists,
     generateCSV,
     generateJSON,

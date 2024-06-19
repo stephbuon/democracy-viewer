@@ -195,6 +195,17 @@ const incClicks = async(knex, table) => {
     return result;
 }
 
+// Update the text of a dataset
+const updateText = async(table, params) => {
+    // Run python program to replace text
+    const paramsFile = `files/python/input/${ table }_${ Date.now() }.json`
+    util.generateJSON(paramsFile, params);
+    await runPython("python/update_text.py", [table, paramsFile]);
+
+    // Delete all files for this dataset to reset them
+    util.deleteDatasetFiles(table);
+}
+
 // Get dataset metadata
 const getMetadata = async(knex, table) => {
     const model = new datasets(knex);
@@ -497,6 +508,7 @@ module.exports = {
     addTextCols,
     updateMetadata,
     incClicks,
+    updateText,
     addLike,
     getMetadata,
     getSubset,

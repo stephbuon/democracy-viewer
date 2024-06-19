@@ -11,6 +11,19 @@ export const getToken = () => {
   }
 }
 
+const apiConfig = () => {
+  let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+  if (demoV && demoV.user) {
+      return {
+          headers:{
+              Authorization: `Bearer ${ demoV.user.token }`
+          }
+      }
+  } else {
+      return {};
+  }
+};
+
 export const upload = (file) => new Promise((resolve, reject) => {
     axios.post(`${apiEndpoint}/datasets/`, file, {
       headers: {
@@ -139,6 +152,14 @@ export const deleteLike = (table) => new Promise((resolve, reject) => {
       Authorization: `Bearer ${ getToken() }`
     }
   }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const updateText = (table, params) => new Promise((resolve, reject) => {
+  console.log(params)
+  axios.put(`${ apiEndpoint }/datasets/text/${ table }`, params, apiConfig()).then(x => resolve(x.data)).catch(x => {
     alert(x);
     reject(x);
   });

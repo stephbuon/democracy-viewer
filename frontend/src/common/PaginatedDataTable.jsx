@@ -8,6 +8,7 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 import { useEffect, useState } from 'react';
 import { AlertDialog } from './AlertDialog';
 import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
+import { updateText } from '../api/api';
 
 export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNewPage, downloadSubset, table_name, totalNumResults }) => {
     const [clickRow, setClickRow] = useState(-1);
@@ -78,6 +79,14 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
             setNewText(text);
             setEditOpen(true);
         }
+    }
+
+    const submitUpdate = () => {
+        updateText(table_name, {
+            row: clickRow, col: clickCol,
+            start: editStart, end: editEnd,
+            text: newText
+        }).then(x => GetNewPage(page));
     }
 
     useEffect(() => {
@@ -187,20 +196,20 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
         <AlertDialog
             open={editOpen}
             setOpen={setEditOpen}
-            titleText={"Edit Dataset Content"}
+            titleText={"Edit Dataset Text"}
             bodyText={<>
-                <p>Suggest change to text "{editText}"</p>
+                <span>Suggest change to text "{editText}"</span>
                 <TextField
-                    id="Description"
-                    // label="Description"
+                    id="text"
+                    label="New Text"
                     variant="filled"
                     fullWidth
                     sx={{ background: 'rgb(255, 255, 255)' }}
                     value={newText}
-                    onChange={event => { setNewText(event.target.value); }}
+                    onChange={event => setNewText(event.target.value)}
                 />
             </>}
-            action={() => { }}
+            action={() => submitUpdate()}
             disabled={disabled}
         />
     </>

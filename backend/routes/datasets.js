@@ -110,6 +110,18 @@ router.put('/click/:table', async(req, res, next) => {
     next();
 });
 
+// Route to update text
+router.put('/text/:table', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.updateText(req.params.table, req.body);
+        res.status(200).end();
+    } catch (err) {
+        console.error('Failed to update dataset text:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to get dataset metadata
 router.get('/metadata/:table', async(req, res, next) => {
     try {
