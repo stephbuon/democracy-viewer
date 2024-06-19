@@ -243,7 +243,7 @@ class datasets {
         for (let i = 0; i < results.length; i++) {
             const tags = await this.getTags(results[i].table_name);
             results[i].tags = tags.map(x => x.tag_name);
-            results[i].liked = await this.getLike(username, results[i].table_name);
+            results[i].liked = await this.getLike(results[i].username, results[i].table_name);
         }
 
         return results;
