@@ -28,6 +28,10 @@ const findUserByUsername = async(knex, username) => {
 const updateUser = async(knex, username, params) => {
     const model = new users(knex);
 
+    // Hash password if changed
+    if (params.password) {
+        params.password = bcrypt.hashSync(params.password, 10);
+    }
     // Update user record
     await model.updateUser(username, params);
     const result = await findUserByUsername(knex, username);

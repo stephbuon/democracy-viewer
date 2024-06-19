@@ -1,8 +1,8 @@
 require("dotenv").config();
 
 const defaultConfig = () => {
-    return mssql(
-        "mssql", process.env.HOST, process.env.DATABASE, 
+    return getConfig(
+        "mysql", process.env.HOST, process.env.DATABASE, 
         process.env.DATABASE_USERNAME, process.env.PORT, 
         process.env.PASSWORD
     );

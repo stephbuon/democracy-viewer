@@ -1,22 +1,18 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { useState, useEffect, useCallback } from "react";
-import { Resizable } from "react-resizable";
+import { useState, useEffect } from "react";
 import 'react-resizable/css/styles.css';
 //MUI Imports
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import Modal from '@mui/material/Modal';
-import Table from '@mui/material/Table';
-import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Hidden } from '@mui/material';
-import { Stack } from '@mui/system';
-import Typography from '@mui/material/Typography';
 //Other Imports
-import { DownloadSubset, DownloadFullDataset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+import { DownloadSubset, DownloadFullDataset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+// import { DataTable } from "../common/DataTable/DataTable";
+import { PaginatedDataTable } from '../common/PaginatedDataTable';
+import Highlighter from "react-highlight-words";
 
-import "./MoveBar.css"
-import "./Loading.css"
-import { Result } from './Result';
+// import "../common/DataTable/MoveBar.css"
+// import "../common/DataTable/Loading.css"
 
 
 export const SubsetResultsPage = (props) => {
@@ -30,10 +26,10 @@ export const SubsetResultsPage = (props) => {
     const [totalNumResults, setTotalNumResults] = useState(0);
     const [totalNumOfPages, setTotalNumOfPages] = useState(0);
     const [page, setPage] = useState(0);
-    const [query, setQuery] = useState("");
+    const [query, setQuery] = useState({});
+    const [loadingPage, setLoadingPage] = useState(true);
     const [loadingNextPage, setLoadingNextPage] = useState(false)
     const [loadingResults, setLoadingResults] = useState(false);
-    const [loadingPage, setLoadingPage] = useState(true);
 
 
     const doMoveAnimation = () => {
@@ -55,10 +51,25 @@ export const SubsetResultsPage = (props) => {
         fetchSubset();
     }
 
+    const highlight = (results) => {
+        const terms = searchTerm.split(" ");
+        results.map(row => {
+            Object.keys(row).forEach(col => {
+                row[col] = (
+                    <Highlighter
+                        searchWords={terms}
+                        textToHighlight={ row[col] }
+                    />
+                )
+            });
+            return row;
+        });
+        setSearchResults(results);
+    }
+
     const fetchSubset = () => {
         let _query = {
-            table_name: props.dataset.table_name,
-            search: searchTerm !== '' ? `?col_search=${searchTerm}` : ''
+            simpleSearch: searchTerm
         }
 
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -75,40 +86,39 @@ export const SubsetResultsPage = (props) => {
         //         setLoadingPage(false);
         //     }
         // }, 3000);
-        GetSubsetOfDataByPage(_query, 1).then(async (res) => {
+        GetSubsetOfDataByPage(props.dataset.table_name, _query).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
             }
             else {
-                setSearchResults(res);
+                highlight(res.data);
+                setTotalNumResults(res.count);
+                let tot = Math.ceil(res.count / 50);
+                setTotalNumOfPages(tot);
+                console.log("Number of Pages", tot);
             }
             setPage(1);
         }).finally(async () => {
             setLoadingResults(false);
             setLoadingPage(false);
-        })
+        });
 
-        GetNumOfEntries(_query).then(async (res) => {
-            setTotalNumResults(res);
-            let tot = res / 50;
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
-        })
         setQuery(_query);
     }
 
-    const GetNewPage = async () => {
-        if (loadingPage) { return }
+    //Changed
+    const GetNewPage = async (selectedPage) => {
+        if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
+
         setLoadingNextPage(true);
-        setLoadingPage(true)
+        setLoadingPage(true);
+
         try {
-            const resPromise = GetSubsetOfDataByPage(query, page + 1);
-            // await new Promise(resolve => setTimeout(resolve, 500));
-            const res = await resPromise;
+            const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage);
             if (res) {
-                let _searchResults = [...searchResults, ...res]
-                setSearchResults(_searchResults);
-                setPage(page + 1);
+                // Correctly handle asynchronous state update
+                setPage(prevPage => selectedPage);
+                highlight(res.data);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);
@@ -168,30 +178,6 @@ export const SubsetResultsPage = (props) => {
         }
     };
 
-    const numberOfColumns = searchResults.length > 0 ? Object.keys(searchResults[0]).length : 1;
-    //NEW
-    const initialWidths = new Array(numberOfColumns).fill(100);
-    //NEW
-    const [columnWidths, setColumnWidths] = useState(initialWidths);
-
-    const handleResize = (index, newWidth) => {
-        setColumnWidths((currentWidths) =>
-            currentWidths.map((width, i) => i === index ? newWidth : width)
-        );
-    };
-
-
-
-    // Convert gridTemplateColumns to use columnWidths state
-    const gridTemplateColumns = columnWidths.map((width) => `${width}px`).join(' ');
-
-    useEffect(() => {
-        // Initialize or update column widths based on the number of columns
-        setColumnWidths(new Array(numberOfColumns).fill(100));
-    }, [numberOfColumns]);
-
-    //END OF NEW
-
     useEffect(() => {
         console.log(props)
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -205,39 +191,7 @@ export const SubsetResultsPage = (props) => {
         console.log("page", loadingPage)
     }, [loadingPage]);
 
-    useEffect(() => {
-        const handleScroll = (event) => {
-            // if(loadingResults) {return}
-            let lastKnownScrollPosition = window.scrollY;
-            let limit = Math.max(document.body.scrollHeight, document.body.offsetHeight,
-                document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight);
-            if (lastKnownScrollPosition > (limit - 1000) && !loadingNextPage && page < totalNumOfPages && page > 0) {
-                GetNewPage();
-                console.log("SHOULD BE GRABBING NEW PAGE")
-
-
-                //     if(page < totalNumOfPages)
-                //     {
-                //         setLoadingNextPage(true);
-                //     }
-                //     setTimeout(() => {
-                //         if(!loadingNextPage)
-                //         {
-
-                //         }
-                //     }, 1000);
-
-            }
-        };
-
-        window.addEventListener("scroll", handleScroll);
-
-        return () => {
-            window.removeEventListener("scroll", handleScroll);
-        };
-    }, [page, loadingNextPage, totalNumOfPages, loadingPage]);
-
-    return (
+    return <>
         <div className='blue' >
             <Box component="main"
                 sx={{
@@ -253,7 +207,7 @@ export const SubsetResultsPage = (props) => {
                         justifyContent: "center",
                         alignItems: "center",
                         marginBottom: '100px',
-                        marginLeft:'10px',
+                        marginLeft: '10px',
                         flexDirection: "column", // Add this to stack the elements vertically
 
                     }}
@@ -312,186 +266,18 @@ export const SubsetResultsPage = (props) => {
                         </Button>
                     </Box>
                 </Box>
-
-                {searched && !loadingResults && <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: '20px'
-                    }}>
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            marginTop: '50px',
-                        }}
-                    >{totalNumResults} results returned</Box>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{
-
-                            color: 'white',
-                            marginLeft: '2em',
-                            marginTop: '50px',
-                            '&:hover': {
-                                background: 'rgb(200, 200, 200)'
-                            }
-                        }}
-                        onClick={() => {
-                            let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-                            demoV.downloadData = { table_name: props.dataset.table_name, search: "" };
-                            localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-                            window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer");
-                        }}
-                    >Download full dataset</Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{
-
-                            color: 'white',
-                            marginLeft: '2em',
-                            marginTop: '50px',
-                            '&:hover': {
-                                background: 'rgb(200, 200, 200)'
-                            }
-                        }}
-                        onClick={() => window.open(`http://localhost:3000/downloadProgress`, "_blank", "noopener,noreferrer")}
-                    >Download these {totalNumResults} results</Button>
-                </Box>}
-
-
-
-                <Box
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexDirection: 'column',
-                        margin: 0,
-                        marginTop: '6rem',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        background: '#ffffff',
-                    }}
-                >
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: gridTemplateColumns,
-                            gap: '1rem',
-                            marginTop: '2rem',
-                        }}
-                    >
-                        {!loadingResults && searchResults.length > 0 && Object.keys(searchResults[0]).map((key, index) => (
-                            <div
-                                key={key}
-                                style={{
-                                    fontWeight: 'bold',
-                                }}
-                            >
-                                <Resizable
-                                    width={columnWidths[index]}
-                                    height={0}
-                                    onResize={(event, { size }) => handleResize(index, size.width)}
-                                    handle={
-                                        <span
-                                            className="react-resizable-handle"
-                                            onClick={(e) => e.stopPropagation()}
-                                            style={{
-                                                position: 'absolute',
-                                                right: 0,
-                                                bottom: 0,
-                                                width: '10px',
-                                                height: '100%',
-                                                cursor: 'col-resize',
-                                            }}
-                                        />
-                                    }
-                                >
-                                    <div style={{
-                                        width: `${columnWidths[index]}px`,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'flex-start',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        {key}
-                                    </div>
-                                </Resizable>
-                            </div>
-                        ))}
-
-                    </div>
-                </Box>
-
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        flexDirection: 'column',
-                        margin: 0,
-                        marginTop: '6rem',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 10,
-                        background: '#ffffff',
-                       
-                    }}
-                >
-                    <div
-                        sx={{
-                            display: 'grid',
-                            gridTemplateColumns: gridTemplateColumns,
-                            gap: '1rem',
-                        }}
-                    >
-
-                        {!loadingResults && searchResults.map((result, index) => (
-                            <div key={result.id}>
-                                <Result value={result} dataset={props.dataset} columnWidths={columnWidths} />
-                            </div>
-                        ))}
-
-
-                    </div>
-                </Box>
-
-
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'left',
-                        margin: 0,
-                        overflowX: 'auto',
-                        marginTop: '2rem',
-                        width: '100%',
-                    }}
-                >
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: gridTemplateColumns,
-                            gap: '1rem',
-                        }}
-                    >
-
-                        {!loadingResults && searchResults.map((result, index) => (
-                            <div key={result.id}>
-                                <Result value={result} dataset={props.dataset} columnWidths={columnWidths} />
-                            </div>
-                        ))}
-                    </div>
-                </Box>
-
-
-
             </Box>
+        </div >
 
-        </div >)
+        <PaginatedDataTable
+            searchResults={searchResults}
+            page={page}
+            totalNumOfPages={totalNumOfPages}
+            GetNewPage={GetNewPage}
+            table_name={props.dataset.table_name}
+            downloadSubset={() => DownloadSubset(props.dataset.table_name, query)}
+            totalNumResults={totalNumResults}
+        />
+    </>
 
 }

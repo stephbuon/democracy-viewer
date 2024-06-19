@@ -1,4 +1,3 @@
-import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
 //MUI Imports
@@ -6,36 +5,29 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
-import Table from '@mui/material/Table';
-import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Paper } from '@mui/material';
+import { FormControl, MenuItem, Select, Paper } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { Grid } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
-import { Stack, width } from '@mui/system';
-
+import { Stack } from '@mui/system';
 
 //Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
-import { Result } from './Result';
 import { AdvancedFilter } from './AdvancedFilter';
-import './Loading.css'
 import { ChangeConnection, GetUserConnections } from '../apiFolder/DistributedBackendAPI';
 import { GetSession } from '../apiFolder/LoginRegister';
+import { DatasetTable } from '../common/DatasetTable';
 
+const pageLength = 50;
 
 export const DatasetResultsPage = (props) => {
-    const navigate = useNavigate();
-    const params = useParams()
-
-
     //temp values
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
-    const [totalTags, setTotalTags] = useState([]);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
@@ -48,7 +40,6 @@ export const DatasetResultsPage = (props) => {
     const [pageFilter, setPageFilter] = useState(null);
     const [totalNumOfPages, setTotalNumOfPages] = useState(1);
     const [page, setPage] = useState(1);
-    const [loadingNextPage, setLoadingNextPage] = useState(false)
 
 
     const [loadingResults, setLoadingResults] = useState(false);
@@ -64,10 +55,11 @@ export const DatasetResultsPage = (props) => {
         let filter = {
             searchTerm: searchTerm ? `&search=${searchTerm}` : '',
             type: publicPrivate ? 'public' : 'private',
-            advanced: false
+            pageLength
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
+        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
@@ -75,15 +67,17 @@ export const DatasetResultsPage = (props) => {
             else { setSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = res / 50;
+            let tot = Math.ceil(res / pageLength);
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
         console.log("Filter", advancedFilter)
+        advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
+        setPage(1);
         FilterDatasets(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
@@ -93,25 +87,30 @@ export const DatasetResultsPage = (props) => {
             handleAdvancedFilterClose()
         })
         FilterDatasetsCount(advancedFilter).then(async (res) => {
-            let tot = res / 50;
+            let tot = Math.ceil(res / pageLength);
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
         })
     }
 
+    const GetNewPage = async (selectedPage) => {
+        if (selectedPage < 1 || selectedPage > totalNumOfPages) return;
 
-    const GetNewPage = () => {
-        let _results = [];
-        setLoadingNextPage(true);
-        FilterDatasets(pageFilter, page + 1).then(async res => {
+        setLoadingResults(true);
 
-            //animation testing
-            _results = [...searchResults, ...res];
-            setLoadingNextPage(false)
-            setSearchResults(_results);
-            setPage(page + 1);
-        })
-    }
+        try {
+            const res = await FilterDatasets(pageFilter, selectedPage);
+            if (res) {
+                setSearchResults(res);
+                // Correctly handle asynchronous state update
+                setPage(selectedPage);
+            }
+        } catch (error) {
+            console.error('Error fetching new page:', error);
+        } finally {
+            setLoadingResults(false);
+        }
+    };
 
     const loggedIn = () => {
         if (props.currUser) {
@@ -341,65 +340,17 @@ export const DatasetResultsPage = (props) => {
                         display: 'flex',
                         justifyContent: 'center',
                         my: 20
-                    }}>
-                    <Table
-                        sx={{
-                            color: 'rgb(0, 0, 0)',
-                            marginTop: '2rem',
-                            width: .8,
-                        }}
-                    >
-                        <TableHead
-                            sx={{
-                                background: 'rgb(255, 255, 255)', opacity: 0.8
-                            }}>
-                            <TableRow>
-                                <TableCell align='center'>
-                                    <Typography component="h1" variant="h6">Results
-                                    </Typography>
-                                </TableCell>
-                            </TableRow>
-                        </TableHead>
-                        {/*Animated Class while people wait for database response*/}
-                        {loadingResults && <TableBody sx={{ background: '#fff' }}>
-                            <TableRow className='loadingData1'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                            <TableRow className='loadingData2'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                            <TableRow className='loadingData3'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                            <TableRow className='loadingData4'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                            <TableRow className='loadingData5'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                            <TableRow className='loadingData6'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                            <TableRow className='loadingData7'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                            <TableRow className='loadingData8'>
-                                <TableCell>&nbsp;</TableCell>
-                            </TableRow>
-                        </TableBody>}
-                        {!loadingResults && <TableBody
-                            sx={{
-                                background: 'rgb(200, 200, 200)'
-                            }}>
-                            {searchResults.map((result) => {
-                                return <TableRow id={result.table_name} key={result.table_name}>
-                                    <TableCell>
-                                        <Result result={result} setDataset={(x) => props.setDataset(x)} />
-                                    </TableCell>
-                                </TableRow>
-                            })}
-                        </TableBody>}
-                    </Table>
+                }}>
+                    <DatasetTable
+                        searchResults={searchResults}
+                        loadingResults={loadingResults}
+                        setDataset={props.setDataset}
+                        header
+                        page={page}
+                        totalNumOfPages={totalNumOfPages}
+                        GetNewPage={GetNewPage}
+                        editable={false}
+                    />
                 </Box>
             </Grid>
         </Grid>

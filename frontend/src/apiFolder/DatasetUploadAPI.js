@@ -34,9 +34,12 @@ export const CreateDataset = async (dataset) =>  {
     return res.data;
 };
 
-export const UploadDataset = async (dataset) =>  {
-    console.log("Uploading", dataset, apiConfig());
-    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/upload/${dataset}`, {}, apiConfig());
+export const UploadDataset = async (table_name, metadata, text, tags) =>  {
+    console.log("Uploading", table_name, apiConfig());
+    const params = {
+        table_name, metadata, text, tags
+    }
+    const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/upload`, params, apiConfig());
     if(res.status !== 201){
         console.log(`Couldn't upload. ${res.status}`)
         return null;
@@ -67,9 +70,19 @@ export const AddTags = async (dataset, tags) =>  {
     return res.data;
 };
 
-export const UpdateMetadata = async (dataset, title, description,is_public) =>  {
-    console.log("Updating metadata", dataset, title, description,is_public, apiConfig());
-    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset}`, {title, description,is_public}, apiConfig());
+export const DeleteTag = async (dataset, tag) =>  {
+    const res = await axios.delete(`${BACKEND_ENDPOINT}/datasets/${ dataset }/tags/${ tag }`, apiConfig());
+    if(res.status !== 201){
+        console.log(`Couldn't add tags. ${res.status}`)
+        return null;
+    }
+    console.log("Returning", res.data);
+    return res.data;
+};
+
+export const UpdateMetadata = async (dataset, params) =>  {
+    console.log("Updating metadata", dataset, params, apiConfig());
+    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset}`, params, apiConfig());
     if(res.status !== 200){
         console.log(`Couldn't update metadata. ${res.status}`)
         return null;

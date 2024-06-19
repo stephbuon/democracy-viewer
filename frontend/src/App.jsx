@@ -15,6 +15,7 @@ import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CreateDistributedConnection from "./CreateDistributedConnection/CreateDistributedConnection.jsx";
+import Acknowledgements from "./Acknownledgements/Acknowledgements.jsx";
   
 export const App = () => {
   
@@ -57,16 +58,28 @@ export const App = () => {
     demoV.user = profile;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
+  const logout = () => {
+    setUser(undefined)
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if(!demoV)
+    {
+      demoV = {user:undefined, dataset:undefined}
+    }
+    console.log(demoV)
+    demoV.user = undefined;
+    localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+    //navigate('/') //where ever you call logout also navigate back to homepage. Error occurs if here since App not in Router
+  }
 
   return (
     <div className="App">
       <BrowserRouter>
-        <Layout user={user}/>
+        <Layout user={user} logout={()=>logout()}/>
         <Routes>
             <Route path="/" element={<Homepage />} />
-            <Route path="/login" element={<Login login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
-            <Route path="/register" element={<Register login={login}/>} />
-            <Route path="/profile/:username" element={<Profile currUser={user}/>} />
+            <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
+            <Route path="/register" element={<Register currUser={user} login={login}/>} />
+            <Route path="/profile/:username" element={<Profile currUser={user} setDataset={setDataset}/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
@@ -74,7 +87,8 @@ export const App = () => {
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/uploadprogress" element={<UploadProgress navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/downloadprogress" element={<DownloadProgress dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
-            <Route path="/createdistributedconnection" element={<CreateDistributedConnection/>}/>
+            <Route path="/createdistributedconnection" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
+            <Route path="/acknowledgements" element={<Acknowledgements/>}/>
         </Routes>
       </BrowserRouter>
     </div>

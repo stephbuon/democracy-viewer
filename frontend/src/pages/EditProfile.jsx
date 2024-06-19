@@ -9,32 +9,23 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
     const handleSubmit = (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        const params = {};
-
-        Object.keys(user).forEach(key => {
-            if (key !== "username") {
-                const val = data.get(key);
-                if (!val && user[key]) {
-                    params[key] = null;
-                } else if (val && val !== user[key]) {
-                    if (key === "orcid") {
-                        if (val.includes("_")) {
-                            throw new Error("Incomplete OrcID");
-                        }
-                        params[key] = val.split("-").join("");
-                    } else {
-                        params[key] = val;
-                    }
-                    
-                } 
+        updateUser
+            (user.username,
+            {
+                username:user.username,
+                email:data.get('email'),
+                first_name:data.get('first_name'),
+                last_name:data.get('last_name'),
+                suffix:data.get('suffix'),
+                title:data.get('title'),
+                orcid:data.get('orcid'),
+                linkedin_link:data.get('linkedin_link'),
+                website:data.get('website'),
             }
-        });
-
-        console.log(params)
-        updateUser(user.username, params).then(x => {
-            setUser(x);
-            setOpen(false);
-        });
+            ).then(x => {
+                setUser(x);
+                setOpen(false);
+            })
     }
 
     return (
@@ -117,7 +108,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                         <TextField
                             margin="normal"
                             id="linkedin_link"
-                            label="LinkenIn Link"
+                            label="LinkedIn Link"
                             name="linkedin_link"
                             defaultValue = { user.linkedin_link ? user.linkedin_link : "" }
                         />

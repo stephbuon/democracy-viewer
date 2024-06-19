@@ -1,78 +1,163 @@
-// TODO Impliment other metrics
-// TODO add groupBy option for column or value
 
-// Imports for Graph page. This page is used for visualizing the selected dataset.
-// Props include: props.dataset
-// props.dataset - table_name
-
+// Imports
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
-import { Box, Grid, Paper, Button } from "@mui/material";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import IconButton from "@mui/material/IconButton";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
-import background from "../images/GUI_gradient_background.png"
+import { getGraph } from "../api/api.js"
+
+const barGraphs = [
+  "counts", "proportion"
+];
+
+const scatterPlots = [
+  "tf-idf", "ll", "embeddings"
+];
+
+const heatMaps = [
+  "jsd"
+]
 
 export const Graph = (props) => {
 // useState definitions
   const [data, setData] = useState(undefined);
   const [graphData, setGraphData] = useState(undefined);
   const [settings, setSettings] = useState(true);
-  const [modalText, setModalText] = useState("Create Graph");
   const [graph, setGraph] = useState(false);
+  const [loading, setLoading] = useState(false);
 
 // variable definitions
   const navigate = useNavigate();
 
 // Function definitions
 
-   // Runs on graph settings subit
+   // Runs on graph settings submit
    // Generate a graph or update the existing graph
   const updateGraph = (group, groupList, metric, searchTerms) => {
+    setGraph(false);
+    setLoading(true);
+
     getGraph(data.dataset.table_name, group, groupList, metric, searchTerms).then(async (res) => {
-      let tempData = {};
-      tempData.graph = [];
-      tempData.table_name = data.dataset.table_name;
-      res.forEach((dataPoint) => { // Populate data array with request output
-        let index = tempData.graph.findIndex((x) => x.name == dataPoint.group);
-        if (index >= 0) { // Runs if datapoint 
-          tempData.graph[index].x.push(dataPoint.word)
-          tempData.graph[index].y.push(dataPoint.count)
-          dataPoint.ids.forEach((id) => tempData.graph[index].ids.push(id));
-        }
-        else {
-          tempData.graph.push({
-            x: [dataPoint.word],
-            y: [dataPoint.count],
-            ids: dataPoint.ids,
-            name: dataPoint.group,
-            type: "bar"
-          })
-        }
-      });
+      let tempData = {
+        graph: [],
+        table_name: data.dataset.table_name,
+        metric: metric,
+        titleList:[]
+      };
+
+      if(barGraphs.indexOf(metric) !== -1){
+        tempData.xLabel = "Word"
+        tempData.yLabel = "Count"
+        tempData.titleList = searchTerms;
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          let index = tempData.graph.findIndex((x) => x.name === dataPoint.group);
+          if (index >= 0) { // Runs if datapoint already exists in tempData
+            tempData.graph[index].x.push(dataPoint.x)
+            tempData.graph[index].y.push(dataPoint.y)
+            tempData.graph[index].ids.push(dataPoint.ids)
+          }
+          else {
+            tempData.graph.push({
+              x: [dataPoint.x],
+              y: [dataPoint.y],
+              ids: [dataPoint.ids],
+              name: dataPoint.group,
+              type: "bar"
+            })
+          }
+        });
+      } else if(scatterPlots.indexOf(metric) !== -1){
+        const keys = [groupList[0].label, groupList[1].label];
+        tempData.xLabel = keys[0];
+        tempData.yLabel = keys[1];
+        tempData.titleList.push(keys[0], keys[1])
+
+        tempData.graph.push({
+          x:[],
+          y:[],
+          ids:[],
+          text:[],
+          mode:"markers",
+          type:"scatter"
+        });
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          tempData.graph[0].x.push(dataPoint.x);
+          tempData.graph[0].y.push(dataPoint.y);
+          tempData.graph[0].ids.push(dataPoint.ids);
+          tempData.graph[0].text.push(dataPoint.word);
+        });
+      } else if (heatMaps.indexOf(metric) !== -1) {
+        tempData.xLabel = "";
+        tempData.yLabel = "";
+        tempData.titleList = searchTerms;
+
+        tempData.graph.push({
+          x: [],
+          y: [],
+          z: [],
+          zmin: 0,
+          zmax: 1,
+          ids: [],
+          mode: "markers",
+          type: "heatmap",
+          hoverongaps: false
+        })
+
+        const groups = groupList.map(x => x.label);
+        groups.forEach(grp => {
+          tempData.graph[0].x.push(grp);
+          tempData.graph[0].y.push(grp);
+          tempData.graph[0].z.push([]);
+        })
+
+        groups.forEach((grp1, i) => {
+          groups.forEach((grp2, j) => {
+            if (i === j) {
+              tempData.graph[0].z[i].push(null);
+              tempData.graph[0].ids.push([]);
+            } else {
+              const dataPoint = res.filter(data => (data.x === grp1 && data.y === grp2) || (data.x === grp2 && data.y === grp1));
+              if (dataPoint.length > 0 && dataPoint[0].fill) {
+                tempData.graph[0].z[i].push(dataPoint[0].fill);
+                tempData.graph[0].ids.push(dataPoint[0].ids);
+              } else {
+                tempData.graph[0].z[i].push(null);
+                tempData.graph[0].ids.push([]);
+              }
+            }
+          });
+        });
+      } else {
+        throw new Error("Metric not implimented")
+      }
       localStorage.setItem('graph-data', JSON.stringify(tempData))
-      console.log("Saved graph data")
+      console.log("Saved graph data", tempData)
       setGraphData(tempData);
       setGraph(true);
+      setLoading(false);
     });
   };
 
-  // Closes modal and updates graph data
+  // Opens modal
   const handleOpen = (event) => {
     setSettings(true);
   }
 
-  // Use Effect definition - Gets dataset information from local storage
+  // Resets to blank graph
+  const resetGraph = (event) => {
+    setGraph(false);
+    localStorage.removeItem("graph-data");
+    localStorage.removeItem('selected');
+  }
+
+  // UseEffect: Gets dataset information from local storage
   // Dataset has been selected -> Populates group options array for column name dropdown
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if (demoV == undefined) {
+    if (demoV === undefined) {
       navigate('/datasetSearch')
       props.setNavigated(true);
     }
@@ -80,42 +165,52 @@ export const Graph = (props) => {
 
     let graph = JSON.parse(localStorage.getItem('graph-data'));
     if(graph){
-      setGraphData(graph);
-      setGraph(true);
-      setSettings(false);
+      if (graph["table_name"] === demoV["dataset"]["table_name"]) {
+        setGraphData(graph);
+        setGraph(true);
+        setSettings(false);
+      } else {
+        localStorage.removeItem("graph-data")
+      }
     }
   }, []);
 
+  // UseEffect: Updates screen on graph change
   useEffect(() => {
   }, [graph])
 
   return (
     <>
-      {data != undefined && <GraphSettings dataset={data} setData={setData} show={settings} setSettings={setSettings}
-      updateGraph={updateGraph} buttonText={modalText}/>}
-
-      <Box component="div" sx={{ 
-        marginLeft: "20px", 
-        marginRight: "16px",
-        backgroundImage:`url(${background})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover", }}
-      >
+      {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
+      updateGraph={updateGraph} generated={graph}/>}
+      <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"10%"}}>
         <Grid container justifyContent="center">
-          <div>
+          
+          {"Open Graph settings button"}
+          <Grid item xs={5}>
             <Button variant="contained"
-            onClick={handleOpen}
+              onClick={handleOpen}
+              className="mt-2"
+              style={{marginLeft:"5%"}}
+            >Open graph settings</Button>
+          </Grid>
+
+          {"Reset graph button"}
+          <Grid item xs={5}>
+            <Button variant="contained"
+            onClick={resetGraph}
             className="mt-2"
             style={{marginLeft:"5%"}}
-            >Open graph settings</Button>
+            >Reset Graph</Button>
+          </Grid>
 
-            
-          </div>
-          {/* Graph */}
-          {!graph && <p>loading...</p>}
-          {graph && <Grid item xs={12} sm={9}>
-            <GraphComponent border data={graphData} setData={setData}/>
-          </Grid>}
+          {"Graph component if graph exists"}
+          <Grid item xs={12}>
+            {/* Graph */}
+            {loading && <p>loading...</p>}
+            {graph && <GraphComponent border data={graphData} setData={setData}/>}
+          </Grid>
+        
         </Grid>
       </Box>
     </>

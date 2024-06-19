@@ -1,1 +1,0 @@
-This is where downloaded files will be temporarily stored while being processed. The file will be deleted one its has been downloaded.

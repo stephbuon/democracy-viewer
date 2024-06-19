@@ -3,30 +3,26 @@ const multer = require("multer");
 const util = require("util");
 const csv_read = require("csv-parser");
 const csv_write =require("objects-to-csv");
+const runPython = require("./python_config");
+const findRemoveSync = require('find-remove');
 
 const maxUploadSize = 100 * 1024 * 1024;
 
-// Clear the given directory of unwanted files
-const clearDirectory = (path) => {
-    // Get all files in the downloads folder
-    const files = fs.readdirSync(path);
-
-    // Iterate through files and delete anything not named "README.md"
-    files.forEach(file => {
-        if (file !== "README.md") {
-            fs.unlinkSync(path + file);
-        }
-    });
+// Read a file into memory as a readable stream
+const readFile = (path) => {
+    return fs.createReadStream(path);
 }
 
-// Delete an individual file or multiple files
-const deleteFiles = (files) => {
-    if (Array.isArray(files)) {
-        // Delete multiple files
-        files.forEach(f => fs.unlinkSync(f));
-    } else {
-        // Delete one file
-        fs.unlinkSync(files);
+// Delete all files for a given dataset
+const deleteDatasetFiles = (name) => {
+    const result = findRemoveSync("files", { prefix: name });
+
+    const cnt = Object.keys(result).length;
+    console.log(`${ new Date() }: deleted ${ cnt } file(s)`);
+
+    if (cnt > 0) {
+        console.log("Files deleted:");
+        Object.keys(result).forEach(x => console.log(`\t- ${ x }`));
     }
 }
 
@@ -91,9 +87,11 @@ const readCSV = (path, del = true) => new Promise((resolve, reject) => {
 });
 
 // Read a JSON file
-const readJSON = (path) => {
+const readJSON = (path, del = true) => {
     const str = fs.readFileSync(path);
-    fs.unlinkSync(path);
+    if (del) {
+        fs.unlinkSync(path);
+    }
     return JSON.parse(str);
 }
 
@@ -103,7 +101,7 @@ const uploadFile = util.promisify(
     multer({
         storage: multer.diskStorage({
             destination: (req, file, cb) => {
-                cb(null, "./uploads");
+                cb(null, "./files/uploads");
             },
             filename: (req, file, cb) => {
                 cb(null, file.originalname);
@@ -113,14 +111,70 @@ const uploadFile = util.promisify(
     }).single("file")
 );
 
+// Rename a file
+const renameFile = (oldName, newName) => {
+    fs.renameSync(oldName, newName);
+}
+
+// Download a data files from S3
+const downloadDataset = async(name, dataset = false, tokens = false) => {
+    const output = {};
+
+    // Store dataset if already downloaded
+    if (dataset) {
+        const path = `files/nodejs/datasets/${ name }.json`;
+        if (fileExists(path)) {
+            output["dataset"] = readJSON(path, false);
+            dataset = false;
+        }
+    } 
+
+    // Store tokens if already downloaded
+    if (tokens) {
+        const path = `files/nodejs/tokens/${ name }.json`;
+        if (fileExists(path)) {
+            output["tokens"] = readJSON(path, false);
+            tokens = false;
+        }
+    }
+
+    // Determine parameter to send to python script
+    let downloadType;
+    if (dataset && tokens) {
+        downloadType = "both";
+    } else if (dataset) {
+        downloadType = "dataset";
+    } else if (tokens) {
+        downloadType = "tokens";
+    } else {
+        // Return output if python script isn't needed
+        return output;
+    }
+
+    // Download data from s3 with python
+    await runPython("python/download_dataset.py", [name, downloadType]);
+
+    // Update output
+    if (dataset) {
+        output["dataset"] = readJSON(`files/nodejs/datasets/${ name }.json`, false);
+    }
+    if (tokens) {
+        output["tokens"] = readJSON(`files/nodejs/tokens/${ name }.json`, false);
+    }
+
+    return output;
+}
+
 module.exports = {
-    clearDirectory,
-    deleteFiles,
+    readFile,
+    deleteDatasetFiles,
     fileExists,
     generateCSV,
     generateJSON,
     generateFile,
     readCSV,
     readJSON,
-    uploadFile
+    uploadFile,
+    renameFile,
+    downloadDataset
 }

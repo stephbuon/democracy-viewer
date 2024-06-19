@@ -28,6 +28,21 @@ export default function CreateDistributedConnection(props) {
 
   const [snackBarOpen, setSnackBarOpen] = useState(false);
 
+  const loggedIn = () => {
+    if(props.currUser)
+    {
+      return true;
+    }
+    return false;
+  }
+  useEffect(() => {
+    if(!loggedIn())
+    {
+      props.setNavigated(true)
+      navigate('/login');
+    }
+  }, []);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

@@ -25,6 +25,7 @@ const theme = createTheme();
 export default function Login(props) {
   const navigate = useNavigate();
   const [snackBarOpen1, setSnackBarOpen1] = useState(false);
+  const [loginFailed, setLoginFailed] = useState(false);
 
   const openSnackbar1 = () => {
     setSnackBarOpen1(true)
@@ -35,8 +36,18 @@ export default function Login(props) {
     }
     setSnackBarOpen1(false);
   };
-
+  const loggedIn = () => {
+    if(props.currUser)
+    {
+      return true;
+    }
+    return false;
+  }
   useEffect(() => {
+    if(loggedIn())
+    {
+      navigate('/')
+    }
     if(props.navigated)
     {
         props.setNavigated(false)
@@ -50,7 +61,7 @@ export default function Login(props) {
     LoginRequest({username: data.get('email'),
     password: data.get('password'),}).then(async (res) => {
       props.login({token: res, username: data.get('email')})
-    }).then(()=>{navigate('/')})
+    }).then(()=>{navigate('/')}).catch((err => setLoginFailed(true)));
   };
 
   return (<div>
@@ -115,6 +126,10 @@ export default function Login(props) {
               </Grid>
             </Grid>
           </Box>
+          {
+            loginFailed &&
+            <p className = "text-center text-danger">Invalid credentials</p>
+          }
         </Box>
       </Container>
     </ThemeProvider>

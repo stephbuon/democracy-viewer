@@ -1,1 +1,0 @@
-This is where processed data files will be stored to be inserted into the database.
