@@ -10,6 +10,13 @@ const datasets = require("../models/datasets");
 const createGraph = async(knex, dataset, params, user = null) => {
     const model = new datasets(knex);
 
+    // If file for graph already exists, skip calculations
+    const file1 = "files/python/input/" + dataset + "_" + JSON.stringify(params) + ".json";
+    const file2 = file1.replace("/input/", "/output/");
+    if (files.fileExists(file2)) {
+        return files.readJSON(file2, false)
+    }
+
     // Check if the provided metrics is valid
     const metrics = [
         "counts",
@@ -38,7 +45,6 @@ const createGraph = async(knex, dataset, params, user = null) => {
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
     // Create input file with data for python program
-    const file1 = "files/python/input/" + dataset + "_" + Date.now() + ".json";
     files.generateJSON(file1, params);
 
     // Add file names as command line arguments
@@ -72,8 +78,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
     }
    
     // Read python output files and return results
-    const file2 = file1.replace("/input/", "/output/");
-    return files.readJSON(file2);
+    return files.readJSON(file2, false);
 }
 
 module.exports = {
