@@ -89,25 +89,26 @@ export const Layout = (props) => {
               width: open ? 240 : 72,
               transition: 'width 225ms cubic-bezier(0.4, 0, 0.2, 1)',
               marginTop: '64px',
+              backgroundColor: "#9FE0F4"
             },
           }}
         >
           <List component="nav">
             <ListItemButton component={Link} to="/" sx={{ pt: 3 }} >
               <ListItemIcon>
-                <Home />
+                <Home sx = {{ color: "#FFFFFF" }}/>
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
             <ListItemButton component={Link} to="/datasetsearch" sx={{ pt: 3 }}>
               <ListItemIcon>
-                <Search />
+                <Search sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Dataset Search" />
             </ListItemButton>
             <ListItemButton component={Link} to="/subsetsearch" sx={{ pt: 3 }}>
               <ListItemIcon>
-                <ManageSearchIcon />
+                <ManageSearchIcon sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Subset Search" />
             </ListItemButton>
@@ -125,13 +126,13 @@ export const Layout = (props) => {
             </ListItemButton>
             {props.user !== undefined && <ListItemButton component={Link} to={`/Profile/${ props.user.username }`}>
               <ListItemIcon>
-                <Person />
+                <Person sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Profile" />
             </ListItemButton>}
             {props.user === undefined && <ListItemButton component={Link} to={`/login`}>
               <ListItemIcon>
-                <Person />
+                <Person sx = {{ color: "#FFFFFF"}}/>
               </ListItemIcon>
               <ListItemText primary="Profile" />
             </ListItemButton>}
