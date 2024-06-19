@@ -50,7 +50,7 @@ export default function Register(props) {
     }
     RegisterRequest(packet).then(async (res) => {
       LoginRequest(packet).then(async (res) => {
-      props.login({token: res, username: data.get('email')})
+      props.login({token: res, username: data.get('username')})
     }).then(()=>{navigate('/')})})
   };
 

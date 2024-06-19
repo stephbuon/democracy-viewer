@@ -61,7 +61,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
     // Run python program that generates graph data
     try {
         await runPython("python/graphs.py", [ file1 ], user ? user.database : undefined);
-        files.deleteFiles([ file1 ]);
+        // files.deleteFiles([ file1 ]);
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {
             //files.deleteFiles([ file1 ]);
