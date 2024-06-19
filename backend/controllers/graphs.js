@@ -64,7 +64,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
         files.deleteFiles([ file1 ]);
     } catch(err) {
         if (!files.fileExists(file1.replace("/input/", "/output/"))) {
-            files.deleteFiles([ file1 ]);
+            //files.deleteFiles([ file1 ]);
             throw new Error(err);
         } else {
             console.log(err)

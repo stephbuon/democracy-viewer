@@ -30,7 +30,8 @@ export const GraphSettings = ( props ) => {
     // UseEffect: Updates graph settings from local storage and group names from api
     useEffect(() => {
         let graphData = JSON.parse(localStorage.getItem('graph-data'));
-        if(graphData !== undefined && graphData.dataset !== undefined && graphData.dataset.table === props.dataset.dataset.table_name){
+        console.log(graphData);
+        if(graphData && graphData.dataset !== undefined && graphData.dataset.table === props.dataset.dataset.table_name){
             setMetric(graphData.graphData.settings.metric);
             setGroup(graphData.graphData.settings.group);
             nameSelected(graphData.graphData.settings.group);
@@ -91,7 +92,7 @@ export const GraphSettings = ( props ) => {
         getColumnValues(props.dataset.dataset.table_name, g).then(async (res) => {
         let _valueOptions = []
         for(let i = 0; i < res.length; i++){
-            _valueOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+            _valueOptions.push({value: res[i], label: res[i]})
         }
         setValueOptions([..._valueOptions])
         });
