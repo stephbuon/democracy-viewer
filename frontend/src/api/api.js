@@ -158,7 +158,6 @@ export const deleteLike = (table) => new Promise((resolve, reject) => {
 });
 
 export const updateText = (table, params) => new Promise((resolve, reject) => {
-  console.log(params)
   axios.put(`${ apiEndpoint }/datasets/text/${ table }`, params, apiConfig()).then(x => resolve(x.data)).catch(x => {
     alert(x);
     reject(x);

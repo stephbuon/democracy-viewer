@@ -349,10 +349,10 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
 
             // Get records from search result
             const ids = [ ...new Set(...result.map(x => x.result)) ];
-            fullOutput = ids.map(x => data.dataset[x]);
+            fullOutput = ids.map(i => { return { ...data.dataset[i], __id__: i } });
         } else {
             // If query is not defined, return everything
-            fullOutput = [ ...data.dataset ];
+            fullOutput = data.dataset.map((x, i) => { return { ...x, __id__: i } });
         }
         
         // Output results to local file
@@ -435,7 +435,7 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
 
     const data = await util.downloadDataset(table, dataset = true);
     
-    return ids.map(x => data.dataset[x]);
+    return ids.map(i => { return { ...data.dataset[i], __id__: i } });
 }
 
 // Get dataset records by ids

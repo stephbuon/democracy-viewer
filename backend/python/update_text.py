@@ -9,12 +9,13 @@ PARAMS_FILE = argv[2]
 df = download("datasets", TABLE_NAME)
 # Read params
 params = load(open(PARAMS_FILE))
-print(params)
 
 # Extract text to be edited
 old_text = str(df.iat[params["row"], params["col"]])
 # Edit the text
-new_text = str(params["text"]).join([old_text[:params["start"]], old_text[params["end"]:]])
+substr1 = old_text[:params["start"]]
+substr2 = old_text[(params["end"] + 1):]
+new_text = str(params["text"]).join([substr1, substr2])
 # Replace text in data frame
 df.iat[params["row"], params["col"]] = new_text
 

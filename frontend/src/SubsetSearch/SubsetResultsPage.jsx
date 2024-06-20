@@ -55,12 +55,17 @@ export const SubsetResultsPage = (props) => {
         const terms = searchTerm.split(" ");
         results.map(row => {
             Object.keys(row).forEach(col => {
-                row[col] = (
-                    <Highlighter
-                        searchWords={terms}
-                        textToHighlight={ row[col] }
-                    />
-                )
+                if (col !== "__id__") {
+                    if (typeof row[col] !== "string") {
+                        row[col] = row[col].toString()
+                    }
+                    row[col] = (
+                        <Highlighter
+                            searchWords={terms}
+                            textToHighlight={ row[col] }
+                        />
+                    )
+                }
             });
             return row;
         });
@@ -76,16 +81,6 @@ export const SubsetResultsPage = (props) => {
         demoV.downloadData = _query;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
 
-        console.log("QUERY ", _query.search)
-        //
-        // setSearchResults([]);
-        // setTimeout(() => {
-        //     if(searchResults.length > 0)
-        //     {
-        //         setLoadingResults(false);
-        //         setLoadingPage(false);
-        //     }
-        // }, 3000);
         GetSubsetOfDataByPage(props.dataset.table_name, _query).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
@@ -127,48 +122,6 @@ export const SubsetResultsPage = (props) => {
             setLoadingPage(false);
         }
     };
-
-    //Old function
-    // const GetNewPage = () => {
-    //     let _results = [];
-    //     console.log("getting page", page)
-    //     setLoadingNextPage(true);
-    //     GetSubsetOfDataByPage(query, page + 1).then((res) => {
-    //         _results = [...searchResults, ...res];
-    //         console.log("Combo array", _results);
-
-    //     })
-    //     setTimeout(() => {
-    //         setLoadingNextPage(false)
-    //         setSearchResults(_results);
-    //     }, 3000);
-    //     setPage(page + 1);
-    // }
-
-    //infinite scroll? Saw this online, but did not understand how it worked.
-    // window.addEventListener("scroll", (event) => {
-    //     let lastKnownScrollPosition = window.scrollY;
-    //     // let limit = document.documentElement.offsetHeight
-    //     let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, 
-    //         document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
-    //     // console.log("lastKnownScrollPosition out of limit",lastKnownScrollPosition, limit)
-    //     // console.log("SHOULD BE GRABBING NEW PAGE",lastKnownScrollPosition, (limit - 600))
-    //     // console.log("1",lastKnownScrollPosition > (limit - 600),"2", !loadingNextPage,"3", page < totalNumOfPages,"4", page > 0)
-    //     if (lastKnownScrollPosition > (limit - 1000)  && !loadingNextPage && page < totalNumOfPages && page > 0) {
-    //         if(page < totalNumOfPages)
-    //         {
-    //             setLoadingNextPage(true);
-    //         }
-    //         setTimeout(() => {
-    //             if(!loadingNextPage)
-    //             {
-    //                 GetNewPage();
-    //             }
-    //         }, 1000);
-    //         console.log("SHOULD BE GRABBING NEW PAGE")
-
-    //     }
-    //   });
 
     const handleKeyPress = event => {
         if (event.key === 'Enter') {
