@@ -1,0 +1,1 @@
+This is where files will temporarily be stored after retrieving them from S3.

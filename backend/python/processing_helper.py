@@ -6,11 +6,12 @@ import util.word_processing as wp
 
 file_name = argv[1]
 process_type = argv[2]
+language = argv[3]
 
 if process_type == "stem":
-    process_function = wp.stem_nltk
+    process_function = lambda x: wp.stem(x, language)
 elif process_type == "lemma":
-    process_function = wp.lemmatize_nltk
+    process_function = lambda x: wp.lemmatize(x, language)
 elif process_type == "none":
     print("No preprocessing was done on this dataset")
     exit(0)

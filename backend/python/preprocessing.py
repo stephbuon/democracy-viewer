@@ -1,20 +1,19 @@
 from collections import Counter
 from copy import deepcopy
 from dotenv import load_dotenv
-from numpy import ceil
 from pandas import DataFrame, concat, read_csv
-from sys import argv, exit
+from sys import argv
 from time import time
 # Database interaction
-from bcpandas import to_sql, SqlCreds
-from sqlalchemy import create_engine, MetaData, select
+from sqlalchemy import create_engine, MetaData
+from util.s3 import upload
 # SQL helpers
 from util.sql_connect import sql_connect
-import util.sql_queries as queries
-from util.sqlalchemy_tables import DatasetMetadata, DatasetSplitText, DatasetTextCols
+import util.data_queries as data
+import util.sql_queries as sql
 # Word processing
-from spacy import load as load_spacy
-from util.word_processing import stem_nltk
+from util.spacy_models import load_spacy_model
+from util.word_processing import stem
 
 # Get table name from command line argument
 TABLE_NAME = argv[1]
@@ -33,7 +32,7 @@ meta.reflect(engine)
 print("Connection time: {} minutes".format((time() - start_time) / 60))
 
 # Extract lemmas, pos, and dependencies from tokens
-def process_sentence(text: str, nlp = load_spacy("en_core_web_sm")):
+def process_sentence(text: str, nlp = load_spacy_model()):
     doc = nlp(text)
     counter = Counter((
         token.lemma_.lower(), token.pos_.lower(), token.tag_.lower(), 
@@ -51,61 +50,28 @@ def expand_counter(row):
         for word_pos, count in row["processed"].items() if word_pos[0] is not None
     ]
 
-# Insert tokens into database
-def insert_tokens(df: DataFrame):
-    start = time()
-    if client == "mssql":
-        creds = SqlCreds.from_engine(engine)
-        to_sql(
-            df,
-            DatasetSplitText.__tablename__,
-            creds,
-            index = False,
-            if_exists = "append",
-            batch_size = min(50000, len(df))
-        )
-    else:
-        with engine.connect() as conn:
-            df.to_sql(
-                DatasetSplitText.__tablename__, 
-                conn, 
-                if_exists = "append", 
-                index = False, 
-                chunksize = min(50000, len(df))
-            )
-            conn.commit()
-    print("Inserting data: {} minutes".format((time() - start) / 60))
-
 # Split the text of the given data frame
-def split_text(data: DataFrame):
+def split_text(df: DataFrame):
     start = time()
     
     # Get metadata to determine preprocessing type
-    query = (
-        select(DatasetMetadata.preprocessing_type)
-            .where(DatasetMetadata.table_name == TABLE_NAME)
-    )
-    with engine.connect() as conn:
-        for row in conn.execute(query):
-            preprocessing_type = row[0]
-            break
-        conn.commit()
+    metadata = sql.get_metadata(engine, meta, TABLE_NAME)
         
     # Read and process stop words
     stopwords = read_csv("python/util/stopwords.csv")
     stopwords["stop_word"] = stopwords["stop_word"].str.lower().str.replace("\W", "", regex=True)
     # Stem stop words if using stemming
-    if preprocessing_type == "stem":
-        stopwords["stop_word"] = stopwords["stop_word"].apply(stem_nltk)
+    if metadata["preprocessing_type"] == "stem":
+        stopwords["stop_word"] = stopwords["stop_word"].apply(lambda x: stem(x, metadata["language"]))
         stopwords = stopwords.explode("stop_word")
     stopwords = stopwords.drop_duplicates()
     
     # Create a deep copy of data
-    split_data = deepcopy(data)
+    split_data = deepcopy(df)
     # Lemmatize, stem, or split text based on preprocessing type
-    if preprocessing_type == "lemma":
+    if metadata["preprocessing_type"] == "lemma":
         # Load spacy language
-        nlp = load_spacy("en_core_web_sm")
+        nlp = load_spacy_model(metadata["language"])
         
         # Create new row for each word
         split_data["processed"] = split_data["text"].apply(lambda x: process_sentence(x, nlp))
@@ -114,9 +80,9 @@ def split_text(data: DataFrame):
         # Remove words with unwanted pos
         split_data = split_data[~split_data["pos"].isin(["num", "part", "punct", "sym", "x"])].dropna()
     else:
-        if preprocessing_type == "stem":
-            split_data["text"] = split_data["text"].apply(stem_nltk)
-        elif preprocessing_type == "none":
+        if metadata["preprocessing_type"] == "stem":
+            split_data["text"] = split_data["text"].apply(lambda x: stem(x, metadata["language"]))
+        elif metadata["preprocessing_type"] == "none":
             split_data["text"] = split_data["text"].str.split()
             
         # Create a new row for each word
@@ -144,9 +110,15 @@ def split_text(data: DataFrame):
     
     print("Data processing: {} minutes".format((time() - start) / 60))
     return split_data
+
+# Upload data to s3
+def upload_result(df: DataFrame):
+    start_time = time()
+    upload(df, "tokens", TABLE_NAME)
+    print("Upload time: {} seconds".format(time() - start_time))
               
-data = queries.get_text(engine, meta, TABLE_NAME)
-df = split_text(data)
+df = data.get_text(engine, TABLE_NAME)
+df = split_text(df)
 print("Tokens processed: {}".format(len(df)))
-insert_tokens(df)
+upload_result(df)
 print("Total time: {} minutes".format((time() - start_time) / 60))

@@ -16,38 +16,21 @@ import Grid from '@mui/material/Grid';
 
 import { UploadModal } from './UploadModal';
 import { Table, TableBody, TableRow, TableCell, TextField } from '@mui/material';
-import { GetCSVFromAPI } from "../apiFolder/DatasetUploadAPI.js";
+import { GetCSVFromAPI, CreateDataset } from "../apiFolder/DatasetUploadAPI.js";
 import { useNavigate } from "react-router-dom";
 
 export const Upload = (props) => {
   const [file, setFile] = useState(undefined);
   const [fileLoaded, setFileLoaded] = useState(false);
-  const [passFile, setPassFile] = useState(undefined);
-  const [fileHeaders, setFileHeaders] = useState(undefined);
-  const [apiHeaders, setApiHeaders] = useState([]);
-  const [apiTableName, setApiTableName] = useState(undefined);
+  const [headers, setheaders] = useState([]);
+  const [tableName, settableName] = useState(undefined);
   const [APIEndpoint, setAPIEndpoint] = useState("");
   const [Token, setToken] = useState("");
   const [clicked, setClicked] = useState(undefined);
   const [alert, setAlert] = useState(true);
+  const [fileUploaded, setFileUploaded] = useState(false);
 
   const [snackBarOpen, setSnackBarOpen] = useState(false);
-
-  const readCSV = (path) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-      const text = e.target.result;
-      console.log(text);
-      processCSV(text)
-    }
-
-    reader.readAsText(file);
-  })
-
-  const processCSV = (str, delim = ',') => {
-    setFileHeaders(str.slice(0, str.indexOf('\n')).split(delim));
-  }
 
   const openDataSetInfo = () => {
     setFileLoaded(true);
@@ -72,16 +55,16 @@ export const Upload = (props) => {
   useEffect(() => {
     file && console.log(file);
 
-    if (file != undefined) {
+    if (file && file.name) {
       console.log(file)
-      if (file.name.search('.csv') === -1) {
+      const validExtensions = [".csv", ".xls", ".xlsx"];
+      if (validExtensions.filter((x, i) => file.name.includes(x)).length === 0) {
         setAlert(true)
         openSnackbar()
       }
       else {
-        readCSV(file)
-        setPassFile(file);
-        console.log(fileHeaders)
+        uploadCsv();
+        console.log(headers)
       }
     }
     else {
@@ -89,10 +72,24 @@ export const Upload = (props) => {
     }
   }, [file]);
 
+  const uploadCsv = () => {
+    CreateDataset(file).then(res => {
+      settableName(res.table_name)
+      setheaders([...Object.keys(res.data[0])])
+      setFileUploaded(true);
+    }).catch(() => {
+      setAlert(false)
+      openSnackbar()
+    }).finally(() => {
+      setFile(undefined);
+    })
+  }
+
   const APIcsv = () => {
     GetCSVFromAPI(APIEndpoint, Token).then(res => {
-      setApiTableName(res.table_name)
-      setApiHeaders([...Object.keys(res.data[0])])
+      settableName(res.table_name)
+      setheaders([...Object.keys(res.data[0])])
+      setFileUploaded(true);
     }).catch(() => {
       setAlert(false)
       openSnackbar()
@@ -102,16 +99,6 @@ export const Upload = (props) => {
   const click = (a) => {
     console.log('clicked =', clicked)
     setClicked(a)
-  }
-
-  const ready = () => {
-    if (clicked == 1) {
-      if (passFile) { return true }
-    }
-    else if (clicked == 2) {
-      if (apiHeaders.length > 0) { return true }
-    }
-    else { return false }
   }
 
   const loggedIn = () => {
@@ -159,7 +146,7 @@ export const Upload = (props) => {
         onClose={() => handleSnackBarClose()}
       >
         <Alert onClose={handleSnackBarClose} severity="error" sx={{ width: '100%' }}>
-          {alert && <div>Only '.csv' files can be uploaded</div>}
+          {alert && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
           {!alert && <div>API connection is bad</div>}
         </Alert>
       </Snackbar>
@@ -168,17 +155,10 @@ export const Upload = (props) => {
         onClose={() => handleDataSetInfo()}
       >
         <div>
-          {clicked == 1 && <UploadModal
+          {(clicked == 1 || clicked === 2) && <UploadModal
             CancelUpload={() => CancelUpload()}
-            file={passFile}
-            headers={fileHeaders}
-          />}
-          {clicked == 2 && <UploadModal
-            CancelUpload={() => CancelUpload()}
-            file={passFile}
-            useAPI={true}
-            apidatasetname={apiTableName}
-            headers={apiHeaders}
+            name={tableName}
+            headers={headers}
           />}
         </div>
       </Modal>
@@ -209,7 +189,6 @@ export const Upload = (props) => {
                     hidden
                     onChange={(x) => {
                       setFile(x.target.files[0]);
-                      setPassFile(x.target.files[0]);
                       click(1); // This explicitly sets clicked to 1, indicating a file upload action
                     }}
                   />
@@ -272,15 +251,15 @@ export const Upload = (props) => {
               </CardActions>
             </Card>
             <Box sx={{ position: 'absolute', top: -25, right: 0 }}>
-              {ready() && 
+              {fileUploaded && 
               <Button
                 variant="contained"
                 sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-                onClick={() => { setFileLoaded(true) }}
+                onClick={() => { setFileLoaded(true); setFileUploaded(false) }}
               >
                 Continue
               </Button>}
-              {!ready() && <Button
+              {!fileUploaded && <Button
                 variant="contained"
                 disabled
                 sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}

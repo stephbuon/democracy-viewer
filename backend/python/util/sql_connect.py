@@ -1,6 +1,5 @@
 from jwt import decode
 from os import environ
-from sys import argv
 
 def sql_connect(creds_token: str | None):
     if creds_token != None:

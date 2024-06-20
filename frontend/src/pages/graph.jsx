@@ -13,44 +13,32 @@ import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select'
 import Plotly from "plotly.js-dist";
 import { useNavigate } from "react-router-dom";
-import { Box } from "@mui/material";
-import { Grid, Paper, Button } from "@mui/material";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import IconButton from "@mui/material/IconButton";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import { getGraph, getGroupNames, getColumnValues } from "../api/api.js"
+import { Box, Button, Grid } from "@mui/material";
+import { GraphComponent } from "../common/graphComponent.jsx";
+import { GraphSettings } from "../common/graphSettings.jsx";
+import { getGraph } from "../api/api.js"
+
+const barGraphs = [
+  "counts", "proportion"
+];
+
+const scatterPlots = [
+  "tf-idf", "ll", "embeddings"
+];
+
+const heatMaps = [
+  "jsd"
+]
 
 export const Graph = (props) => {
 // useState definitions
-  const [data, setData] = useState([]);
-  const searchTerms = useState([]);
-  const [groupOptions, setGroupOptions] = useState(undefined);
-  const [valueOptions, setValueOptions] = useState(undefined);
-  const [groupList, setGroupList] = useState([]);
-  const [group, setGroup] = useState("");
-  const [value, setValue] = useState("");
-  const [buttonToggle, setButtonToggle] = useState(false);
-  const [selectToggle, setSelectToggle] = useState(true);
-  const [topDecade, setTopDecade] = useState(1900);
-  const [bottomDecade, SetBottomDecade] = useState(1900);
-  const [vocabulary, setVocabulary] = useState("");
-  const [vocabOptions] = useState([{ value: 1, label: "All" }]);
-  const [openModal, setOpenModal] = useState(false);const [searchValue, setSearchValue] = useState("");
-  const [metric, setMetric] = useState("counts");
-  const [metricOptions] = useState([
-    { value: "counts", label: "Count" },
-    { value: "proportion", label: "Proportion" },
-    { value: "tf-idf", label: "tf-idf" },
-    { value: "ll", label: "Log Likelihood" },
-    { value: "jsd", label: "Jensen-Shannon Divergence" },
-    // { value: "embedding", label: "Word Embeddings" }
-  ]);
+  const [data, setData] = useState(undefined);
+  const [graphData, setGraphData] = useState(undefined);
+  const [settings, setSettings] = useState(true);
+  const [graph, setGraph] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-// other variable definitions
-  var layout = { title: "" };
-  var first = true;
+// variable definitions
   const navigate = useNavigate();
   const graph = useRef(null);
 
@@ -69,15 +57,112 @@ export const Graph = (props) => {
 
 // Function definitions
 
-  // Updates column name dropdown values
-  const updateGroupNames = () => {
-    getGroupNames(props.dataset.table_name).then(async (res) => {
-      console.log(res)
-      let _groupOptions = []
-      for(let i = 0; i < res.length; i++){
-        _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+   // Runs on graph settings submit
+   // Generate a graph or update the existing graph
+  const updateGraph = (group, groupList, metric, searchTerms) => {
+    setGraph(false);
+    setLoading(true);
+
+    getGraph(data.dataset.table_name, group, groupList, metric, searchTerms).then(async (res) => {
+      let tempData = {
+        graph: [],
+        table_name: data.dataset.table_name,
+        metric: metric,
+        titleList:[]
+      };
+
+      if(barGraphs.indexOf(metric) !== -1){
+        tempData.xLabel = "Word"
+        tempData.yLabel = "Count"
+        tempData.titleList = searchTerms;
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          let index = tempData.graph.findIndex((x) => x.name === dataPoint.group);
+          if (index >= 0) { // Runs if datapoint already exists in tempData
+            tempData.graph[index].x.push(dataPoint.x)
+            tempData.graph[index].y.push(dataPoint.y)
+            tempData.graph[index].ids.push(dataPoint.ids)
+          }
+          else {
+            tempData.graph.push({
+              x: [dataPoint.x],
+              y: [dataPoint.y],
+              ids: [dataPoint.ids],
+              name: dataPoint.group,
+              type: "bar"
+            })
+          }
+        });
+      } else if(scatterPlots.indexOf(metric) !== -1){
+        const keys = [groupList[0].label, groupList[1].label];
+        tempData.xLabel = keys[0];
+        tempData.yLabel = keys[1];
+        tempData.titleList.push(keys[0], keys[1])
+
+        tempData.graph.push({
+          x:[],
+          y:[],
+          ids:[],
+          text:[],
+          mode:"markers",
+          type:"scatter"
+        });
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          tempData.graph[0].x.push(dataPoint.x);
+          tempData.graph[0].y.push(dataPoint.y);
+          tempData.graph[0].ids.push(dataPoint.ids);
+          tempData.graph[0].text.push(dataPoint.word);
+        });
+      } else if (heatMaps.indexOf(metric) !== -1) {
+        tempData.xLabel = "";
+        tempData.yLabel = "";
+        tempData.titleList = searchTerms;
+
+        tempData.graph.push({
+          x: [],
+          y: [],
+          z: [],
+          zmin: 0,
+          zmax: 1,
+          ids: [],
+          mode: "markers",
+          type: "heatmap",
+          hoverongaps: false
+        })
+
+        const groups = groupList.map(x => x.label);
+        groups.forEach(grp => {
+          tempData.graph[0].x.push(grp);
+          tempData.graph[0].y.push(grp);
+          tempData.graph[0].z.push([]);
+        })
+
+        groups.forEach((grp1, i) => {
+          groups.forEach((grp2, j) => {
+            if (i === j) {
+              tempData.graph[0].z[i].push(null);
+              tempData.graph[0].ids.push([]);
+            } else {
+              const dataPoint = res.filter(data => (data.x === grp1 && data.y === grp2) || (data.x === grp2 && data.y === grp1));
+              if (dataPoint.length > 0 && dataPoint[0].fill) {
+                tempData.graph[0].z[i].push(dataPoint[0].fill);
+                tempData.graph[0].ids.push(dataPoint[0].ids);
+              } else {
+                tempData.graph[0].z[i].push(null);
+                tempData.graph[0].ids.push([]);
+              }
+            }
+          });
+        });
+      } else {
+        throw new Error("Metric not implimented")
       }
-      setGroupOptions([..._groupOptions])
+      localStorage.setItem('graph-data', JSON.stringify(tempData))
+      console.log("Saved graph data", tempData)
+      setGraphData(tempData);
+      setGraph(true);
+      setLoading(false);
     });
   }
 
@@ -90,23 +175,35 @@ export const Graph = (props) => {
     }
   }
 
-  // When a column is selected, update array for column value dropdown
-  const nameSelected = (g) => { 
-    setSelectToggle(g == "");
-
-    getColumnValues(props.dataset.table_name, g).then(async (res) => {
-      let _valueOptions = []
-      for(let i = 0; i < res.length; i++){
-        _valueOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
-      }
-      setValueOptions([..._valueOptions])
-    });
+  // Resets to blank graph
+  const resetGraph = (event) => {
+    setGraph(false);
+    localStorage.removeItem("graph-data");
+    localStorage.removeItem('selected');
   }
 
-   // Runs on graph setting subit to generate a graph or update the existing graph
-  const updateGraph = () => {
+  // UseEffect: Gets dataset information from local storage
+  // Dataset has been selected -> Populates group options array for column name dropdown
+  // Navigate to datasetSearch page otherwise
+  useEffect(() => {
+    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+    if (demoV === undefined) {
+      navigate('/datasetSearch')
+      props.setNavigated(true);
+    }
+    setData(demoV);
 
-    setButtonToggle(true); // Disable submit button until finished
+    let graph = JSON.parse(localStorage.getItem('graph-data'));
+    if(graph){
+      if (graph["table_name"] === demoV["dataset"]["table_name"]) {
+        setGraphData(graph);
+        setGraph(true);
+        setSettings(false);
+      } else {
+        localStorage.removeItem("graph-data")
+      }
+    }
+  }, []);
 
     getGraph(props.dataset.table_name, group, groupList, metric, searchTerms[0]).then(async (res) => {
       console.log("graph res test", res)
@@ -162,7 +259,10 @@ export const Graph = (props) => {
 
   return (
     <>
-      <Box component="div" sx={{ marginLeft: "20px", marginRight: "16px" }}>
+      {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
+      updateGraph={updateGraph} generated={graph}/>}
+
+      <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"10%"}}>
         <Grid container justifyContent="center">
 
           {/* Side menu for graph settings */}
