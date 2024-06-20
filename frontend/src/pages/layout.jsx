@@ -105,12 +105,7 @@ export const Layout = (props) => {
               </ListItemIcon>
               <ListItemText primary="Dataset Search" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/subsetsearch" sx={{ pt: 3 }}>
-              <ListItemIcon>
-                <ManageSearchIcon />
-              </ListItemIcon>
-              <ListItemText primary="Subset Search" />
-            </ListItemButton>
+
             <ListItemButton sx={{ pt: 3 }}>
               <ListItemIcon>
                 <ShowChartIcon/>

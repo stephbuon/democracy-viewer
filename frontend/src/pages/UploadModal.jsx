@@ -49,7 +49,7 @@ export const UploadModal = (props) => {
         if (loadedPage === 1) {
             if (!title || !description) { return false; }
         } else if (loadedPage === 2) {
-            if (tags.length < 3) { return false; }
+            if (tags.length < 1) { return false; }
         } else if (loadedPage === 3) {
             if (Object.values(columnTypes).filter(x => x === "TEXT").length === 0) { return false; }
         }
@@ -290,15 +290,14 @@ export const UploadModal = (props) => {
                 {loadedPage > 1 && (
                     <Button
                         variant="contained"
-                        onClick={() => setLoadedPage(loadedPage - 1)}
+                        onClick={() => props.CancelUpload()}
                     >
-                        Back
+                        Cancel
                     </Button>
                 )}
                 {loadedPage < 4 && (
                     <Button
                         variant="contained"
-                        disabled={!FilledOut()}
                         onClick={() => setLoadedPage(loadedPage + 1)}
                     >
                         Next
@@ -308,20 +307,40 @@ export const UploadModal = (props) => {
                     <Button
                         variant="contained"
                         disabled={!FilledOut()}
-                        onClick={() => SendDataset()}
                     >
-                        Submit Dataset
+                        Next
                     </Button>
-                )}
-                {loadedPage === 1 && (
+                </Box>
+            )}
+            {loadedPage > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
                     <Button
                         variant="contained"
-                        onClick={() => props.CancelUpload()}
+                        onClick={() => setLoadedPage(loadedPage - 1)}
                     >
-                        Cancel
+                        Back
                     </Button>
-                )}
-            </Box>
+                    {loadedPage < 3 && (
+                        <Button
+                            variant="contained"
+                            onClick={() => setLoadedPage(loadedPage + 1)}
+                            disabled={!FilledOut()}
+                        >
+                            Next
+                        </Button>
+                    )}
+                    {loadedPage === 3 && (
+                        <Button
+                            variant="contained"
+                            onClick={() => SendDataset()}
+                            disabled={!FilledOut()}
+                        >
+                            Submit Dataset
+                        </Button>
+                    )}
+                </Box>
+            )}
+
         </Box>
     );
 }

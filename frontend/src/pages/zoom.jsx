@@ -20,7 +20,7 @@ export const Zoom = () => {
 
         getRecordsByIds(graphData.dataset, ids).then(async (res) => {
             if (!res) {
-                console.log("Zoom error, no results found");
+                console.log("Odd zoom page error, no results of selected result?");
             }
             else {
                 // Highlighting

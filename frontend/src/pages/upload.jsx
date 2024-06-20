@@ -173,7 +173,7 @@ export const Upload = (props) => {
                   Local file
                 </Typography>
                 <Typography align='center'>
-                  Upload data sets files from laptop
+                  Upload CSV data sets files from laptop
                 </Typography>
               </CardContent>
               <CardActions style={{ justifyContent: 'center' }}>
