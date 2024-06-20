@@ -1,18 +1,21 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
+import { Resizable } from "react-resizable";
 import 'react-resizable/css/styles.css';
 //MUI Imports
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Table from '@mui/material/Table';
+import { TableBody, TableHead, FormControl, MenuItem, Select, InputLabel, TableRow, TableCell, Hidden } from '@mui/material';
+import { Stack } from '@mui/system';
+import Typography from '@mui/material/Typography';
 //Other Imports
-import { DownloadSubset, DownloadFullDataset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
-// import { DataTable } from "../common/DataTable/DataTable";
-import { PaginatedDataTable } from '../common/PaginatedDataTable';
-import Highlighter from "react-highlight-words";
+import { DownloadSubset, DownloadFullDataset, GetNumOfEntries, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 
-// import "../common/DataTable/MoveBar.css"
-// import "../common/DataTable/Loading.css"
+import "./MoveBar.css"
+import "./Loading.css"
+import { Result } from './Result';
 
 
 export const SubsetResultsPage = (props) => {
@@ -26,10 +29,10 @@ export const SubsetResultsPage = (props) => {
     const [totalNumResults, setTotalNumResults] = useState(0);
     const [totalNumOfPages, setTotalNumOfPages] = useState(0);
     const [page, setPage] = useState(0);
-    const [query, setQuery] = useState({});
-    const [loadingPage, setLoadingPage] = useState(true);
+    const [query, setQuery] = useState("");
     const [loadingNextPage, setLoadingNextPage] = useState(false)
     const [loadingResults, setLoadingResults] = useState(false);
+    const [loadingPage, setLoadingPage] = useState(true);
 
 
     const doMoveAnimation = () => {
@@ -50,25 +53,10 @@ export const SubsetResultsPage = (props) => {
         fetchSubset();
     }
 
-    const highlight = (results) => {
-        const terms = searchTerm.split(" ");
-        results.map(row => {
-            Object.keys(row).forEach(col => {
-                row[col] = (
-                    <Highlighter
-                        searchWords={terms}
-                        textToHighlight={ row[col] }
-                    />
-                )
-            });
-            return row;
-        });
-        setSearchResults(results);
-    }
-
     const fetchSubset = () => {
         let _query = {
-            simpleSearch: searchTerm
+            table_name: props.dataset.table_name,
+            search: searchTerm !== '' ? `?col_search=${searchTerm}` : ''
         }
 
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -80,22 +68,22 @@ export const SubsetResultsPage = (props) => {
                 setSearchResults([]);
             }
             else {
-                highlight(res.data);
-                setTotalNumResults(res.count);
-                let tot = Math.ceil(res.count / 50);
-                setTotalNumOfPages(tot);
-                console.log("Number of Pages", tot);
+                setSearchResults(res);
             }
             setPage(1);
         }).finally(async () => {
             setLoadingResults(false);
             setLoadingPage(false);
-        });
+        })
 
+        GetNumOfEntries(_query).then(async (res) => {
+            setTotalNumResults(res);
+            let tot = res / 50;
+            setTotalNumOfPages(tot);
+        })
         setQuery(_query);
     }
 
-    //Changed
     const GetNewPage = async (selectedPage) => {
         if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
 
@@ -103,11 +91,10 @@ export const SubsetResultsPage = (props) => {
         setLoadingPage(true);
 
         try {
-            const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage);
+            const res = await GetSubsetOfDataByPage(query, selectedPage);
             if (res) {
-                // Correctly handle asynchronous state update
+                setSearchResults(res);
                 setPage(prevPage => selectedPage);
-                highlight(res.data);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);

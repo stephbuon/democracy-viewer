@@ -27,27 +27,29 @@ yarn-error.log*
 yarn.lock
 package-lock.json
 
-# Temp files
-files/*/*.json
-files/*/*.csv
-files/*/*/*.json
-files/*/*/*.csv
-*.parquet
-*.pkl
-*.xls
-*.xlsx
+# csv/json files
+downloads/*
+uploads/*
+python/files/input/*
+python/files/output/*
+python/files/embeddings/*
+!python/files/input/README.md
+!python/files/output/README.md
+!python/files/embeddings/README.md
 
 # python
 *__pycache__
 *.ipynb_checkpoints
 *.vscode
 *.ipynb
-python/s3_test.py
+
+# r files
+*.Rhistory
+*.RData
 
 # account management
 accounts.csv
 add_account.sql
 
-datasets/*
+datasets
 latifa_embeddings
-test.js

@@ -1,1 +1,0 @@
-This is where split text records from S3 will be temporarily stored.

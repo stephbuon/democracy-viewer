@@ -4,8 +4,7 @@ from nltk.tokenize import word_tokenize
 import pandas as pd
 # Database interaction
 from sqlalchemy import Engine, MetaData
-import util.data_queries as data
-import util.sql_queries as sql
+import util.sql_queries as queries
 
 def prepare_text(text,stopWords):
     tokens = word_tokenize(text.lower())
@@ -20,7 +19,7 @@ def model_similar_words(stopWords: set[str], df: pd.DataFrame, table_name: str):
     cleaned_texts = [prepare_text(text,stopWords) for text in df['text'].tolist()]
     model = train_word2vec(cleaned_texts)
     
-    pkl_model_file_name = "python/files/embeddings/model_{}.pkl".format(table_name)
+    pkl_model_file_name = "files/embeddings/model_{}.pkl".format(table_name)
     # save models_per_year
     with open(pkl_model_file_name, 'wb') as f:
         pickle.dump(model, f)
@@ -40,7 +39,7 @@ def model_similar_words_over_group(stopWords: set[str], df: pd.DataFrame, group_
         except Exception:
             models_per_year[time_value] = []
             continue
-    pkl_model_file_name = "python/files/embeddings/model_{}_{}.pkl".format(table_name, group_col)
+    pkl_model_file_name = "files/embeddings/model_{}_{}.pkl".format(table_name, group_col)
     # save models_per_year
     with open(pkl_model_file_name, 'wb') as f:
         # save models as dictionary, where key is the group_col unique value AND value is the model
@@ -49,23 +48,23 @@ def model_similar_words_over_group(stopWords: set[str], df: pd.DataFrame, group_
 
 # NOTE: we HAVE TO ask for the users' preferrence on stopwords at the very begining when they upload the file
 # (for data cleaning purpose)
-def compute_embeddings(engine: Engine, meta: MetaData, table_name: str):
+def compute_embeddings(engine: Engine, meta: MetaData, table_name: str, column: str | None):
     # NOTE: everything here should be input from SQL
-    df = data.get_text(engine, meta, table_name)
-    
-    # Get metadata on table to determine grouping column
-    metadata = sql.get_metadata(engine, meta, table_name)
-    column = metadata.get("embed_col", None)
-    
+    df = queries.get_text(engine, meta, table_name)
+    group_col = 'time'# for testing; should be input from user
+    dynamic = 1 # input from user
+    # added_stopWords = ['congress','lady'] # input from user as part of SQL df
+    # pkl_name ="sample" # the dataset id from SQL
+
     # set up stop words from github
-    stopWordFile = pd.read_csv('./python/util/stopwords.csv')# HAVE TO BE READY LOCAL
+    stopWordFile = pd.read_csv('stopwords.csv')# HAVE TO BE READY LOCAL
     stopWords = set(stopWordFile['stop_word'])
+    # .union(set(added_stopWords))
 
     if column is not None:
         # select top words over GROUP and save
-        df_text = data.get_columns(engine, meta, table_name, [column])
-        df_merged = pd.merge(df, df_text, on = "id")
-        model_similar_words_over_group(stopWords, df_merged, column, table_name)
+        model_similar_words_over_group(stopWords, df, group_col, table_name)
     else:
+        df_text = queries.get_columns(engine, meta, table_name, [column])
         model_similar_words(stopWords, df, table_name)
         

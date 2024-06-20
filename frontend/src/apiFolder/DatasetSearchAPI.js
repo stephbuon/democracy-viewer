@@ -19,13 +19,17 @@ export const FilterDatasets = async (params, page) =>  {
     console.log("Filtering Datasets", params);
     // console.log(`GET  -  ${BACKEND_ENDPOINT}/datasets/filter?type=${params.type}${params.searchTerm}`)
 
-    const config = { ...apiConfig() };
-    if (params) {
-        config.params = params;
+    let res;
+    if(params.advanced)
+    {
+        //ADVANCED SEARCH
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,apiConfig());
     }
-
-    const res = await axios.get(`${ BACKEND_ENDPOINT }/datasets/filter/${ page }`, config)
-
+    else
+    {
+        //SIMPLE SEARCH
+        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/filter/${page}?type=${params.type}${params.searchTerm}`,apiConfig());
+    }
     if(res.status !== 200){
         console.log(`Couldn't get datasets information. ${res.status}`, params)
         return null;
@@ -70,7 +74,7 @@ export const GetAllTags = async () =>  {
 
 export const Popularize = async (dataset) =>  {
     console.log("Popularizing", dataset)
-    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/click/${dataset}`)
+    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/click/${dataset.table_name}`)
 
     if(res.status !== 200){
         console.log(`Couldn't popularize. ${res.status}`)

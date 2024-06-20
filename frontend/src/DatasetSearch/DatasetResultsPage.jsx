@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
 //MUI Imports
@@ -7,21 +8,19 @@ import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
 import { TableBody, TableHead, FormControl, MenuItem, Select, TableRow, TableCell, Paper } from '@mui/material';
-import { FormControl, MenuItem, Select, Paper } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { Grid } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 //Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
+import { Result } from './Result';
 import { AdvancedFilter } from './AdvancedFilter';
 import './Loading.css';
 import { ChangeConnection, GetUserConnections } from '../apiFolder/DistributedBackendAPI';
 import { GetSession } from '../apiFolder/LoginRegister';
-import { DatasetTable } from '../common/DatasetTable';
 
 export const DatasetResultsPage = (props) => {
     const navigate = useNavigate();
@@ -30,6 +29,7 @@ export const DatasetResultsPage = (props) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
+    const [totalTags, setTotalTags] = useState([]);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
@@ -54,25 +54,22 @@ export const DatasetResultsPage = (props) => {
         };
         setPageFilter({ ...filter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
             if (!res) { setSearchResults([]); }
             else { setSearchResults(res); }
         });
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
+            let tot = res / 50;
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
         });
     };
 
     const advancedFilterResults = (advancedFilter) => {
-        console.log("Filter", advancedFilter)
-        advancedFilter = { ...advancedFilter, pageLength };
+        console.log("Filter", advancedFilter);
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
             if (!res) { setSearchResults([]); }
@@ -80,29 +77,21 @@ export const DatasetResultsPage = (props) => {
             handleAdvancedFilterClose();
         });
         FilterDatasetsCount(advancedFilter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
+            let tot = res / 50;
             setTotalNumOfPages(tot);
             console.log("Number of Pages", tot);
-        })
-    }
+        });
+    };
 
-    const GetNewPage = async (selectedPage) => {
-        if (selectedPage < 1 || selectedPage > totalNumOfPages) return;
-
-        setLoadingResults(true);
-
-        try {
-            const res = await FilterDatasets(pageFilter, selectedPage);
-            if (res) {
-                setSearchResults(res);
-                // Correctly handle asynchronous state update
-                setPage(selectedPage);
-            }
-        } catch (error) {
-            console.error('Error fetching new page:', error);
-        } finally {
-            setLoadingResults(false);
-        }
+    const GetNewPage = () => {
+        let _results = [];
+        setLoadingNextPage(true);
+        FilterDatasets(pageFilter, page + 1).then(async res => {
+            _results = [...searchResults, ...res];
+            setLoadingNextPage(false);
+            setSearchResults(_results);
+            setPage(page + 1);
+        });
     };
 
     const loggedIn = () => {
