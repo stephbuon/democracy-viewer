@@ -16,7 +16,6 @@ import { Stack } from '@mui/system';
 //Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AdvancedFilter } from './AdvancedFilter';
-import { ChangeConnection, GetUserConnections } from '../apiFolder/DistributedBackendAPI';
 import { GetSession } from '../apiFolder/LoginRegister';
 import { DatasetTable } from '../common/DatasetTable';
 
@@ -31,8 +30,6 @@ export const DatasetResultsPage = (props) => {
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
-    const [connection, setConnection] = useState(-1);
-    const [userConns, setUserConns] = useState([]);
     const [alert, setAlert] = useState(1);
 
 
@@ -150,16 +147,6 @@ export const DatasetResultsPage = (props) => {
     }, [loadingResults]);
 
     useEffect(() => {
-        if (props.currUser) {
-            GetSession().then((user) => {
-                setConnection(user.database)
-            }).catch(() => {
-                setConnection(undefined);
-            })
-        }
-        GetUserConnections().then((_conns) => {
-            setUserConns(_conns)
-        }).catch(() => setUserConns([]))
         if (props.navigated) {
             props.setNavigated(false)
             setAlert(1);
@@ -167,23 +154,6 @@ export const DatasetResultsPage = (props) => {
         }
         filterResults()
     }, []);
-
-    const change_connection = (chosen_dataset) => {
-        ChangeConnection(chosen_dataset).then((token) => {
-            setConnection(chosen_dataset)
-            localStorage.removeItem('democracy-viewer')//wipe the curr userdata
-            let profile = props.currUser
-            profile.token = token
-            props.login(profile)
-            props.setUser(profile)
-        }).catch(() => {
-            setConnection(-1);
-            setAlert(2);
-            openSnackbar1();
-        }).finally(() => {
-            filterResults();
-        })
-    }
 
     return (<div className='blue' style={{ marginTop: "-1in" }}>
         <Snackbar
@@ -193,8 +163,8 @@ export const DatasetResultsPage = (props) => {
             onClose={() => handleSnackBarClose1()}
         >
             <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
-                {alert == 1 && <>Must choose dataset first</>}
-                {alert == 2 && <>Could not use distributed connection</>}
+                {alert === 1 && <>Must choose dataset first</>}
+                {alert === 2 && <>Could not use distributed connection</>}
             </Alert>
         </Snackbar>
         <Grid container component="main" sx={{ height: '100vh' }}>
@@ -232,28 +202,6 @@ export const DatasetResultsPage = (props) => {
                                             value={false}
                                             onClick={() => !loggedIn() && openSnackbar()}>Private
                                         </MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </div>
-                        </Box>
-                        <Box sx={{ m: 2 }}>
-                            <div align="center">
-                                <FormControl
-                                    sx={{ color: "blue" }}>
-                                    <Select
-                                        sx={{ color: "primary" }}
-                                        value={connection}
-                                        onChange={event => change_connection(event.target.value)}
-                                    >
-                                        <MenuItem value={-1}>
-                                            Default
-                                        </MenuItem>
-                                        {userConns.length > 0 && userConns.map((conn) => {
-                                            return <MenuItem
-                                                id={conn.id}
-                                                value={conn.id}
-                                            >{conn.name}</MenuItem>
-                                        })}
                                     </Select>
                                 </FormControl>
                             </div>

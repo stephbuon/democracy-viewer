@@ -14,6 +14,7 @@ import util.sql_queries as sql
 # Word processing
 from util.spacy_models import load_spacy_model
 from util.word_processing import stem
+from util.embeddings_save import compute_embeddings
 
 # Get table name from command line argument
 TABLE_NAME = argv[1]
@@ -29,6 +30,8 @@ conn_str, client = sql_connect(DB_CREDS_TOKEN)
 engine = create_engine(conn_str)
 meta = MetaData()
 meta.reflect(engine)
+# Get metadata to determine preprocessing type
+metadata = sql.get_metadata(engine, meta, TABLE_NAME)
 print("Connection time: {} minutes".format((time() - start_time) / 60))
 
 # Extract lemmas, pos, and dependencies from tokens
@@ -53,9 +56,6 @@ def expand_counter(row):
 # Split the text of the given data frame
 def split_text(df: DataFrame):
     start = time()
-    
-    # Get metadata to determine preprocessing type
-    metadata = sql.get_metadata(engine, meta, TABLE_NAME)
         
     # Read and process stop words
     stopwords = read_csv("python/util/stopwords.csv")
@@ -121,4 +121,7 @@ df = data.get_text(engine, TABLE_NAME)
 df = split_text(df)
 print("Tokens processed: {}".format(len(df)))
 upload_result(df)
+sql.complete_processing(engine, TABLE_NAME, "tokens")
+compute_embeddings(df, metadata, TABLE_NAME)
+sql.complete_processing(engine, TABLE_NAME, "embeddings")
 print("Total time: {} minutes".format((time() - start_time) / 60))

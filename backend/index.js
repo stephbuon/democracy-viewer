@@ -39,7 +39,7 @@ app.get("/health", async(req, res, next) => {
 });
 
 // Use routes
-app.use("/databases", databases);
+app.use("/distributed", databases);
 app.use("/datasets", datasets);
 app.use("/graphs", graphs);
 // app.use("/groups", groups);

@@ -75,10 +75,8 @@ export const UploadModal = (props) => {
         demoV.uploadData = datasetName;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
         UploadDataset(datasetName, metadata, _texts, tags);
-        // window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
         
         props.CancelUpload();
-        return;
     }
 
     useEffect(() => {

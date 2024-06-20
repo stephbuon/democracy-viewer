@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const config = require("../util/database_config");
 
 // Establish a new external database connection
-const newConnection = async(knex, name, owner, host, port, db, username, password, client) => {
+const newConnection = async(knex, name, owner, params) => {
     const model = new databases(knex);
 
     // Test new connection and throw error if it fails
@@ -17,15 +17,22 @@ const newConnection = async(knex, name, owner, host, port, db, username, passwor
         throw new Error("Failed to connect to new database connection");
     }
 
-    // Encrypt all database fields
-    host = encryptor.encrypt(host);
-    port = port ? encryptor.encrypt(String(port)) : port;
-    db = encryptor.encrypt(db);
-    username = encryptor.encrypt(username);
-    password = password ? encryptor.encrypt(password) : password;
+   // Encrypt all database fields
+   const encryptedParams = {};
+   encryptedParams.region = encryptor.encrypt(params.region);
+   encryptedParams.bucket = encryptor.encrypt(params.bucket);
+   if (params.dir) {
+       encryptedParams.dir = encryptor.encrypt(params.dir);
+   }
+   if (params.key_) {
+       encryptedParams.key_ = encryptor.encrypt(params.key_);
+   }
+   if (params.secret) {
+       encryptedParams.secret = encryptor.encrypt(params.secret);
+   }
 
-    // Add credentials to db
-    return await model.newConnection(name, owner, host, port, db, username, password, client);
+   // Add credentials to db
+   return await model.newConnection(name, owner, encryptedParams);
 }
 
 // Get database credentials
@@ -44,22 +51,10 @@ const getCredentials = async(knex, id) => {
     return creds;
 }
 
-// Load an external database connection
-const loadConnection = async(knex, id) => {
-    const creds = await getCredentials(knex, id);
-
-    // Return config based on client
-    return config.getConfig(
-        creds["client"], creds["host"], creds["db"], 
-        creds["username"], creds["port"], creds["password"]
-    );
-}
-
 // Encode a connection in a JWT token 
 const encodeConnection = async(knex, id) => {
-    const accessTokenSecret = process.env.TOKEN_SECRET;
     const creds = await getCredentials(knex, id);
-    const token = jwt.sign({ ...creds }, accessTokenSecret);
+    const token = jwt.sign({ ...creds }, process.env.TOKEN_SECRET);
     return token;
 }
 
@@ -69,18 +64,15 @@ const getConnectionsByUser = async(knex, username) => {
 
     const records = await model.getConnectionsByUser(username);
     return records.map(record => {
-        delete record["host"];
-        delete record["port"];
-        delete record["db"];
-        delete record["username"];
-        delete record["password"];
-        return record;
+        return {
+            id: record.id,
+            name: record.name
+        }
     })
 }
 
 module.exports = {
     newConnection,
-    loadConnection,
     encodeConnection,
     getConnectionsByUser
 }
