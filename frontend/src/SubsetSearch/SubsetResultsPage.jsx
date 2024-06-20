@@ -33,6 +33,7 @@ export const SubsetResultsPage = (props) => {
 
 
     const doMoveAnimation = () => {
+        console.log("STARTING THE MOVE")
         if (!searched) {
             setSearching(true)
             setTimeout(() => finishAnimation(), 500);
@@ -74,6 +75,17 @@ export const SubsetResultsPage = (props) => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.downloadData = _query;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+
+        console.log("QUERY ", _query.search)
+        //
+        // setSearchResults([]);
+        // setTimeout(() => {
+        //     if(searchResults.length > 0)
+        //     {
+        //         setLoadingResults(false);
+        //         setLoadingPage(false);
+        //     }
+        // }, 3000);
         GetSubsetOfDataByPage(props.dataset.table_name, _query).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
@@ -133,27 +145,41 @@ export const SubsetResultsPage = (props) => {
     //     setPage(page + 1);
     // }
 
-        try {
-            const res = await GetSubsetOfDataByPage(query, selectedPage);
-            if (res) {
-                setSearchResults(res);
-                setPage(prevPage => selectedPage);
-            }
-        } catch (error) {
-            console.error('Error fetching new page:', error);
-        } finally {
-            setLoadingNextPage(false);
-            setLoadingPage(false);
-        }
-    };
+    //infinite scroll? Saw this online, but did not understand how it worked.
+    // window.addEventListener("scroll", (event) => {
+    //     let lastKnownScrollPosition = window.scrollY;
+    //     // let limit = document.documentElement.offsetHeight
+    //     let limit = Math.max( document.body.scrollHeight, document.body.offsetHeight, 
+    //         document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
+    //     // console.log("lastKnownScrollPosition out of limit",lastKnownScrollPosition, limit)
+    //     // console.log("SHOULD BE GRABBING NEW PAGE",lastKnownScrollPosition, (limit - 600))
+    //     // console.log("1",lastKnownScrollPosition > (limit - 600),"2", !loadingNextPage,"3", page < totalNumOfPages,"4", page > 0)
+    //     if (lastKnownScrollPosition > (limit - 1000)  && !loadingNextPage && page < totalNumOfPages && page > 0) {
+    //         if(page < totalNumOfPages)
+    //         {
+    //             setLoadingNextPage(true);
+    //         }
+    //         setTimeout(() => {
+    //             if(!loadingNextPage)
+    //             {
+    //                 GetNewPage();
+    //             }
+    //         }, 1000);
+    //         console.log("SHOULD BE GRABBING NEW PAGE")
+
+    //     }
+    //   });
 
     const handleKeyPress = event => {
         if (event.key === 'Enter') {
             doMoveAnimation()
+            console.log(searchTerm)
+
         }
     };
 
     useEffect(() => {
+        console.log(props)
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (demoV == undefined || demoV.dataset == undefined) {
             navigate('/datasetSearch')
@@ -161,14 +187,21 @@ export const SubsetResultsPage = (props) => {
         }
     }, []);
 
+    useEffect(() => {
+        console.log("page", loadingPage)
+    }, [loadingPage]);
+
     return <>
         <div className='blue' >
             <Box component="main"
                 sx={{
                     marginTop: searching ? '50px' : (searched ? '280px' : '0px'),
-                    marginLeft: "100px",
+                    marginLeft: "100px", //Hardcoded
                 }}>
+
+
                 <Box
+                    className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
                     sx={{
                         display: 'flex',
                         justifyContent: "center",
@@ -176,14 +209,17 @@ export const SubsetResultsPage = (props) => {
                         marginBottom: '100px',
                         marginLeft: '10px',
                         flexDirection: "column", // Add this to stack the elements vertically
+
                     }}
                 >
-                    <Typography variant="h4" component="div" align="center" sx={{ mb: 2 }}>
-                        Subset Search
-                    </Typography>
-                    <Typography variant="subtitle1" component="div" align="center" sx={{ mb: 4 }}>
-                        You can search the dataset here
-                    </Typography>
+
+                    <img
+                        src="https://cdn.pixabay.com/photo/2017/10/22/05/06/search-2876776_1280.jpg"
+                        alt="your_image_description_here"
+                        style={{ maxWidth: "20%" }}
+                    />
+
+
                     <Box
                         className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
                         sx={{
@@ -196,6 +232,7 @@ export const SubsetResultsPage = (props) => {
                                 borderRadius: '.5em',
                                 overflow: "hidden",
                                 width: '100%',
+
                             }}>
                             <TextField
                                 id="searchTerm"
@@ -205,8 +242,10 @@ export const SubsetResultsPage = (props) => {
                                 focused
                                 fullWidth
                                 sx={{ marginTop: "10px" }}
+
                                 value={searchTerm}
                                 onChange={event => { setSearchTerm(event.target.value) }}
+                                // New Code to search with enter press
                                 onKeyPress={event => handleKeyPress(event)}
                             />
                         </Box>
@@ -216,6 +255,7 @@ export const SubsetResultsPage = (props) => {
                                 background: 'rgb(255, 255, 255)',
                                 color: 'rgb(0, 0, 0)',
                                 marginLeft: '2em',
+
                                 '&:hover': {
                                     background: 'rgb(200, 200, 200)'
                                 }
