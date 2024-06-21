@@ -1,22 +1,22 @@
-const connections_table = "database_connections";
+const connections_table = "distributed_connections";
 
 class databases {
     constructor(knex) {
         if (!knex) {
-            throw new Error("Database connection not defined");
+            throw new Error("Distributed connection not defined");
         }
         this.knex = knex;
     }
 
-    async newConnection(name, owner, host, port, db, username, password, client) {
+    async newConnection(name, owner, params) {
         const current = await this.knex(connections_table).where({ name, owner });
         if (current.length > 0) {
             throw new Error(`Connection name ${ name } is not unique for user ${ owner }`);
         }
         await this.knex(connections_table).insert({
-            name, owner, host, port, db, username, password, client
+            name, owner, ...params
         });
-        const record = await this.knex(connections_table).orderBy("id", "desc").limit(1);
+        const record = await this.knex(connections_table).where({ name, owner });
         return record[0];
     }
 

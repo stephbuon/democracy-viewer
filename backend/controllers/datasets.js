@@ -103,11 +103,11 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     await model.addTag(name, tags);
 
     // Upload raw data to s3
-    await runPython("python/upload_dataset.py", [ name, path.replace(".json", ".csv") ], user.database);
+    await runPython("python/upload_dataset.py", [ name, path.replace(".json", ".csv") ], metadata.distributed);
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    await runPython("python/preprocessing.py", [ name ], user.database);
+    await runPython("python/preprocessing.py", [ name ], metadata.distributed);
 }
 
 // Add a tag for a dataset
@@ -196,11 +196,16 @@ const incClicks = async(knex, table) => {
 }
 
 // Update the text of a dataset
-const updateText = async(table, params) => {
+const updateText = async(knex, table, params) => {
+    const model = new datasets(knex);
+
+    // Get metadata to check if the dataset is in a distributed connection
+    const metadata = await model.getMetadata(table);
+
     // Run python program to replace text
     const paramsFile = `files/python/input/${ table }_${ Date.now() }.json`
     util.generateJSON(paramsFile, params);
-    await runPython("python/update_text.py", [table, paramsFile]);
+    await runPython("python/update_text.py", [table, paramsFile], metadata.distributed);
 
     // Delete all files for this dataset to reset them
     util.deleteDatasetFiles(table);
@@ -261,8 +266,14 @@ const getColumnNames = async(knex, table) => {
 }
 
 // Get unique values in a dataset column
-const getColumnValues = async(table, column) => {
-    const data = await util.downloadDataset(table, dataset = true);
+const getColumnValues = async(knex, table, column) => {
+    const model = new datasets(knex);
+
+    // Get metadata to check for a distributed connection
+    const metadata = await model.getMetadata(table);
+    // Download dataset from s3
+    const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
+    // Return unique values in given column
     return [ ...new Set(data.dataset.map(x => x[column])) ];
 }
 
@@ -329,7 +340,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     } else {
         // If subset has not already been saved, create subset
         // Download data from s3
-        const data = await util.downloadDataset(table, dataset = true);
+        const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
 
         if (query.simpleSearch) {
             // Filter if query is defined
@@ -349,10 +360,10 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
 
             // Get records from search result
             const ids = [ ...new Set(...result.map(x => x.result)) ];
-            fullOutput = ids.map(x => data.dataset[x]);
+            fullOutput = ids.map(i => { return { ...data.dataset[i], __id__: i } });
         } else {
             // If query is not defined, return everything
-            fullOutput = [ ...data.dataset ];
+            fullOutput = data.dataset.map((x, i) => { return { ...x, __id__: i } });
         }
         
         // Output results to local file
@@ -386,7 +397,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
     } else {
         // If subset has not already been saved, create subset
         // Download data from s3
-        const data = await util.downloadDataset(table, dataset = true);
+        const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
 
         if (query.simpleSearch) {
             // Filter if query is defined
@@ -433,9 +444,9 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    const data = await util.downloadDataset(table, dataset = true);
+    const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
     
-    return ids.map(x => data.dataset[x]);
+    return ids.map(i => { return { ...data.dataset[i], __id__: i } });
 }
 
 // Get dataset records by ids
@@ -450,7 +461,7 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    const data = await util.downloadDataset(table, dataset = true);
+    const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
     
     const fullOutput = ids.map(x => data.dataset[x]);
     const newFilename = `files/downloads/${ table }_${ Date.now() }.csv`;
@@ -463,13 +474,18 @@ const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
 
     // Get the current metadata for this table
-    const curr = await model.getMetadata(table);
+    const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user making the updates, throw error
-    if (curr.username !== user) {
+    if (metadata.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
 
+    // Delete datasets from s3
+    await runPython("python/delete_dataset.py", [table], metadata.distributed);
+
+    // Delete metadata
+    // This will delete tags and columns via cascade
     await model.deleteMetadata(table);
 
     return null;

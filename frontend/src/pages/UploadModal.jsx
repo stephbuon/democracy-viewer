@@ -16,6 +16,7 @@ import Link from '@mui/material/Link';
 import { UploadDataset } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
+import { getDistributedConnections } from "../api/api";
 
 // Languages that allow stemming
 // Some of these languages are not yet available in democracy viewer
@@ -39,6 +40,9 @@ export const UploadModal = (props) => {
     const [author, setAuthor] = useState('');
     const [date, setDate] = useState('');
     // Preprocessing
+    const [useDistributed, setUseDistributed] = useState(false);
+    const [distributed, setDistributed] = useState(null);
+    const [distributedOptions, setDistributedOptions] = useState([]);
     const [language, setLanguage] = useState("English");
     const [tokenization, setTokenization] = useState("none");
     const [embeddings, setEmbeddings] = useState(false);
@@ -69,16 +73,22 @@ export const UploadModal = (props) => {
             pos, embed_col: embedCol, language,
             date_collected: date, author
         };
-        
+        if (useDistributed && distributed) {
+            metadata.distributed = distributed;
+        }
+        // Delete undefined values
+        Object.keys(metadata).forEach(x => {
+            if (!metadata[x]) {
+                delete metadata[x];
+            }
+        });
         
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.uploadData = datasetName;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
         UploadDataset(datasetName, metadata, _texts, tags);
-        // window.open("http://localhost:3000/uploadProgress", "_blank", "noopener,noreferrer");
         
         props.CancelUpload();
-        return;
     }
 
     useEffect(() => {
@@ -106,6 +116,12 @@ export const UploadModal = (props) => {
             setPos(false);
         }
     }, [tokenization]);
+
+    useEffect(() => {
+        if (useDistributed && distributedOptions.length === 0) {
+            getDistributedConnections().then(x => setDistributedOptions(x));
+        }
+    }, [useDistributed]);
 
     return (
         <Box
@@ -197,6 +213,32 @@ export const UploadModal = (props) => {
                         </Tooltip>
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                        <FormGroup>
+                            <Tooltip arrow title = {(
+                                <p>Store your dataset and preprocessing data in your own AWS S3 bucket.</p>
+                            )}>
+                                <FormControlLabel control={<Checkbox defaultChecked = {useDistributed}/>} label="Use a distributed connection" onChange={event => setUseDistributed(!useDistributed)}/>
+                            </Tooltip>
+        
+                            {
+                                useDistributed &&
+                                <Tooltip arrow title = "Choose one of your distributed connections to save your data to.">
+                                    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                                        <InputLabel>Choose Distributed Connection</InputLabel>
+                                        <Select
+                                            value={distributed}
+                                            onChange={event => setDistributed(event.target.value)}
+                                        >
+                                            <MenuItem value = {null}>&nbsp;</MenuItem>
+                                            {distributedOptions.map(x => (
+                                                <MenuItem value = {x.id} key = {x.id}>{ x.name }</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Tooltip>
+                            }
+                        </FormGroup>
+
                         <Tooltip arrow title = "The language the text column(s) are written in. If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                                 

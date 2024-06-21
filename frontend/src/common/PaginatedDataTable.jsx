@@ -59,8 +59,9 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
 
     const getCellClick = (event) => {
         const cell = event.target;
-        setClickRow(cell.closest('tr').rowIndex - 1);
-        setClickCol(cell.cellIndex);
+        const row = cell.closest("tr").rowIndex - 1;
+        setClickRow(searchResults[row].__id__);
+        setClickCol(cell.closest("td").cellIndex);
     }
 
     const getSelection = (event) => {
@@ -178,14 +179,18 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
 
         <DataTable value={searchResults} scrollable scrollHeight="750px" showGridlines stripedRows style={{ marginLeft: "100px" }}>
             {
-                Object.keys(searchResults[0]).map((col, i) => (
-                    <Column
-                        key={col}
-                        field={col}
-                        header={col}
-                        style={{ minWidth: `${col.length * 15}px` }}
-                    />
-                ))
+                Object.keys(searchResults[0]).map((col, i) => {
+                    if (col === "__id__") {
+                        return <></>
+                    } else {
+                        return <Column
+                            key={col}
+                            field={col}
+                            header={col}
+                            style={{ minWidth: `${col.length * 15}px` }}
+                        />
+                    }
+                })
             }
         </DataTable>
 

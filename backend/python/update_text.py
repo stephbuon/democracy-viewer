@@ -5,18 +5,25 @@ from util.s3 import download, upload
 TABLE_NAME = argv[1]
 PARAMS_FILE = argv[2]
 
+# Get distributed token if defined
+try:
+    TOKEN = argv[3]
+except:
+    TOKEN = None
+
 # Download dataset
-df = download("datasets", TABLE_NAME)
+df = download("datasets", TABLE_NAME, TOKEN)
 # Read params
 params = load(open(PARAMS_FILE))
-print(params)
 
 # Extract text to be edited
 old_text = str(df.iat[params["row"], params["col"]])
 # Edit the text
-new_text = str(params["text"]).join([old_text[:params["start"]], old_text[params["end"]:]])
+substr1 = old_text[:params["start"]]
+substr2 = old_text[(params["end"] + 1):]
+new_text = str(params["text"]).join([substr1, substr2])
 # Replace text in data frame
 df.iat[params["row"], params["col"]] = new_text
 
 # Upload new data frame to s3
-upload(df, "datasets", TABLE_NAME)
+upload(df, "datasets", TABLE_NAME, TOKEN)

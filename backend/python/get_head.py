@@ -1,4 +1,4 @@
-from pandas import read_csv, read_excel
+from pandas import read_csv, read_excel, read_parquet
 from sys import argv
 
 # Get filename and extension
@@ -12,6 +12,8 @@ elif ext == "xls" or ext == "xlsx":
     data = read_excel(filename)
     new_filename = filename.replace(ext, "csv")
     data.to_csv(new_filename, index = False)
+elif ext == "parquet":
+    data = read_parquet(filename, "pyarrow")
 else:
     raise Exception("Invalid file extension:", ext)
 

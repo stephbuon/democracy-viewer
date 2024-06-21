@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, BigInteger, Date, ForeignKey, Text, Float
+from sqlalchemy import Column, Integer, String, Boolean, BigInteger, Date, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 SQL_BASE = declarative_base()
@@ -33,6 +33,9 @@ class DatasetMetadata(SQL_BASE):
     embed_col = Column("embed_col", String(50))
     language = Column("language", String(20))
     likes = Column("likes", Integer)
+    embeddings_done = Column("embeddings_done", Boolean)
+    tokens_done = Column("tokens_done", Boolean)
+    distributed = Column("distributed", BigInteger)
     
 class Tags(SQL_BASE):
     __tablename__ = "tags"

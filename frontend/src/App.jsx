@@ -8,13 +8,11 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
 import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
-import { UploadProgress } from "./UploadDownloadProgress/UploadProgress";
-import { DownloadProgress } from "./UploadDownloadProgress/DownloadProgress";
 import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import CreateDistributedConnection from "./CreateDistributedConnection/CreateDistributedConnection.jsx";
+import CreateDistributedConnection from "./pages/CreateDistributedConnection.jsx";
 import Acknowledgements from "./Acknownledgements/Acknowledgements.jsx";
   
 export const App = () => {
@@ -85,9 +83,7 @@ export const App = () => {
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
-            <Route path="/uploadprogress" element={<UploadProgress navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
-            <Route path="/downloadprogress" element={<DownloadProgress dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
-            <Route path="/createdistributedconnection" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
+            <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
             <Route path="/acknowledgements" element={<Acknowledgements/>}/>
         </Routes>
       </BrowserRouter>

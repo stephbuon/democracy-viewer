@@ -113,7 +113,7 @@ router.put('/click/:table', async(req, res, next) => {
 // Route to update text
 router.put('/text/:table', authenticateJWT, async(req, res, next) => {
     try {
-        await control.updateText(req.params.table, req.body);
+        await control.updateText(req.knex, req.params.table, req.body);
         res.status(200).end();
     } catch (err) {
         console.error('Failed to update dataset text:', err);
@@ -285,7 +285,7 @@ router.get('/columns/:table', async(req, res, next) => {
 // Route to get dataset column names
 router.get('/columns/:table/values/:column', async(req, res, next) => {
     try {
-        const result = await control.getColumnValues(req.params.table, req.params.column);
+        const result = await control.getColumnValues(req.knex, req.params.table, req.params.column);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset column names:', err);

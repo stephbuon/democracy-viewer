@@ -13,6 +13,18 @@ CREATE TABLE users (
     website VARCHAR(50)
 );
 
+CREATE TABLE distributed_connections (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    owner VARCHAR(20) NOT NULL,
+    region VARCHAR(288) NOT NULL,
+    bucket VARCHAR(288) NOT NULL,
+    dir VARCHAR(288) NOT NULL DEFAULT '',
+    key_ VARCHAR(288) DEFAULT NULL,
+    secret VARCHAR(288) DEFAULT NULL,
+    FOREIGN KEY(owner) REFERENCES users(username) ON DELETE CASCADE
+);
+
 # CREATE TABLE private_groups (
 #     id SERIAL PRIMARY KEY,
 #     name VARCHAR(50),
@@ -36,7 +48,12 @@ CREATE TABLE dataset_metadata (
     embed_col VARCHAR(50) DEFAULT NULL,
     language VARCHAR(20) DEFAULT 'English' NOT NULL,
     likes INT DEFAULT 0 NOT NULL,
-    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
+    embeddings_done BOOLEAN DEFAULT FALSE NOT NULL,
+    pos_done BOOLEAN DEFAULT FALSE NOT NULL,
+    tokens_done BOOLEAN DEFAULT FALSE NOT NULL,
+    distributed BIGINT UNSIGNED DEFAULT NULL,
+    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
@@ -86,15 +103,15 @@ CREATE TABLE liked_datasets (
     PRIMARY KEY(user, table_name)
 );
 
-CREATE TABLE database_connections (
+CREATE TABLE text_updates (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    owner VARCHAR(20) NOT NULL,
-    host VARCHAR(288) NOT NULL,
-    port VARCHAR(288),
-    db VARCHAR(288) NOT NULL,
-    username VARCHAR(288) NOT NULL,
-    password VARCHAR(288),
-    client VARCHAR(10) NOT NULL,
-    FOREIGN KEY(owner) REFERENCES users(username) ON DELETE CASCADE
+    user VARCHAR(20) NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    idx INT UNSIGNED NOT NULL,
+    col INT UNSIGNED NOT NULL,
+    start INT UNSIGNED NOT NULL,
+    end INT UNSIGNED NOT NULL,
+    new_text VARCHAR(100),
+    FOREIGN KEY(user) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );

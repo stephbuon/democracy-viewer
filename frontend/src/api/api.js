@@ -159,9 +159,45 @@ export const deleteLike = (table) => new Promise((resolve, reject) => {
 });
 
 export const updateText = (table, params) => new Promise((resolve, reject) => {
-  console.log(params)
   axios.put(`${ apiEndpoint }/datasets/text/${ table }`, params, apiConfig()).then(x => resolve(x.data)).catch(x => {
     alert(x);
     reject(x);
   });
 });
+
+export const getDistributedConnections = () => new Promise((resolve, reject) => {
+  axios.get(`${ apiEndpoint }/distributed`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const addDistributedConnection = async (name, connection) =>  {
+  debugger;
+  console.log("Creating connection", connection);
+  const res = await axios.post(`${ apiEndpoint }/distributed/${ name }`, connection, apiConfig());
+  if(res.status !== 201){
+      console.log(`Couldn't create connection. ${res.status}`)
+      return null;
+  }
+  console.log("Returning", res.data);
+  return res.data;
+};
+
+// export const addDistributedConnection = (name, params) => new Promise((resolve, reject) => {
+//   debugger;
+//   axios.post(`${ apiEndpoint }/distributed/${ name }`, { ...params }, {
+//     headers: {
+//       "Content-Type": "multipart/form-data",
+//       Authorization: `Bearer ${ getToken() }`
+//     }
+//   }).then(x => resolve(x.data)).catch(x => {
+//     alert(x);
+//     reject(x);
+//   });
+// });

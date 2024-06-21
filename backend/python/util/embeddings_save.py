@@ -1,11 +1,11 @@
+from pandas import DataFrame
 import pickle
 from gensim.models import Word2Vec
 from nltk.tokenize import word_tokenize
 import pandas as pd
+from time import time
 # Database interaction
-from sqlalchemy import Engine, MetaData
 import util.data_queries as data
-import util.sql_queries as sql
 
 def prepare_text(text,stopWords):
     tokens = word_tokenize(text.lower())
@@ -49,12 +49,9 @@ def model_similar_words_over_group(stopWords: set[str], df: pd.DataFrame, group_
 
 # NOTE: we HAVE TO ask for the users' preferrence on stopwords at the very begining when they upload the file
 # (for data cleaning purpose)
-def compute_embeddings(engine: Engine, meta: MetaData, table_name: str):
-    # NOTE: everything here should be input from SQL
-    df = data.get_text(engine, meta, table_name)
-    
-    # Get metadata on table to determine grouping column
-    metadata = sql.get_metadata(engine, meta, table_name)
+def compute_embeddings(df: DataFrame, metadata: dict, table_name: str, token: str | None = None):
+    start = time()
+    # Get grouping column if defined
     column = metadata.get("embed_col", None)
     
     # set up stop words from github
@@ -63,9 +60,10 @@ def compute_embeddings(engine: Engine, meta: MetaData, table_name: str):
 
     if column is not None:
         # select top words over GROUP and save
-        df_text = data.get_columns(engine, meta, table_name, [column])
-        df_merged = pd.merge(df, df_text, on = "id")
+        df_text = data.get_columns(table_name, [column], token)
+        df_merged = pd.merge(df, df_text, left_on = "id", right_index = True)
         model_similar_words_over_group(stopWords, df_merged, column, table_name)
     else:
         model_similar_words(stopWords, df, table_name)
+    print("Embeddings: {} minutes".format((time() - start) / 60))
         
