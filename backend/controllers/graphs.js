@@ -47,35 +47,8 @@ const createGraph = async(knex, dataset, params, user = null) => {
     // Create input file with data for python program
     files.generateJSON(file1, params);
 
-    // Add file names as command line arguments
-    const options = {
-        args: [ file1 ]
-    }
-
-    // If distributed connection, add encoded token to args
-    if (user && user.database) {
-        const token = await encodeConnection(require("knex")(defaultConfig()), user.database);
-        options.args.push(token);
-    }
-    
-    // If a python path is provided in .env, use it
-    // Else use the default path
-    if (process.env.PYTHON_PATH) {
-        options["pythonPath"] = process.env.PYTHON_PATH;
-    }
-
     // Run python program that generates graph data
-    try {
-        await runPython("python/graphs.py", [ file1 ], user ? user.database : undefined);
-        // files.deleteFiles([ file1 ]);
-    } catch(err) {
-        if (!files.fileExists(file1.replace("/input/", "/output/"))) {
-            //files.deleteFiles([ file1 ]);
-            throw new Error(err);
-        } else {
-            console.log(err)
-        }
-    }
+    await runPython("python/graphs.py", [ file1 ], metadata.distributed);
    
     // Read python output files and return results
     return files.readJSON(file2, false);

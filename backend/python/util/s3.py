@@ -1,72 +1,75 @@
-from pandas import DataFrame, read_parquet
 from boto3 import client
+from jwt import decode
 from os import environ
 from os.path import exists
+from pandas import DataFrame, read_parquet
 
 BASE_PATH = "files/s3/{}".format(environ.get("DB_VERSION"))
 
-def upload(df: DataFrame, folder: str, name: str, distributed: dict[str, str] | None = None) -> None:
+def get_creds(token: str | None = None) -> dict[str, str]:
+    if token == None:
+        return {
+            "region": environ.get("S3_REGION"),
+            "bucket": environ.get("S3_BUCKET"),
+            "dir": environ.get("DB_VERSION"),
+            "key_": environ.get("S3_KEY"),
+            "secret": environ.get("S3_SECRET")
+        }
+        
+    secret = environ.get("TOKEN_SECRET")
+    return decode(token, secret, "HS256")
+
+def upload(df: DataFrame, folder: str, name: str, token: str | None = None) -> None:
+    distributed = get_creds(token)
+    
     # Convert file to parquet
     local_file = "{}/{}/{}.parquet".format(BASE_PATH, folder, name)
     df.to_parquet(local_file, engine = "pyarrow", index = False)
     
-    if distributed is None:
-        # Main s3 bucket
-        s3_client = client(
-            "s3",
-            aws_access_key_id = environ.get("S3_KEY"),
-            aws_secret_access_key = environ.get("S3_SECRET"),
-            region_name = environ.get("S3_REGION")
-        )
-        s3_client.upload_file(
-            local_file,
-            environ.get("S3_BUCKET"),
-            "{}/{}/{}.parquet".format(environ.get("DB_VERSION"), folder, name)
-        )
-    else:
-        # Distributed s3 bucket
+    # Upload file to s3
+    if "key_" in distributed.keys() and "secret" in distributed.keys():
         s3_client = client(
             "s3",
             aws_access_key_id = distributed["key_"],
             aws_secret_access_key = distributed["secret"],
             region_name = distributed["region"]
         )
-        if "dir" in distributed.keys():
-            path = "{}/{}/{}.parquet".format(distributed["dir"], folder, name)
-        else:
-            path = "{}/{}.parquet".format(folder, name)
-        s3_client.upload_file(
-            local_file,
-            distributed["bucket"],
-            path
+    else:
+        s3_client = client(
+            "s3",
+            region_name = distributed["region"]
         )
+    if "dir" in distributed.keys():
+        path = "{}/{}/{}.parquet".format(distributed["dir"], folder, name)
+    else:
+        path = "{}/{}.parquet".format(folder, name)
+    s3_client.upload_file(
+        local_file,
+        distributed["bucket"],
+        path
+    )
     
-def download(folder: str, name: str, distributed: dict[str, str] | None = None) -> DataFrame:
+def download(folder: str, name: str, token: str | None = None) -> DataFrame:
+    distributed = get_creds(token)
+    
     download_path = "{}/{}/{}.parquet".format(BASE_PATH, folder, name)
     if exists(download_path):
         # Do nothing if file already downloaded
         print("{} already exists".format(name))
-    elif distributed is None:
-        # Default s3 bucket
-        s3_client = client(
-            "s3",
-            aws_access_key_id = environ.get("S3_KEY"),
-            aws_secret_access_key = environ.get("S3_SECRET"),
-            region_name = environ.get("S3_REGION")
-        )
-        s3_client.download_file(
-            environ.get("S3_BUCKET"),
-            "{}/{}/{}.parquet".format(environ.get("DB_VERSION"), folder, name),
-            download_path
-        )
     else:
-        # Distributed s3 bucket
-        s3_client = client(
-            "s3",
-            aws_access_key_id = distributed["key_"],
-            aws_secret_access_key = distributed["secret"],
-            region_name = distributed["region"]
-        )
+        # Download file from s3
+        if "key_" in distributed.keys() and "secret" in distributed.keys():
+            s3_client = client(
+                "s3",
+                aws_access_key_id = distributed["key_"],
+                aws_secret_access_key = distributed["secret"],
+                region_name = distributed["region"]
+            )
+        else:
+            s3_client = client(
+                "s3",
+                region_name = distributed["region"]
+            )
         if "dir" in distributed.keys():
             path = "{}/{}/{}.parquet".format(distributed["dir"], folder, name)
         else:
@@ -79,7 +82,38 @@ def download(folder: str, name: str, distributed: dict[str, str] | None = None) 
     
     return read_parquet(download_path, engine = "pyarrow")
 
-def delete(name: str) -> None:
+def delete(name: str, token: str | None = None) -> None:
+    distributed = get_creds(token)
+    
     folders = [
         "datasets", "embeddings", "tokens"
     ]
+    
+    extensions = [
+        "parquet", "pkl", "parquet"
+    ]
+    
+    if "key_" in distributed.keys() and "secret" in distributed.keys():
+        s3_client = client(
+            "s3",
+            aws_access_key_id = distributed["key_"],
+            aws_secret_access_key = distributed["secret"],
+            region_name = distributed["region"]
+        )
+    else:
+        s3_client = client(
+            "s3",
+            region_name = distributed["region"]
+        )
+    
+    for i in range(len(folders)):
+        if "dir" in distributed.keys():
+            path = "{}/{}/{}.{}".format(distributed["dir"], folders[i], name, extensions[i])
+        else:
+            path = "{}/{}.{}".format(folders[i], name, extensions[i])
+            
+        s3_client.delete_object(
+            Bucket = distributed["bucket"],
+            Key = path
+        )
+            

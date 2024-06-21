@@ -117,7 +117,7 @@ const renameFile = (oldName, newName) => {
 }
 
 // Download a data files from S3
-const downloadDataset = async(name, dataset = false, tokens = false) => {
+const downloadDataset = async(name, distributed, dataset = false, tokens = false) => {
     const output = {};
 
     // Store dataset if already downloaded
@@ -152,7 +152,7 @@ const downloadDataset = async(name, dataset = false, tokens = false) => {
     }
 
     // Download data from s3 with python
-    await runPython("python/download_dataset.py", [name, downloadType]);
+    await runPython("python/download_dataset.py", [name, downloadType], distributed);
 
     // Update output
     if (dataset) {

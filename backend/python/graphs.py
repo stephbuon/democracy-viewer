@@ -7,8 +7,6 @@ from util.embeddings_load import get_similar_words
 # Other imports
 from json import load, dump
 from sys import argv
-# Database Interaction
-from sqlalchemy import create_engine, MetaData
 # Import sql helpers
 from util.sql_connect import sql_connect
 from util.sql_queries import get_metadata
@@ -19,17 +17,13 @@ print("Import time: {} seconds".format(time() - start_time))
 # Get input file from command line argument
 params_file = argv[1]
 
-# Load distributed connection if defined
-start_time = time()
+# Get distributed token if defined
 try:
-    DB_CREDS_TOKEN = argv[2]
+    TOKEN = argv[2]
 except:
-    DB_CREDS_TOKEN = None
-conn_str, client = sql_connect(DB_CREDS_TOKEN)
-engine = create_engine(conn_str)
-meta = MetaData()
-meta.reflect(engine)
-print("Connection time: {} seconds".format(time() - start_time))
+    TOKEN = None
+
+engine, meta = sql_connect()
 
 start_time = time()
 # Parse input files
@@ -57,17 +51,17 @@ print("Parameter processing time: {} seconds".format(time() - start_time))
 # Call function based on given metric
 start_time = time()
 if params["metric"] == "counts":
-    output = metrics.counts(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.counts(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
 elif params["metric"] == "ll":
-    output = metrics.log_likelihood(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.log_likelihood(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
 elif params["metric"] == "jsd":
-    output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
 elif params["metric"] == "tf-idf":
-    output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
 elif params["metric"] == "proportion":
-    output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []))
+    output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
 elif params["metric"] == "embed":
-    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []))
+    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
 print("Computation time: {} seconds".format(time() - start_time))

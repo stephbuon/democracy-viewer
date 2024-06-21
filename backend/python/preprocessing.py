@@ -1,11 +1,11 @@
+from time import time
+start_time = time()
 from collections import Counter
 from copy import deepcopy
 from dotenv import load_dotenv
 from pandas import DataFrame, concat, read_csv
 from sys import argv
-from time import time
 # Database interaction
-from sqlalchemy import create_engine, MetaData
 from util.s3 import upload
 # SQL helpers
 from util.sql_connect import sql_connect
@@ -15,24 +15,22 @@ import util.sql_queries as sql
 from util.spacy_models import load_spacy_model
 from util.word_processing import stem
 from util.embeddings_save import compute_embeddings
+print("Import time: {} seconds".format(time() - start_time))
 
 # Get table name from command line argument
 TABLE_NAME = argv[1]
 load_dotenv()
 
-# Load distributed connection if defined
-start_time = time()
+# Get distributed token if defined
 try:
-    DB_CREDS_TOKEN = argv[2]
+    TOKEN = argv[2]
 except:
-    DB_CREDS_TOKEN = None
-conn_str, client = sql_connect(DB_CREDS_TOKEN)
-engine = create_engine(conn_str)
-meta = MetaData()
-meta.reflect(engine)
+    TOKEN = None
+
+engine, meta = sql_connect()
+
 # Get metadata to determine preprocessing type
 metadata = sql.get_metadata(engine, meta, TABLE_NAME)
-print("Connection time: {} minutes".format((time() - start_time) / 60))
 
 # Extract lemmas, pos, and dependencies from tokens
 def process_sentence(text: str, nlp = load_spacy_model()):
@@ -114,14 +112,15 @@ def split_text(df: DataFrame):
 # Upload data to s3
 def upload_result(df: DataFrame):
     start_time = time()
-    upload(df, "tokens", TABLE_NAME)
+    upload(df, "tokens", TABLE_NAME, TOKEN)
     print("Upload time: {} seconds".format(time() - start_time))
               
-df = data.get_text(engine, TABLE_NAME)
-df = split_text(df)
+df = data.get_text(engine, TABLE_NAME, TOKEN)
+df_split = split_text(df)
 print("Tokens processed: {}".format(len(df)))
-upload_result(df)
+upload_result(df_split)
 sql.complete_processing(engine, TABLE_NAME, "tokens")
-compute_embeddings(df, metadata, TABLE_NAME)
-sql.complete_processing(engine, TABLE_NAME, "embeddings")
+if metadata["embeddings"]:
+    compute_embeddings(df, metadata, TABLE_NAME)
+    sql.complete_processing(engine, TABLE_NAME, "embeddings")
 print("Total time: {} minutes".format((time() - start_time) / 60))

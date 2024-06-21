@@ -12,19 +12,15 @@ from util.embeddings_save import compute_embeddings
 TABLE_NAME = argv[1]
 load_dotenv()
 
-# Load distributed connection if defined
-start_time = time()
+# Get distributed token if defined
 try:
-    DB_CREDS_TOKEN = argv[2]
+    TOKEN = argv[2]
 except:
-    DB_CREDS_TOKEN = None
-conn_str, client = sql_connect(DB_CREDS_TOKEN)
-engine = create_engine(conn_str)
-meta = MetaData()
-meta.reflect(engine)
-print("Connection time: {} seconds".format(time() - start_time))
+    TOKEN = None
+    
+engine, meta = sql_connect()
 
 # Compute and save embeddings
 start_time = time()
-compute_embeddings(engine, meta, TABLE_NAME)
+compute_embeddings(engine, meta, TABLE_NAME, TOKEN)
 print("Computation time: {} minutes".format((time() - start_time) / 60))

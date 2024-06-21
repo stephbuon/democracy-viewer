@@ -8,15 +8,6 @@ const config = require("../util/database_config");
 const newConnection = async(knex, name, owner, params) => {
     const model = new databases(knex);
 
-    // Test new connection and throw error if it fails
-    try {
-        conn = require("knex")(config.getConfig(client, host, db, username, port, password));
-        await conn.raw("SELECT 1");
-    } catch(err) {
-        console.error(err);
-        throw new Error("Failed to connect to new database connection");
-    }
-
    // Encrypt all database fields
    const encryptedParams = {};
    encryptedParams.region = encryptor.encrypt(params.region);
@@ -42,11 +33,11 @@ const getCredentials = async(knex, id) => {
     // Get connection credentials by id
     const creds = await model.getCredentials(id);
     // Decrypt credentials
-    creds.host = encryptor.decrypt(creds.host);
-    creds.port = creds.port ? encryptor.decrypt(creds.port) : creds.port;
-    creds.db = encryptor.decrypt(creds.db);
-    creds.username = encryptor.decrypt(creds.username);
-    creds.password = creds.password ? encryptor.decrypt(creds.password) : creds.password;
+    creds.region = encryptor.decrypt(creds.region);
+    creds.dir = creds.dir ? encryptor.decrypt(creds.dir) : creds.dir;
+    creds.bucket = encryptor.decrypt(creds.bucket);
+    creds.key_ = creds.key_ ? encryptor.decrypt(creds.key_) : creds.key_;
+    creds.secret = creds.secret ? encryptor.decrypt(creds.secret) : creds.secret;
 
     return creds;
 }

@@ -12,7 +12,7 @@ import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import CreateDistributedConnection from "./CreateDistributedConnection/CreateDistributedConnection.jsx";
+import CreateDistributedConnection from "./pages/CreateDistributedConnection.jsx";
 import Acknowledgements from "./Acknownledgements/Acknowledgements.jsx";
   
 export const App = () => {

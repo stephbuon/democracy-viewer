@@ -102,3 +102,16 @@ CREATE TABLE liked_datasets (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
     PRIMARY KEY(user, table_name)
 );
+
+CREATE TABLE text_updates (
+    id SERIAL PRIMARY KEY,
+    user VARCHAR(20) NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    idx INT UNSIGNED NOT NULL,
+    col INT UNSIGNED NOT NULL,
+    start INT UNSIGNED NOT NULL,
+    end INT UNSIGNED NOT NULL,
+    new_text VARCHAR(100),
+    FOREIGN KEY(user) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);

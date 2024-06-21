@@ -1,48 +1,26 @@
-from jwt import decode
 from os import environ
+from sqlalchemy import Engine, MetaData, create_engine
+from time import time
 
-def sql_connect(creds_token: str | None):
-    if creds_token != None:
-        secret = environ.get("TOKEN_SECRET")
-        DB_CREDS = decode(creds_token, secret, "HS256")
-    else: 
-        DB_CREDS = None
+def sql_connect() -> tuple[Engine, MetaData]:
+    start_time = time()
+    # Connect to default database if no distributed connection
+    # Load environment variables
+    host = environ.get("HOST")
+    database = environ.get("DATABASE")
+    port = environ.get("PORT")
+    username = environ.get("DATABASE_USERNAME")
+    password = environ.get("PASSWORD")
 
-    if DB_CREDS == None:
-        # Connect to default database if no distributed connection
-        # Load environment variables
-        host = environ.get("HOST")
-        database = environ.get("DATABASE")
-        port = environ.get("PORT")
-        username = environ.get("DATABASE_USERNAME")
-        password = environ.get("PASSWORD")
-        client = "mysql"
-
-        # Connect to database
-        conn_str = "mysql+pymysql://{}:{}@{}:{}/{}".format(
-            username, password, host, port, database
-        )
-    else:
-        # Connect to distributed connection
-        client = DB_CREDS["client"]
-        creds = { key: DB_CREDS[key] for key in ["host", "db", "port", "username", "password"]}
-        # Create connection for client
-        if client == "mssql":
-            conn_str = "mssql+pyodbc://"
-        elif client == "mysql":
-            conn_str = "mysql+pymysql://"
-        elif client == "pg":
-            conn_str = "postgresql+psycopg2://"
-        else:
-            raise Exception("Unrecognized client:", client)
-        conn_str += creds["username"]
-        if "password" in creds.keys():
-            conn_str += ":{}".format(creds["password"])
-        conn_str += "@{}".format(creds["host"])
-        if "port" in creds.keys():
-            conn_str += ":{}".format(creds["port"])
-        conn_str += "/{}".format(creds["db"])
-        if client == "mssql":
-            conn_str += "?driver=ODBC+Driver+17+for+SQL+Server"
+    # Connect to database
+    conn_str = "mysql+pymysql://{}:{}@{}:{}/{}".format(
+        username, password, host, port, database
+    )
             
-    return ( conn_str, client )
+    engine = create_engine(conn_str)
+    meta = MetaData()
+    meta.reflect(engine)
+    
+    print("Connection time: {} seconds".format(time() - start_time))
+    
+    return engine, meta

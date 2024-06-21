@@ -49,7 +49,7 @@ def model_similar_words_over_group(stopWords: set[str], df: pd.DataFrame, group_
 
 # NOTE: we HAVE TO ask for the users' preferrence on stopwords at the very begining when they upload the file
 # (for data cleaning purpose)
-def compute_embeddings(df: DataFrame, metadata: dict, table_name: str):
+def compute_embeddings(df: DataFrame, metadata: dict, table_name: str, token: str | None = None):
     start = time()
     # Get grouping column if defined
     column = metadata.get("embed_col", None)
@@ -60,7 +60,7 @@ def compute_embeddings(df: DataFrame, metadata: dict, table_name: str):
 
     if column is not None:
         # select top words over GROUP and save
-        df_text = data.get_columns(table_name, [column])
+        df_text = data.get_columns(table_name, [column], token)
         df_merged = pd.merge(df, df_text, left_on = "id", right_index = True)
         model_similar_words_over_group(stopWords, df_merged, column, table_name)
     else:
