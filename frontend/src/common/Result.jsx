@@ -12,6 +12,8 @@ import { deleteDataset, addLike, deleteLike } from '../api/api';
 import { UpdateMetadata, AddTags, DeleteTag } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from './DatasetInformation';
 import { DatasetTags } from './DatasetTags';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 
 export const Result = (props) => {
     const navigate = useNavigate();
@@ -194,15 +196,15 @@ export const Result = (props) => {
 
                 {
                     loggedIn && !dataset.liked &&
-                    <Button variant="outlined" onClick={() => like()}>
-                        Like
+                    <Button variant="outlined" endIcon={<BookmarkBorderIcon />} onClick={() => like()}>
+                        Bookmark
                     </Button>
                 }
 
                 {
                     loggedIn && dataset.liked &&
-                    <Button variant="outlined" onClick={() => dislike()}>
-                        Dislike
+                    <Button variant="outlined" endIcon={<BookmarkIcon />} onClick={() => dislike()}>
+                        Remove Bookmark
                     </Button>
                 }
                 
@@ -213,7 +215,7 @@ export const Result = (props) => {
                                 sx={{
 
                                 }}>
-                                {dataset.title}
+                                <b>{dataset.title}</b>
                             </TableCell>
                             <TableCell>
                                 &nbsp;
@@ -227,7 +229,7 @@ export const Result = (props) => {
                     <TableBody>
                         <TableRow>
                             <TableCell>
-                                Owner:
+                                <b> Author </b>
                             </TableCell>
                             <TableCell>
                                 {dataset.username}
@@ -236,7 +238,7 @@ export const Result = (props) => {
                         </TableRow>
                         <TableRow>
                             <TableCell>
-                                Description:
+                                <b> Description </b>
                             </TableCell>
                             <TableCell>
                                 {dataset.description}
@@ -248,7 +250,7 @@ export const Result = (props) => {
                             dataset.author &&
                             <TableRow>
                                 <TableCell>
-                                    Author:
+                                    <b> Source </b>
                                 </TableCell>
                                 <TableCell>
                                     {dataset.author}
@@ -272,7 +274,7 @@ export const Result = (props) => {
 
                         <TableRow>
                             <TableCell>
-                                Views:
+                                <b> Views </b>
                             </TableCell>
                             <TableCell>
                                 {dataset.clicks}
@@ -282,7 +284,7 @@ export const Result = (props) => {
 
                         <TableRow>
                             <TableCell>
-                                Likes:
+                                <b> Likes </b>
                             </TableCell>
                             <TableCell>
                                 {dataset.likes}
@@ -295,7 +297,7 @@ export const Result = (props) => {
                     <TableBody>
                         <TableRow>
                             <TableCell>
-                                Tags:
+                                <b> Tags </b>
                             </TableCell>
                             {dataset.tags.map((tag, index) => {
                                 if (index < 5) {
@@ -322,9 +324,8 @@ export const Result = (props) => {
                         width: '100%',
                         display: 'flex',
                         justifyContent: 'center',
-                        marginTop: '2em'
+                        marginTop: '3em'
                     }}>
-                    <p>Use This Dataset!</p>
                 </Box>
                 <Box
                     sx={{
