@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { Box, Button, Grid } from "@mui/material";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
-import { getGraph } from "../api/api.js"
+import { getGraph } from "../api/api.js";
+import { Settings, RotateLeft, Loop } from '@mui/icons-material';
 
 const barGraphs = [
   "counts", "proportion"
@@ -186,31 +187,42 @@ export const Graph = (props) => {
       updateGraph={updateGraph} generated={graph}/>}
 
       <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"10%"}}>
-        <Grid container justifyContent="center">
+        <Grid container justifyContent="center" direction="column">
           
-          {"Open Graph settings button"}
-          <Grid item xs={5}>
+          {/* {"Open Graph settings button"} */}
+          <Grid item xs={12}>
             <Button variant="contained"
               onClick={handleOpen}
               className="mt-2"
               style={{marginLeft:"5%"}}
-            >Open graph settings</Button>
+            ><Settings /> Graph Settings</Button>
           </Grid>
 
-          {"Reset graph button"}
-          <Grid item xs={5}>
+          {/* {"Reset graph button"} */}
+          <Grid item xs={12}>
             <Button variant="contained"
             onClick={resetGraph}
             className="mt-2"
             style={{marginLeft:"5%"}}
-            >Reset Graph</Button>
+            ><RotateLeft /> Reset Graph</Button>
           </Grid>
 
-          {"Graph component if graph exists"}
+          {/* {"Graph component if graph exists"} */}
           <Grid item xs={12}>
             {/* Graph */}
-            {loading && <p>loading...</p>}
-            {graph && <GraphComponent border data={graphData} setData={setData}/>}
+          {loading && (
+            <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100vh',
+            }}
+            >
+              <Loop size={80}/>
+            </Box>
+          )}
+          {graph && <GraphComponent border data={graphData} setData={setData} />}
           </Grid>
         
         </Grid>

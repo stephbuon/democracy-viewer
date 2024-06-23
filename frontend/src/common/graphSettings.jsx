@@ -106,7 +106,7 @@ export const GraphSettings = ( props ) => {
             style={{width:"75%", marginTop:"50px"}}
             >
             <Paper className="mt-0" elevation={3} sx={{ padding: "16px", margin: "8px"}}>
-                {"Title"}
+                {/* {"Title"} */}
                 <h2 id="child-modal-title">Graph Settings</h2>
 
                 {/* Metric select dropdown */}
@@ -117,7 +117,7 @@ export const GraphSettings = ( props ) => {
                 hideBlankOption={1} />
 
                 {/* Column select dropdown */}
-                <SelectField label="Column name"
+                <SelectField label="Column Name"
                 value={group}
                 setValue={(x)=>{ setGroup(x); nameSelected(x); }}
                 options={groupOptions}
@@ -140,7 +140,7 @@ export const GraphSettings = ( props ) => {
                 {/* Custom search + terms list */}
                 <div>
                     {/* Custom search textfield */}
-                    <label htmlFor="value">{ "Custom Search:" }</label>
+                    <label htmlFor="value">{ "Custom Search" }</label>
                     <input type="text" value={searchValue}
                         onChange={ (event)=>setSearchValue(event.target.value) }
                         onKeyPress={event => {addSearchTerm(event.key)}}
@@ -159,7 +159,7 @@ export const GraphSettings = ( props ) => {
                     key={index}>{term}</li>)}
                 </div>
 
-                {"Generate/update graph button"}
+                {/* {"Generate/update graph button"} */}
                 <Button variant="contained"
                 onClick={handleClose}
                 className="mt-2"
@@ -167,7 +167,7 @@ export const GraphSettings = ( props ) => {
                 disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
                 >{props.generated ? 'Update graph' : 'Create graph'}</Button>
 
-                {"Cancel button"}
+                {/* {"Cancel button"} */}
                 <Button variant="contained"
                 onClick={handleCancel}
                 className="mt-2"

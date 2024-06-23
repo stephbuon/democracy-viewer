@@ -13,10 +13,10 @@ export const GraphComponent = ({ data, setData }) => {
         let string = ""
         list.forEach((word, i) => {
             if(i < list.length - 1){
-                string += word + " ";
+                string += "'" + word + "'" + ", ";
 
             } else {
-                string += "and " + word;
+                string += "and " + "'" + word + "'";
             }
         });
         return string;
