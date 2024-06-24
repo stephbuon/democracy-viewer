@@ -197,7 +197,7 @@ const Profile = (props) => {
                                                 <Button
                                                     variant="contained"
                                                     component="label"
-                                                    sx={{ mb: 5, mt: 1,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' , ml: 18}}
+                                                    sx={{ mb: 5, mt: 1,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }}
                                                     onClick={() => setModalOpen(true)}
                                                 >
                                                     Edit Profile

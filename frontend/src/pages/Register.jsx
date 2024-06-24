@@ -2,38 +2,21 @@ import { useState } from "react";
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
 import { FormattedPatternField, FormattedTextField } from '../common/forms';
-import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { LoginRequest, RegisterRequest } from '../apiFolder/LoginRegister';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { getUser } from "../api/users";
+import { Alert, Snackbar, Link, Grid, Box, Typography, Container} from "@mui/material";
 
 const theme = createTheme();
 
 export default function Register(props) {
-  const [complete, setComplete] = useState({
-    "username": false,
-    "email": false,
-    "password": false,
-    "confirm_password": false,
-    "first_name": false,
-    "last_name": false,
-    "suffix": false,
-    "title": false,
-    "orcid": false,
-    "linkedin_link": false,
-    "website": false,
-    
-  });
   const [password, setPassword] = useState("");
   const [disabled, setDisabled] = useState(true);
+  const [openAlert, setOpenAlert] = useState(false);
   const navigate = useNavigate();
 
   const loggedIn = () => {
@@ -50,44 +33,49 @@ export default function Register(props) {
     }
   },[]);
 
-  const setValid = (id, val) => {
-    // const complete_ = {...complete};
-    // complete_[id] = val;
-    // setComplete(complete_);
-
+  const setValid = (val) => {
+    if (!disabled) {
+      if (!val) {
+        setDisabled(true);
+      }
+    } else if (val) {
+      const errors = document.querySelectorAll("p.Mui-error");
+      if (errors.length === 0) {
+        setDisabled(false);
+      }
+    }
   }
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    let packet = {
-      username: data.get('username'),
-      password: data.get('password'),
-      email: data.get('email'),
-      title: data.get('Title'),
-      first_name: data.get('firstName'),
-      last_name: data.get('lastName'),
-      orcid: data.get('OrcID'),
-      linkedin_link: data.get('LinkedIn')
-    }
-    RegisterRequest(packet).then(async (res) => {
-      LoginRequest(packet).then(async (res) => {
-      props.login({token: res, username: data.get('username')})
-    }).then(()=>{navigate('/')})})
+    getUser(data.get("username")).then(user => {
+      if (!user) {
+        const output = {};
+        data.keys().forEach(key => {
+            if (key !== "confirm_password") {
+              let value = data.get(key);
+              if (key === "orcid") {
+                  value = value.replaceAll("-", "");
+              }
+      
+              if (value) {
+                  output[key] = value;
+              }
+            }
+        });
+    
+        RegisterRequest(output).then(async (res) => {
+          LoginRequest(output).then(async (res) => {
+          props.login({token: res, username: data.get('username')})
+        }).then(()=>{navigate('/')})}).catch(res => setOpenAlert(true));
+      } else {
+        setOpenAlert(true);
+      }
+    });
   };
 
-  useEffect(() => {
-    // let disabled_ = false;
-    // debugger;
-    // Object.values(complete).forEach(x => {
-    //   if (!x) {
-    //     disabled_ = true;
-    //   }
-    // });
-    // setDisabled(disabled_);
-  }, []);
-
-  return (
+  return <>
     <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
@@ -226,7 +214,7 @@ export default function Register(props) {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
               disabled = {disabled}
             >
               Sign Up
@@ -242,5 +230,16 @@ export default function Register(props) {
         </Box>
       </Container>
     </ThemeProvider>
-  );
+
+    <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={openAlert}
+        autoHideDuration={6000}
+        onClose={() => setOpenAlert(false)}
+    >
+        <Alert onClose={() => setOpenAlert(false)} severity="error">
+            Failed to create account. An account with this username may already exist.
+        </Alert>
+    </Snackbar>
+  </>;
 }

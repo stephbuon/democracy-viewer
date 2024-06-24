@@ -4,56 +4,42 @@ import { PatternFormat } from "react-number-format";
 import { isNumeric } from "validator";
 
 export const FormattedPatternField = ({ id, label, defaultText, pattern, numeric, disabled, required, setValid, fullWidth }) => {
-    const [value, setValue] = useState(defaultText ? defaultText : "");
-    const [error, setError] = useState(false);
+    const [valueInternal, setValueInternal] = useState(defaultText ? defaultText : "");
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        if (required && !value) {
-            if (setValid) {
-                setValid(id, false);
-            }
-        } else if (!required && !value) {
-            setError(false);
+        if (required && !valueInternal) {
+            setMessage(" ");
+        } else if (!required && !valueInternal) {
             setMessage("");
-            if (setValid) {
-                setValid(id, true);
-            }
-        } else if (value.includes("_")) {
-            setError(true);
+        } else if (valueInternal.includes("_")) {
             setMessage(`Incomplete field`);
-            if (setValid) {
-                setValid(id, false);
-            }
-        } else if (numeric && !isNumeric(value.replaceAll("-", ""))) {
-            setError(true);
+        } else if (numeric && !isNumeric(valueInternal.replaceAll("-", ""))) {
             setMessage("Input should be numeric");
-            if (setValid) {
-                setValid(id, false);
-            }
         } else {
-            setError(false);
             setMessage("");
-            if (setValid) {
-                setValid(id, true);
-            }
         }
-    }, [value]);
+    }, [valueInternal]);
 
-    return <FormControl error = {error}>
+    useEffect(() => {
+        if (setValid) {
+            setValid(message.length === 0);
+        }
+    }, [setValid, message]);
+
+    return <FormControl error = {message.length > 0} fullWidth = {fullWidth}>
         <PatternFormat
             customInput={TextField}
-            margin="normal"
             id={id}
             label={label}
             name={id}
-            defaultValue = { defaultText ? defaultText : "" }
+            defaultvalue = { defaultText ? defaultText : "" }
             format = {pattern}
             mask = "_"
             disabled = {disabled}
             required = {required}
-            onChange = {event => setValue(event.target.value)}
-            error = {error}
+            onChange = {event => setValueInternal(event.target.value)}
+            error = {message.length > 0}
             fullWidth = {fullWidth}
         />
         {
