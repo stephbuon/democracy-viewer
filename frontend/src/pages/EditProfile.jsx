@@ -1,31 +1,34 @@
 import { FormControl, Modal } from "@mui/material";
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
 import { updateUser } from "../api/users";
-import { PatternFormat } from "react-number-format";
+import { FormattedTextField, FormattedPatternField } from "../common/forms";
+import { useState } from "react";
 
 export const EditProfile = ({ user, setUser, open, setOpen }) => {
+    const [disabled, setDisabled] = useState(false);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        updateUser
-            (user.username,
-            {
-                username:user.username,
-                email:data.get('email'),
-                first_name:data.get('first_name'),
-                last_name:data.get('last_name'),
-                suffix:data.get('suffix'),
-                title:data.get('title'),
-                orcid:data.get('orcid'),
-                linkedin_link:data.get('linkedin_link'),
-                website:data.get('website'),
+        const output = {};
+        data.keys().forEach(key => {
+            let value = data.get(key);
+            if (key === "orcid") {
+                value = value.replaceAll("-", "");
             }
-            ).then(x => {
+
+            if (value !== user[key]) {
+                output[key] = value;
+            }
+        });
+
+        if (Object.keys(output).length > 0) {
+            updateUser(user.username, output).then(x => {
                 setUser(x);
-                setOpen(false);
-            })
+            });
+        }
+        setOpen(false);
     }
 
     return (
@@ -45,86 +48,90 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
             >
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}  className = "text-center">
                     <FormControl>
-                    <TextField
-                            margin="normal"
-                            id="username"
-                            label="Username"
-                            name="username"
-                            defaultValue = { user.username ? user.username : "" }
+                        <FormattedTextField
+                            id = "username"
+                            label = "Username"
+                            defaultText = {user.username}
                             disabled
                         />
 
-                        <TextField
-                            margin="normal"
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            defaultValue = { user.email ? user.email : "" }
+                        <FormattedTextField
+                            id = "email"
+                            label = "Email Address"
+                            defaultText = {user.email}
+                            email
+                            maxChars = {30}
+                            setDisabled={setDisabled}
+                            autoComplete="email"
                         />
 
-                        <TextField
-                            margin="normal"
-                            id="first_name"
-                            label="First Name"
-                            name="first_name"
-                            defaultValue = { user.first_name ? user.first_name : "" }
+                        <FormattedTextField
+                            id = "first_name"
+                            label = "First Name"
+                            defaultText = {user.first_name}
+                            maxChars = {20}
+                            setDisabled={setDisabled}
+                            autoComplete="given-name"
                         />
 
-                        <TextField
-                            margin="normal"
-                            name="last_name"
-                            label="Last Name"
-                            id="last_name"
-                            defaultValue = { user.last_name ? user.last_name : "" }
+                        <FormattedTextField
+                            id = "last_name"
+                            label = "Last Name"
+                            defaultText = {user.last_name}
+                            maxChars = {20}
+                            setDisabled={setDisabled}
+                            autoComplete="family-name"
                         />
 
-                        <TextField
-                            margin="normal"
-                            id="suffix"
-                            label="Suffix"
-                            name="suffix"
-                            defaultValue = { user.suffix ? user.suffix : "" }
+                        <FormattedTextField
+                            id = "suffix"
+                            label = "Suffix"
+                            defaultText = {user.suffix}
+                            maxChars = {10}
+                            setDisabled={setDisabled}
                         />
 
-                        <TextField
-                            margin="normal"
-                            name="title"
-                            label="Title"
-                            id="title"
-                            defaultValue = { user.title ? user.title : "" }
+                        <FormattedTextField
+                            id = "title"
+                            label = "Title"
+                            defaultText = {user.title}
+                            maxChars = {20}
+                            setDisabled={setDisabled}
                         />
 
-                        <PatternFormat
-                            customInput={TextField}
-                            margin="normal"
-                            id="orcid"
-                            label="OrcID"
-                            name="orcid"
-                            value={ user.orcid ? user.orcid : "" }
-                            format="####-####-####-####" 
-                            mask="_"
+                        <FormattedPatternField
+                            id = "orcid"
+                            label = "OrcID"
+                            defaultText = {user.orcid}
+                            setDisabled={setDisabled}
+                            pattern = "####-####-####-####"
+                            numeric
                         />
 
-                        <TextField
-                            margin="normal"
-                            id="linkedin_link"
-                            label="LinkedIn Link"
-                            name="linkedin_link"
-                            defaultValue = { user.linkedin_link ? user.linkedin_link : "" }
+                        <FormattedTextField
+                            id = "linkedin_link"
+                            label = "LinkedIn Link"
+                            defaultText = {user.linkedin_link}
+                            maxChars = {50}
+                            setDisabled={setDisabled}
+                            website
+                            autoComplete="LinkedIn"
                         />
 
-                        <TextField
-                            margin="normal"
-                            id="website"
-                            label="Website"
-                            name="website"
-                            defaultValue = { user.website ? user.website : "" }
+                        <FormattedTextField
+                            id = "website"
+                            label = "Website Link"
+                            defaultText = {user.website}
+                            maxChars = {50}
+                            setDisabled={setDisabled}
+                            website
                         />
                     
                         <Button
                             type="submit"
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
+                            disabled = {disabled}
                         >
                             Update Profile
                         </Button>
