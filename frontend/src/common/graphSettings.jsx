@@ -158,12 +158,12 @@ export const GraphSettings = ( props ) => {
                     id={index}
                     key={index}>{term}</li>)}
                 </div>
-
-                {/* {"Generate/update graph button"} */}
+                <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
+                                    {/* {"Generate/update graph button"} */}
                 <Button variant="contained"
                 onClick={handleClose}
                 className="mt-2"
-                style={{marginLeft:"2%"}}
+                style={{marginLeft:"2%", backgroundColor: "black"}}
                 disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
                 >{props.generated ? 'Update graph' : 'Create graph'}</Button>
 
@@ -171,11 +171,11 @@ export const GraphSettings = ( props ) => {
                 <Button variant="contained"
                 onClick={handleCancel}
                 className="mt-2"
-                style={{marginLeft:"1%"}}
+                style={{marginLeft:"1%", backgroundColor: "black"}}
                 color="error"
                 hidden={!props.generated}
                 >Cancel</Button>
-
+                </div>
             </Paper>
         </Modal>
     </>

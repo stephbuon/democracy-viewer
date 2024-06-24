@@ -194,7 +194,7 @@ export const Graph = (props) => {
             <Button variant="contained"
               onClick={handleOpen}
               className="mt-2"
-              style={{marginLeft:"5%"}}
+              style={{marginLeft:"5%", backgroundColor: "black"}}
             ><Settings /> Graph Settings</Button>
           </Grid>
 
@@ -203,7 +203,7 @@ export const Graph = (props) => {
             <Button variant="contained"
             onClick={resetGraph}
             className="mt-2"
-            style={{marginLeft:"5%"}}
+            style={{marginLeft:"5%", backgroundColor: "black" }}
             ><RotateLeft /> Reset Graph</Button>
           </Grid>
 
@@ -216,10 +216,10 @@ export const Graph = (props) => {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '100vh',
+              height: '50vh',
             }}
             >
-              <Loop size={80}/>
+              <Loop sx={{ fontSize: 80 }}/>
             </Box>
           )}
           {graph && <GraphComponent border data={graphData} setData={setData} />}
