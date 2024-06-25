@@ -155,13 +155,18 @@ export const GraphSettings = ( props ) => {
                             updateGroupNames();
                             searchTerms.splice(event.target.id, 1)
                         }}
-                        onMouseOver={(event) => {event.target.style.color='red'}}
+                        onMouseOver={(event) => {event.target.style.color='lightcoral'}}
                         onMouseOut={(event) => {event.target.style.color='black'}}
                         style={{"color":"black"}}
                         id={index}
                         key={index}>{term}</li>)}
                     </ul>
-                    <InfoOutlined/>Click words to remove from customized search.
+                    <div style={{"color": "#6495ED"}}>
+                        <InfoOutlined/>
+                        &nbsp;
+                        <span>Click words to remove from customized search.</span>
+                    </div>
+                    
                 </div>
                 <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
                                     {/* {"Generate/update graph button"} */}

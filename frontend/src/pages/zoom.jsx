@@ -6,6 +6,8 @@ import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
 import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
 
+const pageLength = 10;
+
 export const Zoom = () => {
     // UseState definitions
     const [searchResults, setSearchResults] = useState([]);
@@ -13,10 +15,11 @@ export const Zoom = () => {
     const [graphData, setGraphData] = useState(undefined);
     const [totalPages, setTotalPages] = useState(1);
     const [textCols, setTextCols] = useState([]);
-    const max_page_size = 50;
 
     const getPage = (currPage) => {
-        const ids = graphData.ids.slice(max_page_size * (currPage - 1), max_page_size * currPage);
+        const start = pageLength * (currPage - 1);
+        const end = start + pageLength * currPage;
+        const ids = graphData.ids.slice(start, end);
 
         getRecordsByIds(graphData.dataset, ids).then(async (res) => {
             if (!res) {
@@ -58,7 +61,7 @@ export const Zoom = () => {
         if (graphData && textCols.length > 0) {
             // Pagination
             getPage(page);
-            setTotalPages(Math.ceil(graphData.ids.length / max_page_size));
+            setTotalPages(Math.ceil(graphData.ids.length / pageLength));
         }
     }, [graphData, textCols]);
 
@@ -107,6 +110,8 @@ export const Zoom = () => {
                     table_name={graphData.dataset}
                     downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
                     totalNumResults={graphData.ids.length}
+                    columns = {searchResults.length > 0 ? Object.keys(searchResults[0]) : []}
+                    pageLength = {pageLength}
                 />
             </div>
         </div>

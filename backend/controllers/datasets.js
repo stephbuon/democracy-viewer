@@ -336,12 +336,15 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     // Check if subset has already been saved
     const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
     let fullOutput = [];
+    let columns = [];
     if (util.fileExists(filename)) {
         fullOutput = util.readJSON(filename, false);
+        columns = Object.keys(fullOutput[0]);
     } else {
         // If subset has not already been saved, create subset
         // Download data from s3
         const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
+        columns = Object.keys(data.dataset[0]);
 
         if (query.simpleSearch) {
             // Filter if query is defined
@@ -349,7 +352,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
             const index = new FlexSearch.Document({
                 document: {
                     id: "__id__",
-                    index: Object.keys(data.dataset[0])
+                    index: columns
                 },
                 language: getLanguage(metadata.language),
                 tokenize: "forward"
@@ -370,10 +373,14 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
         // Output results to local file
         util.generateJSON(filename, fullOutput);
     }
-
+    
     // Return requested page
+    const start = pageLength * (page - 1);
+    const end = pageLength + start;
+    const data = fullOutput.slice(start, end);
     return {
-        data: fullOutput.slice(pageLength * (page - 1), pageLength),
+        columns,
+        data,
         count: fullOutput.length
     };
 }

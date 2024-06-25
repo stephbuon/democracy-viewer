@@ -12,6 +12,7 @@ ul li::before {
     content: "X";
     position: absolute;
     left: 0;
-    color: black;
+    color: lightcoral;
 }
+
  /* for pushing purposes */

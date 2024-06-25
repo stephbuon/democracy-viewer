@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import 'react-resizable/css/styles.css';
 //MUI Imports
@@ -6,50 +6,22 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 //Other Imports
-import { DownloadSubset, DownloadFullDataset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+import { DownloadSubset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 // import { DataTable } from "../common/DataTable/DataTable";
 import { PaginatedDataTable } from '../common/PaginatedDataTable';
 import Highlighter from "react-highlight-words";
 
-// import "../common/DataTable/MoveBar.css"
-// import "../common/DataTable/Loading.css"
-
+const pageLength = 10;
 
 export const SubsetResultsPage = (props) => {
     const navigate = useNavigate();
-    const params = useParams()
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [searched, setSearched] = useState(false);
-    const [searching, setSearching] = useState(false);
     const [totalNumResults, setTotalNumResults] = useState(0);
-    const [totalNumOfPages, setTotalNumOfPages] = useState(0);
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState({});
-    const [loadingPage, setLoadingPage] = useState(true);
-    const [loadingNextPage, setLoadingNextPage] = useState(false)
-    const [loadingResults, setLoadingResults] = useState(false);
-
-
-    const doMoveAnimation = () => {
-        console.log("STARTING THE MOVE")
-        if (!searched) {
-            setSearching(true)
-            setTimeout(() => finishAnimation(), 500);
-        }
-        else {
-            setLoadingResults(true);
-            fetchSubset();
-        }
-
-    }
-    const finishAnimation = () => {
-        setSearched(true)
-        setSearching(false);
-        setLoadingResults(true);
-        fetchSubset();
-    }
+    const [columns, setColumns] = useState([]);
 
     const highlight = (results) => {
         const terms = searchTerm.split(" ");
@@ -81,53 +53,38 @@ export const SubsetResultsPage = (props) => {
         demoV.downloadData = _query;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
 
-        GetSubsetOfDataByPage(props.dataset.table_name, _query).then(async (res) => {
+        GetSubsetOfDataByPage(props.dataset.table_name, _query, 1, pageLength).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
             }
             else {
                 highlight(res.data);
                 setTotalNumResults(res.count);
-                let tot = Math.ceil(res.count / 50);
-                setTotalNumOfPages(tot);
-                console.log("Number of Pages", tot);
+                setColumns(res.columns);
             }
             setPage(1);
-        }).finally(async () => {
-            setLoadingResults(false);
-            setLoadingPage(false);
-        });
+        })
 
         setQuery(_query);
     }
 
     //Changed
     const GetNewPage = async (selectedPage) => {
-        if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
-
-        setLoadingNextPage(true);
-        setLoadingPage(true);
-
         try {
-            const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage);
+            const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage, pageLength);
             if (res) {
                 // Correctly handle asynchronous state update
-                setPage(prevPage => selectedPage);
+                setPage(selectedPage);
                 highlight(res.data);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);
-        } finally {
-            setLoadingNextPage(false);
-            setLoadingPage(false);
         }
     };
 
     const handleKeyPress = event => {
         if (event.key === 'Enter') {
-            doMoveAnimation()
-            console.log(searchTerm)
-
+            fetchSubset();
         }
     };
 
@@ -137,24 +94,22 @@ export const SubsetResultsPage = (props) => {
         if (demoV == undefined || demoV.dataset == undefined) {
             navigate('/datasetSearch')
             props.setNavigated(true)
+        } else {
+            fetchSubset();
         }
     }, []);
-
-    useEffect(() => {
-        console.log("page", loadingPage)
-    }, [loadingPage]);
 
     return <>
         <div className='blue' >
             <Box component="main"
                 sx={{
-                    marginTop: searching ? '50px' : (searched ? '280px' : '0px'),
+                    marginTop: '100px',
                     marginLeft: "100px", //Hardcoded
                 }}>
 
 
                 <Box
-                    className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
+                    // className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
                     sx={{
                         display: 'flex',
                         justifyContent: "center",
@@ -166,15 +121,9 @@ export const SubsetResultsPage = (props) => {
                     }}
                 >
 
-                    <img
-                        src="https://cdn.pixabay.com/photo/2017/10/22/05/06/search-2876776_1280.jpg"
-                        alt="your_image_description_here"
-                        style={{ maxWidth: "20%" }}
-                    />
-
 
                     <Box
-                        className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
+                        // className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
                         sx={{
                             display: 'flex',
                             zIndex: 1,
@@ -199,7 +148,7 @@ export const SubsetResultsPage = (props) => {
                                 value={searchTerm}
                                 onChange={event => { setSearchTerm(event.target.value) }}
                                 // New Code to search with enter press
-                                onKeyPress={event => handleKeyPress(event)}
+                                onKeyDown={event => handleKeyPress(event)}
                             />
                         </Box>
                         <Button
@@ -213,7 +162,7 @@ export const SubsetResultsPage = (props) => {
                                     background: 'rgb(200, 200, 200)'
                                 }
                             }}
-                            onClick={() => doMoveAnimation()}
+                            onClick={() => fetchSubset()}
                         >
                             Search
                         </Button>
@@ -225,11 +174,12 @@ export const SubsetResultsPage = (props) => {
         <PaginatedDataTable
             searchResults={searchResults}
             page={page}
-            totalNumOfPages={totalNumOfPages}
             GetNewPage={GetNewPage}
             table_name={props.dataset.table_name}
             downloadSubset={() => DownloadSubset(props.dataset.table_name, query)}
             totalNumResults={totalNumResults}
+            pageLength={pageLength}
+            columns={columns}
         />
     </>
 
