@@ -199,7 +199,7 @@ export const Graph = (props) => {
           </Grid>
 
           {/* {"Reset graph button"} */}
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ mt: -2}}>
             <Button variant="contained"
             onClick={resetGraph}
             className="mt-2"

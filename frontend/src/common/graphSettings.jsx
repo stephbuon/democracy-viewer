@@ -7,6 +7,7 @@ import { Paper, Button } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select';
 import { metrics } from "./metrics.js";
+import { InfoOutlined } from '@mui/icons-material';
 
 const allMetricOptions = Object.keys(metrics).map(x => {
     return {
@@ -157,6 +158,7 @@ export const GraphSettings = ( props ) => {
                     style={{"color":"black"}}
                     id={index}
                     key={index}>{term}</li>)}
+                    <InfoOutlined/>Click Words to Remove from Custom Search
                 </div>
                 <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
                                     {/* {"Generate/update graph button"} */}
