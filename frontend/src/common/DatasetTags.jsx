@@ -29,6 +29,12 @@ export const DatasetTags = (props) => {
         props.setTags([..._tags]);
     }
 
+    const onEnter = (event) => {
+        if (event.key === "Enter") {
+            addTag();
+        }
+    }
+
     return <>
         <Box sx={{ padding: 2 }}>
             <Typography variant="h5" align="center" gutterBottom>
@@ -49,6 +55,7 @@ export const DatasetTags = (props) => {
                         sx={{ background: 'rgb(255, 255, 255)' }}
                         value={tag}
                         onChange={event => { setTag(event.target.value); }}
+                        onKeyDown = {onEnter}
                     />
                     <IconButton onClick={() => addTag()}>
                         <AddIcon />

@@ -1,7 +1,7 @@
 # Database Interaction
 from sqlalchemy import Engine, MetaData, select, update
 # Update directory to import util
-from util.sqlalchemy_tables import DatasetMetadata, DatasetTextCols
+from util.sqlalchemy_tables import DatasetMetadata, DatasetTextCols, Users
 
 # Get all of the metadata of a dataset
 def get_metadata(engine: Engine, meta: MetaData, table_name: str) -> dict:
@@ -53,3 +53,23 @@ def complete_processing(engine: Engine, table_name: str, processing_type: str) -
     with engine.connect() as conn:
         conn.execute(query)
         conn.commit()
+
+# Get a user record by username
+def get_user(engine: Engine, meta: MetaData, username: str) -> dict:
+    # Make query
+    query = (
+        select(Users)
+            .where(Users.username == username)
+    )
+    with engine.connect() as conn:
+        for row in conn.execute(query):
+            output = row
+            break
+        conn.commit()
+        
+    # Give column names as keys
+    record = {}
+    for i, col in enumerate(meta.tables[Users.__tablename__].columns.keys()):
+        record[col] = output[i]
+        
+    return record

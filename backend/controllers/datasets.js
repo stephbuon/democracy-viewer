@@ -100,8 +100,10 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Upload text columns
     await model.addTextCols(name, textCols);
     // Upload tags
-    await model.addTag(name, tags);
-
+    if (tags && tags.length > 0) {
+        await model.addTag(name, tags);
+    }
+    
     // Upload raw data to s3
     await runPython("python/upload_dataset.py", [ name, path.replace(".json", ".csv") ], metadata.distributed);
 
@@ -165,7 +167,6 @@ const addLike = async(knex, user, table) => {
     const model = new datasets(knex);
 
     await model.addLike(user, table);
-    const record = model.incLikes(table);
 
     return record;
 }
@@ -513,7 +514,6 @@ const deleteLike = async(knex, user, table) => {
     const model = new datasets(knex);
 
     await model.deleteLike(user, table);
-    const metadata = await model.decLikes(table);
 }
 
 module.exports = {

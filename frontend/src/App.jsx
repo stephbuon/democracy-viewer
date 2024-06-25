@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
 import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
+import { UploadComplete } from "./pages/UploadComplete.jsx";
 import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
@@ -83,6 +84,7 @@ export const App = () => {
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
+            <Route path="/upload/complete" element={<UploadComplete/>}></Route>
             <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
             <Route path="/acknowledgements" element={<Acknowledgements/>}/>
         </Routes>

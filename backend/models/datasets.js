@@ -244,6 +244,7 @@ class datasets {
             const tags = await this.getTags(results[i].table_name);
             results[i].tags = tags.map(x => x.tag_name);
             results[i].liked = await this.getLike(results[i].username, results[i].table_name);
+            results[i].likes = await this.getLikeCount(results[i].table_name);
         }
 
         return results;
@@ -252,6 +253,12 @@ class datasets {
     // Get the number of datasets for a given set of filters
     async getFilteredDatasetsCount(params, username) {
         const results = await this.getFilteredDatasets(params, username, false);
+        return results.length;
+    }
+
+    // Get the number of likes for this dataset
+    async getLikeCount(table_name) {
+        const results = await this.knex(likes_table).where({ table_name });
         return results.length;
     }
 

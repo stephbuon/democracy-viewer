@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Flag from "react-flagkit";
 
 // MUI Imports
@@ -49,11 +50,11 @@ export const UploadModal = (props) => {
     const [embedCol, setEmbedCol] = useState(null);
     const [pos, setPos] = useState(false);
 
+    const navigate = useNavigate();
+
     const FilledOut = () => {
         if (loadedPage === 1) {
             if (!title || !description) { return false; }
-        } else if (loadedPage === 2) {
-            if (tags.length < 3) { return false; }
         } else if (loadedPage === 3) {
             if (Object.values(columnTypes).filter(x => x === "TEXT").length === 0) { return false; }
         }
@@ -89,6 +90,7 @@ export const UploadModal = (props) => {
         UploadDataset(datasetName, metadata, _texts, tags);
         
         props.CancelUpload();
+        navigate("/upload/complete");
     }
 
     useEffect(() => {
@@ -329,6 +331,14 @@ export const UploadModal = (props) => {
             )}
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
+                {loadedPage === 1 && (
+                    <Button
+                        variant="contained"
+                        onClick={() => props.CancelUpload()}
+                    >
+                        Cancel
+                    </Button>
+                )}
                 {loadedPage > 1 && (
                     <Button
                         variant="contained"
@@ -353,14 +363,6 @@ export const UploadModal = (props) => {
                         onClick={() => SendDataset()}
                     >
                         Submit Dataset
-                    </Button>
-                )}
-                {loadedPage === 1 && (
-                    <Button
-                        variant="contained"
-                        onClick={() => props.CancelUpload()}
-                    >
-                        Cancel
                     </Button>
                 )}
             </Box>
