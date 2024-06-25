@@ -152,6 +152,7 @@ export const Graph = (props) => {
     setGraph(false);
     localStorage.removeItem("graph-data");
     localStorage.removeItem('selected');
+    setSettings(true);
   }
 
   // UseEffect: Gets dataset information from local storage

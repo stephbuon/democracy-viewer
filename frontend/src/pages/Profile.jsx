@@ -192,19 +192,18 @@ const Profile = (props) => {
                                                 <PermIdentity /> OrcID: {(user.orcid.match(/.{1,4}/g) || []).join("-")}
                                             </ListItemText>
                                         )}
-                                        {editable === true && (
-                                            <ListItemText>
-                                                <Button
-                                                    variant="contained"
-                                                    component="label"
-                                                    sx={{ mb: 5, mt: 1,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }}
-                                                    onClick={() => setModalOpen(true)}
-                                                >
-                                                    Edit Profile
-                                                </Button>
-                                            </ListItemText>
-                                        )}
+                                        
                                     </List>
+                                    {editable === true && (
+                                        <Button
+                                            variant="contained"
+                                            component="label"
+                                            sx={{ mb: 5, mt: 1,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }}
+                                            onClick={() => setModalOpen(true)}
+                                        >
+                                            Edit Profile
+                                        </Button>
+                                    )}
                                 </Paper>
                             </Grid>
                             <Grid  item xs={12} md={6}>
