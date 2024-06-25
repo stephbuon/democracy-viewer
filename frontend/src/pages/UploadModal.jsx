@@ -334,6 +334,7 @@ export const UploadModal = (props) => {
                 {loadedPage === 1 && (
                     <Button
                         variant="contained"
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
                         onClick={() => props.CancelUpload()}
                     >
                         Cancel
@@ -342,6 +343,7 @@ export const UploadModal = (props) => {
                 {loadedPage > 1 && (
                     <Button
                         variant="contained"
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
                         onClick={() => setLoadedPage(loadedPage - 1)}
                     >
                         Back
@@ -350,6 +352,7 @@ export const UploadModal = (props) => {
                 {loadedPage < 4 && (
                     <Button
                         variant="contained"
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
                         disabled={!FilledOut()}
                         onClick={() => setLoadedPage(loadedPage + 1)}
                     >
@@ -359,6 +362,7 @@ export const UploadModal = (props) => {
                 {loadedPage === 4 && (
                     <Button
                         variant="contained"
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
                         disabled={!FilledOut()}
                         onClick={() => SendDataset()}
                     >

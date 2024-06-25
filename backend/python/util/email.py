@@ -1,7 +1,7 @@
 from email.mime.text import MIMEText
 from smtplib import SMTP
 
-from_email = "rdschaefer@smu.edu"
+from_email = "rschaefer1@me.com"
 
 def send_email(template: str, params: dict, subject: str, to: list[str]):
     with open("util/emails/{}.txt".format(template), "r") as file:
@@ -14,6 +14,6 @@ def send_email(template: str, params: dict, subject: str, to: list[str]):
     message["From"] = from_email
     message["To"] = to
     
-    s = SMTP('localhost')
+    s = SMTP('localhost', 1025)
     s.sendmail(from_email, to, message.as_string())
     s.quit()
