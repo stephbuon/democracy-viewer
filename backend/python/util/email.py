@@ -14,7 +14,7 @@ def send_email(template: str, params: dict, subject: str, to: list[str]):
     message["From"] = from_email
     message["To"] = to
     
-    server = SMTP('smtp.mail.me.com', 587)
+    server = SMTP(environ.get("EMAIL_SERVER"), 587)
     server.starttls()
     server.login(from_email, environ.get("EMAIL_PASSWORD"))
     server.sendmail(from_email, to, message.as_string())
