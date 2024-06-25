@@ -161,14 +161,14 @@ export const GraphSettings = ( props ) => {
                         id={index}
                         key={index}>{term}</li>)}
                     </ul>
-                    <InfoOutlined/>Click Words to Remove from Custom Search
+                    <InfoOutlined/>Click words to remove from customized search.
                 </div>
                 <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
                                     {/* {"Generate/update graph button"} */}
                 <Button variant="contained"
                 onClick={handleClose}
                 className="mt-2"
-                style={{marginLeft:"2%", backgroundColor: "black"}}
+                style={{marginLeft:"2%", backgroundColor: "black", color: "white"}}
                 disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
                 >{props.generated ? 'Update graph' : 'Create graph'}</Button>
 
