@@ -131,7 +131,7 @@ export const Result = (props) => {
                     position: 'absolute',
                     top: '15%',
                     left: '15%',
-                    height: "70%",
+                    height: "65%",
                     overflow: "scroll",
                     width: "70%",
                     bgcolor: 'background.paper',
@@ -141,7 +141,14 @@ export const Result = (props) => {
             >
                 {
                     props.editable && <>
-                        <Button variant="outlined" onClick={() => setInfoOpen(true)}>
+                        <Button 
+                            variant="contained" 
+                            disableElevation
+                            sx={{ 
+                                borderRadius: 0, 
+                                bgcolor: '#B3B3B3', 
+                                color: 'white' }} 
+                            onClick={() => setInfoOpen(true)}>
                             Edit
                         </Button>
                         <AlertDialog
@@ -164,8 +171,15 @@ export const Result = (props) => {
                             }
                             action={() => updateInfo()}
                         />
-
-                        <Button variant="outlined" onClick={() => setTagsOpen(true)}>
+                    
+                        <Button 
+                            variant="contained" 
+                            disableElevation
+                            sx={{  
+                                borderRadius: 0, 
+                                bgcolor: '#B3B3B3', 
+                                color: 'white' }} 
+                            onClick={() => setTagsOpen(true)}>
                             Edit Tags
                         </Button>
                         <AlertDialog
@@ -181,7 +195,14 @@ export const Result = (props) => {
                             action={() => updateTags()}
                         />
 
-                        <Button variant="outlined" onClick={() => setDeleteOpen(true)}>
+                        <Button 
+                        variant="contained" 
+                        disableElevation
+                        sx={{  
+                            borderRadius: 0, 
+                            bgcolor: '#B3B3B3', 
+                            color: 'white' }} 
+                        onClick={() => setDeleteOpen(true)}>
                             Delete
                         </Button>
                         <AlertDialog
@@ -196,23 +217,42 @@ export const Result = (props) => {
 
                 {
                     loggedIn && !dataset.liked &&
-                    <Button variant="outlined" endIcon={<BookmarkBorderIcon />} onClick={() => like()}>
+                    <Button 
+                    variant="contained" 
+                    disableElevation
+                    sx={{  
+                        borderRadius: 0, 
+                        bgcolor: '#B3B3B3', 
+                        color: 'white' }} 
+                    endIcon={<BookmarkBorderIcon />} 
+                    onClick={() => like()}>
                         Bookmark
                     </Button>
                 }
 
                 {
                     loggedIn && dataset.liked &&
-                    <Button variant="outlined" endIcon={<BookmarkIcon />} onClick={() => dislike()}>
+                    <Button 
+                    variant="contained" 
+                    disableElevation
+                    sx={{  
+                        borderRadius: 0, 
+                        bgcolor: '#B3B3B3', 
+                        color: 'white' }} 
+                    endIcon={<BookmarkIcon />} 
+                    onClick={() => dislike()}>
                         Remove Bookmark
                     </Button>
                 }
                 
                 <Table>
                     <TableHead>
+                        
                         <TableRow>
                             <TableCell
                                 sx={{
+                                    paddingTop: "20px", 
+                                    align: 'center'
 
                                 }}>
                                 <b>{dataset.title}</b>
@@ -325,7 +365,9 @@ export const Result = (props) => {
                         display: 'flex',
                         justifyContent: 'center',
                         marginTop: '3em'
+
                     }}>
+
                 </Box>
                 <Box
                     sx={{
@@ -338,7 +380,10 @@ export const Result = (props) => {
                         variant="contained"
                         primary
                         sx={{
-                            marginX: '1em'
+                            marginX: '1em',
+                            borderRadius: 50, 
+                            bgcolor: 'black', 
+                            color: 'white'
                         }}
                         onClick={() => {
                             chooseDataset()
@@ -351,7 +396,10 @@ export const Result = (props) => {
                         variant="contained"
                         primary
                         sx={{
-                            marginX: '1em'
+                            marginX: '1em',
+                            borderRadius: 50, 
+                            bgcolor: 'black', 
+                            color: 'white'
                         }}
                         onClick={() => {
                             chooseDataset()
