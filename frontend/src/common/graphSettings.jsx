@@ -8,7 +8,7 @@ import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select';
 import { metrics } from "./metrics.js";
 import { InfoOutlined } from '@mui/icons-material';
-
+import "./list.css";
 
 const allMetricOptions = Object.keys(metrics).map(x => {
     return {
@@ -149,16 +149,18 @@ export const GraphSettings = ( props ) => {
                         className="form-control" />
                     
                     {/* Terms list */}
-                    {searchTerms.map((term, index) =><li
-                    onClick={(event) => {
-                        updateGroupNames();
-                        searchTerms.splice(event.target.id, 1)
-                    }}
-                    onMouseOver={(event) => {event.target.style.color='red'}}
-                    onMouseOut={(event) => {event.target.style.color='black'}}
-                    style={{"color":"black"}}
-                    id={index}
-                    key={index}>{term}</li>)}
+                    <ul>
+                        {searchTerms.map((term, index) =><li
+                        onClick={(event) => {
+                            updateGroupNames();
+                            searchTerms.splice(event.target.id, 1)
+                        }}
+                        onMouseOver={(event) => {event.target.style.color='red'}}
+                        onMouseOut={(event) => {event.target.style.color='black'}}
+                        style={{"color":"black"}}
+                        id={index}
+                        key={index}>{term}</li>)}
+                    </ul>
                     <InfoOutlined/>Click Words to Remove from Custom Search
                 </div>
                 <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
