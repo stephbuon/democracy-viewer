@@ -131,7 +131,7 @@ export const Result = (props) => {
                     position: 'absolute',
                     top: '15%',
                     left: '15%',
-                    height: "65%",
+                    height: "70%",
                     overflow: "scroll",
                     width: "70%",
                     bgcolor: 'background.paper',
@@ -365,7 +365,6 @@ export const Result = (props) => {
                         display: 'flex',
                         justifyContent: 'center',
                         marginTop: '3em'
-
                     }}>
 
                 </Box>
