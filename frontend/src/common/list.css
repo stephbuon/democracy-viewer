@@ -1,0 +1,16 @@
+ul.b {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+ul.b li {
+    position: relative;
+    padding-left: 20px;
+}
+
+ul.b li::before {
+    content: "X";
+    position: absolute;
+    left: 0;
+    color: black;
+}

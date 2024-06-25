@@ -9,6 +9,7 @@ import Select from 'react-select';
 import { metrics } from "./metrics.js";
 import { InfoOutlined } from '@mui/icons-material';
 
+
 const allMetricOptions = Object.keys(metrics).map(x => {
     return {
         "value": x,
