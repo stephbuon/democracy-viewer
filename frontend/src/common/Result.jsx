@@ -164,7 +164,7 @@ export const Result = (props) => {
                             <AlertDialog
                                 open={infoOpen}
                                 setOpen={setInfoOpen}
-                                titleText={`Edit dataset "${ dataset.title }"`}
+                                titleText={`Edit Dataset "${ dataset.title }"`}
                                 bodyText={
                                     <DatasetInformation
                                         title={title}
@@ -285,7 +285,10 @@ export const Result = (props) => {
                             {/* <TableCell>
                                 &nbsp;
                             </TableCell> */}
-                            <TableCell sx={{textAlign: "left"}}>
+                            <TableCell 
+                                sx={{
+                                    textAlign: "left", 
+                                    paddingTop: "20px" }}>
                                 {dataset.is_public==1 && <span>Public</span>}
                                 {dataset.is_public==0 && <span>Private</span>}
                             </TableCell>
@@ -349,7 +352,7 @@ export const Result = (props) => {
 
                         <TableRow>
                             <TableCell>
-                                <b> Likes </b>
+                                <b> Bookmarks </b>
                             </TableCell>
                             <TableCell sx={{textAlign: "left"}}>
                                 {dataset.likes}
@@ -416,7 +419,7 @@ export const Result = (props) => {
                             marginX: '1em',
                             borderRadius: 50, 
                             bgcolor: 'black', 
-                            color: 'white'
+                            color: 'white' 
                         }}
                         onClick={() => {
                             chooseDataset()
