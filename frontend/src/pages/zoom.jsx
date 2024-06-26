@@ -5,6 +5,7 @@ import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
 import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
+import { metrics } from "../common/metrics.js";
 
 export const Zoom = () => {
     // UseState definitions
@@ -73,10 +74,13 @@ export const Zoom = () => {
                 <div className="row pb-2">
                     <div className="col"></div>
                     <div className="col">
-                        <b>x</b>
+                        <b>Metric</b>
                     </div>
                     <div className="col">
-                        <b>y</b>
+                        <b>X</b>
+                    </div>
+                    <div className="col">
+                        <b>Y</b>
                     </div>
                     <div className="col">
                         <b>Word(s)</b>
@@ -86,7 +90,10 @@ export const Zoom = () => {
                 {/* Word data */}
                 <div className="row">
                     <div className="col">
-                        <b>Selected datapoint</b>
+                        <b>Selected Datapoint</b>
+                    </div>
+                    <div className="col">
+                        {metrics[graphData.metric]}
                     </div>
                     <div className="col">
                         {graphData.x}
@@ -99,7 +106,10 @@ export const Zoom = () => {
                     </div>
                 </div>
 
-                <PaginatedDataTable
+                
+            </div>
+        </div>
+        <PaginatedDataTable
                     searchResults = {searchResults}
                     page = {page}
                     totalNumOfPages = {totalPages}
@@ -108,8 +118,6 @@ export const Zoom = () => {
                     downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
                     totalNumResults={graphData.ids.length}
                 />
-            </div>
-        </div>
         </>
     );
 }

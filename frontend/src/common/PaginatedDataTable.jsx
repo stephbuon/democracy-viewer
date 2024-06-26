@@ -9,6 +9,9 @@ import { useEffect, useState } from 'react';
 import { AlertDialog } from './AlertDialog';
 import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
 import { updateText } from '../api/api';
+//importing scrollbar library
+import { ScrollPanel } from 'primereact/scrollpanel';
+
 
 export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNewPage, downloadSubset, table_name, totalNumResults }) => {
     const [clickRow, setClickRow] = useState(-1);
@@ -20,6 +23,16 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
     const [newText, setNewText] = useState("");
     const [disabled, setDisabled] = useState(true);
     const [suggest, setSuggest] = useState(false);
+
+    // const renderCell = (rowData, col) => {
+    //     const isTextColumn = col === 'text';
+
+    //     return (
+    //         <div style={isTextColumn ? { maxHeight: '100px', overflow: 'auto', padding: '8px', boxSizing: 'border-box' } : { padding: '8px', boxSizing: 'border-box' }}>
+    //             {rowData[col]}
+    //         </div>
+    //     );
+    // };
 
     const renderPageNumbers = () => {
         const pageNumbers = [];
@@ -137,7 +150,7 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                     justifyContent: 'center',
                     marginTop: '50px',
                 }}
-            >{totalNumResults} results returned</Box>
+            > {totalNumResults} results returned</Box>
             <Button
                 variant="contained"
                 color="primary"
@@ -146,9 +159,7 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                     color: 'white',
                     marginLeft: '2em',
                     marginTop: '50px',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
+                    background: 'black'
                 }}
                 onClick={() => DownloadSubset(table_name, {})}
             >Download full dataset</Button>
@@ -160,9 +171,8 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                     color: 'white',
                     marginLeft: '2em',
                     marginTop: '50px',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
+                    background: 'black'
+                    
                 }}
                 onClick={() => downloadSubset()}
             >Download these {totalNumResults} results</Button>
@@ -176,24 +186,28 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                 style={{ marginLeft: "100px" }}
             />
         </Tooltip>
-
-        <DataTable value={searchResults} scrollable scrollHeight="750px" showGridlines stripedRows style={{ marginLeft: "100px" }}>
+        {/* actual data table */}
+        <DataTable value={searchResults} scrollable scrollHeight="750px" showGridlines stripedRows style={{ marginLeft: "100px"}}>
             {
+                // overflow-y= 'scroll'
                 Object.keys(searchResults[0]).map((col, i) => {
                     if (col === "__id__") {
                         return <></>
-                    } else {
+                    }
+                    else {
                         return <Column
                             key={col}
                             field={col}
                             header={col}
-                            style={{ minWidth: `${col.length * 15}px` }}
+                            style={{ minWidth: '${col.length * 15}px'}}
+                            bodyStyle={{verticalAlign: 'top', paddingTop: '5px'}}
+                            headerStyle={{verticalAlign: 'top'}}
                         />
                     }
                 })
             }
         </DataTable>
-
+        {/* pagination numbers */}
         <Box sx={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
             {renderPageNumbers()}
         </Box>
