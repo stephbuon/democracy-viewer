@@ -3,18 +3,18 @@ import { useEffect, useState } from "react";
 import { PatternFormat } from "react-number-format";
 import { isNumeric } from "validator";
 
-export const FormattedPatternField = ({ id, label, defaultText, pattern, numeric, disabled, required, setValid, fullWidth }) => {
-    const [valueInternal, setValueInternal] = useState(defaultText ? defaultText : "");
+export const FormattedPatternField = (props) => {
+    const [valueInternal, setValueInternal] = useState(props.defaultValue ? props.defaultValue : "");
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        if (required && !valueInternal) {
+        if (props.required && !valueInternal) {
             setMessage(" ");
-        } else if (!required && !valueInternal) {
+        } else if (!props.required && !valueInternal) {
             setMessage("");
         } else if (valueInternal.includes("_")) {
             setMessage(`Incomplete field`);
-        } else if (numeric && !isNumeric(valueInternal.replaceAll("-", ""))) {
+        } else if (props.numeric && !isNumeric(valueInternal.replaceAll("-", ""))) {
             setMessage("Input should be numeric");
         } else {
             setMessage("");
@@ -22,28 +22,20 @@ export const FormattedPatternField = ({ id, label, defaultText, pattern, numeric
     }, [valueInternal]);
 
     useEffect(() => {
-        if (setValid) {
-            setValid(message.length === 0);
+        if (props.setValid) {
+            props.setValid(message.length === 0);
         }
-    }, [setValid, message]);
+    }, [props.setValid, message]);
 
-    return <FormControl error = {message.length > 0} fullWidth = {fullWidth}>
+    return <FormControl error = {message.length > 0} fullWidth = {props.fullWidth}>
         <PatternFormat
+            {...props}
             customInput={TextField}
-            id={id}
-            label={label}
-            name={id}
-            defaultvalue = { defaultText ? defaultText : "" }
-            format = {pattern}
-            mask = "_"
-            disabled = {disabled}
-            required = {required}
             onChange = {event => setValueInternal(event.target.value)}
             error = {message.length > 0}
-            fullWidth = {fullWidth}
         />
         {
-            message.length > 0 && <FormHelperText id = {id}>{ message }</FormHelperText>
+            message.length > 0 && <FormHelperText id = {props.id}>{ message }</FormHelperText>
         }
     </FormControl>
 }

@@ -149,7 +149,7 @@ export const GraphSettings = ( props ) => {
                         className="form-control" />
                     
                     {/* Terms list */}
-                    <ul>
+                    <ul className = "x-data">
                         {searchTerms.map((term, index) =><li
                         onClick={(event) => {
                             updateGroupNames();

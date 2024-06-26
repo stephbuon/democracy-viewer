@@ -8,9 +8,11 @@ import AddIcon from '@mui/icons-material/Add';
 import Tooltip from '@mui/material/Tooltip';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Chip from '@mui/material/Chip';
+import { FormattedTextField } from "./forms";
 
 export const DatasetTags = (props) => {
     const [tag, setTag] = useState('');
+    const [disabled, setDisabled] = useState(false);
 
     const addTag = () => {
         if (tag.trim() === "") return;
@@ -35,6 +37,19 @@ export const DatasetTags = (props) => {
         }
     }
 
+    const setValid = (val) => {
+        if (!disabled) {
+          if (!val) {
+            setDisabled(true);
+          }
+        } else if (val) {
+          const errors = document.querySelectorAll("p.Mui-error");
+          if (errors.length === 0) {
+            setDisabled(false);
+          }
+        }
+    }
+
     return <>
         <Box sx={{ padding: 2 }}>
             <Typography variant="h5" align="center" gutterBottom>
@@ -47,17 +62,19 @@ export const DatasetTags = (props) => {
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                    <TextField
+                    <FormattedTextField
                         id="Tag"
                         label="Tag"
                         variant="filled"
                         fullWidth
                         sx={{ background: 'rgb(255, 255, 255)' }}
                         value={tag}
-                        onChange={event => { setTag(event.target.value); }}
+                        setValue={setTag}
                         onKeyDown = {onEnter}
+                        setValid={setValid}
+                        maxChars={25}
                     />
-                    <IconButton onClick={() => addTag()}>
+                    <IconButton onClick={() => addTag()} disabled={disabled}>
                         <AddIcon />
                     </IconButton>
                 </Box>

@@ -183,7 +183,8 @@ export default function Register(props) {
                   id = "orcid"
                   label = "OrcID"
                   setValid={setValid}
-                  pattern = "####-####-####-####"
+                  format="####-####-####-####"
+                  mask="_"
                   numeric
                   fullWidth
                 />

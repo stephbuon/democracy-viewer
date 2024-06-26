@@ -1,18 +1,16 @@
-ul {
+ul.x-data {
     list-style-type: none;
     padding-left: 0;
 }
 
-ul li {
+ul.x-data li {
     position: relative;
     padding-left: 20px;
 }
 
-ul li::before {
+ul.x-data li::before {
     content: "X";
     position: absolute;
     left: 0;
     color: lightcoral;
 }
-
- /* for pushing purposes */

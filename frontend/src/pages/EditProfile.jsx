@@ -17,7 +17,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
             setDisabled(false);
           }
         }
-      }
+    }
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -65,7 +65,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="username"
                                 label="Username"
-                                defaultText={user.username}
+                                defaultValue={user.username}
                                 disabled
                             />
                         </Grid>
@@ -73,7 +73,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="email"
                                 label="Email Address"
-                                defaultText={user.email}
+                                defaultValue={user.email}
                                 email
                                 maxChars={30}
                                 setValid={setValid}
@@ -84,7 +84,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="first_name"
                                 label="First Name"
-                                defaultText={user.first_name}
+                                defaultValue={user.first_name}
                                 maxChars={20}
                                 setValid={setValid}
                                 autoComplete="given-name"
@@ -94,7 +94,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="last_name"
                                 label="Last Name"
-                                defaultText={user.last_name}
+                                defaultValue={user.last_name}
                                 maxChars={20}
                                 setValid={setValid}
                                 autoComplete="family-name"
@@ -104,7 +104,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="suffix"
                                 label="Suffix"
-                                defaultText={user.suffix}
+                                defaultValue={user.suffix}
                                 maxChars={10}
                                 setValid={setValid}
                             />
@@ -113,7 +113,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="title"
                                 label="Title"
-                                defaultText={user.title}
+                                defaultValue={user.title}
                                 maxChars={20}
                                 setValid={setValid}
                             />
@@ -122,9 +122,10 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedPatternField
                                 id="orcid"
                                 label="OrcID"
-                                defaultText={user.orcid}
+                                defaultValue={user.orcid}
                                 setValid={setValid}
-                                pattern="####-####-####-####"
+                                format="####-####-####-####"
+                                mask="_"
                                 numeric
                             />
                         </Grid>
@@ -132,7 +133,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="linkedin_link"
                                 label="LinkedIn Link"
-                                defaultText={user.linkedin_link}
+                                defaultValue={user.linkedin_link}
                                 maxChars={50}
                                 setValid={setValid}
                                 website
@@ -143,7 +144,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                             <FormattedTextField
                                 id="website"
                                 label="Website Link"
-                                defaultText={user.website}
+                                defaultValue={user.website}
                                 maxChars={50}
                                 setValid={setValid}
                                 website

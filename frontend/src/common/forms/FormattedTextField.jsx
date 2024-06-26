@@ -2,72 +2,69 @@ import { TextField, FormControl, FormHelperText } from "@mui/material";
 import { isEmail, isStrongPassword, isURL, isNumeric } from "validator";
 import { useEffect, useState } from "react";
 
-export const FormattedTextField = ({ id, label, defaultText, disabled, password, email, website, numeric, maxChars, required, setValid, autoComplete, autoFocus, fullWidth, confirmPassword, setValue }) => {
-    const [valueInternal, setValueInternal] = useState(defaultText ? defaultText : "");
+export const FormattedTextField = (props) => {
+    const [valueInternal, setValueInternal] = useState(props.defaultValue ? props.defaultValue : "");
     const [message, setMessage] = useState("");
     const [type, setType] = useState("text");
 
     useEffect(() => {
-        if (setValue) {
-            setValue(valueInternal);
+        if (props.setValue) {
+            props.setValue(valueInternal);
         }
 
-        if (required && !valueInternal) {
+        if (props.required && !valueInternal) {
             setMessage(" ");
-        } else if (!required && !valueInternal) {
+        } else if (!props.required && !valueInternal) {
             setMessage("");
-        } else if (password && !isStrongPassword(valueInternal)) {
+        } else if (props.password && !isStrongPassword(valueInternal)) {
             setMessage("Password must be at least 8 characters with one uppercase and one lowercase letter, a number, and a special character");
-        } else if (confirmPassword && confirmPassword !== valueInternal) {
+        } else if (props.confirmPassword && props.confirmPassword !== valueInternal) {
             setMessage("Passwords do not match");
-        } else if (email && !isEmail(valueInternal)) {
+        } else if (props.email && !isEmail(valueInternal)) {
             setMessage("Invalid email");
-        } else if (website && !isURL(valueInternal)) {
+        } else if (props.website && !isURL(valueInternal)) {
             setMessage("Invalid URL");
-        } else if (numeric && !isNumeric(valueInternal)) {
+        } else if (props.numeric && !isNumeric(valueInternal)) {
             setMessage("Input should be numeric");
-        } else if (maxChars && valueInternal.length > maxChars) {
-            setMessage(`Exceeded maximum ${ maxChars } character limit`);
+        } else if (props.maxChars && valueInternal.length > props.maxChars) {
+            setMessage(`Exceeded maximum ${ props.maxChars } character limit`);
         } else {
             setMessage("");
         }
     }, [valueInternal]);
 
     useEffect(() => {
-        if (setValid) {
-            setValid(message.length === 0);
+        if (props.setValid) {
+            props.setValid(message.length === 0);
         }
-    }, [setValid, message])
+    }, [props.setValid, message])
 
     useEffect(() => {
-        if (password || confirmPassword) {
+        if (props.password || props.confirmPassword) {
             setType("password")
-        } else if (email) {
+        } else if (props.email) {
             setType("email")
-        } else if (website) {
+        } else if (props.website) {
             setType("url");
-        } else if (numeric) {
+        } else if (props.numeric) {
             setType("number");
         }
-    }, [confirmPassword, password, email, website, numeric]);
+    }, [props.confirmPassword, props.password, props.email, props.website, props.numeric]);
 
-    return <FormControl error = {message.length > 0} fullWidth = {fullWidth}>
-        <TextField
-            id={id}
-            label={label}
-            name={id}
-            defaultValue = { defaultText ? defaultText : "" }
-            disabled = {disabled}
-            required = {required}
-            onChange = {event => setValueInternal(event.target.value)}
-            error = {message.length > 0}
-            type = {type}
-            autoComplete = {autoComplete ? autoComplete : ""}
-            autoFocus = {autoFocus}
-            fullWidth = {fullWidth}
-        />
-        {
-            message.length > 0 && <FormHelperText id = {id}>{ message }</FormHelperText>
-        }
-    </FormControl>
+    return <>
+        <FormControl 
+            error = {message.length > 0} 
+            fullWidth = {props.fullWidth}
+        >
+            <TextField
+                { ...props }
+                onChange = {event => setValueInternal(event.target.value)}
+                error = {message.length > 0}
+                type = {type}
+            />
+            {
+                message.length > 0 && <FormHelperText id = {props.id}>{ message }</FormHelperText>
+            }
+        </FormControl>
+    </>
 }

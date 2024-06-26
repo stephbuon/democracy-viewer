@@ -6,8 +6,22 @@ import { FormControl, MenuItem, Select, InputLabel } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { FormattedTextField } from "./forms";
 
 export const DatasetInformation = (props) => {
+    const setValid = (val) => {
+        if (!props.disabled) {
+          if (!val) {
+            props.setDisabled(true);
+          }
+        } else if (val) {
+          const errors = document.querySelectorAll("p.Mui-error");
+          if (errors.length === 0) {
+            props.setDisabled(false);
+          }
+        }
+    }
+
     return <>
         <Box sx={{ padding: 2 }}>
             <Typography variant="h5" align="center" gutterBottom>
@@ -19,23 +33,28 @@ export const DatasetInformation = (props) => {
                 </Tooltip>
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                <TextField
+                <FormattedTextField
                     id="Title"
                     label="Title"
                     variant="filled"
                     fullWidth
                     sx={{ background: 'rgb(255, 255, 255)' }}
-                    value={props.title}
-                    onChange={event => { props.setTitle(event.target.value); }}
+                    defaultValue={props.title}
+                    setValue={props.setTitle}
+                    maxChars={50}
+                    required
+                    setValid={setValid}
                 />
-                <TextField
+                <FormattedTextField
                     id="Author"
                     label="Author"
                     variant="filled"
                     fullWidth
                     sx={{ background: 'rgb(255, 255, 255)' }}
-                    value={props.author}
-                    onChange={event => { props.setAuthor(event.target.value); }}
+                    defaultValue={props.author}
+                    setValue={props.setAuthor}
+                    maxChars={50}
+                    setValid={setValid}
                 />
                 <TextField
                     id="Date"
@@ -48,14 +67,17 @@ export const DatasetInformation = (props) => {
                     value={props.date}
                     onChange={event => { props.setDate(event.target.value); }}
                 />
-                <TextField
+                <FormattedTextField
                     id="Description"
                     label="Description"
                     variant="filled"
                     fullWidth
                     sx={{ background: 'rgb(255, 255, 255)' }}
-                    value={props.description}
-                    onChange={event => { props.setDescription(event.target.value); }}
+                    defaultValue={props.description}
+                    setValue={props.setDescription}
+                    maxChars={200}
+                    required
+                    setValid={setValid}
                 />
                 <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                     <InputLabel>Privacy</InputLabel>
