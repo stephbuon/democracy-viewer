@@ -199,7 +199,7 @@ class datasets {
                 }
 
                 // Search all text fields
-                const search = params.search;
+                const search = params.__search__;
                 if (search) {
                     q.where(q => {
                         const terms = search.split(" ");
@@ -216,10 +216,10 @@ class datasets {
                     // If tag is an array, find datasets with all tags
                     if (Array.isArray(tag_name)) {
                         q.where(q => {
-                            tag_name.map(x => q.orWhere({ tag_name: x }));
+                            tag_name.map(x => q.orWhere("tags.tag_name", x));
                         });
                     } else {
-                        q.where({ tag_name });
+                        q.where("tags.tag_name", tag_name);
                     }
                 }
 

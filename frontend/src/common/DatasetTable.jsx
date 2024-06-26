@@ -2,6 +2,9 @@ import './Loading.css'
 import { Result } from "./Result";
 import { TableBody, TableHead, TableRow, TableCell, Button, Box, Table } from '@mui/material';
 import Typography from '@mui/material/Typography';
+import { DataTable } from 'primereact/datatable';
+import { Column } from "primereact/column";
+import { Row } from 'primereact/row';
 
 export const DatasetTable = ({ loadingResults, searchResults, setDataset, header, totalNumOfPages, page, GetNewPage, editable }) => {
     const renderPageNumbers = () => {

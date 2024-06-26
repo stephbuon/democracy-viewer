@@ -1,22 +1,13 @@
 import { useState, useEffect } from "react";
 
 //MUI Imports
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Modal from '@mui/material/Modal';
-import { FormControl, MenuItem, Select, Paper } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import { Grid } from '@mui/material';
-import Typography from '@mui/material/Typography';
+import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Snackbar, Alert, Grid, Typography } from '@mui/material';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 //Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AdvancedFilter } from './AdvancedFilter';
-import { GetSession } from '../apiFolder/LoginRegister';
 import { DatasetTable } from '../common/DatasetTable';
 
 const pageLength = 50;
@@ -48,11 +39,12 @@ export const DatasetResultsPage = (props) => {
 
 
     const filterResults = () => {
-
-        let filter = {
-            searchTerm: searchTerm ? `&search=${searchTerm}` : '',
+        const filter = {
             type: publicPrivate ? 'public' : 'private',
             pageLength
+        }
+        if (searchTerm) {
+            filter.__search__= searchTerm;
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
@@ -142,6 +134,12 @@ export const DatasetResultsPage = (props) => {
         setSnackBarOpen1(false);
     };
 
+    const onEnter = (event) => {
+        if (event.key === "Enter") {
+            filterResults();
+        }
+    }
+
     useEffect(() => {
         console.log("Loading Results", loadingResults)
     }, [loadingResults]);
@@ -217,6 +215,7 @@ export const DatasetResultsPage = (props) => {
                                     focused
                                     value={searchTerm}
                                     onChange={event => { setSearchTerm(event.target.value) }}
+                                    onKeyDown={event => onEnter(event)}
                                 />
                             </div>
                         </Box>
