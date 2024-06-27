@@ -1,5 +1,4 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
+
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -8,13 +7,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Link } from "react-router-dom";
-import { BrowserRouter as Router, Switch, Route, Redirect, } from "react-router-dom";
-import Login from './Login';
 
 const theme = createTheme();
 
@@ -32,7 +27,7 @@ export default function Homepage() {
             flexGrow: 1
           }}
         >
-          <Container sx={{ py: 4, maxWidth: '90%' }} maxWidth={false}>
+          <Container sx={{ py: 4, maxWidth: '45%' }} maxWidth={false}>
             <Typography
               component="h1"
               variant="h2"
@@ -42,8 +37,8 @@ export default function Homepage() {
             >
               Democracy Viewer
             </Typography>
-            <Typography variant="h5" align="center" color="text.secondary" paragraph sx={{ whiteSpace: 'nowrap' }}>
-              Democratizing text-based data analytics  <br /> & <br /> data sharing across the humanities and social sciences
+            <Typography variant="h5" align="center" color="text.secondary" paragraph>
+              Democratizing text-based data analytics and data sharing across the humanities and social sciences
             </Typography>
             <Stack
               sx={{ pt: 4 }}
@@ -65,7 +60,9 @@ export default function Homepage() {
                     Search
                   </Typography>
                   <Typography align='center'>
-                    Browse available datasets, <br/>pinpoint specific columns & sections
+                    Browse Available Datasets,
+                    <br/>
+                    Pinpoint Specific Columns and Sections
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -82,7 +79,9 @@ export default function Homepage() {
                     Upload
                   </Typography>
                   <Typography align='center'>
-                    Upload a local Data Set/ <br />Connect to Datapoint API
+                    Upload a Dataset or
+                    <br />
+                    Connect to API
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -99,7 +98,9 @@ export default function Homepage() {
                     Visualize
                   </Typography>
                   <Typography align='center'>
-                    Customize and interact with visualization of analysis
+                    Customize and Interact with
+                    <br/>
+                    Visualization of Analysis
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>

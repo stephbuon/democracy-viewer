@@ -5,7 +5,7 @@ import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Sn
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
-//Other Imports
+// Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AdvancedFilter } from './AdvancedFilter';
 import { DatasetTable } from '../common/DatasetTable';
@@ -130,153 +130,129 @@ export const DatasetResultsPage = (props) => {
         filterResults()
     }, []);
 
-    return (<div className='blue' style={{ marginTop: "-1in" }}>
-        <Snackbar
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            open={snackBarOpen1}
-            autoHideDuration={6000}
-            onClose={() => handleSnackBarClose1()}
-        >
-            <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
-                {alert === 1 && <>Must choose dataset first</>}
-                {alert === 2 && <>Could not use distributed connection</>}
-            </Alert>
-        </Snackbar>
-        <Grid container component="main" sx={{ height: '100vh' }}>
-              {/* Grid that conatins Search Bar */}
-            <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square sx={{pt:25}}>
-                <Stack spacing={2}>
-                    <Box
-                        sx={{
-                            my: 30,//still need to correct formatting for mobile 
-                            mx: 2,
-                            ml: { xs: 4, sm: 6, md: 8 },//Working on mobile formatting
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <QueryStatsIcon color="primary" sx={{ m: 1, fontSize: 60 }}>
-                        </QueryStatsIcon>
-                        <Typography component="h1" variant="h5">
-                            Search
-                        </Typography>
-                        <Box sx={{ m: 2 }}>
-                            <div align="center">
-                                <FormControl
-                                    sx={{ color: "blue" }}>
-                                    <Select
-                                        sx={{ color: "primary" }}
-                                        value={publicPrivate}
-                                        onChange={event => setPublicPrivate(event.target.value)}
-                                    >
-                                        <MenuItem
-                                            value={true}
-                                        >Public</MenuItem>
-                                        <MenuItem
-                                            value={false}
-                                            onClick={() => !loggedIn() && openSnackbar()}>Private
-                                        </MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </div>
-                        </Box>
-                        <Box>
-                            <div align="center">
-                                <TextField
-                                    sx={{ width: "500px" }}
-                                    id="searchTerm"
-                                    label="Search"
-                                    variant="outlined"
-                                    color="primary"
-                                    focused
-                                    value={searchTerm}
-                                    onChange={event => { setSearchTerm(event.target.value) }}
-                                    onKeyDown={event => onEnter(event)}
-                                />
-                            </div>
-                        </Box>
-                        <Modal
-                            open={advancedFilterOpen}
-                            onClose={() => handleAdvancedFilterClose()}
-
-                        >
-                            <AdvancedFilter
-                                advancedFilterResults={(x) => advancedFilterResults(x)}
-                            />
-                        </Modal>
+    return (
+        <div className='blue' style={{ marginTop: "-1in", overflow: 'hidden' }}>
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                open={snackBarOpen1}
+                autoHideDuration={6000}
+                onClose={() => handleSnackBarClose1()}
+            >
+                <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
+                    {alert === 1 && <>Must choose dataset first</>}
+                    {alert === 2 && <>Could not use distributed connection</>}
+                </Alert>
+            </Snackbar>
+            <Grid container component="main" sx={{ height: '100vh' }}>
+                <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square sx={{ pt: 25 }}>
+                    <Stack spacing={2}>
                         <Box
-                            pt={2}
                             sx={{
-                                //background: 0xffffffff,
-                                display: "flex",
-                                alignItems: 'stretch',
-                                justifyContent: 'center',
+                                my: 10,
+                                mx: 2,
+                                ml: { xs: 4, sm: 6, md: 8 },
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
                             }}
                         >
-                            <Button
-                                onClick={() => setAdvancedFilterOpen(true)}
-                                variant="outlined"
-                                sx={{ m: 2 }}
+                            <Typography component="h1" variant="h5" sx={{fontSize: '2.5rem'}}>Dataset Search</Typography>
+                            <p style={{ fontSize: '1rem', marginTop: '10px' }}>Result Ranked by Number of Views</p>
+                            <Box sx={{ m: 2 }}>
+                                <div align="center">
+                                    <FormControl sx={{ color: "blue" }}>
+                                        <Select
+                                            sx={{ color: "primary" }}
+                                            value={publicPrivate}
+                                            onChange={event => setPublicPrivate(event.target.value)}
+                                        >
+                                            <MenuItem value={true}>Public</MenuItem>
+                                            <MenuItem value={false} onClick={() => !loggedIn() && openSnackbar()}>Private</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </div>
+                            </Box>
+                            <Box>
+                                <div align="center">
+                                    <TextField
+                                        sx={{ width: "400px" }}
+                                        id="searchTerm"
+                                        label="Search"
+                                        variant="outlined"
+                                        color="primary"
+                                        focused
+                                        value={searchTerm}
+                                        onChange={event => { setSearchTerm(event.target.value) }}
+                                    />
+                                </div>
+                            </Box>
+                            <Modal open={advancedFilterOpen} onClose={() => handleAdvancedFilterClose()}>
+                                <AdvancedFilter advancedFilterResults={(x) => advancedFilterResults(x)} />
+                            </Modal>
+                            <Box
+                                pt={2}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: 'stretch',
+                                    justifyContent: 'center',
+                                }}
                             >
-                                Advanced Filter
-                            </Button>
-                            {(publicPrivate || (!publicPrivate && loggedIn())) && <Button
-                                variant="outlined"
-                                onClick={() => filterResults()}
-                                sx={{ m: 2 }}
-                            >
-                                Apply Filters
-                            </Button>}
-                            {(!publicPrivate && !loggedIn()) &&
                                 <Button
-                                    variant="contained"
+                                    onClick={() => setAdvancedFilterOpen(true)}
+                                    variant="outlined"
                                     sx={{ m: 2 }}
-                                    disabled
-                                // sx={{
-                                //     background: 'rgb(255, 255, 255)',
-                                //     color: 'rgb(0, 0, 0)',
-                                //     '&:hover': {
-                                //         background: 'rgb(200, 200, 200)'
-                                //     }
-                                // }}
-                                // onClick={() => filterResults()}
+                                >
+                                    Advanced Filter
+                                </Button>
+                                {(publicPrivate || (!publicPrivate && loggedIn())) && <Button
+                                    variant="outlined"
+                                    onClick={() => filterResults()}
+                                    sx={{ m: 2 }}
                                 >
                                     Apply Filters
-                                </Button>
-                            }
+                                </Button>}
+                                {(!publicPrivate && !loggedIn()) &&
+                                    <Button
+                                        variant="contained"
+                                        sx={{ m: 2 }}
+                                        disabled
+                                    >
+                                        Apply Filters
+                                    </Button>
+                                }
+                            </Box>
                         </Box>
-                    </Box>
-                </Stack>
-            </Grid>
-            {/* Grid that contains image and Results */}
-            <Grid item xs={false} sm={3} md={6.5} sx={{
-                backgroundImage: 'url(https://cdn.pixabay.com/photo/2016/01/20/11/54/book-wall-1151405_1280.jpg)',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: (t) =>
-                    t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            }}
-            >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        my: 20
+                    </Stack>
+                </Grid>
+                <Grid item xs={false} sm={3} md={6.5} sx={{
+                    backgroundImage: 'url(https://cdn.pixabay.com/photo/2016/01/20/11/54/book-wall-1151405_1280.jpg)',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: (t) =>
+                        t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                 }}>
-                    <DatasetTable
-                        searchResults={searchResults}
-                        loadingResults={loadingResults}
-                        setDataset={props.setDataset}
-                        GetNewPage={GetNewPage}
-                        editable={false}
-                        pageLength={pageLength}
-                        totalNumResults={totalNumResults}
-                    />
-                </Box>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            my: 20
+                    }}>
+                        <DatasetTable
+                            searchResults={searchResults}
+                            loadingResults={loadingResults}
+                            setDataset={props.setDataset}
+                            GetNewPage={GetNewPage}
+                            editable={false}
+                            pageLength={pageLength}
+                            totalNumResults={totalNumResults}
+                        />
+                    </Box>
+                </Grid>
             </Grid>
-        </Grid>
+                
+            {/* </Grid>
+        </Grid> */}
         {/* SnackBar to display error if not logged in  */}
         <Snackbar
             anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

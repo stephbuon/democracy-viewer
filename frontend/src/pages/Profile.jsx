@@ -59,7 +59,7 @@ const Profile = (props) => {
         });
 
         FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfLikeResults(res);
+            setTotalNumOfLikeResults(1);
         });
     }
 

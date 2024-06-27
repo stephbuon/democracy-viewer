@@ -9,14 +9,26 @@ import { LoginRequest, RegisterRequest } from '../apiFolder/LoginRegister';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { getUser } from "../api/users";
-import { Alert, Snackbar, Link, Grid, Box, Typography, Container} from "@mui/material";
+import { Alert, Snackbar, Link, Grid, Box, Typography, Container, FormControl} from "@mui/material";
 
 const theme = createTheme();
 
 export default function Register(props) {
-  const [password, setPassword] = useState("");
   const [disabled, setDisabled] = useState(true);
   const [openAlert, setOpenAlert] = useState(false);
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [suffix, setSuffix] = useState("");
+  const [title, setTitle] = useState("");
+  const [orcid, setOrcid] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [website, setWebsite] = useState("");
+
   const navigate = useNavigate();
 
   const loggedIn = () => {
@@ -46,28 +58,30 @@ export default function Register(props) {
     }
   }
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    getUser(data.get("username")).then(user => {
-      if (!user) {
-        const output = {};
-        data.keys().forEach(key => {
-            if (key !== "confirm_password") {
-              let value = data.get(key);
-              if (key === "orcid") {
-                  value = value.replaceAll("-", "");
-              }
-      
-              if (value) {
-                  output[key] = value;
-              }
-            }
-        });
+  const handleSubmit = () => {
+    const data = {
+      username,
+      email,
+      password,
+      title,
+      first_name: firstName,
+      last_name: lastName,
+      suffix,
+      linkedin_link: linkedin,
+      website,
+      orcid: orcid.replaceAll("-", "")
+    };
+    Object.keys(data).forEach(x => {
+      if (!data[x]) {
+        delete data[x];
+      }
+    });
     
-        RegisterRequest(output).then(async (res) => {
-          LoginRequest(output).then(async (res) => {
-          props.login({token: res, username: data.get('username')})
+    getUser(data.username).then(user => {
+      if (!user) {
+        RegisterRequest(data).then(async (res) => {
+          LoginRequest(data).then(async (res) => {
+          props.login({token: res, username: data.username})
         }).then(()=>{navigate('/')})}).catch(res => setOpenAlert(true));
       } else {
         setOpenAlert(true);
@@ -93,7 +107,7 @@ export default function Register(props) {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
+          <Box component="form" noValidate sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <FormattedTextField
@@ -105,6 +119,7 @@ export default function Register(props) {
                     required
                     fullWidth
                     autoFocus
+                    setValue={setUsername}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -117,6 +132,7 @@ export default function Register(props) {
                     autoComplete="email"
                     fullWidth
                     required
+                    setValue={setEmail}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -140,6 +156,7 @@ export default function Register(props) {
                     maxChars = {30}
                     setValid={setValid}
                     autoComplete="new-password"
+                    setValue={setConfirmPassword}
                     fullWidth
                     required
                 />
@@ -151,6 +168,7 @@ export default function Register(props) {
                     maxChars = {20}
                     setValid={setValid}
                     autoComplete="given-name"
+                    setValue={setFirstName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -160,6 +178,7 @@ export default function Register(props) {
                     maxChars = {20}
                     setValid={setValid}
                     autoComplete="family-name"
+                    setValue={setLastName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -168,6 +187,7 @@ export default function Register(props) {
                     label = "Suffix"
                     maxChars = {10}
                     setValid={setValid}
+                    setValue={setSuffix}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -176,6 +196,7 @@ export default function Register(props) {
                     label = "Title"
                     maxChars = {20}
                     setValid={setValid}
+                    setValue={setTitle}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -187,6 +208,7 @@ export default function Register(props) {
                   mask="_"
                   numeric
                   fullWidth
+                  setValue={setOrcid}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -198,6 +220,7 @@ export default function Register(props) {
                     website
                     autoComplete="LinkedIn"
                     fullWidth
+                    setValue={setLinkedin}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -208,15 +231,17 @@ export default function Register(props) {
                     setValid={setValid}
                     website
                     fullWidth
+                    setValue={setWebsite}
                 />
               </Grid>
             </Grid>
             <Button
-              type="submit"
+              type="button"
               fullWidth
               variant="contained"
               sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
               disabled = {disabled}
+              onClick={() => handleSubmit()}
             >
               Sign Up
             </Button>
