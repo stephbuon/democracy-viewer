@@ -78,7 +78,6 @@ export const GraphComponent = ({ data, setData }) => {
             setFoundData(true);
             
         }
-        
       }, [data]);
 
       useEffect(() => {
@@ -96,7 +95,8 @@ export const GraphComponent = ({ data, setData }) => {
                     x: dataPoint.x,
                     y: dataPoint.y,
                     ids: dataPoint.data.ids[idx],
-                    dataset: data.table_name
+                    dataset: data.table_name,
+                    metric: data.metric
                 };
                 if (data.graph[0].type === "bar") {
                     tempData.words = [dataPoint.x];

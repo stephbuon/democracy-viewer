@@ -9,6 +9,9 @@ import { useEffect, useState } from 'react';
 import { AlertDialog } from './AlertDialog';
 import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
 import { updateText } from '../api/api';
+//importing scrollbar library
+import { ScrollPanel } from 'primereact/scrollpanel';
+
 
 export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);
@@ -101,7 +104,7 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
                     justifyContent: 'center',
                     marginTop: '50px',
                 }}
-            >{totalNumResults} results returned</Box>
+            > {totalNumResults} results returned</Box>
             <Button
                 variant="contained"
                 color="primary"
@@ -110,9 +113,7 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
                     color: 'white',
                     marginLeft: '2em',
                     marginTop: '50px',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
+                    background: 'black'
                 }}
                 onClick={() => DownloadSubset(table_name, {})}
             >Download full dataset</Button>
@@ -124,9 +125,8 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
                     color: 'white',
                     marginLeft: '2em',
                     marginTop: '50px',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
+                    background: 'black'
+                    
                 }}
                 onClick={() => downloadSubset()}
             >Download these {totalNumResults} results</Button>
@@ -140,7 +140,6 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
                 style={{ marginLeft: "100px" }}
             />
         </Tooltip>
-
         <DataTable 
             value={searchResults} 
             scrollable 
@@ -158,13 +157,26 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
                 columns.map((col, i) => {
                     if (col === "__id__") {
                         return <></>
-                    } else {
+                    }
+                    else {
                         return <Column
                             key={col}
                             field={col}
                             header={col}
                             style={{ minWidth: `${col.length * 15}px` }}
+                            body={(rowData) => (
+                                <div style={{ 
+                                    maxHeight: '125px', 
+                                    overflowY: 'auto', 
+                                    verticalAlign: 'top', 
+                                    paddingTop: '5px' 
+                                }}>
+                                    {rowData[col]}
+                                </div>
+                        )}
+                            headerStyle={{verticalAlign: 'top'}}
                         />
+
                     }
                 })
             }
