@@ -10,7 +10,7 @@ import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchA
 import { AdvancedFilter } from './AdvancedFilter';
 import { DatasetTable } from '../common/DatasetTable';
 
-const pageLength = 50;
+const pageLength = 5;
 
 export const DatasetResultsPage = (props) => {
     //temp values
@@ -26,8 +26,7 @@ export const DatasetResultsPage = (props) => {
 
     //pagination
     const [pageFilter, setPageFilter] = useState(null);
-    const [totalNumOfPages, setTotalNumOfPages] = useState(1);
-    const [page, setPage] = useState(1);
+    const [totalNumResults, setTotalNumOfResults] = useState(0);
 
 
     const [loadingResults, setLoadingResults] = useState(false);
@@ -48,7 +47,6 @@ export const DatasetResultsPage = (props) => {
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
@@ -56,9 +54,7 @@ export const DatasetResultsPage = (props) => {
             else { setSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
+            setTotalNumOfResults(res);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
@@ -66,7 +62,6 @@ export const DatasetResultsPage = (props) => {
         advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
@@ -76,23 +71,17 @@ export const DatasetResultsPage = (props) => {
             handleAdvancedFilterClose()
         })
         FilterDatasetsCount(advancedFilter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
+            setTotalNumOfResults(res);
         })
     }
 
     const GetNewPage = async (selectedPage) => {
-        if (selectedPage < 1 || selectedPage > totalNumOfPages) return;
-
         setLoadingResults(true);
 
         try {
             const res = await FilterDatasets(pageFilter, selectedPage);
             if (res) {
                 setSearchResults(res);
-                // Correctly handle asynchronous state update
-                setPage(selectedPage);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);
@@ -139,10 +128,6 @@ export const DatasetResultsPage = (props) => {
             filterResults();
         }
     }
-
-    useEffect(() => {
-        console.log("Loading Results", loadingResults)
-    }, [loadingResults]);
 
     useEffect(() => {
         if (props.navigated) {
@@ -292,11 +277,10 @@ export const DatasetResultsPage = (props) => {
                         searchResults={searchResults}
                         loadingResults={loadingResults}
                         setDataset={props.setDataset}
-                        header
-                        page={page}
-                        totalNumOfPages={totalNumOfPages}
                         GetNewPage={GetNewPage}
                         editable={false}
+                        pageLength={pageLength}
+                        totalNumResults={totalNumResults}
                     />
                 </Box>
             </Grid>

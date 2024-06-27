@@ -118,7 +118,14 @@ export const Result = (props) => {
     }, [props.result]);
 
     return <div>
-        <Box onClick={() => handleOpen()}>
+        <Box 
+            onClick={() => handleOpen()}
+            sx={{
+                "&:hover": {
+                    "cursor": "pointer"
+                }
+            }}
+        >
             {dataset.title}
         </Box>
         <Modal
