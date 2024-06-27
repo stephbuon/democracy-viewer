@@ -145,7 +145,8 @@ export const Result = (props) => {
                         width: "70%",
                         bgcolor: 'background.paper',
                         border: '1px solid #000',
-                        borderRadius: ".5em .5em"
+                        borderRadius: ".5em .5em",
+                        paddingBottom: "15px"
                     }}
                 >
                     {/* <div class="row"> */}
