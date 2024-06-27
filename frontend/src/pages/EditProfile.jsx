@@ -1,36 +1,52 @@
-import { FormControl, Modal } from "@mui/material";
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import { Modal, Button, Box, Grid } from "@mui/material";
 import { updateUser } from "../api/users";
-import { PatternFormat } from "react-number-format";
+import { FormattedTextField, FormattedPatternField } from "../common/forms";
+import { useState } from "react";
 
 export const EditProfile = ({ user, setUser, open, setOpen }) => {
+    const [disabled, setDisabled] = useState(false);
+
+    const setValid = (val) => {
+        if (!disabled) {
+          if (!val) {
+            setDisabled(true);
+          }
+        } else if (val) {
+          const errors = document.querySelectorAll("p.Mui-error");
+          if (errors.length === 0) {
+            setDisabled(false);
+          }
+        }
+    }
+
     const handleSubmit = (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        updateUser
-            (user.username,
-            {
-                username:user.username,
-                email:data.get('email'),
-                first_name:data.get('first_name'),
-                last_name:data.get('last_name'),
-                suffix:data.get('suffix'),
-                title:data.get('title'),
-                orcid:data.get('orcid'),
-                linkedin_link:data.get('linkedin_link'),
-                website:data.get('website'),
+        const output = {};
+        data.keys().forEach(key => {
+            let value = data.get(key);
+            if (key === "orcid") {
+                value = value.replaceAll("-", "");
             }
-            ).then(x => {
+            
+            if (!value && user[key]) {
+                output[key] = null;
+            } else if (value && value !== user[key]) {
+                output[key] = value;
+            }
+        });
+
+        if (Object.keys(output).length > 0) {
+            updateUser(user.username, output).then(x => {
                 setUser(x);
-                setOpen(false);
-            })
+            });
+        }
+        setOpen(false);
     }
 
     return (
-        <Modal open = { open } onClose={() => setOpen(false)}>
-             <Box
+        <Modal open={open} onClose={() => setOpen(false)}>
+            <Box
                 sx={{
                     position: 'absolute',
                     top: '15%',
@@ -40,96 +56,109 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                     width: "70%",
                     bgcolor: 'background.paper',
                     border: '1px solid #000',
-                    borderRadius: ".5em .5em"
+                    borderRadius: ".5em .5em",
                 }}
             >
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}  className = "text-center">
-                    <FormControl>
-                    <TextField
-                            margin="normal"
-                            id="username"
-                            label="Username"
-                            name="username"
-                            defaultValue = { user.username ? user.username : "" }
-                            disabled
-                        />
-
-                        <TextField
-                            margin="normal"
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            defaultValue = { user.email ? user.email : "" }
-                        />
-
-                        <TextField
-                            margin="normal"
-                            id="first_name"
-                            label="First Name"
-                            name="first_name"
-                            defaultValue = { user.first_name ? user.first_name : "" }
-                        />
-
-                        <TextField
-                            margin="normal"
-                            name="last_name"
-                            label="Last Name"
-                            id="last_name"
-                            defaultValue = { user.last_name ? user.last_name : "" }
-                        />
-
-                        <TextField
-                            margin="normal"
-                            id="suffix"
-                            label="Suffix"
-                            name="suffix"
-                            defaultValue = { user.suffix ? user.suffix : "" }
-                        />
-
-                        <TextField
-                            margin="normal"
-                            name="title"
-                            label="Title"
-                            id="title"
-                            defaultValue = { user.title ? user.title : "" }
-                        />
-
-                        <PatternFormat
-                            customInput={TextField}
-                            margin="normal"
-                            id="orcid"
-                            label="OrcID"
-                            name="orcid"
-                            value={ user.orcid ? user.orcid : "" }
-                            format="####-####-####-####" 
-                            mask="_"
-                        />
-
-                        <TextField
-                            margin="normal"
-                            id="linkedin_link"
-                            label="LinkedIn Link"
-                            name="linkedin_link"
-                            defaultValue = { user.linkedin_link ? user.linkedin_link : "" }
-                        />
-
-                        <TextField
-                            margin="normal"
-                            id="website"
-                            label="Website"
-                            name="website"
-                            defaultValue = { user.website ? user.website : "" }
-                        />
-                    
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
-                        >
-                            Update Profile
-                        </Button>
-                    </FormControl>
-                    
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }} className="text-center">
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="username"
+                                label="Username"
+                                defaultValue={user.username}
+                                disabled
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="email"
+                                label="Email Address"
+                                defaultValue={user.email}
+                                email
+                                maxChars={30}
+                                setValid={setValid}
+                                autoComplete="email"
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="first_name"
+                                label="First Name"
+                                defaultValue={user.first_name}
+                                maxChars={20}
+                                setValid={setValid}
+                                autoComplete="given-name"
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="last_name"
+                                label="Last Name"
+                                defaultValue={user.last_name}
+                                maxChars={20}
+                                setValid={setValid}
+                                autoComplete="family-name"
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="suffix"
+                                label="Suffix"
+                                defaultValue={user.suffix}
+                                maxChars={10}
+                                setValid={setValid}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="title"
+                                label="Title"
+                                defaultValue={user.title}
+                                maxChars={20}
+                                setValid={setValid}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedPatternField
+                                id="orcid"
+                                label="OrcID"
+                                defaultValue={user.orcid}
+                                setValid={setValid}
+                                format="####-####-####-####"
+                                mask="_"
+                                numeric
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="linkedin_link"
+                                label="LinkedIn Link"
+                                defaultValue={user.linkedin_link}
+                                maxChars={50}
+                                setValid={setValid}
+                                website
+                                autoComplete="LinkedIn"
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormattedTextField
+                                id="website"
+                                label="Website Link"
+                                defaultValue={user.website}
+                                maxChars={50}
+                                setValid={setValid}
+                                website
+                            />
+                        </Grid>
+                    </Grid>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+                        disabled={disabled}
+                    >
+                        Update Profile
+                    </Button>
                 </Box>
             </Box>
         </Modal>

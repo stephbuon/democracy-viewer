@@ -51,6 +51,7 @@ def upload(df: DataFrame, folder: str, name: str, token: str | None = None) -> N
     
 def download(folder: str, name: str, token: str | None = None) -> DataFrame:
     distributed = get_creds(token)
+    print(distributed)
     
     download_path = "{}/{}/{}.parquet".format(BASE_PATH, folder, name)
     if exists(download_path):

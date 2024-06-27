@@ -7,6 +7,8 @@ import { Paper, Button } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import Select from 'react-select';
 import { metrics } from "./metrics.js";
+import { InfoOutlined } from '@mui/icons-material';
+import "./list.css";
 
 const allMetricOptions = Object.keys(metrics).map(x => {
     return {
@@ -106,7 +108,7 @@ export const GraphSettings = ( props ) => {
             style={{width:"75%", marginTop:"50px"}}
             >
             <Paper className="mt-0" elevation={3} sx={{ padding: "16px", margin: "8px"}}>
-                {"Title"}
+                {/* {"Title"} */}
                 <h2 id="child-modal-title">Graph Settings</h2>
 
                 {/* Metric select dropdown */}
@@ -117,7 +119,7 @@ export const GraphSettings = ( props ) => {
                 hideBlankOption={1} />
 
                 {/* Column select dropdown */}
-                <SelectField label="Column name"
+                <SelectField label="Column Name"
                 value={group}
                 setValue={(x)=>{ setGroup(x); nameSelected(x); }}
                 options={groupOptions}
@@ -140,42 +142,50 @@ export const GraphSettings = ( props ) => {
                 {/* Custom search + terms list */}
                 <div>
                     {/* Custom search textfield */}
-                    <label htmlFor="value">{ "Custom Search:" }</label>
+                    <label htmlFor="value">{ "Custom Search" }</label>
                     <input type="text" value={searchValue}
                         onChange={ (event)=>setSearchValue(event.target.value) }
                         onKeyPress={event => {addSearchTerm(event.key)}}
                         className="form-control" />
                     
                     {/* Terms list */}
-                    {searchTerms.map((term, index) =><li
-                    onClick={(event) => {
-                        updateGroupNames();
-                        searchTerms.splice(event.target.id, 1)
-                    }}
-                    onMouseOver={(event) => {event.target.style.color='red'}}
-                    onMouseOut={(event) => {event.target.style.color='black'}}
-                    style={{"color":"black"}}
-                    id={index}
-                    key={index}>{term}</li>)}
+                    <ul className = "x-data">
+                        {searchTerms.map((term, index) =><li
+                        onClick={(event) => {
+                            updateGroupNames();
+                            searchTerms.splice(event.target.id, 1)
+                        }}
+                        onMouseOver={(event) => {event.target.style.color='lightcoral'}}
+                        onMouseOut={(event) => {event.target.style.color='black'}}
+                        style={{"color":"black"}}
+                        id={index}
+                        key={index}>{term}</li>)}
+                    </ul>
+                    <div style={{"color": "#6495ED"}}>
+                        <InfoOutlined/>
+                        &nbsp;
+                        <span>Click words to remove from customized search.</span>
+                    </div>
+                    
                 </div>
-
-                {"Generate/update graph button"}
+                <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
+                                    {/* {"Generate/update graph button"} */}
                 <Button variant="contained"
                 onClick={handleClose}
                 className="mt-2"
-                style={{marginLeft:"2%"}}
+                style={{marginLeft:"2%", backgroundColor: "black", color: "white"}}
                 disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
                 >{props.generated ? 'Update graph' : 'Create graph'}</Button>
 
-                {"Cancel button"}
+                {/* {"Cancel button"} */}
                 <Button variant="contained"
                 onClick={handleCancel}
                 className="mt-2"
-                style={{marginLeft:"1%"}}
+                style={{marginLeft:"1%", backgroundColor: "black"}}
                 color="error"
                 hidden={!props.generated}
                 >Cancel</Button>
-
+                </div>
             </Paper>
         </Modal>
     </>

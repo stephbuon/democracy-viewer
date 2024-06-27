@@ -207,7 +207,7 @@ router.get('/count/filter', async(req, res, next) => {
 // Route to subset a dataset
 router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
     try {
-        const results = await control.getSubset(req.knex, req.params.table, req.query, req.user, req.params.page, req.params.pageLength);
+        const results = await control.getSubset(req.knex, req.params.table, req.query, req.user, Number(req.params.page), Number(req.params.pageLength));
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset subset:', err);

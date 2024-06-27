@@ -34,8 +34,28 @@ export const AlertDialog = ({ open, setOpen, titleText, bodyText, action, disabl
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={confirmAction} disabled = {disabled}>Confirm</Button>
+          <Button 
+              onClick={handleClose}
+              variant="contained"
+              primary
+              sx={{
+                  marginX: '3em',
+                  borderRadius: 50, 
+                  bgcolor: 'black', 
+                  color: 'white', 
+              }}
+              >Cancel
+          </Button>
+          <Button onClick={confirmAction} disabled = {disabled}
+              variant="contained"
+              primary
+              sx={{
+                  marginX: '1em',
+                  borderRadius: 50, 
+                  bgcolor: 'black', 
+                  color: 'white'
+              }}
+          >Confirm</Button>
         </DialogActions>
       </Dialog>
     </>
