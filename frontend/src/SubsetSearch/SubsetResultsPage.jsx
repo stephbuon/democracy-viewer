@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import 'react-resizable/css/styles.css';
 // MUI Imports
@@ -16,10 +16,7 @@ export const SubsetResultsPage = (props) => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [searched, setSearched] = useState(false);
-    const [searching, setSearching] = useState(false);
     const [totalNumResults, setTotalNumResults] = useState(0);
-    const [totalNumOfPages, setTotalNumOfPages] = useState(0);
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState({});
     const [loadingPage, setLoadingPage] = useState(true);
@@ -74,42 +71,29 @@ export const SubsetResultsPage = (props) => {
         demoV.downloadData = _query;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
 
-        GetSubsetOfDataByPage(props.dataset.table_name, _query).then(async (res) => {
+        GetSubsetOfDataByPage(props.dataset.table_name, _query, 1, pageLength).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
             } else {
                 highlight(res.data);
                 setTotalNumResults(res.count);
-                let tot = Math.ceil(res.count / 50);
-                setTotalNumOfPages(tot);
-                console.log("Number of Pages", tot);
+                setColumns(res.columns);
             }
             setPage(1);
-        }).finally(async () => {
-            setLoadingResults(false);
-            setLoadingPage(false);
-        });
+        })
 
         setQuery(_query);
     }
 
     const GetNewPage = async (selectedPage) => {
-        if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
-
-        setLoadingNextPage(true);
-        setLoadingPage(true);
-
         try {
-            const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage);
+            const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage, pageLength);
             if (res) {
                 setPage(prevPage => selectedPage);
                 highlight(res.data);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);
-        } finally {
-            setLoadingNextPage(false);
-            setLoadingPage(false);
         }
     };
 
@@ -142,12 +126,11 @@ export const SubsetResultsPage = (props) => {
                 }}>
 
                 <Box
-                    className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
                     sx={{
                         display: 'flex',
                         justifyContent: "center",
                         alignItems: "center",
-                        marginBottom: '100px',
+                        // marginBottom: '100px',
                         marginLeft: '10px',
                         flexDirection: "column", // Add this to stack the elements vertically
                     }}
@@ -167,7 +150,6 @@ export const SubsetResultsPage = (props) => {
                     </Box>
 
                     <Box
-                        className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
                         sx={{
                             display: 'flex',
                             zIndex: 1,
@@ -202,7 +184,7 @@ export const SubsetResultsPage = (props) => {
                                     background: 'rgb(200, 200, 200)'
                                 }
                             }}
-                            onClick={() => doMoveAnimation()}
+                            onClick={() => fetchSubset()}
                         >
                             Search
                         </Button>
@@ -214,11 +196,12 @@ export const SubsetResultsPage = (props) => {
         <PaginatedDataTable
             searchResults={searchResults}
             page={page}
-            totalNumOfPages={totalNumOfPages}
             GetNewPage={GetNewPage}
             table_name={props.dataset.table_name}
             downloadSubset={() => DownloadSubset(props.dataset.table_name, query)}
             totalNumResults={totalNumResults}
+            pageLength={pageLength}
+            columns={columns}
         />
     </>
 }

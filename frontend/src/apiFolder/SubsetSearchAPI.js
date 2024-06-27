@@ -23,10 +23,9 @@ export const GetSubsetOfDataByPage = async (table, query, page = 1, pageLength =
     }
     const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/subset/${table}/${page}/${ pageLength }`, config);
     if(res.status !== 200){
-        console.log(`Couldn't get subset information. ${res.status}`)
+        console.error(`Couldn't get subset information. ${res.status}`)
         return null;
     }
-    console.log("Returning", res.data);
     return res.data;
 };
 
@@ -37,11 +36,10 @@ export const DownloadSubset = async (table, query) =>  {
     }
     const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/subset/${table}`, config);//,{ keepAlive: true });
     if(res.status !== 200){
-        console.log(`Couldn't download data. ${res.status}`)
+        console.error(`Couldn't download data. ${res.status}`)
         return null;
     }
     download(res.data, `download_${ Date.now() }.csv`);
-    console.log("Download complete")
 };
 
 export const DownloadIds = async (table, id) =>  {
@@ -51,9 +49,8 @@ export const DownloadIds = async (table, id) =>  {
     }
     const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/download/ids/${table}`, config);//,{ keepAlive: true });
     if(res.status !== 200){
-        console.log(`Couldn't download data. ${res.status}`)
+        console.error(`Couldn't download data. ${res.status}`)
         return null;
     }
     download(res.data, `download_${ Date.now() }.csv`);
-    console.log("Download complete")
 };

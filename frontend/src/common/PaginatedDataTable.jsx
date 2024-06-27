@@ -3,14 +3,14 @@ import { Box, Button, TextField, Tooltip, Checkbox, FormControlLabel } from '@mu
 
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-
 import "primereact/resources/themes/lara-light-indigo/theme.css";
+
 import { useEffect, useState } from 'react';
 import { AlertDialog } from './AlertDialog';
 import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
 import { updateText } from '../api/api';
 
-export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNewPage, downloadSubset, table_name, totalNumResults }) => {
+export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);
     const [clickCol, setClickCol] = useState(-1);
     const [editOpen, setEditOpen] = useState(false);
@@ -20,42 +20,12 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
     const [newText, setNewText] = useState("");
     const [disabled, setDisabled] = useState(true);
     const [suggest, setSuggest] = useState(false);
+    const [first, setFirst] = useState(0);
 
-    const renderPageNumbers = () => {
-        const pageNumbers = [];
-        let startPage, endPage;
-
-        if (totalNumOfPages <= 10) {
-            startPage = 1;
-            endPage = totalNumOfPages;
-        } else {
-            if (page <= 6) {
-                startPage = 1;
-                endPage = 10;
-            } else if (page + 4 >= totalNumOfPages) {
-                startPage = totalNumOfPages - 9;
-                endPage = totalNumOfPages;
-            } else {
-                startPage = page - 5;
-                endPage = page + 4;
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            pageNumbers.push(i);
-        }
-
-        return pageNumbers.map(num => (
-            <Button
-                key={num}
-                variant={page === num ? "contained" : "outlined"}
-                onClick={() => GetNewPage(num)}
-                disabled={page === num}
-            >
-                {num}
-            </Button>
-        ));
-    };
+    const onPage = (event) => {
+        GetNewPage(event.page + 1);
+        setFirst(pageLength * event.page);
+    }
 
     const getCellClick = (event) => {
         const cell = event.target;
@@ -118,11 +88,7 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
         } else {
             setDisabled(false);
         }
-    }, [newText])
-
-    if (!searchResults || searchResults.length === 0) {
-        return <></>
-    }
+    }, [newText]);
 
     return <>
         <Box
@@ -137,7 +103,7 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                     justifyContent: 'center',
                     marginTop: '50px',
                 }}
-            >{totalNumResults} results returned</Box>
+            > {totalNumResults} results returned</Box>
             <Button
                 variant="contained"
                 color="primary"
@@ -146,9 +112,7 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                     color: 'white',
                     marginLeft: '2em',
                     marginTop: '50px',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
+                    background: 'black'
                 }}
                 onClick={() => DownloadSubset(table_name, {})}
             >Download full dataset</Button>
@@ -160,9 +124,8 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                     color: 'white',
                     marginLeft: '2em',
                     marginTop: '50px',
-                    '&:hover': {
-                        background: 'rgb(200, 200, 200)'
-                    }
+                    background: 'black'
+                    
                 }}
                 onClick={() => downloadSubset()}
             >Download these {totalNumResults} results</Button>
@@ -176,27 +139,48 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                 style={{ marginLeft: "100px" }}
             />
         </Tooltip>
-
-        <DataTable value={searchResults} scrollable scrollHeight="750px" showGridlines stripedRows style={{ marginLeft: "100px" }}>
+        <DataTable 
+            value={searchResults} 
+            scrollable 
+            scrollHeight="750px" 
+            showGridlines 
+            stripedRows 
+            style={{ marginLeft: "100px" }}
+            lazy
+            paginator
+            rows={pageLength}
+            totalRecords={totalNumResults}
+            onPage={onPage}
+            first={first}
+        >
             {
-                Object.keys(searchResults[0]).map((col, i) => {
+                columns.map((col, i) => {
                     if (col === "__id__") {
                         return <></>
-                    } else {
+                    }
+                    else {
                         return <Column
                             key={col}
                             field={col}
                             header={col}
                             style={{ minWidth: `${col.length * 15}px` }}
+                            body={(rowData) => (
+                                <div style={{ 
+                                    maxHeight: '125px', 
+                                    overflowY: 'auto', 
+                                    verticalAlign: 'top', 
+                                    paddingTop: '5px' 
+                                }}>
+                                    {rowData[col]}
+                                </div>
+                        )}
+                            headerStyle={{verticalAlign: 'top'}}
                         />
+
                     }
                 })
             }
         </DataTable>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            {renderPageNumbers()}
-        </Box>
 
         <AlertDialog
             open={editOpen}

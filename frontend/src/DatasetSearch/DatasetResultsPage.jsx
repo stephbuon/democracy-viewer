@@ -16,10 +16,9 @@ import { Stack } from '@mui/system';
 // Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AdvancedFilter } from './AdvancedFilter';
-import { GetSession } from '../apiFolder/LoginRegister';
 import { DatasetTable } from '../common/DatasetTable';
 
-const pageLength = 50;
+const pageLength = 5;
 
 export const DatasetResultsPage = (props) => {
     //temp values
@@ -38,7 +37,6 @@ export const DatasetResultsPage = (props) => {
     const [page, setPage] = useState(1);
 
     const [loadingResults, setLoadingResults] = useState(false);
-
     const [snackBarOpen1, setSnackBarOpen1] = useState(false);
 
     const filterResults = () => {
@@ -47,9 +45,11 @@ export const DatasetResultsPage = (props) => {
             type: publicPrivate ? 'public' : 'private',
             pageLength
         }
+        if (searchTerm) {
+            filter.__search__= searchTerm;
+        }
         setPageFilter({ ...filter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
@@ -57,17 +57,13 @@ export const DatasetResultsPage = (props) => {
             else { setSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
+            setTotalNumOfResults(res);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
-        console.log("Filter", advancedFilter)
         advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
@@ -77,23 +73,17 @@ export const DatasetResultsPage = (props) => {
             handleAdvancedFilterClose()
         })
         FilterDatasetsCount(advancedFilter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
+            setTotalNumOfResults(res);
         })
     }
 
     const GetNewPage = async (selectedPage) => {
-        if (selectedPage < 1 || selectedPage > totalNumOfPages) return;
-
         setLoadingResults(true);
 
         try {
             const res = await FilterDatasets(pageFilter, selectedPage);
             if (res) {
                 setSearchResults(res);
-                // Correctly handle asynchronous state update
-                setPage(selectedPage);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);
@@ -135,9 +125,11 @@ export const DatasetResultsPage = (props) => {
         setSnackBarOpen1(false);
     };
 
-    useEffect(() => {
-        console.log("Loading Results", loadingResults)
-    }, [loadingResults]);
+    const onEnter = (event) => {
+        if (event.key === "Enter") {
+            filterResults();
+        }
+    }
 
     useEffect(() => {
         if (props.navigated) {

@@ -1,4 +1,3 @@
-import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 
 //MUI Imports
@@ -16,9 +15,6 @@ import './AdvancedFilter.css'
 import { GetAllTags } from '../apiFolder/DatasetSearchAPI';
 
 export const AdvancedFilter = (props) => {
-    const navigate = useNavigate();
-    const params = useParams();
-
     //values
     // const [searchTerm, setSearchTerm] = useState('');
     const [title, setTitle] = useState('');
@@ -29,37 +25,24 @@ export const AdvancedFilter = (props) => {
     const [allTags, setAllTags] = useState([]);
 
     const filterResults = () => {
-        let tagstr = '';
-        selectedTags.forEach(tag => {
-            tagstr += `&tag=${tag.value}`;
-            console.log("adding to filter", tag.value);
-        });
-        // console.log("sent tags", selectedTags)
-        let filter = {
-            title: title ? `&title=${title}` : '',
-            description: description ? `&description=${description}` : '',
-            username: username ? `&username=${username}` : '',
+        const filter = {
+            title: title ? title : null,
+            description: description ? description : null,
+            username: username ? username : null,
             type: publicPrivate ? 'public' : 'private',
-            tags: tagstr,
+            tag: selectedTags.length > 0 ? selectedTags.map(x => x.value) : null,
             advanced: true
         };
-        console.log("filter before", filter);
-        // props.setAdvancedFilter(filter);
+        Object.keys(filter).forEach(x => {
+            if (!filter[x]) {
+                delete filter[x];
+            }
+        });
         props.advancedFilterResults(filter);
     };
 
-    const loggedIn = () => {
-        //check if user is logged in
-        //for now will return false since system is not hooked up
-        return false;
-    };
-
-    const changeTagsValue = delta => setSelectedTags([...selectedTags, ...delta]);
-
     useEffect(() => {
-        console.log("Rendering Advanced Filter");
         GetAllTags().then(res => {
-            console.log("returned results", res);
             let _tags = [];
             res.forEach(tag => {
                 _tags.push({ value: tag, label: tag });
@@ -67,10 +50,6 @@ export const AdvancedFilter = (props) => {
             setAllTags([..._tags]);
         });
     }, []);
-
-    useEffect(() => {
-        console.log("all tags var", allTags);
-    }, [allTags]);
 
     return (
         <Box
