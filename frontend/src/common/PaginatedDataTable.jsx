@@ -189,7 +189,6 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
         {/* actual data table */}
         <DataTable value={searchResults} scrollable scrollHeight="750px" showGridlines stripedRows style={{ marginLeft: "100px"}}>
             {
-                // overflow-y= 'scroll'
                 Object.keys(searchResults[0]).map((col, i) => {
                     if (col === "__id__") {
                         return <></>
@@ -199,10 +198,20 @@ export const PaginatedDataTable = ({ searchResults, page, totalNumOfPages, GetNe
                             key={col}
                             field={col}
                             header={col}
-                            style={{ minWidth: '${col.length * 15}px'}}
-                            bodyStyle={{verticalAlign: 'top', paddingTop: '5px'}}
+                            style={{ minWidth: `${col.length * 15}px` }}
+                            body={(rowData) => (
+                                <div style={{ 
+                                    maxHeight: '125px', 
+                                    overflowY: 'auto', 
+                                    verticalAlign: 'top', 
+                                    paddingTop: '5px' 
+                                }}>
+                                    {rowData[col]}
+                                </div>
+                        )}
                             headerStyle={{verticalAlign: 'top'}}
                         />
+
                     }
                 })
             }
