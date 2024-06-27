@@ -51,14 +51,5 @@ RUN python3 -m spacy download es_core_news_sm
 ### Latin
 RUN python3 -m pip install https://huggingface.co/latincy/la_core_web_sm/resolve/main/la_core_web_sm-any-py3-none-any.whl
 
-# Install SQL clients
-### PostgreSQL
-RUN apt-get install postgresql-client -y
-### SQL Server
-# RUN curl https://packages.microsoft.com/config/debian/12/prod.list | tee /etc/apt/sources.list.d/mssql-release.list
-# RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
-# RUN apt-get update
-# RUN ACCEPT_EULA=Y apt-get install -y msodbcsql17
-
 # Expose port 8000
 EXPOSE 8000

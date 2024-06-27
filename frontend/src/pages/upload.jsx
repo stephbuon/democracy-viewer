@@ -142,7 +142,7 @@ export const Upload = (props) => {
       >
         <Alert onClose={handleSnackBarClose} severity="error" sx={{ width: '100%' }}>
           {alert && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
-          {!alert && <div>API connection is bad</div>}
+          {!alert && <div>An error occurred uploading the dataset</div>}
         </Alert>
       </Snackbar>
       <Modal
