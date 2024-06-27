@@ -1,110 +1,65 @@
 import './Loading.css'
 import { Result } from "./Result";
-import { TableBody, TableHead, TableRow, TableCell, Button, Box, Table } from '@mui/material';
-import Typography from '@mui/material/Typography';
+import { DataTable } from 'primereact/datatable';
+import { Column } from "primereact/column";
+import { useState, useEffect } from 'react';
+import "primereact/resources/themes/lara-light-indigo/theme.css";
 
-export const DatasetTable = ({ loadingResults, searchResults, setDataset, header, totalNumOfPages, page, GetNewPage, editable }) => {
-    const renderPageNumbers = () => {
-        const pageNumbers = [];
-        let startPage, endPage;
+export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNewPage, editable, pageLength, totalNumResults }) => {
+    const [formattedResults, setFormattedResults] = useState([...Array(pageLength).keys()]);
+    const [first, setFirst] = useState(0);
 
-        if (totalNumOfPages <= 10) {
-            startPage = 1;
-            endPage = totalNumOfPages;
+    const onPage = (event) => {
+        GetNewPage(event.page + 1);
+        setFirst(pageLength * event.page);
+    }
+
+    const ResultTemplate = (result) => {
+        if (loadingResults) {
+            return <div
+                className = {`loadingData${ (result % 8) + 1 }`}
+            >&nbsp;</div>
+        } else if (typeof result === "object") {
+            return <Result
+                result = {result} 
+                setDataset={(x) => setDataset(x)} 
+                editable={editable}
+            />
         } else {
-            if (page <= 6) {
-                startPage = 1;
-                endPage = 10;
-            } else if (page + 4 >= totalNumOfPages) {
-                startPage = totalNumOfPages - 9;
-                endPage = totalNumOfPages;
-            } else {
-                startPage = page - 5;
-                endPage = page + 4;
-            }
+            return <>&nbsp;</>
         }
+    }
 
-        for (let i = startPage; i <= endPage; i++) {
-            pageNumbers.push(i);
+    useEffect(() => {
+        const searchResults_ = [ ...searchResults ];
+        for (let i = searchResults.length; i < pageLength; i++) {
+            searchResults_.push(i);
         }
-
-        return pageNumbers.map(num => (
-            <Button
-                key={num}
-                variant={page === num ? "contained" : "outlined"}
-                onClick={() => GetNewPage(num)}
-                disabled={page === num}
-            >
-                {num}
-            </Button>
-        ));
-    };
+        setFormattedResults(searchResults_);
+    }, [searchResults]);
 
     return <>
-        <Table
-            sx={{
+        <DataTable
+            value={formattedResults} 
+            scrollHeight="750px" 
+            showGridlines 
+            stripedRows 
+            style={{
                 color: 'rgb(0, 0, 0)',
                 marginTop: '2rem',
-                width: .8,
+                width: "80%"
             }}
+            lazy
+            paginator
+            rows={pageLength}
+            totalRecords={totalNumResults}
+            onPage={onPage}
+            first={first}
         >
-            { header &&
-                <TableHead
-                    sx={{
-                        background: 'rgb(255, 255, 255)', opacity: 0.8
-                    }}>
-                    <TableRow>
-                        <TableCell align='center'>
-                            <Typography component="h1" variant="h6">Results
-                            </Typography>
-                        </TableCell>
-                    </TableRow>
-                </TableHead>
-            }
-            
-            {/*Animated Class while people wait for database response*/}
-            {loadingResults && <TableBody sx={{ background: '#fff' }}>
-                <TableRow className='loadingData1'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-                <TableRow className='loadingData2'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-                <TableRow className='loadingData3'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-                <TableRow className='loadingData4'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-                <TableRow className='loadingData5'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-                <TableRow className='loadingData6'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-                <TableRow className='loadingData7'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-                <TableRow className='loadingData8'>
-                    <TableCell>&nbsp;</TableCell>
-                </TableRow>
-            </TableBody>}
-            {!loadingResults && <TableBody
-                sx={{
-                    background: 'rgb(200, 200, 200)'
-                }}>
-                {searchResults.map((result) => {
-                    return <TableRow id={result.table_name} key={result.table_name}>
-                        <TableCell>
-                            <Result result={result} setDataset={(x) => setDataset(x)} editable={editable} />
-                        </TableCell>
-                    </TableRow>
-                })}
-            </TableBody>}
-        </Table>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            {renderPageNumbers()}
-        </Box>
+            <Column
+                header="Results"
+                body={ResultTemplate}
+            />
+        </DataTable>
     </>
 } 

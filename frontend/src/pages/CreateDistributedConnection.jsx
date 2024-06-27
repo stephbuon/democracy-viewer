@@ -54,7 +54,6 @@ export default function CreateDistributedConnection(props) {
     addDistributedConnection(data.get("name"), params).then(async (res) => { //Use connection. Need the use connection endpoint
       navigate('/');
     }).catch(ex => {
-      console.log("something went wrong making distributed connection");
       openSnackbar();
     });
   };

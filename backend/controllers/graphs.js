@@ -1,6 +1,4 @@
 const files = require("../util/file_management");
-const { encodeConnection } = require("./databases");
-const { defaultConfig } = require("../util/database_config");
 const runPython = require("../util/python_config");
 require('dotenv').config();
 
@@ -20,10 +18,11 @@ const createGraph = async(knex, dataset, params, user = null) => {
     // Check if the provided metrics is valid
     const metrics = [
         "counts",
-        "proportion",
+        "proportions",
         "tf-idf",
         "ll",
-        "jsd"
+        "jsd",
+        "embeddings-similar"
     ];
     if (!metrics.includes(params.metric)) {
         throw new Error(`Invalid metric ${ params.metric }`);

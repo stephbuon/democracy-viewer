@@ -19,9 +19,14 @@ const findUserByUsername = async(knex, username) => {
     const model = new users(knex);
 
     const user_ = await model.findUserByUsername(username);
-    // Delete the user's password
-    delete user_.password;
-    return user_;
+    if (user_) {
+        // Delete the user's password
+        delete user_.password;
+        return user_;
+    } else {
+        // Return null if user doesn't exist
+        return null;
+    }
 }
 
 // Update a user's information
