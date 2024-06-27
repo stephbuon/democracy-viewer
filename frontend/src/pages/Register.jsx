@@ -52,7 +52,7 @@ export default function Register(props) {
     getUser(data.get("username")).then(user => {
       if (!user) {
         const output = {};
-        data.keys().forEach(key => {
+        Array.from(data.keys()).forEach(key => {
             if (key !== "confirm_password") {
               let value = data.get(key);
               if (key === "orcid") {
