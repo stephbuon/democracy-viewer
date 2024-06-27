@@ -58,16 +58,16 @@ elif params["metric"] == "jsd":
     output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
 elif params["metric"] == "tf-idf":
     output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
-elif params["metric"] == "proportion":
+elif params["metric"] == "proportions":
     output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
-elif params["metric"] == "embed":
-    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), TOKEN)
+elif params["metric"] == "embeddings-similar":
+    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), metadata["preprocessing_type"], metadata["language"], TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
 print("Computation time: {} seconds".format(time() - start_time))
 
 output_file = params_file.replace("/input/", "/output/")
-if type(output) == dict:
+if type(output) == dict or type(output) == list:
     dump(output, open(output_file, "w"), indent = 4)
 else:
     output.to_json(output_file, orient = "records")

@@ -9,11 +9,11 @@ import { getGraph } from "../api/api.js";
 import { Settings, RotateLeft, Loop } from '@mui/icons-material';
 
 const barGraphs = [
-  "counts", "proportion"
+  "counts", "proportions", "embeddings-similar"
 ];
 
 const scatterPlots = [
-  "tf-idf", "ll", "embeddings"
+  "tf-idf", "ll"
 ];
 
 const heatMaps = [
@@ -49,7 +49,13 @@ export const Graph = (props) => {
 
       if(barGraphs.indexOf(metric) !== -1){
         tempData.xLabel = "Word"
-        tempData.yLabel = "Count"
+        if (metric === "counts") {
+          tempData.yLabel = "Count"
+        } else if (metric === "proportions") {
+          tempData.yLabel = "Proportion"
+        } else if (metric === "embeddings-similar") {
+          tempData.yLabel = "Embedding Similarity"
+        }
         tempData.titleList = searchTerms;
 
         res.forEach((dataPoint) => { // Populate data array with request output
@@ -135,7 +141,6 @@ export const Graph = (props) => {
         throw new Error("Metric not implimented")
       }
       localStorage.setItem('graph-data', JSON.stringify(tempData))
-      console.log("Saved graph data", tempData)
       setGraphData(tempData);
       setGraph(true);
       setLoading(false);

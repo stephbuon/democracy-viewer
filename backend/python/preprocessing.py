@@ -139,7 +139,7 @@ print("Tokens processed: {}".format(len(df)))
 upload_result(df_split)
 sql.complete_processing(engine, TABLE_NAME, "tokens")
 if metadata["embeddings"]:
-    compute_embeddings(df, metadata, TABLE_NAME)
+    compute_embeddings(df, metadata, TABLE_NAME, TOKEN)
     sql.complete_processing(engine, TABLE_NAME, "embeddings")
 final_time = (time() - start_time) / 60
 print("Total time: {} minutes".format(final_time))

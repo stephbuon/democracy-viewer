@@ -3,8 +3,9 @@ import { Result } from "./Result";
 import { DataTable } from 'primereact/datatable';
 import { Column } from "primereact/column";
 import { useState, useEffect } from 'react';
+import "primereact/resources/themes/lara-light-indigo/theme.css";
 
-export const DatasetTable = ({ loadingResults, searchResults, setDataset, header, totalNumOfPages, page, GetNewPage, editable, pageLength, totalNumResults }) => {
+export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNewPage, editable, pageLength, totalNumResults }) => {
     const [formattedResults, setFormattedResults] = useState([...Array(pageLength).keys()]);
 
     const onPage = (event) => {

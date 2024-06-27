@@ -1,14 +1,13 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Modal from '@mui/material/Modal';
 import { getGroupNames, getColumnValues } from "../api/api.js"
-import { Paper, Button } from "@mui/material";
+import { Paper, Button, Modal } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
-import Select from 'react-select';
+import ReactSelect from 'react-select';
 import { metrics } from "./metrics.js";
-import { InfoOutlined } from '@mui/icons-material';
+import { FormattedMultiTextField } from "./forms";
 import "./list.css";
+import { useNavigate } from "react-router-dom";
 
 const allMetricOptions = Object.keys(metrics).map(x => {
     return {
@@ -20,7 +19,7 @@ const allMetricOptions = Object.keys(metrics).map(x => {
 export const GraphSettings = ( props ) => {
     // UseState definitions
     const [searchValue, setSearchValue] = useState("");
-    const [searchTerms, setSearchTerms] = useState(["trade", "marry", "susan"]);
+    const [searchTerms, setSearchTerms] = useState([]);
     const [groupOptions, setGroupOptions] = useState(undefined);
     const [valueOptions, setValueOptions] = useState(undefined);
     const [groupList, setGroupList] = useState([]);
@@ -28,15 +27,16 @@ export const GraphSettings = ( props ) => {
     const [metric, setMetric] = useState("counts");
     const [selectToggle, setSelectToggle] = useState(true);
     const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
+    const [groupLocked, setGroupLocked] = useState(false);
+
+    const navigate = useNavigate();
 
     // UseEffect: Updates graph settings from local storage and group names from api
     useEffect(() => {
         let graphData = JSON.parse(localStorage.getItem('graph-data'));
-        console.log(graphData);
         if(graphData && graphData.dataset !== undefined && graphData.dataset.table === props.dataset.dataset.table_name){
             setMetric(graphData.graphData.settings.metric);
             setGroup(graphData.graphData.settings.group);
-            nameSelected(graphData.graphData.settings.group);
 
             let searchList = []
             graphData.settings.groupList.forEach((element) => {
@@ -47,19 +47,30 @@ export const GraphSettings = ( props ) => {
         }
         updateGroupNames();
 
-        if (!props.dataset.dataset.embeddings) {
+        if (!props.dataset.dataset.embeddings || !props.dataset.dataset.embeddings_done) {
             setMetricOptions([ ...metricOptions ].filter(x => x.value !== "embedding"))
         }
     }, []);
 
-    // Function definitions
+    useEffect(() => {
+        if (metric.includes("embeddings")) {
+            if (props.dataset.dataset.embed_col) {
+                setGroup(props.dataset.dataset.embed_col);
+            } else {
+                setGroup("");
+            }
+            setGroupLocked(true);
+        } else {
+            setGroupLocked(false);
+        }
+    }, [metric])
 
     // Called when enter is pressed on custom search text entry
     // Adds current text to the word list and empties the textbox
     const addSearchTerm = (key) => {
         if(key == 'Enter'){
-        searchTerms.push(searchValue);
-        setSearchValue("");
+            setSearchTerms([ ...searchTerms, searchValue]);
+            setSearchValue("");
         }
     }
 
@@ -73,7 +84,11 @@ export const GraphSettings = ( props ) => {
 
     // Handles cancel to close settings if a graph exists
     const handleCancel = (event) => {
-        props.setSettings(false);
+        if (props.generated) {
+            props.setSettings(false);
+        } else {
+            navigate(-1);
+        }
     }
 
     // Updates column name dropdown values
@@ -89,16 +104,18 @@ export const GraphSettings = ( props ) => {
 
     // Called when a column is selected
     // updates array for column value dropdown
-    const nameSelected = (g) => { 
-        setSelectToggle(g == "");
-        getColumnValues(props.dataset.dataset.table_name, g).then(async (res) => {
-        let _valueOptions = []
-        for(let i = 0; i < res.length; i++){
-            _valueOptions.push({value: res[i], label: res[i]})
+    useEffect(() => {
+        setSelectToggle(group === "");
+        if (group !== "") {
+            getColumnValues(props.dataset.dataset.table_name, group).then(async (res) => {
+                let _valueOptions = []
+                for(let i = 0; i < res.length; i++){
+                    _valueOptions.push({value: res[i], label: res[i]})
+                }
+                setValueOptions([..._valueOptions])
+            });
         }
-        setValueOptions([..._valueOptions])
-        });
-    }
+    }, [group])
 
     return <>
         < Modal open={props.show}
@@ -120,71 +137,62 @@ export const GraphSettings = ( props ) => {
 
                 {/* Column select dropdown */}
                 <SelectField label="Column Name"
-                value={group}
-                setValue={(x)=>{ setGroup(x); nameSelected(x); }}
-                options={groupOptions}
-                on
-                hideBlankOption={0} />
+                    value={group}
+                    setValue={(x)=>setGroup(x)}
+                    options={groupOptions}
+                    hideBlankOption={0} 
+                    disabled={groupLocked}
+                />
 
                 {/* Column value multiselect dropdown */}
                 {/* TODO No selection = top 10 */}
                 <label htmlFor="valueSelect">Column Value</label>
-                <Select options={valueOptions}
+                <ReactSelect 
+                    options={valueOptions}
                     id="valueSelect"
                     className="mb-3"
                     closeMenuOnSelect={false}
                     isDisabled={selectToggle}
-                    // value={groupList}
-                    onChange={(x) => {
-                    setGroupList(x);
-                }} isMulti></Select>
+                    onChange={(x) => setGroupList(x)} 
+                    isMulti
+                />
 
                 {/* Custom search + terms list */}
-                <div>
-                    {/* Custom search textfield */}
-                    <label htmlFor="value">{ "Custom Search" }</label>
-                    <input type="text" value={searchValue}
-                        onChange={ (event)=>setSearchValue(event.target.value) }
-                        onKeyPress={event => {addSearchTerm(event.key)}}
-                        className="form-control" />
-                    
-                    {/* Terms list */}
-                    <ul className = "x-data">
-                        {searchTerms.map((term, index) =><li
-                        onClick={(event) => {
-                            updateGroupNames();
-                            searchTerms.splice(event.target.id, 1)
-                        }}
-                        onMouseOver={(event) => {event.target.style.color='lightcoral'}}
-                        onMouseOut={(event) => {event.target.style.color='black'}}
-                        style={{"color":"black"}}
-                        id={index}
-                        key={index}>{term}</li>)}
-                    </ul>
-                    <div style={{"color": "#6495ED"}}>
-                        <InfoOutlined/>
-                        &nbsp;
-                        <span>Click words to remove from customized search.</span>
-                    </div>
-                    
-                </div>
-                <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
-                                    {/* {"Generate/update graph button"} */}
-                <Button variant="contained"
-                onClick={handleClose}
-                className="mt-2"
-                style={{marginLeft:"2%", backgroundColor: "black", color: "white"}}
-                disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
-                >{props.generated ? 'Update graph' : 'Create graph'}</Button>
+                <FormattedMultiTextField
+                    id="customsearch"
+                    label="Custom Search"
+                    // variant="filled"
+                    fullWidth
+                    sx={{ background: 'rgb(255, 255, 255)', zIndex: 0 }}
+                    words={searchTerms}
+                    setWords={setSearchTerms}
+                />
 
-                {/* {"Cancel button"} */}
-                <Button variant="contained"
-                onClick={handleCancel}
-                className="mt-2"
-                style={{marginLeft:"1%", backgroundColor: "black"}}
-                color="error"
-                hidden={!props.generated}
-                >Cancel</Button>
+                <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
+                    {/* {"Cancel button"} */}
+                    <Button 
+                        variant="contained"
+                        onClick={handleCancel}
+                        className="mt-2"
+                        sx={{marginLeft:"1%", backgroundColor: "black"}}
+                    >
+                        Cancel
+                    </Button>
+
+                    {/* {"Generate/update graph button"} */}
+                    <Button 
+                        variant="contained"
+                        onClick={handleClose}
+                        className="mt-2"
+                        sx={{
+                            marginLeft:"2%", 
+                            backgroundColor: "black", 
+                            color: "white"
+                        }}
+                        disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
+                    >
+                        {props.generated ? 'Update graph' : 'Create graph'}
+                    </Button>
                 </div>
             </Paper>
         </Modal>

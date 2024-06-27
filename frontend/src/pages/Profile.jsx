@@ -69,35 +69,8 @@ const Profile = (props) => {
             setEditable(true);
         }
 
-        let filter = {
-            username: props.currUser.username,
-            pageLength
-        };
-        setLoadingResults(true);
-        FilterDatasets(filter, 1).then((res) => {
-            setLoadingResults(false);
-
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
-        })
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfResults(res);
-        })
-
-        filter = {
-            liked: props.currUser.username,
-            pageLength
-        };
-        setLoadingLikeResults(true);
-        FilterDatasets(filter, 1).then((res) => {
-            setLoadingLikeResults(false);
-
-            if (!res) { setLikeSearchResults([]) }
-            else { setLikeSearchResults(res) }
-        })
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfLikeResults(res);
-        })
+        GetNewPage(1);
+        getNewLikePage(1);
     }, [params.username]);
 
     if (!user) {
@@ -122,7 +95,7 @@ const Profile = (props) => {
                     }}
                 >
                     <Toolbar />
-                    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                    <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
                         <Grid container spacing={3} justifyContent="center" alignItems="center">
                             {/* User information */}
                             <Grid item xs={12} md={8}>
@@ -223,7 +196,7 @@ const Profile = (props) => {
                                         width: '100%',
                                     }}
                                 >
-                                    <h1>Liked Datasets</h1>
+                                    <h1>Bookmarked Datasets</h1>
                                     <DatasetTable
                                         loadingResults={loadingLikeResults}
                                         searchResults={likeSearchResults}

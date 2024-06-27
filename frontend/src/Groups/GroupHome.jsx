@@ -5,7 +5,6 @@ export const Groups = (props) => {
     const [groups, setGroups] = useState([]);
 
     useEffect(() => {
-        console.log("Group Start")
         GetGroups({}).then(async (res) => {
             setGroups(res);
         }).finally(() => setTimeout(() => setLoadingGroups(false), 3000))

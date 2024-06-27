@@ -23,10 +23,7 @@ export const Zoom = () => {
         const ids = graphData.ids.slice(start, end);
 
         getRecordsByIds(graphData.dataset, ids).then(async (res) => {
-            if (!res) {
-                console.log("Odd zoom page error, no results of selected result?");
-            }
-            else {
+            if (res) {
                 // Highlighting
                 if (textCols.length > 0) {
                     res.map(row => {

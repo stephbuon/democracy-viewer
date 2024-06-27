@@ -3,15 +3,12 @@ import { Box, Button, TextField, Tooltip, Checkbox, FormControlLabel } from '@mu
 
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-
 import "primereact/resources/themes/lara-light-indigo/theme.css";
+
 import { useEffect, useState } from 'react';
 import { AlertDialog } from './AlertDialog';
 import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
 import { updateText } from '../api/api';
-//importing scrollbar library
-import { ScrollPanel } from 'primereact/scrollpanel';
-
 
 export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);

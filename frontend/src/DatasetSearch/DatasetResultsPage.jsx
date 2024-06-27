@@ -23,19 +23,12 @@ export const DatasetResultsPage = (props) => {
 
     const [alert, setAlert] = useState(1);
 
-
     //pagination
     const [pageFilter, setPageFilter] = useState(null);
     const [totalNumResults, setTotalNumOfResults] = useState(0);
 
-
     const [loadingResults, setLoadingResults] = useState(false);
-
     const [snackBarOpen1, setSnackBarOpen1] = useState(false);
-
-
-    //for animation testing
-
 
     const filterResults = () => {
         const filter = {
@@ -58,7 +51,6 @@ export const DatasetResultsPage = (props) => {
         })
     }
     const advancedFilterResults = (advancedFilter) => {
-        console.log("Filter", advancedFilter)
         advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);

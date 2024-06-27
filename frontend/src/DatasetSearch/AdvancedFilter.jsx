@@ -42,9 +42,7 @@ export const AdvancedFilter = (props) => {
     };
 
     useEffect(() => {
-        console.log("Rendering Advanced Filter");
         GetAllTags().then(res => {
-            console.log("returned results", res);
             let _tags = [];
             res.forEach(tag => {
                 _tags.push({ value: tag, label: tag });
@@ -52,10 +50,6 @@ export const AdvancedFilter = (props) => {
             setAllTags([..._tags]);
         });
     }, []);
-
-    useEffect(() => {
-        console.log("all tags var", allTags);
-    }, [allTags]);
 
     return (
         <Box

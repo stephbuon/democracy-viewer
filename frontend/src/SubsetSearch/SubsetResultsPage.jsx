@@ -89,7 +89,6 @@ export const SubsetResultsPage = (props) => {
     };
 
     useEffect(() => {
-        console.log(props)
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (demoV == undefined || demoV.dataset == undefined) {
             navigate('/datasetSearch')

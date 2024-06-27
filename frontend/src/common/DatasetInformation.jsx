@@ -46,8 +46,8 @@ export const DatasetInformation = (props) => {
                     setValid={setValid}
                 />
                 <FormattedTextField
-                    id="Author"
-                    label="Author"
+                    id="Source"
+                    label="Source"
                     variant="filled"
                     fullWidth
                     sx={{ background: 'rgb(255, 255, 255)' }}

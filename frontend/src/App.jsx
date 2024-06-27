@@ -25,14 +25,7 @@ export const App = () => {
   const [user, setUser] = useState(demoV ? demoV.user : undefined);
   const [navigated, setNavigated] = useState(false);
 
-  // Log onstart
-  useEffect(() => {
-    console.log("Strating Democracy Viewer App")
-  },[]);
-
   // Function definitions
-
-  //
   const chooseDataset = (choice) =>{
     setDataset(choice)
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -46,14 +39,12 @@ export const App = () => {
 
   //
   const login = (profile) => {
-    console.log(profile);
     setUser(profile)
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if(!demoV)
     {
       demoV = {user:undefined, dataset:undefined}
     }
-    console.log(demoV)
     demoV.user = profile;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
@@ -64,7 +55,6 @@ export const App = () => {
     {
       demoV = {user:undefined, dataset:undefined}
     }
-    console.log(demoV)
     demoV.user = undefined;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
     //navigate('/') //where ever you call logout also navigate back to homepage. Error occurs if here since App not in Router

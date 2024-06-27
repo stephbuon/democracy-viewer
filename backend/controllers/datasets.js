@@ -167,8 +167,6 @@ const addLike = async(knex, user, table) => {
     const model = new datasets(knex);
 
     await model.addLike(user, table);
-
-    return record;
 }
 
 // Update a dataset's metadata

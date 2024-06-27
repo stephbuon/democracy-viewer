@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import { TableBody, TableHead, TableRow, TableCell } from '@mui/material';
+import { TableBody, TableHead, TableRow, TableCell, Link, Tooltip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { Popularize } from '../apiFolder/DatasetSearchAPI';
@@ -149,14 +149,12 @@ export const Result = (props) => {
                         paddingBottom: "15px"
                     }}
                 >
-                    {/* <div class="row"> */}
                     <ButtonGroup 
                         sx={{
                             width: "100%"
                         }}>
                     {
                         props.editable && <>
-                        {/* <div class="col"> */}
                             <Button 
                                 variant="contained" 
                                 disableElevation
@@ -191,8 +189,6 @@ export const Result = (props) => {
                                 }
                                 action={() => updateInfo()}
                             />
-                            {/* </div> */}
-                            {/* <div class="col"> */}
                             <Button 
                                 variant="contained" 
                                 disableElevation
@@ -218,8 +214,6 @@ export const Result = (props) => {
                                 action={() => updateTags()}
                                 disabled={tagsDisabled}
                             />
-                            {/* </div>
-                            <div class="col"> */}
 
                             <Button 
                             variant="contained" 
@@ -240,10 +234,8 @@ export const Result = (props) => {
                                 bodyText={"This action cannot be undone."}
                                 action={() => deleteDataset(dataset.table_name).then(x => window.location.reload())}
                             />
-                            {/* </div> */}
                         </>
                     }
-                    {/* <div class="col"> */}
                     {
                         loggedIn && !dataset.liked &&
                         <Button 
@@ -277,8 +269,6 @@ export const Result = (props) => {
                             Remove Bookmark
                         </Button>
                     }
-                    {/* </div> */}
-                {/* </div> */}
                 </ButtonGroup> 
                 
                 <Table>
@@ -293,9 +283,6 @@ export const Result = (props) => {
                                 }}>
                                 <b>{dataset.title}</b>
                             </TableCell>
-                            {/* <TableCell>
-                                &nbsp;
-                            </TableCell> */}
                             <TableCell 
                                 sx={{
                                     textAlign: "left", 
@@ -311,7 +298,7 @@ export const Result = (props) => {
                                 <b> Author </b>
                             </TableCell>
                             <TableCell sx={{textAlign: "left"}}>
-                                {dataset.username}
+                                <Link href={`/profile/${ dataset.username }`}>{dataset.username}</Link>
                             </TableCell>
                             
                         </TableRow>
@@ -370,10 +357,6 @@ export const Result = (props) => {
                             </TableCell>
                             
                         </TableRow>
-                    {/* </TableBody> */}
-                {/* </Table>
-                <Table>
-                    <TableBody> */}
                         <TableRow>
                             <TableCell>
                                 <b> Tags </b>
@@ -383,27 +366,13 @@ export const Result = (props) => {
                             {dataset.tags.map((tag, index) => {
                                 if (index < 5) {
                                     return <span class="col"
-                                                key={index} 
-                                                style={{
-                                                    // margin: "20px"
-
-                                                }}>
+                                                key={index} >
                                         {tag}
                                     </span>
                                 }
                             })}
                             </div>
                             </TableCell> 
-                            {/* {dataset.tags.length < 1 && <TableCell key={1} />}
-                            {dataset.tags.length < 2 && <TableCell key={2} />}
-                            {dataset.tags.length < 3 && <TableCell key={3} />}
-                            {dataset.tags.length < 4 && <TableCell key={4} />}
-                            {dataset.tags.length < 5 && <TableCell key={5} />}
-                            {dataset.tags.length < 6 && <TableCell key={6} />}
-                            {dataset.tags.length > 5 && <TableCell key={'...'}> */}
-                                {/* ...
-                            </TableCell>} */}
-
                         </TableRow>
                     </TableBody>
                 </Table>
@@ -439,22 +408,45 @@ export const Result = (props) => {
                     >
                         Search Data
                     </Button>
-                    <Button
-                        variant="contained"
-                        primary
-                        sx={{
-                            marginX: '1em',
-                            borderRadius: 50, 
-                            bgcolor: 'black', 
-                            color: 'white'
-                        }}
-                        onClick={() => {
-                            chooseDataset()
-                            navigate('/graph');
-                        }}
-                    >
-                        Graph Data
-                    </Button>
+                    {
+                        dataset.tokens_done == true &&
+                        <Button
+                            variant="contained"
+                            primary
+                            sx={{
+                                marginX: '1em',
+                                borderRadius: 50, 
+                                bgcolor: 'black', 
+                                color: 'white'
+                            }}
+                            onClick={() => {
+                                chooseDataset()
+                                navigate('/graph');
+                            }}
+                        >
+                            Graph Data
+                        </Button>
+                    }
+
+                    {
+                        dataset.tokens_done == false &&
+                        <Tooltip arrow title = "Graphing for this dataset has been disabled until processing is complete">
+        <                   Button
+                                variant="contained"
+                                primary
+                                sx={{
+                                    marginX: '1em',
+                                    borderRadius: 50, 
+                                    bgcolor: 'black', 
+                                    color: 'white'
+                                }}
+                                disabled
+                            >
+                                Graph Data
+                            </Button>
+                        </Tooltip>
+                    }
+                    
                 </Box>
             </Box>
         </Modal>
