@@ -7,7 +7,6 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 //Other Imports
 import { DownloadSubset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
-// import { DataTable } from "../common/DataTable/DataTable";
 import { PaginatedDataTable } from '../common/PaginatedDataTable';
 import Highlighter from "react-highlight-words";
 
@@ -108,21 +107,18 @@ export const SubsetResultsPage = (props) => {
 
 
                 <Box
-                    // className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
                     sx={{
                         display: 'flex',
                         justifyContent: "center",
                         alignItems: "center",
-                        marginBottom: '100px',
+                        // marginBottom: '100px',
                         marginLeft: '10px',
                         flexDirection: "column", // Add this to stack the elements vertically
-
                     }}
                 >
 
 
                     <Box
-                        // className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
                         sx={{
                             display: 'flex',
                             zIndex: 1,

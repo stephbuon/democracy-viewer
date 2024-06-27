@@ -329,10 +329,10 @@ export const Result = (props) => {
                             dataset.date_collected &&
                             <TableRow>
                                 <TableCell>
-                                    Date Collected:
+                                    <b> Date Collected: </b>
                                 </TableCell>
                                 <TableCell sx={{textAlign: "left"}}>
-                                    {dataset.date_collected}
+                                    {new Date(dataset.date_collected).toLocaleDateString()}
                                 </TableCell>
                                 
                             </TableRow>
