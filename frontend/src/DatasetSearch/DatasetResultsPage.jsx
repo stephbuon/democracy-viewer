@@ -157,10 +157,10 @@ export const DatasetResultsPage = (props) => {
                             }}
                         >
                             <Typography component="h1" variant="h5" sx={{fontSize: '2.5rem'}}>Dataset Search</Typography>
-                            <p style={{ fontSize: '1rem', marginTop: '10px' }}>Result ranked by popularity by default</p>
+                            <p style={{ fontSize: '1rem', marginTop: '10px' }}>Result Ranked by Number of Views</p>
                             <Box sx={{ m: 2 }}>
                                 <div align="center">
-                                    <FormControl sx={{ color: "blue",width: "400px" }}>
+                                    <FormControl sx={{ color: "blue" }}>
                                         <Select
                                             sx={{ color: "primary" }}
                                             value={publicPrivate}
@@ -225,52 +225,34 @@ export const DatasetResultsPage = (props) => {
                     </Stack>
                 </Grid>
                 <Grid item xs={false} sm={3} md={6.5} sx={{
-                    backgroundColor: (t) => t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
+                    backgroundImage: 'url(https://cdn.pixabay.com/photo/2016/01/20/11/54/book-wall-1151405_1280.jpg)',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: (t) =>
+                        t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                 }}>
                     <Box
                         sx={{
                             display: 'flex',
                             justifyContent: 'center',
-                            my: 20,
-                            overflowY: 'auto'
-                        }}>
+                            my: 20
+                    }}>
                         <DatasetTable
                             searchResults={searchResults}
                             loadingResults={loadingResults}
                             setDataset={props.setDataset}
-                            header
-                            page={page}
-                            totalNumOfPages={totalNumOfPages}
                             GetNewPage={GetNewPage}
                             editable={false}
+                            pageLength={pageLength}
+                            totalNumResults={totalNumResults}
                         />
                     </Box>
                 </Grid>
             </Grid>
-            <Snackbar
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                open={snackBarOpen}
-                autoHideDuration={6000}
-                onClose={handleSnackBarClose}
-            >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        my: 20
-                }}>
-                    <DatasetTable
-                        searchResults={searchResults}
-                        loadingResults={loadingResults}
-                        setDataset={props.setDataset}
-                        GetNewPage={GetNewPage}
-                        editable={false}
-                        pageLength={pageLength}
-                        totalNumResults={totalNumResults}
-                    />
-                </Box>
-            </Grid>
-        </Grid>
+                
+            {/* </Grid>
+        </Grid> */}
         {/* SnackBar to display error if not logged in  */}
         <Snackbar
             anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

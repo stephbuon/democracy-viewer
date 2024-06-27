@@ -122,8 +122,7 @@ export const SubsetResultsPage = (props) => {
                             flexDirection: 'column'
                         }}
                     >
-                        <h1 style={{ fontSize: '3rem' }}>Advanced Search</h1>
-                        <p style={{ fontSize: '1.25rem', marginTop: '10px' }}>Search for keyword(s) in your dataset</p>
+                        <h1 style={{ fontSize: '3rem' }}>Subset Search</h1>
                     </Box>
 
                     <Box
@@ -140,7 +139,7 @@ export const SubsetResultsPage = (props) => {
                             }}>
                             <TextField
                                 id="searchTerm"
-                                label="Target Keyword"
+                                label="Search"
                                 variant="outlined"
                                 color='primary'
                                 focused
@@ -152,7 +151,7 @@ export const SubsetResultsPage = (props) => {
                                 onKeyDown={event => handleKeyPress(event)}
                             />
                         </Box>
-                        <Button
+                        {/* <Button
                             variant="contained"
                             sx={{
                                 background: 'rgb(255, 255, 255)',
@@ -165,7 +164,7 @@ export const SubsetResultsPage = (props) => {
                             onClick={() => fetchSubset()}
                         >
                             Search
-                        </Button>
+                        </Button> */}
                     </Box>
                 </Box>
             </Box>

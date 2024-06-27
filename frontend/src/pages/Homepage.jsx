@@ -32,7 +32,7 @@ export default function Homepage() {
             flexGrow: 1
           }}
         >
-          <Container sx={{ py: 4, maxWidth: '90%' }} maxWidth={false}>
+          <Container sx={{ py: 4, maxWidth: '45%' }} maxWidth={false}>
             <Typography
               component="h1"
               variant="h2"
@@ -42,8 +42,8 @@ export default function Homepage() {
             >
               Democracy Viewer
             </Typography>
-            <Typography variant="h5" align="center" color="text.secondary" paragraph sx={{ whiteSpace: 'nowrap' }}>
-              Democratizing text-based data analytics  <br /> & <br /> data sharing across the humanities and social sciences
+            <Typography variant="h5" align="center" color="text.secondary" paragraph>
+              Democratizing text-based data analytics and data sharing across the humanities and social sciences
             </Typography>
             <Stack
               sx={{ pt: 4 }}

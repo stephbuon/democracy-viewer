@@ -404,7 +404,7 @@ export const Result = (props) => {
                             navigate('/subsetSearch');
                         }}
                     >
-                        Advanced search Data
+                        Subset Search
                     </Button>
                     {
                         dataset.tokens_done == true &&
@@ -422,7 +422,7 @@ export const Result = (props) => {
                                 navigate('/graph');
                             }}
                         >
-                            Graph Data
+                            Visualize
                         </Button>
                     }
 
@@ -440,7 +440,7 @@ export const Result = (props) => {
                                 }}
                                 disabled
                             >
-                                Graph Data
+                                Visualize
                             </Button>
                         </Tooltip>
                     }

@@ -192,7 +192,7 @@ export const Graph = (props) => {
       {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
       updateGraph={updateGraph} generated={graph}/>}
 
-      <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"10%"}}>
+      <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop:"5%"}}>
         <Grid container justifyContent="center" direction="column">
           
           {/* {"Open Graph settings button"} */}
@@ -200,16 +200,16 @@ export const Graph = (props) => {
             <Button variant="contained"
               onClick={handleOpen}
               className="mt-2"
-              style={{marginLeft:"5%", backgroundColor: "black"}}
+              sx={{marginLeft:"5%", backgroundColor: "black", width: "220px"}}
             ><Settings /> Graph Settings</Button>
           </Grid>
 
           {/* {"Reset graph button"} */}
-          <Grid item xs={12} sx={{ mt: -2}}>
+          <Grid item xs={12} sx={{ mt: 1.5}}>
             <Button variant="contained"
             onClick={resetGraph}
             className="mt-2"
-            style={{marginLeft:"5%", backgroundColor: "black" }}
+            sx={{marginLeft:"5%", backgroundColor: "black", width: "220px" }}
             ><RotateLeft /> Reset Graph</Button>
           </Grid>
 

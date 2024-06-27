@@ -161,14 +161,14 @@ export const Upload = (props) => {
         <Grid container spacing={4} justifyContent="space-between">
           <Grid item xs={13} sm={7} md={5}>
             <Card
-              sx={{ height: '80%', display: 'flex', flexDirection: 'column' }}
+              sx={{ height: '90%', display: 'flex', flexDirection: 'column' }}
             >
               <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                 <Typography gutterBottom variant="h5" component="h2" align='center'>
                   Local file
                 </Typography>
                 <Typography align='center'>
-                  Upload CSV data sets files from laptop
+                  Upload a CSV or Excel File
                 </Typography>
               </CardContent>
               <CardActions style={{ justifyContent: 'center' }}>
@@ -201,7 +201,7 @@ export const Upload = (props) => {
                   API
                 </Typography>
                 <Typography align='center'>
-                  Use an api endpoint to upload
+                  Upload From an API Endpoint
                 </Typography>
               </CardContent>
               <Table>
