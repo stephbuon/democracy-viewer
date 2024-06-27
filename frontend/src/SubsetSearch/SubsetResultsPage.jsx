@@ -1,23 +1,18 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import 'react-resizable/css/styles.css';
-//MUI Imports
+// MUI Imports
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-//Other Imports
+// Other Imports
 import { DownloadSubset, DownloadFullDataset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
-// import { DataTable } from "../common/DataTable/DataTable";
 import { PaginatedDataTable } from '../common/PaginatedDataTable';
 import Highlighter from "react-highlight-words";
 
-// import "../common/DataTable/MoveBar.css"
-// import "../common/DataTable/Loading.css"
-
-
 export const SubsetResultsPage = (props) => {
     const navigate = useNavigate();
-    const params = useParams()
+    const params = useParams();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -28,24 +23,22 @@ export const SubsetResultsPage = (props) => {
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState({});
     const [loadingPage, setLoadingPage] = useState(true);
-    const [loadingNextPage, setLoadingNextPage] = useState(false)
+    const [loadingNextPage, setLoadingNextPage] = useState(false);
     const [loadingResults, setLoadingResults] = useState(false);
 
-
     const doMoveAnimation = () => {
-        console.log("STARTING THE MOVE")
+        console.log("STARTING THE MOVE");
         if (!searched) {
-            setSearching(true)
+            setSearching(true);
             setTimeout(() => finishAnimation(), 500);
-        }
-        else {
+        } else {
             setLoadingResults(true);
             fetchSubset();
         }
-
     }
+
     const finishAnimation = () => {
-        setSearched(true)
+        setSearched(true);
         setSearching(false);
         setLoadingResults(true);
         fetchSubset();
@@ -57,12 +50,12 @@ export const SubsetResultsPage = (props) => {
             Object.keys(row).forEach(col => {
                 if (col !== "__id__") {
                     if (typeof row[col] !== "string") {
-                        row[col] = row[col].toString()
+                        row[col] = row[col].toString();
                     }
                     row[col] = (
                         <Highlighter
                             searchWords={terms}
-                            textToHighlight={ row[col] }
+                            textToHighlight={row[col]}
                         />
                     )
                 }
@@ -75,17 +68,16 @@ export const SubsetResultsPage = (props) => {
     const fetchSubset = () => {
         let _query = {
             simpleSearch: searchTerm
-        }
+        };
 
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.downloadData = _query;
-        localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+        localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
 
         GetSubsetOfDataByPage(props.dataset.table_name, _query).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
-            }
-            else {
+            } else {
                 highlight(res.data);
                 setTotalNumResults(res.count);
                 let tot = Math.ceil(res.count / 50);
@@ -101,7 +93,6 @@ export const SubsetResultsPage = (props) => {
         setQuery(_query);
     }
 
-    //Changed
     const GetNewPage = async (selectedPage) => {
         if (loadingPage || selectedPage < 1 || selectedPage > totalNumOfPages) return;
 
@@ -111,7 +102,6 @@ export const SubsetResultsPage = (props) => {
         try {
             const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage);
             if (res) {
-                // Correctly handle asynchronous state update
                 setPage(prevPage => selectedPage);
                 highlight(res.data);
             }
@@ -125,33 +115,31 @@ export const SubsetResultsPage = (props) => {
 
     const handleKeyPress = event => {
         if (event.key === 'Enter') {
-            doMoveAnimation()
-            console.log(searchTerm)
-
+            doMoveAnimation();
+            console.log(searchTerm);
         }
     };
 
     useEffect(() => {
-        console.log(props)
+        console.log(props);
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (demoV == undefined || demoV.dataset == undefined) {
-            navigate('/datasetSearch')
-            props.setNavigated(true)
+            navigate('/datasetSearch');
+            props.setNavigated(true);
         }
     }, []);
 
     useEffect(() => {
-        console.log("page", loadingPage)
+        console.log("page", loadingPage);
     }, [loadingPage]);
 
     return <>
-        <div className='blue' >
+        <div className='blue'>
             <Box component="main"
                 sx={{
                     marginTop: searching ? '50px' : (searched ? '280px' : '0px'),
-                    marginLeft: "100px", //Hardcoded
+                    marginLeft: "100px", // Hardcoded
                 }}>
-
 
                 <Box
                     className={`${searching ? 'searching-parent' : ''} ${searched ? 'searched' : 'not-searched'}`}
@@ -162,16 +150,21 @@ export const SubsetResultsPage = (props) => {
                         marginBottom: '100px',
                         marginLeft: '10px',
                         flexDirection: "column", // Add this to stack the elements vertically
-
                     }}
                 >
 
-                    <img
-                        src="https://cdn.pixabay.com/photo/2017/10/22/05/06/search-2876776_1280.jpg"
-                        alt="your_image_description_here"
-                        style={{ maxWidth: "20%" }}
-                    />
-
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginBottom: '20px',
+                            flexDirection: 'column'
+                        }}
+                    >
+                        <h1 style={{ fontSize: '3rem' }}>Advanced Search</h1>
+                        <p style={{ fontSize: '1.25rem', marginTop: '10px' }}>Search keyword in your selected dataset</p>
+                    </Box>
 
                     <Box
                         className={`${searching ? 'searching' : ''} ${searched ? 'searched-bar' : 'not-searched-bar'}`}
@@ -185,20 +178,17 @@ export const SubsetResultsPage = (props) => {
                                 borderRadius: '.5em',
                                 overflow: "hidden",
                                 width: '100%',
-
                             }}>
                             <TextField
                                 id="searchTerm"
-                                label="Subset Search"
+                                label="Target Keyword"
                                 variant="outlined"
                                 color='primary'
                                 focused
                                 fullWidth
                                 sx={{ marginTop: "10px" }}
-
                                 value={searchTerm}
                                 onChange={event => { setSearchTerm(event.target.value) }}
-                                // New Code to search with enter press
                                 onKeyPress={event => handleKeyPress(event)}
                             />
                         </Box>
@@ -207,8 +197,7 @@ export const SubsetResultsPage = (props) => {
                             sx={{
                                 background: 'rgb(255, 255, 255)',
                                 color: 'rgb(0, 0, 0)',
-                                marginLeft: '2em',
-
+                                marginLeft: '5em',
                                 '&:hover': {
                                     background: 'rgb(200, 200, 200)'
                                 }
@@ -220,7 +209,7 @@ export const SubsetResultsPage = (props) => {
                     </Box>
                 </Box>
             </Box>
-        </div >
+        </div>
 
         <PaginatedDataTable
             searchResults={searchResults}
@@ -232,5 +221,4 @@ export const SubsetResultsPage = (props) => {
             totalNumResults={totalNumResults}
         />
     </>
-
 }

@@ -1,4 +1,3 @@
-
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
@@ -145,7 +144,7 @@ export const Result = (props) => {
                         <AlertDialog
                             open={infoOpen}
                             setOpen={setInfoOpen}
-                            titleText={`Edit dataset "${ dataset.title }"`}
+                            titleText={`Edit dataset "${dataset.title}"`}
                             bodyText={
                                 <DatasetInformation
                                     title={title}
@@ -169,7 +168,7 @@ export const Result = (props) => {
                         <AlertDialog
                             open={tagsOpen}
                             setOpen={setTagsOpen}
-                            titleText={`Edit dataset "${ dataset.title }"`}
+                            titleText={`Edit dataset "${dataset.title}"`}
                             bodyText={
                                 <DatasetTags
                                     tags={tags}
@@ -185,7 +184,7 @@ export const Result = (props) => {
                         <AlertDialog
                             open={deleteOpen}
                             setOpen={setDeleteOpen}
-                            titleText={`Are you sure you want to delete the dataset "${ dataset.title }"?`}
+                            titleText={`Are you sure you want to delete the dataset "${dataset.title}"?`}
                             bodyText={"This action cannot be undone."}
                             action={() => deleteDataset(dataset.table_name).then(x => window.location.reload())}
                         />
@@ -195,30 +194,30 @@ export const Result = (props) => {
                 {
                     loggedIn && !dataset.liked &&
                     <Button variant="outlined" onClick={() => like()}>
-                        Like
+                        Bookmark
                     </Button>
                 }
 
                 {
                     loggedIn && dataset.liked &&
                     <Button variant="outlined" onClick={() => dislike()}>
-                        Dislike
+                        Unbookmark
                     </Button>
                 }
                 
-                <Table>
+                <Table sx={{ border: 'none' }}>
                     <TableHead>
                         <TableRow>
                             <TableCell
                                 sx={{
-
+                                    borderBottom: 'none'
                                 }}>
                                 {dataset.title}
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none' }}>
                                 &nbsp;
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none' }}>
                                 {dataset.is_public && "Public"}
                                 {!dataset.is_public && "Private"}
                             </TableCell>
@@ -226,106 +225,98 @@ export const Result = (props) => {
                     </TableHead>
                     <TableBody>
                         <TableRow>
-                            <TableCell>
-                                Owner:
+                            <TableCell sx={{ borderBottom: 'none',fontSize: '1.15rem' }}>
+                                Dataset Uploader:
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none',fontSize: '1.05rem' }}>
                                 {dataset.username}
                             </TableCell>
-                            <TableCell />
+                            <TableCell sx={{ borderBottom: 'none' }} />
                         </TableRow>
                         <TableRow>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none', fontSize: '1.15rem' }}>
                                 Description:
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none',fontSize: '1.05rem' }}>
                                 {dataset.description}
                             </TableCell>
-                            <TableCell />
+                            <TableCell sx={{ borderBottom: 'none' }} />
                         </TableRow>
 
                         {
                             dataset.author &&
                             <TableRow>
-                                <TableCell>
-                                    Author:
+                                <TableCell sx={{ borderBottom: 'none' ,fontSize: '1.15rem', width: '300px'}}>
+                                    Data Source/ Author:
                                 </TableCell>
-                                <TableCell>
+                                <TableCell sx={{ borderBottom: 'none' ,fontSize: '1.05rem'}}>
                                     {dataset.author}
                                 </TableCell>
-                                <TableCell />
+                                <TableCell sx={{ borderBottom: 'none' }} />
                             </TableRow>
                         }
 
                         {
                             dataset.date_collected &&
                             <TableRow>
-                                <TableCell>
+                                <TableCell sx={{ borderBottom: 'none' ,fontSize: '1.15rem'}}>
                                     Date Collected:
                                 </TableCell>
-                                <TableCell>
+                                <TableCell sx={{ borderBottom: 'none' ,fontSize: '1.05rem'}}>
                                     {dataset.date_collected}
                                 </TableCell>
-                                <TableCell />
+                                <TableCell sx={{ borderBottom: 'none' }} />
                             </TableRow>
                         }
 
                         <TableRow>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none' ,fontSize: '1.15rem'}}>
                                 Views:
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none',fontSize: '1.05rem' }}>
                                 {dataset.clicks}
                             </TableCell>
-                            <TableCell />
+                            <TableCell sx={{ borderBottom: 'none' }} />
                         </TableRow>
 
                         <TableRow>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none',fontSize: '1.15rem' }}>
                                 Likes:
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none',fontSize: '1.05rem' }}>
                                 {dataset.likes}
                             </TableCell>
-                            <TableCell />
+                            <TableCell sx={{ borderBottom: 'none' }} />
                         </TableRow>
                     </TableBody>
                 </Table>
-                <Table>
+                <Table sx={{ border: 'none' }}>
                     <TableBody>
                         <TableRow>
-                            <TableCell>
+                            <TableCell sx={{ borderBottom: 'none',fontSize: '1.15rem' }}>
                                 Tags:
                             </TableCell>
                             {dataset.tags.map((tag, index) => {
                                 if (index < 5) {
-                                    return <TableCell key={index}>
+                                    return <TableCell key={index} sx={{ borderBottom: 'none' }}>
                                         {tag}
                                     </TableCell>
                                 }
                             })}
-                            {dataset.tags.length < 1 && <TableCell key={1} />}
-                            {dataset.tags.length < 2 && <TableCell key={2} />}
-                            {dataset.tags.length < 3 && <TableCell key={3} />}
-                            {dataset.tags.length < 4 && <TableCell key={4} />}
-                            {dataset.tags.length < 5 && <TableCell key={5} />}
-                            {dataset.tags.length < 6 && <TableCell key={6} />}
-                            {dataset.tags.length > 5 && <TableCell key={'...'}>
+                            {dataset.tags.length < 1 && <TableCell key={1} sx={{ borderBottom: 'none' }} />}
+                            {dataset.tags.length < 2 && <TableCell key={2} sx={{ borderBottom: 'none' }} />}
+                            {dataset.tags.length < 3 && <TableCell key={3} sx={{ borderBottom: 'none' }} />}
+                            {dataset.tags.length < 4 && <TableCell key={4} sx={{ borderBottom: 'none' }} />}
+                            {dataset.tags.length < 5 && <TableCell key={5} sx={{ borderBottom: 'none' }} />}
+                            {dataset.tags.length < 6 && <TableCell key={6} sx={{ borderBottom: 'none' }} />}
+                            {dataset.tags.length > 5 && <TableCell key={'...'} sx={{ borderBottom: 'none' }}>
                                 ...
                             </TableCell>}
 
                         </TableRow>
                     </TableBody>
                 </Table>
-                <Box
-                    sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        marginTop: '2em'
-                    }}>
-                    <p>Use This Dataset!</p>
-                </Box>
+            
                 <Box
                     sx={{
                         width: '100%',
@@ -344,7 +335,7 @@ export const Result = (props) => {
                             navigate('/subsetSearch');
                         }}
                     >
-                        Search Data
+                        Advanced search Data
                     </Button>
                     <Button
                         variant="contained"
@@ -357,7 +348,7 @@ export const Result = (props) => {
                             navigate('/graph');
                         }}
                     >
-                        Graph Data
+                        Visualize Data
                     </Button>
                 </Box>
             </Box>
