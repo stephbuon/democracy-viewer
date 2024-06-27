@@ -332,7 +332,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     }
 
     // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replace(":", "_") }.json`;
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
     let fullOutput = [];
     let columns = [];
     if (util.fileExists(filename)) {
@@ -396,7 +396,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
     }
 
     // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replace(":", "_") }.json`;
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
     let fullOutput;
     if (util.fileExists(filename)) {
         fullOutput = util.readJSON(filename, false);
@@ -433,7 +433,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
         util.generateJSON(filename, fullOutput);
     }
 
-    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).replace(":", "_") }.json`;
+    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
     await util.generateCSV(newFilename, fullOutput);
     return newFilename;
 }
