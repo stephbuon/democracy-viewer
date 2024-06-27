@@ -106,13 +106,13 @@ export const Layout = (props) => {
               <ListItemText primary="Dataset Search" />
             </ListItemButton>
 
-            <ListItemButton sx={{ pt: 3 }}>
+            <ListItemButton sx={{ pt: 3 }} component={Link} to='/graph'>
               <ListItemIcon>
                 <ShowChartIcon/>
               </ListItemIcon>
               <ListItemText primary="Graphs" />
             </ListItemButton>
-            <ListItemButton component={Link} to='/graph'>
+            <ListItemButton component={Link} to='/upload'>
               <ListItemIcon>
                 <UploadIcon />
               </ListItemIcon>

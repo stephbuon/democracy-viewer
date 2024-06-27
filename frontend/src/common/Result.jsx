@@ -39,6 +39,7 @@ export const Result = (props) => {
 
     const [infoDisabled, setInfoDisabled] = useState(true);
     const [tagsDisabled, setTagsDisabled] = useState(true);
+    const [disabled, setDisabled] = useState(false);
 
     const chooseDataset = () => {
         Popularize(dataset.table_name)
@@ -93,9 +94,9 @@ export const Result = (props) => {
     }
 
     useEffect(() => {
-        if (infoDisabled && (title !== dataset.title || publicPrivate !== dataset.is_public || description !== dataset.description || author !== dataset.author || date !== dataset.date)) {
+        if (infoDisabled && (title !== dataset.title || publicPrivate != dataset.is_public || description !== dataset.description || author !== dataset.author || date !== dataset.date)) {
             setInfoDisabled(false);
-        } else if (!infoDisabled && (title === dataset.title || publicPrivate === dataset.is_public || description === dataset.description || author === dataset.author || date === dataset.date)) {
+        } else if (!infoDisabled && title === dataset.title && publicPrivate == dataset.is_public && description === dataset.description && author === dataset.author && date === dataset.date) {
             setInfoDisabled(true);
         }
     }, [title, publicPrivate, description, author, date]);
@@ -120,8 +121,14 @@ export const Result = (props) => {
     }, [props.result]);
 
     return <div>
-    
-            <Box onClick={() => handleOpen()}>
+            <Box 
+                onClick={() => handleOpen()}
+                sx={{
+                    "&:hover": {
+                        "cursor": "pointer"
+                    }
+                }}
+            >
                 {dataset.title}
             </Box>
             <Modal
@@ -177,6 +184,8 @@ export const Result = (props) => {
                                         setDescription={setDescription}
                                         publicPrivate={publicPrivate}
                                         setPublicPrivate={setPublicPrivate}
+                                        disabled={disabled}
+                                        setDisabled={setDisabled}
                                     />
                                 }
                                 action={() => updateInfo()}
@@ -206,6 +215,7 @@ export const Result = (props) => {
                                     />
                                 }
                                 action={() => updateTags()}
+                                disabled={tagsDisabled}
                             />
                             {/* </div>
                             <div class="col"> */}

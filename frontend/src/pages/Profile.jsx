@@ -1,27 +1,18 @@
 import { useEffect, useState } from "react";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import Link from '@mui/material/Link';
-import { Avatar, ListItemText } from '@mui/material';
-import { LinkedIn, Email, PermIdentity, Person, Title } from '@mui/icons-material';
+import { 
+    ListItemText, Link, Paper, Grid, Container, Typography, List,
+    Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
+} from '@mui/material';
+import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
 import { getUser } from "../api/users";
 import { useParams } from "react-router-dom";
 import { EditProfile } from "./EditProfile";
-import Button from '@mui/material/Button';
 import { DatasetTable } from "../common/DatasetTable";
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 
 const mdTheme = createTheme();
 
-const pageLength = 50;
+const pageLength = 5;
 
 const Profile = (props) => {
     const [user, setUser] = useState(undefined);
@@ -30,13 +21,11 @@ const Profile = (props) => {
 
     const [loadingResults, setLoadingResults] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
-    const [totalNumOfPages, setTotalNumOfPages] = useState(1);
-    const [page, setPage] = useState(1);
+    const [totalNumOfResults, setTotalNumOfResults] = useState(0);
 
     const [loadingLikeResults, setLoadingLikeResults] = useState(false);
     const [likeSearchResults, setLikeSearchResults] = useState([]);
-    const [totalNumOfLikePages, setTotalNumOfLikePages] = useState(1);
-    const [likePage, setLikePage] = useState(1);
+    const [totalNumOfLikeResults, setTotalNumOfLikeResults] = useState(0);
 
     const GetNewPage = (num) => {
         const filter = {
@@ -50,7 +39,6 @@ const Profile = (props) => {
             if (!res) { setSearchResults([]) }
             else { setSearchResults(res) }
         })
-       setPage(num);
     }
 
     const getNewLikePage = (num) => {
@@ -65,7 +53,6 @@ const Profile = (props) => {
             if (!res) { setLikeSearchResults([]) }
             else { setLikeSearchResults(res) }
         })
-       setLikePage(num);
     }
 
     const params = useParams();
@@ -87,7 +74,6 @@ const Profile = (props) => {
             pageLength
         };
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
@@ -95,9 +81,7 @@ const Profile = (props) => {
             else { setSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
+            setTotalNumOfResults(res);
         })
 
         filter = {
@@ -105,7 +89,6 @@ const Profile = (props) => {
             pageLength
         };
         setLoadingLikeResults(true);
-        setLikePage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingLikeResults(false);
 
@@ -113,9 +96,7 @@ const Profile = (props) => {
             else { setLikeSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfLikePages(tot);
-            console.log("Number of Like Pages", tot);
+            setTotalNumOfLikeResults(res);
         })
     }, [params.username]);
 
@@ -149,73 +130,61 @@ const Profile = (props) => {
                                     elevation={12}
                                     sx={{
                                         p: 2,
+                                        m: 5,
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
-                                        height: 240,
+                                        height: 320,
                                         width: '100%',
                                     }}
                                 >
                                     {/* User avatar */}
-                                    <Avatar alt={user.username} src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
-                                    <Divider flexItem sx={{ mt: 2, mb: 4 }} />
-                                    <Typography variant="h4" component="h4">
+                                    {/* <Avatar alt={user.username} src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
+                                    <Divider flexItem sx={{ mt: 2, mb: 4 }} /> */}
+                                    <Typography variant="h3" component="h4">
                                         {user.first_name} {user.last_name} {user.suffix}
                                     </Typography>
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} md={4} lg={3}>
-                                <Paper
-                                    elevation={12}
-                                    sx={{
-                                        p: 2,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: 240,
-                                    }}
-                                >
                                     <List>
                                         <ListItemText>
-                                            <Person /> username - {user.username}
+                                            <Person /> Username: {user.username}
                                         </ListItemText>
-                                        {user.orcid && (
-                                            <ListItemText>
-                                                <PermIdentity /> OrcID - {(user.orcid.match(/.{1,4}/g) || []).join("-")}
-                                            </ListItemText>
-                                        )}
                                         {user.title && (
                                             <ListItemText>
-                                                <Title /> {user.title}
-                                            </ListItemText>
-                                        )}
-                                        {user.linkedin_link && (
-                                            <ListItemText>
-                                                <LinkedIn color="primary" /> <Link href={user.linkedin_link}>{user.linkedin_link}</Link>
-                                            </ListItemText>
-                                        )}
-                                        {user.website && (
-                                            <ListItemText>
-                                                <Link href={user.website}>{user.website}</Link>
+                                                <Work />  Title: {user.title}
                                             </ListItemText>
                                         )}
                                         {user.email && (
                                             <ListItemText>
-                                                <Email /> <Link href={`mailto: ${user.email}`}>{user.email}</Link>
+                                                <Email /> Email: <Link href={`mailto: ${user.email}`}>{user.email}</Link>
                                             </ListItemText>
                                         )}
-                                        {editable === true && (
+                                        {user.linkedin_link && (
                                             <ListItemText>
-                                                <Button
-                                                    variant="contained"
-                                                    component="label"
-                                                    sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-                                                    onClick={() => setModalOpen(true)}
-                                                >
-                                                    Edit Profile
-                                                </Button>
+                                                <LinkedIn /> LinkedIn: <Link href={user.linkedin_link}>{user.linkedin_link}</Link>
                                             </ListItemText>
                                         )}
+                                        {user.website && (
+                                            <ListItemText>
+                                               <Language /> Website: <Link href={user.website}>{user.website}</Link>
+                                            </ListItemText>
+                                        )}
+                                        {user.orcid && (
+                                            <ListItemText>
+                                                <PermIdentity /> OrcID: {(user.orcid.match(/.{1,4}/g) || []).join("-")}
+                                            </ListItemText>
+                                        )}
+                                        
                                     </List>
+                                    {editable === true && (
+                                        <Button
+                                            variant="contained"
+                                            component="label"
+                                            sx={{ mb: 5, mt: 1,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }}
+                                            onClick={() => setModalOpen(true)}
+                                        >
+                                            Edit Profile
+                                        </Button>
+                                    )}
                                 </Paper>
                             </Grid>
                             <Grid  item xs={12} md={6}>
@@ -231,22 +200,15 @@ const Profile = (props) => {
                                     }}
                                 >
                                     <h1>My Datasets</h1>
-                                    {
-                                        searchResults.length > 0 &&
-                                        <DatasetTable
-                                            loadingResults={loadingResults}
-                                            searchResults={searchResults}
-                                            setDataset={props.setDataset}
-                                            page={page}
-                                            totalNumOfPages={totalNumOfPages}
-                                            GetNewPage={GetNewPage}
-                                            editable={editable}
-                                        />
-                                    }
-                                    {
-                                        searchResults.length === 0 &&
-                                        <span>You have no datasets</span>
-                                    }
+                                    <DatasetTable
+                                        loadingResults={loadingResults}
+                                        searchResults={searchResults}
+                                        setDataset={props.setDataset}
+                                        GetNewPage={GetNewPage}
+                                        editable={editable}
+                                        totalNumResults={totalNumOfResults}
+                                        pageLength={pageLength}
+                                    />
                                 </Paper>
                             </Grid>
                             <Grid  item xs={12} md={6}>
@@ -262,22 +224,15 @@ const Profile = (props) => {
                                     }}
                                 >
                                     <h1>Liked Datasets</h1>
-                                    {
-                                        likeSearchResults.length > 0 &&
-                                        <DatasetTable
-                                            loadingResults={loadingLikeResults}
-                                            searchResults={likeSearchResults}
-                                            setDataset={props.setDataset}
-                                            page={likePage}
-                                            totalNumOfPages={totalNumOfLikePages}
-                                            GetNewPage={getNewLikePage}
-                                            editable={false}
-                                        />
-                                    }
-                                    {
-                                        likeSearchResults.length === 0 &&
-                                        <span>You have no liked datasets</span>
-                                    }
+                                    <DatasetTable
+                                        loadingResults={loadingLikeResults}
+                                        searchResults={likeSearchResults}
+                                        setDataset={props.setDataset}
+                                        GetNewPage={getNewLikePage}
+                                        editable={false}
+                                        totalNumResults={totalNumOfLikeResults}
+                                        pageLength={pageLength}
+                                    />
                                 </Paper>
                             </Grid>
                         </Grid>
