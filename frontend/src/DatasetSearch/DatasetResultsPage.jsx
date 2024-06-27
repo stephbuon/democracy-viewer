@@ -1,25 +1,16 @@
 import { useState, useEffect } from "react";
 
-// MUI Imports
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Modal from '@mui/material/Modal';
-import { FormControl, MenuItem, Select, Paper } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import { Grid } from '@mui/material';
-import Typography from '@mui/material/Typography';
+//MUI Imports
+import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Snackbar, Alert, Grid, Typography } from '@mui/material';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AdvancedFilter } from './AdvancedFilter';
-import { GetSession } from '../apiFolder/LoginRegister';
 import { DatasetTable } from '../common/DatasetTable';
 
-const pageLength = 50;
+const pageLength = 5;
 
 export const DatasetResultsPage = (props) => {
     //temp values
@@ -34,22 +25,21 @@ export const DatasetResultsPage = (props) => {
 
     //pagination
     const [pageFilter, setPageFilter] = useState(null);
-    const [totalNumOfPages, setTotalNumOfPages] = useState(1);
-    const [page, setPage] = useState(1);
+    const [totalNumResults, setTotalNumOfResults] = useState(0);
 
     const [loadingResults, setLoadingResults] = useState(false);
-
     const [snackBarOpen1, setSnackBarOpen1] = useState(false);
 
     const filterResults = () => {
-        let filter = {
-            searchTerm: searchTerm ? `&search=${searchTerm}` : '',
+        const filter = {
             type: publicPrivate ? 'public' : 'private',
             pageLength
         }
+        if (searchTerm) {
+            filter.__search__= searchTerm;
+        }
         setPageFilter({ ...filter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
@@ -57,17 +47,13 @@ export const DatasetResultsPage = (props) => {
             else { setSearchResults(res) }
         })
         FilterDatasetsCount(filter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
+            setTotalNumOfResults(res);
         })
     }
     const advancedFilterResults = (advancedFilter) => {
-        console.log("Filter", advancedFilter)
         advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
-        setPage(1);
         FilterDatasets(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
@@ -77,23 +63,17 @@ export const DatasetResultsPage = (props) => {
             handleAdvancedFilterClose()
         })
         FilterDatasetsCount(advancedFilter).then(async (res) => {
-            let tot = Math.ceil(res / pageLength);
-            setTotalNumOfPages(tot);
-            console.log("Number of Pages", tot);
+            setTotalNumOfResults(res);
         })
     }
 
     const GetNewPage = async (selectedPage) => {
-        if (selectedPage < 1 || selectedPage > totalNumOfPages) return;
-
         setLoadingResults(true);
 
         try {
             const res = await FilterDatasets(pageFilter, selectedPage);
             if (res) {
                 setSearchResults(res);
-                // Correctly handle asynchronous state update
-                setPage(selectedPage);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);
@@ -135,9 +115,11 @@ export const DatasetResultsPage = (props) => {
         setSnackBarOpen1(false);
     };
 
-    useEffect(() => {
-        console.log("Loading Results", loadingResults)
-    }, [loadingResults]);
+    const onEnter = (event) => {
+        if (event.key === "Enter") {
+            filterResults();
+        }
+    }
 
     useEffect(() => {
         if (props.navigated) {
@@ -271,10 +253,36 @@ export const DatasetResultsPage = (props) => {
                 autoHideDuration={6000}
                 onClose={handleSnackBarClose}
             >
-                <Alert onClose={handleSnackBarClose} severity="info">
-                    You must be logged in to access private datasets.
-                </Alert>
-            </Snackbar>
-        </div>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        my: 20
+                }}>
+                    <DatasetTable
+                        searchResults={searchResults}
+                        loadingResults={loadingResults}
+                        setDataset={props.setDataset}
+                        GetNewPage={GetNewPage}
+                        editable={false}
+                        pageLength={pageLength}
+                        totalNumResults={totalNumResults}
+                    />
+                </Box>
+            </Grid>
+        </Grid>
+        {/* SnackBar to display error if not logged in  */}
+        <Snackbar
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            open={snackBarOpen}
+            autoHideDuration={6000}
+            onClose={handleSnackBarClose}
+        >
+            <Alert onClose={handleSnackBarClose} severity="info">
+                You must be logged in to access private datasets.
+            </Alert>
+        </Snackbar>
+
+    </div>
     );
 }

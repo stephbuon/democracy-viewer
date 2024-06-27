@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Flag from "react-flagkit";
 
 // MUI Imports
@@ -49,16 +50,9 @@ export const UploadModal = (props) => {
     const [embedCol, setEmbedCol] = useState(null);
     const [pos, setPos] = useState(false);
 
-    const FilledOut = () => {
-        if (loadedPage === 1) {
-            if (!title || !description) { return false; }
-        } else if (loadedPage === 2) {
-            if (tags.length < 3) { return false; }
-        } else if (loadedPage === 3) {
-            if (Object.values(columnTypes).filter(x => x === "TEXT").length === 0) { return false; }
-        }
-        return true;
-    }
+    const [disabled, setDisabled] = useState(true);
+
+    const navigate = useNavigate();
 
     const SendDataset = () => {
         let _texts = [];
@@ -89,6 +83,7 @@ export const UploadModal = (props) => {
         UploadDataset(datasetName, metadata, _texts, tags);
         
         props.CancelUpload();
+        navigate("/upload/complete");
     }
 
     useEffect(() => {
@@ -97,7 +92,14 @@ export const UploadModal = (props) => {
     }, [props]);
 
     useEffect(() => {
-    }, [columnTypes]);
+        if (loadedPage === 1) {
+            setDisabled(true);
+        } else if (loadedPage === 2) {
+            setDisabled(false);
+        } else if (loadedPage === 3) {
+            setDisabled(Object.values(columnTypes).filter(x => x === "TEXT").length === 0);
+        } 
+    }, [loadedPage, columnTypes])
 
     useEffect(() => {
         if (stemLanguages.filter(x => x === language).length === 0 && tokenization === "stem") {
@@ -163,6 +165,8 @@ export const UploadModal = (props) => {
                     setDescription={setDescription}
                     publicPrivate={publicPrivate}
                     setPublicPrivate={setPublicPrivate}
+                    disabled={disabled}
+                    setDisabled={setDisabled}
                 />
             )}
 
@@ -329,9 +333,19 @@ export const UploadModal = (props) => {
             )}
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
+                {loadedPage === 1 && (
+                    <Button
+                        variant="contained"
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
+                        onClick={() => props.CancelUpload()}
+                    >
+                        Cancel
+                    </Button>
+                )}
                 {loadedPage > 1 && (
                     <Button
                         variant="contained"
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
                         onClick={() => setLoadedPage(loadedPage - 1)}
                     >
                         Back
@@ -340,7 +354,8 @@ export const UploadModal = (props) => {
                 {loadedPage < 4 && (
                     <Button
                         variant="contained"
-                        disabled={!FilledOut()}
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
+                        disabled={disabled}
                         onClick={() => setLoadedPage(loadedPage + 1)}
                     >
                         Next
@@ -349,18 +364,11 @@ export const UploadModal = (props) => {
                 {loadedPage === 4 && (
                     <Button
                         variant="contained"
-                        disabled={!FilledOut()}
+                        sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
+                        disabled={disabled}
                         onClick={() => SendDataset()}
                     >
                         Submit Dataset
-                    </Button>
-                )}
-                {loadedPage === 1 && (
-                    <Button
-                        variant="contained"
-                        onClick={() => props.CancelUpload()}
-                    >
-                        Cancel
                     </Button>
                 )}
             </Box>

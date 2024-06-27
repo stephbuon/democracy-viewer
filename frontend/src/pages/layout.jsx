@@ -38,7 +38,7 @@ export const Layout = (props) => {
       case '/subsetsearch':
         return 'Subset Search';
       default:
-        if (location.pathname.includes("/Profile/")) {
+        if (location.pathname.includes("/profile/")) {
           return "Profile";
         } else {
           return 'Home';
@@ -106,19 +106,19 @@ export const Layout = (props) => {
               <ListItemText primary="Dataset Search" />
             </ListItemButton>
 
-            <ListItemButton sx={{ pt: 3 }}>
+            <ListItemButton sx={{ pt: 3 }} component={Link} to='/graph'>
               <ListItemIcon>
                 <ShowChartIcon/>
               </ListItemIcon>
               <ListItemText primary="Graphs" />
             </ListItemButton>
-            <ListItemButton component={Link} to='/graph'>
+            <ListItemButton component={Link} to='/upload'>
               <ListItemIcon>
                 <UploadIcon />
               </ListItemIcon>
               <ListItemText primary="Upload/Edit Data Sets" />
             </ListItemButton>
-            {props.user !== undefined && <ListItemButton component={Link} to={`/Profile/${ props.user.username }`}>
+            {props.user !== undefined && <ListItemButton component={Link} to={`/profile/${ props.user.username }`}>
               <ListItemIcon>
                 <Person />
               </ListItemIcon>

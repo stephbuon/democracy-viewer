@@ -39,10 +39,41 @@ def upload(df: DataFrame, folder: str, name: str, token: str | None = None) -> N
             "s3",
             region_name = distributed["region"]
         )
+        
     if "dir" in distributed.keys():
         path = "{}/{}/{}.parquet".format(distributed["dir"], folder, name)
     else:
         path = "{}/{}.parquet".format(folder, name)
+        
+    s3_client.upload_file(
+        local_file,
+        distributed["bucket"],
+        path
+    )
+    
+def upload_file(folder: str, name: str, token: str | None = None) -> None:
+    distributed = get_creds(token)
+
+    # Upload file to s3
+    if "key_" in distributed.keys() and "secret" in distributed.keys():
+        s3_client = client(
+            "s3",
+            aws_access_key_id = distributed["key_"],
+            aws_secret_access_key = distributed["secret"],
+            region_name = distributed["region"]
+        )
+    else:
+        s3_client = client(
+            "s3",
+            region_name = distributed["region"]
+        )
+        
+    local_file = "{}/{}/{}".format(BASE_PATH, folder, name)
+    if "dir" in distributed.keys():
+        path = "{}/{}/{}".format(distributed["dir"], folder, name)
+    else:
+        path = "{}/{}".format(folder, name)
+        
     s3_client.upload_file(
         local_file,
         distributed["bucket"],
@@ -81,6 +112,39 @@ def download(folder: str, name: str, token: str | None = None) -> DataFrame:
         )
     
     return read_parquet(download_path, engine = "pyarrow")
+
+def download_file(folder: str, name: str, token: str | None = None) -> str:
+    distributed = get_creds(token)
+    
+    download_path = "{}/{}/{}".format(BASE_PATH, folder, name)
+    if exists(download_path):
+        # Do nothing if file already downloaded
+        print("{} already exists".format(name))
+    else:
+        # Download file from s3
+        if "key_" in distributed.keys() and "secret" in distributed.keys():
+            s3_client = client(
+                "s3",
+                aws_access_key_id = distributed["key_"],
+                aws_secret_access_key = distributed["secret"],
+                region_name = distributed["region"]
+            )
+        else:
+            s3_client = client(
+                "s3",
+                region_name = distributed["region"]
+            )
+        if "dir" in distributed.keys():
+            path = "{}/{}/{}".format(distributed["dir"], folder, name)
+        else:
+            path = "{}/{}".format(folder, name)
+        s3_client.download_file(
+            distributed["bucket"],
+            path,
+            download_path
+        )
+    
+    return download_path
 
 def delete(name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
