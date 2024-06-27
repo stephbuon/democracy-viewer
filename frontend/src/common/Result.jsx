@@ -12,6 +12,9 @@ import { deleteDataset, addLike, deleteLike } from '../api/api';
 import { UpdateMetadata, AddTags, DeleteTag } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from './DatasetInformation';
 import { DatasetTags } from './DatasetTags';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import { ButtonGroup } from '@mui/material'; 
 
 export const Result = (props) => {
     const navigate = useNavigate();
@@ -118,154 +121,219 @@ export const Result = (props) => {
     }, [props.result]);
 
     return <div>
-        <Box 
-            onClick={() => handleOpen()}
-            sx={{
-                "&:hover": {
-                    "cursor": "pointer"
-                }
-            }}
-        >
-            {dataset.title}
-        </Box>
-        <Modal
-            open={open}
-            onClose={() => handleClose()}
-        >
-            <Box
+            <Box 
+                onClick={() => handleOpen()}
                 sx={{
-                    position: 'absolute',
-                    top: '15%',
-                    left: '15%',
-                    height: "70%",
-                    overflow: "scroll",
-                    width: "70%",
-                    bgcolor: 'background.paper',
-                    border: '1px solid #000',
-                    borderRadius: ".5em .5em"
+                    "&:hover": {
+                        "cursor": "pointer"
+                    }
                 }}
             >
-                {
-                    props.editable && <>
-                        <Button variant="outlined" onClick={() => setInfoOpen(true)}>
-                            Edit
+                {dataset.title}
+            </Box>
+            <Modal
+                open={open}
+                onClose={() => handleClose()}
+            >
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: '20%',
+                        left: '15%',
+                        height: "60%",
+                        overflow: "scroll",
+                        width: "70%",
+                        bgcolor: 'background.paper',
+                        border: '1px solid #000',
+                        borderRadius: ".5em .5em"
+                    }}
+                >
+                    {/* <div class="row"> */}
+                    <ButtonGroup 
+                        sx={{
+                            width: "100%"
+                        }}>
+                    {
+                        props.editable && <>
+                        {/* <div class="col"> */}
+                            <Button 
+                                variant="contained" 
+                                disableElevation
+                                fullWidth={true}
+                                sx={{ 
+                                    borderRadius: 0, 
+                                    width: "100%", 
+                                    bgcolor: '#B3B3B3', 
+                                    color: 'white' }} 
+                                onClick={() => setInfoOpen(true)}>
+                                Edit
+                            </Button>
+                            <AlertDialog
+                                open={infoOpen}
+                                setOpen={setInfoOpen}
+                                titleText={`Edit Dataset "${ dataset.title }"`}
+                                bodyText={
+                                    <DatasetInformation
+                                        title={title}
+                                        setTitle={setTitle}
+                                        author={author}
+                                        setAuthor={setAuthor}
+                                        date={date}
+                                        setDate={setDate}
+                                        description={description}
+                                        setDescription={setDescription}
+                                        publicPrivate={publicPrivate}
+                                        setPublicPrivate={setPublicPrivate}
+                                        disabled={disabled}
+                                        setDisabled={setDisabled}
+                                    />
+                                }
+                                action={() => updateInfo()}
+                            />
+                            {/* </div> */}
+                            {/* <div class="col"> */}
+                            <Button 
+                                variant="contained" 
+                                disableElevation
+                                fullWidth={true}
+                                sx={{  
+                                    borderRadius: 0, 
+                                    width: "100%", 
+                                    bgcolor: '#B3B3B3', 
+                                    color: 'white' }} 
+                                onClick={() => setTagsOpen(true)}>
+                                Edit Tags
+                            </Button>
+                            <AlertDialog
+                                open={tagsOpen}
+                                setOpen={setTagsOpen}
+                                titleText={`Edit dataset "${ dataset.title }"`}
+                                bodyText={
+                                    <DatasetTags
+                                        tags={tags}
+                                        setTags={setTags}
+                                    />
+                                }
+                                action={() => updateTags()}
+                                disabled={tagsDisabled}
+                            />
+                            {/* </div>
+                            <div class="col"> */}
+
+                            <Button 
+                            variant="contained" 
+                            disableElevation
+                            fullWidth={true}
+                            sx={{  
+                                borderRadius: 0, 
+                                width: "100%", 
+                                bgcolor: '#B3B3B3', 
+                                color: 'white' }} 
+                            onClick={() => setDeleteOpen(true)}>
+                                Delete
+                            </Button>
+                            <AlertDialog
+                                open={deleteOpen}
+                                setOpen={setDeleteOpen}
+                                titleText={`Are you sure you want to delete the dataset "${ dataset.title }"?`}
+                                bodyText={"This action cannot be undone."}
+                                action={() => deleteDataset(dataset.table_name).then(x => window.location.reload())}
+                            />
+                            {/* </div> */}
+                        </>
+                    }
+                    {/* <div class="col"> */}
+                    {
+                        loggedIn && !dataset.liked &&
+                        <Button 
+                        variant="contained" 
+                        disableElevation
+                        fullWidth={true}
+                        sx={{  
+                            borderRadius: 0, 
+                            width: "100%", 
+                            bgcolor: '#B3B3B3', 
+                            color: 'white' }} 
+                        endIcon={<BookmarkBorderIcon />} 
+                        onClick={() => like()}>
+                            Bookmark
                         </Button>
-                        <AlertDialog
-                            open={infoOpen}
-                            setOpen={setInfoOpen}
-                            titleText={`Edit dataset "${ dataset.title }"`}
-                            bodyText={
-                                <DatasetInformation
-                                    title={title}
-                                    setTitle={setTitle}
-                                    author={author}
-                                    setAuthor={setAuthor}
-                                    date={date}
-                                    setDate={setDate}
-                                    description={description}
-                                    setDescription={setDescription}
-                                    publicPrivate={publicPrivate}
-                                    setPublicPrivate={setPublicPrivate}
-                                    disabled={disabled}
-                                    setDisabled={setDisabled}
-                                />
-                            }
-                            action={() => updateInfo()}
-                            disabled={disabled || infoDisabled}
-                        />
+                    }
 
-                        <Button variant="outlined" onClick={() => setTagsOpen(true)}>
-                            Edit Tags
+                    {
+                        loggedIn && dataset.liked &&
+                        <Button 
+                        variant="contained" 
+                        disableElevation
+                        fullWidth={true}
+                        sx={{  
+                            borderRadius: 0, 
+                            width: "100%", 
+                            bgcolor: '#B3B3B3', 
+                            color: 'white' }} 
+                        endIcon={<BookmarkIcon />} 
+                        onClick={() => dislike()}>
+                            Remove Bookmark
                         </Button>
-                        <AlertDialog
-                            open={tagsOpen}
-                            setOpen={setTagsOpen}
-                            titleText={`Edit dataset "${ dataset.title }"`}
-                            bodyText={
-                                <DatasetTags
-                                    tags={tags}
-                                    setTags={setTags}
-                                />
-                            }
-                            action={() => updateTags()}
-                            disabled={tagsDisabled}
-                        />
-
-                        <Button variant="outlined" onClick={() => setDeleteOpen(true)}>
-                            Delete
-                        </Button>
-                        <AlertDialog
-                            open={deleteOpen}
-                            setOpen={setDeleteOpen}
-                            titleText={`Are you sure you want to delete the dataset "${ dataset.title }"?`}
-                            bodyText={"This action cannot be undone."}
-                            action={() => deleteDataset(dataset.table_name).then(x => window.location.reload())}
-                        />
-                    </>
-                }
-
-                {
-                    loggedIn && !dataset.liked &&
-                    <Button variant="outlined" onClick={() => like()}>
-                        Like
-                    </Button>
-                }
-
-                {
-                    loggedIn && dataset.liked &&
-                    <Button variant="outlined" onClick={() => dislike()}>
-                        Dislike
-                    </Button>
-                }
+                    }
+                    {/* </div> */}
+                {/* </div> */}
+                </ButtonGroup> 
                 
                 <Table>
                     <TableHead>
+                        
                         <TableRow>
                             <TableCell
                                 sx={{
+                                    paddingTop: "20px", 
+                                    align: 'center'
 
                                 }}>
-                                {dataset.title}
+                                <b>{dataset.title}</b>
                             </TableCell>
-                            <TableCell>
+                            {/* <TableCell>
                                 &nbsp;
-                            </TableCell>
-                            <TableCell>
-                                {dataset.is_public && "Public"}
-                                {!dataset.is_public && "Private"}
+                            </TableCell> */}
+                            <TableCell 
+                                sx={{
+                                    textAlign: "left", 
+                                    paddingTop: "20px" }}>
+                                {dataset.is_public==1 && <span>Public</span>}
+                                {dataset.is_public==0 && <span>Private</span>}
                             </TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         <TableRow>
                             <TableCell>
-                                Owner:
+                                <b> Author </b>
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{textAlign: "left"}}>
                                 {dataset.username}
                             </TableCell>
-                            <TableCell />
+                            
                         </TableRow>
                         <TableRow>
                             <TableCell>
-                                Description:
+                                <b> Description </b>
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{textAlign: "left"}}>
                                 {dataset.description}
                             </TableCell>
-                            <TableCell />
+                            
                         </TableRow>
 
                         {
                             dataset.author &&
                             <TableRow>
                                 <TableCell>
-                                    Author:
+                                    <b> Source </b>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell sx={{textAlign: "left"}}>
                                     {dataset.author}
                                 </TableCell>
-                                <TableCell />
+                                
                             </TableRow>
                         }
 
@@ -275,56 +343,65 @@ export const Result = (props) => {
                                 <TableCell>
                                     Date Collected:
                                 </TableCell>
-                                <TableCell>
+                                <TableCell sx={{textAlign: "left"}}>
                                     {dataset.date_collected}
                                 </TableCell>
-                                <TableCell />
+                                
                             </TableRow>
                         }
 
                         <TableRow>
                             <TableCell>
-                                Views:
+                                <b> Views </b>
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{textAlign: "left"}}>
                                 {dataset.clicks}
                             </TableCell>
-                            <TableCell />
+                            
                         </TableRow>
 
                         <TableRow>
                             <TableCell>
-                                Likes:
+                                <b> Bookmarks </b>
                             </TableCell>
-                            <TableCell>
+                            <TableCell sx={{textAlign: "left"}}>
                                 {dataset.likes}
                             </TableCell>
-                            <TableCell />
+                            
                         </TableRow>
-                    </TableBody>
-                </Table>
+                    {/* </TableBody> */}
+                {/* </Table>
                 <Table>
-                    <TableBody>
+                    <TableBody> */}
                         <TableRow>
                             <TableCell>
-                                Tags:
+                                <b> Tags </b>
                             </TableCell>
+                            <TableCell sx={{textAlign: "left"}}>
+                            <div class="row">
                             {dataset.tags.map((tag, index) => {
                                 if (index < 5) {
-                                    return <TableCell key={index}>
+                                    return <span class="col"
+                                                key={index} 
+                                                style={{
+                                                    // margin: "20px"
+
+                                                }}>
                                         {tag}
-                                    </TableCell>
+                                    </span>
                                 }
                             })}
-                            {dataset.tags.length < 1 && <TableCell key={1} />}
+                            </div>
+                            </TableCell> 
+                            {/* {dataset.tags.length < 1 && <TableCell key={1} />}
                             {dataset.tags.length < 2 && <TableCell key={2} />}
                             {dataset.tags.length < 3 && <TableCell key={3} />}
                             {dataset.tags.length < 4 && <TableCell key={4} />}
                             {dataset.tags.length < 5 && <TableCell key={5} />}
                             {dataset.tags.length < 6 && <TableCell key={6} />}
-                            {dataset.tags.length > 5 && <TableCell key={'...'}>
-                                ...
-                            </TableCell>}
+                            {dataset.tags.length > 5 && <TableCell key={'...'}> */}
+                                {/* ...
+                            </TableCell>} */}
 
                         </TableRow>
                     </TableBody>
@@ -336,7 +413,7 @@ export const Result = (props) => {
                         justifyContent: 'center',
                         marginTop: '2em'
                     }}>
-                    <p>Use This Dataset!</p>
+
                 </Box>
                 <Box
                     sx={{
@@ -349,7 +426,10 @@ export const Result = (props) => {
                         variant="contained"
                         primary
                         sx={{
-                            marginX: '1em'
+                            marginX: '1em',
+                            borderRadius: 50, 
+                            bgcolor: 'black', 
+                            color: 'white' 
                         }}
                         onClick={() => {
                             chooseDataset()
@@ -362,7 +442,10 @@ export const Result = (props) => {
                         variant="contained"
                         primary
                         sx={{
-                            marginX: '1em'
+                            marginX: '1em',
+                            borderRadius: 50, 
+                            bgcolor: 'black', 
+                            color: 'white'
                         }}
                         onClick={() => {
                             chooseDataset()

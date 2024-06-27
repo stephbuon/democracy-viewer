@@ -60,7 +60,7 @@ export const DatasetTags = (props) => {
                     </IconButton>
                 </Tooltip>
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <FormattedTextField
                         id="Tag"

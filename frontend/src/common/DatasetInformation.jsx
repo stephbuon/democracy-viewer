@@ -23,7 +23,7 @@ export const DatasetInformation = (props) => {
     }
 
     return <>
-        <Box sx={{ padding: 2 }}>
+        <Box sx={{ padding: 0 }}>
             <Typography variant="h5" align="center" gutterBottom>
                 Dataset Information
                 <Tooltip title="Provide general information about the dataset. Noticed that the information will be shared to public if you select 'public' for privacy.">
@@ -32,7 +32,7 @@ export const DatasetInformation = (props) => {
                     </IconButton>
                 </Tooltip>
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mt: 1 }}>
                 <FormattedTextField
                     id="Title"
                     label="Title"
