@@ -5,9 +5,6 @@ import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
 import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
-import { metrics } from "../common/metrics.js";
-
-const pageLength = 10;
 
 export const Zoom = () => {
     // UseState definitions
@@ -16,14 +13,16 @@ export const Zoom = () => {
     const [graphData, setGraphData] = useState(undefined);
     const [totalPages, setTotalPages] = useState(1);
     const [textCols, setTextCols] = useState([]);
+    const max_page_size = 50;
 
     const getPage = (currPage) => {
-        const start = pageLength * (currPage - 1);
-        const end = start + pageLength * currPage;
-        const ids = graphData.ids.slice(start, end);
+        const ids = graphData.ids.slice(max_page_size * (currPage - 1), max_page_size * currPage);
 
         getRecordsByIds(graphData.dataset, ids).then(async (res) => {
-            if (res) {
+            if (!res) {
+                console.log("Odd zoom page error, no results of selected result?");
+            }
+            else {
                 // Highlighting
                 if (textCols.length > 0) {
                     res.map(row => {
@@ -59,7 +58,7 @@ export const Zoom = () => {
         if (graphData && textCols.length > 0) {
             // Pagination
             getPage(page);
-            setTotalPages(Math.ceil(graphData.ids.length / pageLength));
+            setTotalPages(Math.ceil(graphData.ids.length / max_page_size));
         }
     }, [graphData, textCols]);
 
@@ -74,13 +73,10 @@ export const Zoom = () => {
                 <div className="row pb-2">
                     <div className="col"></div>
                     <div className="col">
-                        <b>Metric</b>
+                        <b>x</b>
                     </div>
                     <div className="col">
-                        <b>X</b>
-                    </div>
-                    <div className="col">
-                        <b>Y</b>
+                        <b>y</b>
                     </div>
                     <div className="col">
                         <b>Word(s)</b>
@@ -90,10 +86,7 @@ export const Zoom = () => {
                 {/* Word data */}
                 <div className="row">
                     <div className="col">
-                        <b>Selected Datapoint</b>
-                    </div>
-                    <div className="col">
-                        {metrics[graphData.metric]}
+                        <b>Selected datapoint</b>
                     </div>
                     <div className="col">
                         {graphData.x}
@@ -106,10 +99,7 @@ export const Zoom = () => {
                     </div>
                 </div>
 
-                
-            </div>
-        </div>
-        <PaginatedDataTable
+                <PaginatedDataTable
                     searchResults = {searchResults}
                     page = {page}
                     totalNumOfPages = {totalPages}
@@ -117,9 +107,9 @@ export const Zoom = () => {
                     table_name={graphData.dataset}
                     downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
                     totalNumResults={graphData.ids.length}
-                    columns = {searchResults.length > 0 ? Object.keys(searchResults[0]) : []}
-                    pageLength = {pageLength}
                 />
+            </div>
+        </div>
         </>
     );
 }

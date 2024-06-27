@@ -77,8 +77,8 @@ router.post('/text', authenticateJWT, async(req, res, next) => {
 // Route to like a dataset
 router.post('/like/:table', authenticateJWT, async(req, res, next) => {
     try {
-        await control.addLike(req.knex, req.user.username, req.params.table);
-        res.status(201).end();
+        const result = await control.addLike(req.knex, req.user.username, req.params.table);
+        res.status(201).json(result);
     } catch (err) {
         console.error('Failed to add dataset text column(s):', err);
         res.status(500).json({ message: err.toString() });
@@ -207,7 +207,7 @@ router.get('/count/filter', async(req, res, next) => {
 // Route to subset a dataset
 router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
     try {
-        const results = await control.getSubset(req.knex, req.params.table, req.query, req.user, Number(req.params.page), Number(req.params.pageLength));
+        const results = await control.getSubset(req.knex, req.params.table, req.query, req.user, req.params.page, req.params.pageLength);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset subset:', err);
@@ -345,8 +345,8 @@ router.delete('/:table/text/:col', authenticateJWT, async(req, res, next) => {
 // Route to delete a user's like
 router.delete('/like/:table', authenticateJWT, async(req, res, next) => {
     try {
-        await control.deleteLike(req.knex, req.user.username, req.params.table);
-        res.status(204).end();
+        const result = await control.deleteLike(req.knex, req.user.username, req.params.table);
+        res.status(204).json(result);
     } catch (err) {
         console.error('Failed to delete like:', err);
         res.status(500).json({ message: err.toString() });

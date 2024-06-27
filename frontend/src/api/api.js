@@ -42,6 +42,7 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
   var endpoint = `${apiEndpoint}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
 
   groupList.forEach((group) => { // Add all groups in groupList to endpoint
+    console.log("Get graph test", group.value)
     endpoint += `&group_list=${group.value}`
   })
 
@@ -177,22 +178,26 @@ export const getDistributedConnections = () => new Promise((resolve, reject) => 
 });
 
 export const addDistributedConnection = async (name, connection) =>  {
+  debugger;
+  console.log("Creating connection", connection);
   const res = await axios.post(`${ apiEndpoint }/distributed/${ name }`, connection, apiConfig());
   if(res.status !== 201){
-      console.error(`Couldn't create connection. ${res.status}`)
+      console.log(`Couldn't create connection. ${res.status}`)
       return null;
   }
+  console.log("Returning", res.data);
   return res.data;
 };
 
-export const getMetadata = (name) => new Promise((resolve, reject) => {
-  axios.get(`${ apiEndpoint }/datasets/metadata/${ name }`, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${ getToken() }`
-    }
-  }).then(x => resolve(x.data)).catch(x => {
-    alert(x);
-    reject(x);
-  });
-});
+// export const addDistributedConnection = (name, params) => new Promise((resolve, reject) => {
+//   debugger;
+//   axios.post(`${ apiEndpoint }/distributed/${ name }`, { ...params }, {
+//     headers: {
+//       "Content-Type": "multipart/form-data",
+//       Authorization: `Bearer ${ getToken() }`
+//     }
+//   }).then(x => resolve(x.data)).catch(x => {
+//     alert(x);
+//     reject(x);
+//   });
+// });

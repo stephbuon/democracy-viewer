@@ -53,7 +53,10 @@ export const Upload = (props) => {
   };
 
   useEffect(() => {
+    file && console.log(file);
+
     if (file && file.name) {
+      console.log(file)
       const validExtensions = [".csv", ".xls", ".xlsx"];
       if (validExtensions.filter((x, i) => file.name.includes(x)).length === 0) {
         setAlert(true)
@@ -61,6 +64,7 @@ export const Upload = (props) => {
       }
       else {
         uploadCsv();
+        console.log(headers)
       }
     }
     else {
@@ -93,6 +97,7 @@ export const Upload = (props) => {
   }
 
   const click = (a) => {
+    console.log('clicked =', clicked)
     setClicked(a)
   }
 

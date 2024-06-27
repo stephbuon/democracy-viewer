@@ -199,7 +199,7 @@ class datasets {
                 }
 
                 // Search all text fields
-                const search = params.__search__;
+                const search = params.search;
                 if (search) {
                     q.where(q => {
                         const terms = search.split(" ");
@@ -216,10 +216,10 @@ class datasets {
                     // If tag is an array, find datasets with all tags
                     if (Array.isArray(tag_name)) {
                         q.where(q => {
-                            tag_name.map(x => q.orWhere("tags.tag_name", x));
+                            tag_name.map(x => q.orWhere({ tag_name: x }));
                         });
                     } else {
-                        q.where("tags.tag_name", tag_name);
+                        q.where({ tag_name });
                     }
                 }
 
@@ -244,7 +244,6 @@ class datasets {
             const tags = await this.getTags(results[i].table_name);
             results[i].tags = tags.map(x => x.tag_name);
             results[i].liked = await this.getLike(results[i].username, results[i].table_name);
-            results[i].likes = await this.getLikeCount(results[i].table_name);
         }
 
         return results;
@@ -253,12 +252,6 @@ class datasets {
     // Get the number of datasets for a given set of filters
     async getFilteredDatasetsCount(params, username) {
         const results = await this.getFilteredDatasets(params, username, false);
-        return results.length;
-    }
-
-    // Get the number of likes for this dataset
-    async getLikeCount(table_name) {
-        const results = await this.knex(likes_table).where({ table_name });
         return results.length;
     }
 

@@ -24,69 +24,82 @@ export const CreateDataset = async (dataset) =>  {
         ...headers.headers,
         "Content-Type": "multipart/form-data"
     }
+    console.log("Creating", dataset, headers);
     const res = await axios.post(`${BACKEND_ENDPOINT}/datasets`, formData, headers);
     if(res.status !== 201){
-        console.error(`Couldn't create. ${res.status}`)
+        console.log(`Couldn't create. ${res.status}`)
         return null;
     }
+    console.log("Returning", res.data);
     return res.data;
 };
 
 export const UploadDataset = async (table_name, metadata, text, tags) =>  {
+    console.log("Uploading", table_name, apiConfig());
     const params = {
         table_name, metadata, text, tags
     }
     const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/upload`, params, apiConfig());
     if(res.status !== 201){
-        console.error(`Couldn't upload. ${res.status}`)
+        console.log(`Couldn't upload. ${res.status}`)
         return null;
     }
+    console.log("Returning", res.data);
     return res.data;
 };
 
 export const AddTextColumn = async (dataset,cols) =>  {
+    console.log("add text cols", dataset, cols, apiConfig());
     const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/text`,{dataset:dataset,cols:cols}, apiConfig());
     if(res.status !== 201){
-        console.error(`Couldn't post columns. ${res.status}`)
+        console.log(`Couldn't post columns. ${res.status}`)
         return null;
     }
+    console.log("Returning", res.data);
     return res.data;
 };
 
 export const AddTags = async (dataset, tags) =>  {
+    console.log("Adding tags", dataset, tags, apiConfig());
     const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/tags`, {dataset:dataset, tags:tags}, apiConfig());
     if(res.status !== 201){
-        console.error(`Couldn't add tags. ${res.status}`)
+        console.log(`Couldn't add tags. ${res.status}`)
         return null;
     }
+    console.log("Returning", res.data);
     return res.data;
 };
 
 export const DeleteTag = async (dataset, tag) =>  {
     const res = await axios.delete(`${BACKEND_ENDPOINT}/datasets/${ dataset }/tags/${ tag }`, apiConfig());
     if(res.status !== 201){
-        console.error(`Couldn't add tags. ${res.status}`)
+        console.log(`Couldn't add tags. ${res.status}`)
         return null;
     }
+    console.log("Returning", res.data);
     return res.data;
 };
 
 export const UpdateMetadata = async (dataset, params) =>  {
+    console.log("Updating metadata", dataset, params, apiConfig());
     const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/metadata/${dataset}`, params, apiConfig());
     if(res.status !== 200){
-        console.error(`Couldn't update metadata. ${res.status}`)
+        console.log(`Couldn't update metadata. ${res.status}`)
         return null;
     }
+    console.log("Returning", res.data);
     return res.data;
 };
 
 
 
 export const GetCSVFromAPI = async (endpoint, token) =>  {
+    console.log("Geting API csv", endpoint, token, apiConfig());
     const res = await axios.post(`${BACKEND_ENDPOINT}/datasets/api`, {endpoint, token}, apiConfig());
     if(res.status !== 201){
-        console.error(`Couldn't get API csv. ${res.status}`)
+        console.log(`Couldn't get API csv. ${res.status}`)
         return null;
     }
+    console.log("Returning", res.data);
     return res.data;
 };

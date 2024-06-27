@@ -8,7 +8,6 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import { SubsetResultsPage } from "./SubsetSearch/SubsetResultsPage";
 import { DatasetResultsPage } from "./DatasetSearch/DatasetResultsPage";
-import { UploadComplete } from "./pages/UploadComplete.jsx";
 import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
@@ -25,7 +24,14 @@ export const App = () => {
   const [user, setUser] = useState(demoV ? demoV.user : undefined);
   const [navigated, setNavigated] = useState(false);
 
+  // Log onstart
+  useEffect(() => {
+    console.log("Strating Democracy Viewer App")
+  },[]);
+
   // Function definitions
+
+  //
   const chooseDataset = (choice) =>{
     setDataset(choice)
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -39,12 +45,14 @@ export const App = () => {
 
   //
   const login = (profile) => {
+    console.log(profile);
     setUser(profile)
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if(!demoV)
     {
       demoV = {user:undefined, dataset:undefined}
     }
+    console.log(demoV)
     demoV.user = profile;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
@@ -55,6 +63,7 @@ export const App = () => {
     {
       demoV = {user:undefined, dataset:undefined}
     }
+    console.log(demoV)
     demoV.user = undefined;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
     //navigate('/') //where ever you call logout also navigate back to homepage. Error occurs if here since App not in Router
@@ -74,7 +83,6 @@ export const App = () => {
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
-            <Route path="/upload/complete" element={<UploadComplete/>}></Route>
             <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
             <Route path="/acknowledgements" element={<Acknowledgements/>}/>
         </Routes>

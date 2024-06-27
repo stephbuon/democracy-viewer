@@ -1,8 +1,25 @@
-import { Avatar, Button, CssBaseline, TextField, Link, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert } from "@mui/material";
+import * as React from 'react';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { useNavigate} from "react-router-dom";
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { BrowserRouter as Router, Switch, 
+    Route, Redirect, useNavigate} from "react-router-dom";
 import { LoginRequest } from '../apiFolder/LoginRegister';
 import { useState, useEffect  } from "react";
+
+
 
 const theme = createTheme();
 
@@ -92,7 +109,8 @@ export default function Login(props) {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+              sx={{ mt: 3, mb: 2 }}
+              // onClick={()=>Login()}
             >
               Sign In
             </Button>
@@ -109,6 +127,10 @@ export default function Login(props) {
               </Grid>
             </Grid>
           </Box>
+          {
+            loginFailed &&
+            <p className = "text-center text-danger">Invalid credentials</p>
+          }
         </Box>
       </Container>
     </ThemeProvider>
@@ -122,16 +144,6 @@ export default function Login(props) {
           You must login first
         </Alert>
       </Snackbar>
-      <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={loginFailed}
-        autoHideDuration={6000}
-        onClose={() => setLoginFailed(false)}
-    >
-        <Alert onClose={() => setLoginFailed(false)} severity="error">
-            Username or password incorrect
-        </Alert>
-    </Snackbar>
     </div>
   );
 }

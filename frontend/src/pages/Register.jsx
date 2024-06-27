@@ -1,24 +1,27 @@
-import { useState } from "react";
+import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
-import { FormattedPatternField, FormattedTextField } from '../common/forms';
+import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { LoginRequest, RegisterRequest } from '../apiFolder/LoginRegister';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { getUser } from "../api/users";
-import { Alert, Snackbar, Link, Grid, Box, Typography, Container} from "@mui/material";
+
+
 
 const theme = createTheme();
 
 export default function Register(props) {
-  const [password, setPassword] = useState("");
-  const [disabled, setDisabled] = useState(true);
-  const [openAlert, setOpenAlert] = useState(false);
   const navigate = useNavigate();
-
   const loggedIn = () => {
     if(props.currUser)
     {
@@ -32,50 +35,26 @@ export default function Register(props) {
       navigate('/')
     }
   },[]);
-
-  const setValid = (val) => {
-    if (!disabled) {
-      if (!val) {
-        setDisabled(true);
-      }
-    } else if (val) {
-      const errors = document.querySelectorAll("p.Mui-error");
-      if (errors.length === 0) {
-        setDisabled(false);
-      }
-    }
-  }
-
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    getUser(data.get("username")).then(user => {
-      if (!user) {
-        const output = {};
-        data.keys().forEach(key => {
-            if (key !== "confirm_password") {
-              let value = data.get(key);
-              if (key === "orcid") {
-                  value = value.replaceAll("-", "");
-              }
-      
-              if (value) {
-                  output[key] = value;
-              }
-            }
-        });
-    
-        RegisterRequest(output).then(async (res) => {
-          LoginRequest(output).then(async (res) => {
-          props.login({token: res, username: data.get('username')})
-        }).then(()=>{navigate('/')})}).catch(res => setOpenAlert(true));
-      } else {
-        setOpenAlert(true);
-      }
-    });
+    let packet = {
+      username: data.get('username'),
+      password: data.get('password'),
+      email: data.get('email'),
+      title: data.get('Title'),
+      first_name: data.get('firstName'),
+      last_name: data.get('lastName'),
+      orcid: data.get('OrcID'),
+      linkedin_link: data.get('LinkedIn')
+    }
+    RegisterRequest(packet).then(async (res) => {
+      LoginRequest(packet).then(async (res) => {
+      props.login({token: res, username: data.get('username')})
+    }).then(()=>{navigate('/')})})
   };
 
-  return <>
+  return (
     <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
@@ -95,128 +74,94 @@ export default function Register(props) {
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <FormattedTextField
-                    id = "username"
-                    label = "Username"
-                    maxChars = {20}
-                    setValid={setValid}
-                    autoComplete="username"
-                    required
-                    fullWidth
-                    autoFocus
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormattedTextField
-                    id = "email"
-                    label = "Email Address"
-                    email
-                    maxChars = {30}
-                    setValid={setValid}
-                    autoComplete="email"
-                    fullWidth
-                    required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormattedTextField
-                    id = "password"
-                    label = "Password"
-                    password
-                    maxChars = {30}
-                    setValid={setValid}
-                    autoComplete="new-password"
-                    setValue = {setPassword}
-                    fullWidth
-                    required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormattedTextField
-                    id = "confirm_password"
-                    label = "Confirm Password"
-                    confirmPassword = {password}
-                    maxChars = {30}
-                    setValid={setValid}
-                    autoComplete="new-password"
-                    fullWidth
-                    required
-                />
-              </Grid>
               <Grid item xs={12} sm={6}>
-                <FormattedTextField
-                    id = "first_name"
-                    label = "First Name"
-                    maxChars = {20}
-                    setValid={setValid}
-                    autoComplete="given-name"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormattedTextField
-                    id = "last_name"
-                    label = "Last Name"
-                    maxChars = {20}
-                    setValid={setValid}
-                    autoComplete="family-name"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormattedTextField
-                    id = "suffix"
-                    label = "Suffix"
-                    maxChars = {10}
-                    setValid={setValid}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormattedTextField
-                    id = "title"
-                    label = "Title"
-                    maxChars = {20}
-                    setValid={setValid}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormattedPatternField
-                  id = "orcid"
-                  label = "OrcID"
-                  setValid={setValid}
-                  format="####-####-####-####"
-                  mask="_"
-                  numeric
+                <TextField
+                  autoComplete="given-name"
+                  name="firstName"
+                  required
                   fullWidth
+                  id="firstName"
+                  label="First Name"
+                  autoFocus
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  id="lastName"
+                  label="Last Name"
+                  name="lastName"
+                  autoComplete="family-name"
                 />
               </Grid>
               <Grid item xs={12}>
-                <FormattedTextField
-                    id = "linkedin_link"
-                    label = "LinkedIn Link"
-                    maxChars = {50}
-                    setValid={setValid}
-                    website
-                    autoComplete="LinkedIn"
-                    fullWidth
+                <TextField
+                  required
+                  fullWidth
+                  id="username"
+                  label="Username"
+                  name="username"
+                  autoComplete="username"
                 />
               </Grid>
               <Grid item xs={12}>
-                <FormattedTextField
-                    id = "website"
-                    label = "Website Link"
-                    maxChars = {50}
-                    setValid={setValid}
-                    website
-                    fullWidth
+                <TextField
+                  required
+                  fullWidth
+                  id="email"
+                  label="Email Address"
+                  name="email"
+                  autoComplete="email"
                 />
               </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="password"
+                  label="Password"
+                  type="password"
+                  id="password"
+                  autoComplete="new-password"
+                />
+              </Grid>
+    
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  id="LinkedIn"
+                  label="LinkedIn"
+                  name="LinkedIn"
+                  autoComplete="LinkedIn"
+                />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                <TextField
+                  Title="Title"
+                  name="Title"
+                  fullWidth
+                  id="Title"
+                  label="Title"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+            
+                  fullWidth
+                  id="OrcID"
+                  label="OrcID"
+                  name="OrcID"
+                  
+                />
+
+            </Grid>
             </Grid>
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
-              disabled = {disabled}
+              sx={{ mt: 3, mb: 2 }}
             >
               Sign Up
             </Button>
@@ -231,16 +176,5 @@ export default function Register(props) {
         </Box>
       </Container>
     </ThemeProvider>
-
-    <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={openAlert}
-        autoHideDuration={6000}
-        onClose={() => setOpenAlert(false)}
-    >
-        <Alert onClose={() => setOpenAlert(false)} severity="error">
-            Failed to create account. An account with this username may already exist.
-        </Alert>
-    </Snackbar>
-  </>;
+  );
 }

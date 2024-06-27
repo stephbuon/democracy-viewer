@@ -100,10 +100,8 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Upload text columns
     await model.addTextCols(name, textCols);
     // Upload tags
-    if (tags && tags.length > 0) {
-        await model.addTag(name, tags);
-    }
-    
+    await model.addTag(name, tags);
+
     // Upload raw data to s3
     await runPython("python/upload_dataset.py", [ name, path.replace(".json", ".csv") ], metadata.distributed);
 
@@ -167,6 +165,9 @@ const addLike = async(knex, user, table) => {
     const model = new datasets(knex);
 
     await model.addLike(user, table);
+    const record = model.incLikes(table);
+
+    return record;
 }
 
 // Update a dataset's metadata
@@ -334,15 +335,12 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     // Check if subset has already been saved
     const filename = `files/subsets/${ table }_${ JSON.stringify(query) }.json`;
     let fullOutput = [];
-    let columns = [];
     if (util.fileExists(filename)) {
         fullOutput = util.readJSON(filename, false);
-        columns = Object.keys(fullOutput[0]);
     } else {
         // If subset has not already been saved, create subset
         // Download data from s3
         const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
-        columns = Object.keys(data.dataset[0]);
 
         if (query.simpleSearch) {
             // Filter if query is defined
@@ -350,7 +348,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
             const index = new FlexSearch.Document({
                 document: {
                     id: "__id__",
-                    index: columns
+                    index: Object.keys(data.dataset[0])
                 },
                 language: getLanguage(metadata.language),
                 tokenize: "forward"
@@ -371,14 +369,10 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
         // Output results to local file
         util.generateJSON(filename, fullOutput);
     }
-    
+
     // Return requested page
-    const start = pageLength * (page - 1);
-    const end = pageLength + start;
-    const data = fullOutput.slice(start, end);
     return {
-        columns,
-        data,
+        data: fullOutput.slice(pageLength * (page - 1), pageLength),
         count: fullOutput.length
     };
 }
@@ -519,6 +513,7 @@ const deleteLike = async(knex, user, table) => {
     const model = new datasets(knex);
 
     await model.deleteLike(user, table);
+    const metadata = await model.decLikes(table);
 }
 
 module.exports = {

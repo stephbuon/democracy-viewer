@@ -30,11 +30,15 @@ export const getUser = (username) => new Promise((resolve, reject) => {
 });
 
 export const updateUser = async (username, params) => {
+
+  console.log("Updating User", username, params)
+
   const res = await axios.put(`${BACKEND_ENDPOINT}/users/${username}`,params,apiConfig());
 
   if(res.status !== 200){
-    console.error(`Couldn't update user information. ${res.status}`, params)
+    console.log(`Couldn't update user information. ${res.status}`, params)
     return null;
   }
+  console.log("Returning", res.data);
   return res.data;
 }
