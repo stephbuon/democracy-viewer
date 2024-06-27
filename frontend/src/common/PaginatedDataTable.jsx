@@ -20,9 +20,11 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
     const [newText, setNewText] = useState("");
     const [disabled, setDisabled] = useState(true);
     const [suggest, setSuggest] = useState(false);
+    const [first, setFirst] = useState(0);
 
     const onPage = (event) => {
         GetNewPage(event.page + 1);
+        setFirst(pageLength * event.page);
     }
 
     const getCellClick = (event) => {
@@ -149,6 +151,7 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
             rows={pageLength}
             totalRecords={totalNumResults}
             onPage={onPage}
+            first={first}
         >
             {
                 columns.map((col, i) => {

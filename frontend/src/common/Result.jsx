@@ -69,7 +69,9 @@ export const Result = (props) => {
         const newTags = tags.filter(x => dataset.tags.indexOf(x) === -1);
         const deletedTags = dataset.tags.filter(x => tags.indexOf(x) === -1);
 
-        AddTags(dataset.table_name, newTags);
+        if (newTags.length > 0) {
+            AddTags(dataset.table_name, newTags);
+        } 
         deletedTags.forEach(x => DeleteTag(dataset.table_name, x));
 
         const newDataset = { ...dataset, tags };

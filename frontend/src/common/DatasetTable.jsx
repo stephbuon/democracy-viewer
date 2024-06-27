@@ -7,9 +7,11 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNewPage, editable, pageLength, totalNumResults }) => {
     const [formattedResults, setFormattedResults] = useState([...Array(pageLength).keys()]);
+    const [first, setFirst] = useState(0);
 
     const onPage = (event) => {
         GetNewPage(event.page + 1);
+        setFirst(pageLength * event.page);
     }
 
     const ResultTemplate = (result) => {
@@ -24,7 +26,7 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
                 editable={editable}
             />
         } else {
-            return <>...</>
+            return <>&nbsp;</>
         }
     }
 
@@ -52,6 +54,7 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
             rows={pageLength}
             totalRecords={totalNumResults}
             onPage={onPage}
+            first={first}
         >
             <Column
                 header="Results"

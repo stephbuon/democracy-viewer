@@ -38,7 +38,11 @@ const Profile = (props) => {
 
             if (!res) { setSearchResults([]) }
             else { setSearchResults(res) }
-        })
+        });
+
+        FilterDatasetsCount(filter).then(async (res) => {
+            setTotalNumOfResults(res);
+        });
     }
 
     const getNewLikePage = (num) => {
@@ -52,7 +56,11 @@ const Profile = (props) => {
 
             if (!res) { setLikeSearchResults([]) }
             else { setLikeSearchResults(res) }
-        })
+        });
+
+        FilterDatasetsCount(filter).then(async (res) => {
+            setTotalNumOfLikeResults(res);
+        });
     }
 
     const params = useParams();
