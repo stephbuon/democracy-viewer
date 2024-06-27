@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import 'react-resizable/css/styles.css';
-//MUI Imports
+// MUI Imports
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -28,12 +28,12 @@ export const SubsetResultsPage = (props) => {
             Object.keys(row).forEach(col => {
                 if (col !== "__id__") {
                     if (typeof row[col] !== "string") {
-                        row[col] = row[col].toString()
+                        row[col] = row[col].toString();
                     }
                     row[col] = (
                         <Highlighter
                             searchWords={terms}
-                            textToHighlight={ row[col] }
+                            textToHighlight={row[col]}
                         />
                     )
                 }
@@ -46,17 +46,16 @@ export const SubsetResultsPage = (props) => {
     const fetchSubset = () => {
         let _query = {
             simpleSearch: searchTerm
-        }
+        };
 
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.downloadData = _query;
-        localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+        localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
 
         GetSubsetOfDataByPage(props.dataset.table_name, _query, 1, pageLength).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
-            }
-            else {
+            } else {
                 highlight(res.data);
                 setTotalNumResults(res.count);
                 setColumns(res.columns);
@@ -67,7 +66,6 @@ export const SubsetResultsPage = (props) => {
         setQuery(_query);
     }
 
-    //Changed
     const GetNewPage = async (selectedPage) => {
         try {
             const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage, pageLength);
@@ -96,15 +94,13 @@ export const SubsetResultsPage = (props) => {
             fetchSubset();
         }
     }, []);
-
     return <>
-        <div className='blue' >
+        <div className='blue'>
             <Box component="main"
                 sx={{
                     marginTop: '100px',
                     marginLeft: "100px", //Hardcoded
                 }}>
-
 
                 <Box
                     sx={{
@@ -117,6 +113,18 @@ export const SubsetResultsPage = (props) => {
                     }}
                 >
 
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginBottom: '20px',
+                            flexDirection: 'column'
+                        }}
+                    >
+                        <h1 style={{ fontSize: '3rem' }}>Advanced Search</h1>
+                        <p style={{ fontSize: '1.25rem', marginTop: '10px' }}>Search for keyword(s) in your dataset</p>
+                    </Box>
 
                     <Box
                         sx={{
@@ -129,17 +137,15 @@ export const SubsetResultsPage = (props) => {
                                 borderRadius: '.5em',
                                 overflow: "hidden",
                                 width: '100%',
-
                             }}>
                             <TextField
                                 id="searchTerm"
-                                label="Subset Search"
+                                label="Target Keyword"
                                 variant="outlined"
                                 color='primary'
                                 focused
                                 fullWidth
                                 sx={{ marginTop: "10px" }}
-
                                 value={searchTerm}
                                 onChange={event => { setSearchTerm(event.target.value) }}
                                 // New Code to search with enter press
@@ -151,8 +157,7 @@ export const SubsetResultsPage = (props) => {
                             sx={{
                                 background: 'rgb(255, 255, 255)',
                                 color: 'rgb(0, 0, 0)',
-                                marginLeft: '2em',
-
+                                marginLeft: '5em',
                                 '&:hover': {
                                     background: 'rgb(200, 200, 200)'
                                 }
@@ -164,7 +169,7 @@ export const SubsetResultsPage = (props) => {
                     </Box>
                 </Box>
             </Box>
-        </div >
+        </div>
 
         <PaginatedDataTable
             searchResults={searchResults}
@@ -177,5 +182,4 @@ export const SubsetResultsPage = (props) => {
             columns={columns}
         />
     </>
-
 }

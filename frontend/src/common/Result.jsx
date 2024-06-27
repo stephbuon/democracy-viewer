@@ -1,4 +1,3 @@
-
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Table from '@mui/material/Table';
@@ -273,7 +272,7 @@ export const Result = (props) => {
                     }
                 </ButtonGroup> 
                 
-                <Table>
+                <Table sx={{ border: 'none' }}>
                     <TableHead>
                         
                         <TableRow>
@@ -311,7 +310,6 @@ export const Result = (props) => {
                             <TableCell sx={{textAlign: "left"}}>
                                 {dataset.description}
                             </TableCell>
-                            
                         </TableRow>
 
                         {
@@ -323,7 +321,6 @@ export const Result = (props) => {
                                 <TableCell sx={{textAlign: "left"}}>
                                     {dataset.author}
                                 </TableCell>
-                                
                             </TableRow>
                         }
 
@@ -336,7 +333,6 @@ export const Result = (props) => {
                                 <TableCell sx={{textAlign: "left"}}>
                                     {new Date(dataset.date_collected).toLocaleDateString()}
                                 </TableCell>
-                                
                             </TableRow>
                         }
 
@@ -408,7 +404,7 @@ export const Result = (props) => {
                             navigate('/subsetSearch');
                         }}
                     >
-                        Search Data
+                        Advanced search Data
                     </Button>
                     {
                         dataset.tokens_done == true &&
@@ -448,7 +444,6 @@ export const Result = (props) => {
                             </Button>
                         </Tooltip>
                     }
-                    
                 </Box>
             </Box>
         </Modal>
