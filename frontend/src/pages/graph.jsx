@@ -7,18 +7,7 @@ import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
 import { getGraph } from "../api/api.js";
 import { Settings, RotateLeft, Loop } from '@mui/icons-material';
-
-const barGraphs = [
-  "counts", "proportions", "embeddings-similar"
-];
-
-const scatterPlots = [
-  "tf-idf", "ll"
-];
-
-const heatMaps = [
-  "jsd"
-]
+import { metricTypes } from "../common/metrics.js";
 
 export const Graph = (props) => {
 // useState definitions
@@ -47,7 +36,7 @@ export const Graph = (props) => {
         titleList:[]
       };
 
-      if(barGraphs.indexOf(metric) !== -1){
+      if(metricTypes.bar.indexOf(metric) !== -1){
         tempData.xLabel = "Word"
         if (metric === "counts") {
           tempData.yLabel = "Count"
@@ -75,7 +64,7 @@ export const Graph = (props) => {
             })
           }
         });
-      } else if(scatterPlots.indexOf(metric) !== -1){
+      } else if(metricTypes.scatter.indexOf(metric) !== -1){
         const keys = [groupList[0].label, groupList[1].label];
         tempData.xLabel = keys[0];
         tempData.yLabel = keys[1];
@@ -96,7 +85,7 @@ export const Graph = (props) => {
           tempData.graph[0].ids.push(dataPoint.ids);
           tempData.graph[0].text.push(dataPoint.word);
         });
-      } else if (heatMaps.indexOf(metric) !== -1) {
+      } else if (metricTypes.heatmap.indexOf(metric) !== -1) {
         tempData.xLabel = "";
         tempData.yLabel = "";
         tempData.titleList = searchTerms;
@@ -136,6 +125,30 @@ export const Graph = (props) => {
               }
             }
           });
+        });
+      } else if (metricTypes.dotplot.indexOf(metric) !== -1) {
+        tempData.xLabel = "Group"
+        if (metric === "embeddings-similar") {
+          tempData.yLabel = "Embedding Similarity"
+        }
+        tempData.titleList = searchTerms;
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          let index = tempData.graph.findIndex((x) => x.name === dataPoint.x);
+          if (index >= 0) { // Runs if datapoint already exists in tempData
+            tempData.graph[index].x.push(dataPoint.x)
+            tempData.graph[index].y.push(dataPoint.y)
+            tempData.graph[index].ids.push(dataPoint.ids)
+          }
+          else {
+            tempData.graph.push({
+              x: [dataPoint.group],
+              y: [dataPoint.y],
+              ids: [dataPoint.ids],
+              name: dataPoint.x,
+              type: "scatter"
+            })
+          }
         });
       } else {
         throw new Error("Metric not implimented")

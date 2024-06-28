@@ -1,9 +1,9 @@
 // Imports
 import React, { useRef, useEffect, useState } from "react";
 import Plotly from "plotly.js-dist";
-import { Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { metrics } from "./metrics";
+import { metricNames, metricTypes } from "./metrics";
 
 export const GraphComponent = ({ data, setData }) => {
     // UseState definitions
@@ -37,7 +37,7 @@ export const GraphComponent = ({ data, setData }) => {
     // Other variable definitions
     try {
         var layout = {
-            title: metrics[data.metric] + " for " + listToString(data.titleList),
+            title: metricNames[data.metric] + " for " + listToString(data.titleList),
             width: 1000,
             height: 500,
             margin: {
@@ -76,7 +76,6 @@ export const GraphComponent = ({ data, setData }) => {
         } else {
             // Generate graph if there is data
             setFoundData(true);
-            
         }
       }, [data]);
 
@@ -98,12 +97,14 @@ export const GraphComponent = ({ data, setData }) => {
                     dataset: data.table_name,
                     metric: data.metric
                 };
-                if (data.graph[0].type === "bar") {
+                if (metricTypes.bar.indexOf(data.metric) !== -1) {
                     tempData.words = [dataPoint.x];
-                } else if (data.graph[0].type === "scatter") {
+                } else if (metricTypes.bar.indexOf(data.metric) !== -1) {
                     tempData.words = [dataPoint.text];
-                } else if (data.graph[0].type === "heatmap") {
+                } else if (metricTypes.bar.indexOf(data.metric) !== -1) {
                     tempData.words = [...data.titleList];
+                } else if (metricTypes.dotplot.indexOf(data.metric) !== -1) {
+                    tempData.words = [dataPoint.data.name];
                 } else {
                     throw new Error("Graph type not supported")
                 }
@@ -111,7 +112,7 @@ export const GraphComponent = ({ data, setData }) => {
                 navigate("/zoom");
               });
         }
-      }, [foundData])
+      }, [foundData]);
 
     if (!foundData) {
         return <>No data</>

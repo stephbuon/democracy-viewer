@@ -4,15 +4,15 @@ import { getGroupNames, getColumnValues } from "../api/api.js"
 import { Paper, Button, Modal } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
-import { metrics } from "./metrics.js";
+import { metricNames } from "./metrics.js";
 import { FormattedMultiTextField } from "./forms";
 import "./list.css";
 import { useNavigate } from "react-router-dom";
 
-const allMetricOptions = Object.keys(metrics).map(x => {
+const allMetricOptions = Object.keys(metricNames).map(x => {
     return {
         "value": x,
-        "label": metrics[x]
+        "label": metricNames[x]
     }
 });
 
@@ -48,12 +48,12 @@ export const GraphSettings = ( props ) => {
         updateGroupNames();
 
         if (!props.dataset.dataset.embeddings || !props.dataset.dataset.embeddings_done) {
-            setMetricOptions([ ...metricOptions ].filter(x => x.value !== "embedding"))
+            setMetricOptions([ ...metricOptions ].filter(x => !x.value.includes("embedding")))
         }
     }, []);
 
     useEffect(() => {
-        if (metric.includes("embeddings")) {
+        if (metric.includes("embedding")) {
             if (props.dataset.dataset.embed_col) {
                 setGroup(props.dataset.dataset.embed_col);
             } else {

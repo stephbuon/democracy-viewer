@@ -5,14 +5,13 @@ import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
 import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
-import { metrics } from "../common/metrics.js";
+import { metricNames } from "../common/metrics.js";
 
 const pageLength = 10;
 
 export const Zoom = () => {
     // UseState definitions
     const [searchResults, setSearchResults] = useState([]);
-    const [page, setPage] = useState(1);
     const [graphData, setGraphData] = useState(undefined);
     const [totalPages, setTotalPages] = useState(1);
     const [textCols, setTextCols] = useState([]);
@@ -43,11 +42,6 @@ export const Zoom = () => {
         })
     }
 
-    const nextPage = () => {
-        getPage(page + 1);
-        setPage(page + 1);
-    }
-
     // UseEffect: Gets record for all data.ids and populates searchResults
     useEffect(() => {
         const graphData_ = JSON.parse(localStorage.getItem('selected'));
@@ -58,7 +52,7 @@ export const Zoom = () => {
     useEffect(() => {
         if (graphData && textCols.length > 0) {
             // Pagination
-            getPage(page);
+            getPage(1);
             setTotalPages(Math.ceil(graphData.ids.length / pageLength));
         }
     }, [graphData, textCols]);
@@ -67,7 +61,7 @@ export const Zoom = () => {
         return <>Loading...</>
     }
 
-    return (<>
+    return <>
         <div>
             <div className="container text-center p-5">
                 {/* Top labels */}
@@ -93,7 +87,7 @@ export const Zoom = () => {
                         <b>Selected Datapoint</b>
                     </div>
                     <div className="col">
-                        {metrics[graphData.metric]}
+                        {metricNames[graphData.metric]}
                     </div>
                     <div className="col">
                         {graphData.x}
@@ -110,16 +104,14 @@ export const Zoom = () => {
             </div>
         </div>
         <PaginatedDataTable
-                    searchResults = {searchResults}
-                    page = {page}
-                    totalNumOfPages = {totalPages}
-                    GetNewPage = {nextPage}
-                    table_name={graphData.dataset}
-                    downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
-                    totalNumResults={graphData.ids.length}
-                    columns = {searchResults.length > 0 ? Object.keys(searchResults[0]) : []}
-                    pageLength = {pageLength}
-                />
-        </>
-    );
+            searchResults = {searchResults}
+            totalNumOfPages = {totalPages}
+            GetNewPage = {getPage}
+            table_name={graphData.dataset}
+            downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
+            totalNumResults={graphData.ids.length}
+            columns = {searchResults.length > 0 ? Object.keys(searchResults[0]) : []}
+            pageLength = {pageLength}
+        />
+    </>
 }

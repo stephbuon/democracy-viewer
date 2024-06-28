@@ -10,7 +10,7 @@ import { AlertDialog } from './AlertDialog';
 import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
 import { updateText } from '../api/api';
 
-export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
+export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);
     const [clickCol, setClickCol] = useState(-1);
     const [editOpen, setEditOpen] = useState(false);
@@ -57,7 +57,7 @@ export const PaginatedDataTable = ({ searchResults, page, pageLength, GetNewPage
             row: clickRow, col: clickCol,
             start: editStart, end: editEnd,
             text: newText
-        }).then(x => GetNewPage(page));
+        }).then(x => GetNewPage((first / pageLength) + 1));
     }
 
     useEffect(() => {
