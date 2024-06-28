@@ -5,7 +5,7 @@ import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
 import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
-import { metrics } from "../common/metrics.js";
+import { metricNames } from "../common/metrics.js";
 
 const pageLength = 10;
 
@@ -93,7 +93,7 @@ export const Zoom = () => {
                         <b>Selected Datapoint</b>
                     </div>
                     <div className="col">
-                        {metrics[graphData.metric]}
+                        {metricNames[graphData.metric]}
                     </div>
                     <div className="col">
                         {graphData.x}

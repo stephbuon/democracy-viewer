@@ -25,11 +25,13 @@ def find_ids(results: list[dict], table_name: str, group_col: str | None = None,
             val = None
         else:
             val = curr["group"]
-        # if processing == "stem":
-        #     word = stem(curr["x"], language)
-        # elif processing == "lemma":
-        #     word = lemmatize(curr["x"], language)
-        word = curr["x"]
+            
+        if processing == "stem":
+            word = stem(curr["x"], language)[0]
+        elif processing == "lemma":
+            word = lemmatize(curr["x"], language)[0]
+        else:
+            word = curr["x"]
         df = data.basic_selection(table_name, group_col, [val], [word], token)
         results[i]["ids"] = list(df["record_id"])
         
