@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-export const BACKEND_ENDPOINT = "http://3.15.2.102:8000";
+import { baseURL } from '../api/baseURL';
 
 const apiConfig = () => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -21,7 +20,7 @@ export const FilterDatasets = async (params, page) =>  {
         config.params = params;
     }
 
-    const res = await axios.get(`${ BACKEND_ENDPOINT }/datasets/filter/${ page }`, config)
+    const res = await axios.get(`${ baseURL }/datasets/filter/${ page }`, config)
 
     if(res.status !== 200){
         console.error(`Couldn't get datasets information. ${res.status}`, params)
@@ -35,12 +34,12 @@ export const FilterDatasetsCount = async (params) =>  {
     if(params.advanced)
     {
         //ADVANCED SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/count/filter/?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,apiConfig());
+        res = await axios.get(`${baseURL}/datasets/count/filter/?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,apiConfig());
     }
     else
     {
         //SIMPLE SEARCH
-        res = await axios.get(`${BACKEND_ENDPOINT}/datasets/count/filter/?type=${params.type}${params.searchTerm}`,apiConfig());
+        res = await axios.get(`${baseURL}/datasets/count/filter/?type=${params.type}${params.searchTerm}`,apiConfig());
     }
     if(res.status !== 200){
         console.error(`Couldn't get datasets information. ${res.status}`, params)
@@ -50,7 +49,7 @@ export const FilterDatasetsCount = async (params) =>  {
 };
 
 export const GetAllTags = async () =>  {
-    const res = await axios.get(`${BACKEND_ENDPOINT}/datasets/tags/unique`);
+    const res = await axios.get(`${baseURL}/datasets/tags/unique`);
     if(res.status !== 200){
         console.error(`Couldn't get tags. ${res.status}`, apiConfig())
         return null;
@@ -59,7 +58,7 @@ export const GetAllTags = async () =>  {
 };
 
 export const Popularize = async (dataset) =>  {
-    const res = await axios.put(`${BACKEND_ENDPOINT}/datasets/click/${dataset}`)
+    const res = await axios.put(`${baseURL}/datasets/click/${dataset}`)
 
     if(res.status !== 200){
         console.error(`Couldn't popularize. ${res.status}`)

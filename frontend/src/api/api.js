@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const apiEndpoint = 'http://3.15.2.102:8000';
+import { baseURL } from './baseURL';
 
 export const getToken = () => {
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
@@ -25,7 +24,7 @@ const apiConfig = () => {
 };
 
 export const upload = (file) => new Promise((resolve, reject) => {
-    axios.post(`${apiEndpoint}/datasets/`, file, {
+    axios.post(`${baseURL}/datasets/`, file, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${ getToken() }`
@@ -39,7 +38,7 @@ export const upload = (file) => new Promise((resolve, reject) => {
 });
 
 export const getGraph = (dataset, groupName, groupList, metric, wordList) => new Promise((resolve, reject) => {
-  var endpoint = `${apiEndpoint}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
+  var endpoint = `${baseURL}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
 
   groupList.forEach((group) => { // Add all groups in groupList to endpoint
     endpoint += `&group_list=${group.value}`
@@ -65,7 +64,7 @@ export const getGraph = (dataset, groupName, groupList, metric, wordList) => new
 
 export const getGroupNames = (dataset) => new Promise((resolve, reject) => {
   // Get graph from endpoint
-  axios.get(`${apiEndpoint}/datasets/columns/${dataset}`, {
+  axios.get(`${baseURL}/datasets/columns/${dataset}`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -79,7 +78,7 @@ export const getGroupNames = (dataset) => new Promise((resolve, reject) => {
 //{{base_url}}/datasets/columns/{{hansard_1870}}/values/speaker
 export const getColumnValues = (dataset, group) => new Promise((resolve, reject) => {
   // Get graph from endpoint
-  axios.get(`${apiEndpoint}/datasets/columns/${dataset}/values/${group}`, {
+  axios.get(`${baseURL}/datasets/columns/${dataset}/values/${group}`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -91,7 +90,7 @@ export const getColumnValues = (dataset, group) => new Promise((resolve, reject)
 });
 
 export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) => {
-  var endpoint = `${apiEndpoint}/datasets/ids/${dataset}?` // Stores concatenated endpoint
+  var endpoint = `${baseURL}/datasets/ids/${dataset}?` // Stores concatenated endpoint
 
   ids.forEach((id) => { // Add all groups in groupList to endpoint
     endpoint += `id=${id}&`
@@ -110,7 +109,7 @@ export const getRecordsByIds = (dataset, ids) => new Promise((resolve, reject) =
 });
 
 export const deleteDataset = (dataset) => new Promise((resolve, reject) => {
-    axios.delete(`${ apiEndpoint }/datasets/${ dataset }`, {
+    axios.delete(`${ baseURL }/datasets/${ dataset }`, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${ getToken() }`
@@ -122,7 +121,7 @@ export const deleteDataset = (dataset) => new Promise((resolve, reject) => {
 });
 
 export const getTextCols = (dataset) => new Promise((resolve, reject) => {
-  axios.get(`${ apiEndpoint }/datasets/text/${ dataset }`, {
+  axios.get(`${ baseURL }/datasets/text/${ dataset }`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -134,7 +133,7 @@ export const getTextCols = (dataset) => new Promise((resolve, reject) => {
 });
 
 export const addLike = (table) => new Promise((resolve, reject) => {
-  axios.post(`${ apiEndpoint }/datasets/like/${ table }`, {}, {
+  axios.post(`${ baseURL }/datasets/like/${ table }`, {}, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -146,7 +145,7 @@ export const addLike = (table) => new Promise((resolve, reject) => {
 });
 
 export const deleteLike = (table) => new Promise((resolve, reject) => {
-  axios.delete(`${ apiEndpoint }/datasets/like/${ table }`, {
+  axios.delete(`${ baseURL }/datasets/like/${ table }`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -158,14 +157,14 @@ export const deleteLike = (table) => new Promise((resolve, reject) => {
 });
 
 export const updateText = (table, params) => new Promise((resolve, reject) => {
-  axios.put(`${ apiEndpoint }/datasets/text/${ table }`, params, apiConfig()).then(x => resolve(x.data)).catch(x => {
+  axios.put(`${ baseURL }/datasets/text/${ table }`, params, apiConfig()).then(x => resolve(x.data)).catch(x => {
     alert(x);
     reject(x);
   });
 });
 
 export const getDistributedConnections = () => new Promise((resolve, reject) => {
-  axios.get(`${ apiEndpoint }/distributed`, {
+  axios.get(`${ baseURL }/distributed`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -177,7 +176,7 @@ export const getDistributedConnections = () => new Promise((resolve, reject) => 
 });
 
 export const addDistributedConnection = async (name, connection) =>  {
-  const res = await axios.post(`${ apiEndpoint }/distributed/${ name }`, connection, apiConfig());
+  const res = await axios.post(`${ baseURL }/distributed/${ name }`, connection, apiConfig());
   if(res.status !== 201){
       console.error(`Couldn't create connection. ${res.status}`)
       return null;
@@ -186,7 +185,7 @@ export const addDistributedConnection = async (name, connection) =>  {
 };
 
 export const getMetadata = (name) => new Promise((resolve, reject) => {
-  axios.get(`${ apiEndpoint }/datasets/metadata/${ name }`, {
+  axios.get(`${ baseURL }/datasets/metadata/${ name }`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`

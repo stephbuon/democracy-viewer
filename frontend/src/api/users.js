@@ -3,9 +3,6 @@ import axios from "axios";
 import { baseURL } from "./baseURL";
 const baseEndpoint = `${ baseURL }/users`;
 
-export const BACKEND_ENDPOINT = "http://3.15.2.102:8000";
-
-
 const apiConfig = () => {
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
   if (demoV && demoV.user) {
@@ -30,7 +27,7 @@ export const getUser = (username) => new Promise((resolve, reject) => {
 });
 
 export const updateUser = async (username, params) => {
-  const res = await axios.put(`${BACKEND_ENDPOINT}/users/${username}`,params,apiConfig());
+  const res = await axios.put(`${ baseEndpoint }/${username}`,params,apiConfig());
 
   if(res.status !== 200){
     console.error(`Couldn't update user information. ${res.status}`, params)

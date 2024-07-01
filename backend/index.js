@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+require("dotenv").config();
 
 // Delete old files to prevent clutter
 const cleanup = require("./cleanup");
@@ -24,7 +25,7 @@ const port = 8000;
 
 // Use middleware
 app.use(cors({
-    origin: 'http://3.15.2.102:3000',
+    origin: process.env.FRONTEND_ENDPOINT,
     optionsSuccessStatus: 200
 }));
 app.use(requestLog);

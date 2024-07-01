@@ -8,6 +8,7 @@ pandas==2.0.3
 pyarrow==16.1.0
 PyJWT==2.8.0
 PyMySQL==1.1.0
+python-dotenv==1.0.0
 scikit_learn==1.4.1.post1
 scipy==1.11.2
 spacy==3.7.4
