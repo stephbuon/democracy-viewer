@@ -3,7 +3,7 @@ import axios from "axios";
 import { baseURL } from "./baseURL";
 const baseEndpoint = `${ baseURL }/users`;
 
-export const BACKEND_ENDPOINT = "http://localhost:8000";
+export const BACKEND_ENDPOINT = "http://3.15.2.102:8000";
 
 
 const apiConfig = () => {

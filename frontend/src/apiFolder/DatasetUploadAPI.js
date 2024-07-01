@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const BACKEND_ENDPOINT = "http://localhost:8000";
+export const BACKEND_ENDPOINT = "http://3.15.2.102:8000";
 
 
 const apiConfig = () => {

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const apiEndpoint = 'http://localhost:8000';
+const apiEndpoint = 'http://3.15.2.102:8000';
 
 export const getToken = () => {
   let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
