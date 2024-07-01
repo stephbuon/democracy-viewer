@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 
 # Other installs
 RUN apt-get update
-RUN apt-get install curl
+RUN apt-get install curl -y
 
 # Install node
 # get install script and pass it to execute: 
