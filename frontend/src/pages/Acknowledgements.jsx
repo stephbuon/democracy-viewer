@@ -51,7 +51,7 @@ export const Acknowledgements = () => {
                 Technical Lead: <Link href = "https://www.linkedin.com/in/ryandschaefer/" target="_blank" rel="noopener noreferrer">Ryan Schaefer</Link>
               </ListItemText>
               <ListItemText>
-                Project Sponsor: <Link href = "https://www.linkedin.com/in/joguldi/" target="_blank" rel="noopener noreferrer">Jo Guldi</Link> and Emory University
+                Project Sponsor: <Link href = "https://www.joguldi.com/" target="_blank" rel="noopener noreferrer">Jo Guldi</Link> and Emory University
               </ListItemText>
               <ListItemText>
                 Thank you to the following people for their work on Democracy Viewer:
