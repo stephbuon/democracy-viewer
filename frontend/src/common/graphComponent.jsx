@@ -104,7 +104,7 @@ export const GraphComponent = ({ data, setData }) => {
                 } else if (metricTypes.bar.indexOf(data.metric) !== -1) {
                     tempData.words = [...data.titleList];
                 } else if (metricTypes.dotplot.indexOf(data.metric) !== -1) {
-                    tempData.words = [dataPoint.data.name];
+                    tempData.words = [dataPoint.data.name, data.titleList[0]];
                 } else {
                     throw new Error("Graph type not supported")
                 }

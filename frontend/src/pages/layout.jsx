@@ -37,9 +37,17 @@ export const Layout = (props) => {
         return 'Register';
       case '/subsetsearch':
         return 'Subset Search';
+      case '/acknowledgements':
+        return "Acknowledgements";
+      case "/distributed":
+        return "Distributed Connection";
+      case "/zoom":
+        return "Graph Zoom";
       default:
         if (location.pathname.includes("/profile/")) {
           return "Profile";
+        } else if (location.pathname.includes("/upload")) {
+          return "Upload";
         } else {
           return 'Home';
         }

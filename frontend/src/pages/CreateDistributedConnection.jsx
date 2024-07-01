@@ -150,7 +150,11 @@ export default function CreateDistributedConnection(props) {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              className="mt-2"
+              sx={{
+                  backgroundColor: "black", 
+                  color: "white"
+              }}
             >
               Create Connection
             </Button>

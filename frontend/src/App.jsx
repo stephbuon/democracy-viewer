@@ -14,7 +14,7 @@ import "./App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CreateDistributedConnection from "./pages/CreateDistributedConnection.jsx";
-import Acknowledgements from "./Acknownledgements/Acknowledgements.jsx";
+import {Acknowledgements} from "./pages/Acknowledgements.jsx";
   
 export const App = () => {
   
