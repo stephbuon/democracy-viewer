@@ -23,7 +23,10 @@ const app = express();
 const port = 8000;
 
 // Use middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    optionsSuccessStatus: 200
+}));
 app.use(requestLog);
 app.use(optAuthenticateJWT);
 app.use(createDatabaseConnection);
