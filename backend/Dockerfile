@@ -9,7 +9,7 @@ RUN apt-get install curl -y
 
 # Install node
 # get install script and pass it to execute: 
-RUN curl -sL https://deb.nodesource.com/setup_21.x | bash
+RUN curl -sL https://deb.nodesource.com/setup_22.x | bash
 # and install node 
 RUN apt-get install nodejs
 # confirm that it was successful 
