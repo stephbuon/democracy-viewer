@@ -24,7 +24,7 @@ const port = 8000;
 
 // Use middleware
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: 'http://3.15.2.102:3000',
     optionsSuccessStatus: 200
 }));
 app.use(requestLog);
