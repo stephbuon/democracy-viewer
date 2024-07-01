@@ -63,16 +63,7 @@ export const GraphSettings = ( props ) => {
         } else {
             setGroupLocked(false);
         }
-    }, [metric])
-
-    // Called when enter is pressed on custom search text entry
-    // Adds current text to the word list and empties the textbox
-    const addSearchTerm = (key) => {
-        if(key == 'Enter'){
-            setSearchTerms([ ...searchTerms, searchValue]);
-            setSearchValue("");
-        }
-    }
+    }, [metric]);
 
     // Closes modal and updates graph data
     const handleClose = (event, reason) => {

@@ -131,7 +131,7 @@ export const Graph = (props) => {
         if (metric === "embeddings-similar") {
           tempData.yLabel = "Embedding Similarity"
         }
-        tempData.titleList = searchTerms;
+        tempData.titleList = [searchTerms[0]];
 
         res.forEach((dataPoint) => { // Populate data array with request output
           let index = tempData.graph.findIndex((x) => x.name === dataPoint.x);

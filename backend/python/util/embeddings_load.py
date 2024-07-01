@@ -18,7 +18,7 @@ def load_data_from_pkl(pkl_name: str, token: str | None = None):
     else:
         raise Exception("Pickle files not found.")# TO DO: change this to some error message for backend
     
-def find_ids(results: list[dict], table_name: str, group_col: str | None = None, processing: str = "none", language: str = "English", token: str | None = None):
+def find_ids(results: list[dict], table_name: str, keyword: str, group_col: str | None = None, processing: str = "none", language: str = "English", token: str | None = None):
     for i in range(len(results)):
         curr = results[i]
         if group_col is None:
@@ -32,7 +32,7 @@ def find_ids(results: list[dict], table_name: str, group_col: str | None = None,
             word = lemmatize(curr["x"], language)[0]
         else:
             word = curr["x"]
-        df = data.basic_selection(table_name, group_col, [val], [word], token)
+        df = data.basic_selection(table_name, group_col, [val], [keyword, word], token)
         results[i]["ids"] = list(df["record_id"])
         
     return results
@@ -107,4 +107,4 @@ def get_similar_words(table_name: str, keyword: str, group_col: str | None = Non
     else:
         results = take_similar_words(models_load,keyword)
         
-    return find_ids(results, table_name, group_col, processing, language, token)
+    return find_ids(results, table_name, keyword, group_col, processing, language, token)
