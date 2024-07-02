@@ -21,6 +21,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     const [disabled, setDisabled] = useState(true);
     const [suggest, setSuggest] = useState(false);
     const [first, setFirst] = useState(0);
+    const [loggedIn, setLoggedIn] = useState(false);
 
     const onPage = (event) => {
         GetNewPage(event.page + 1);
@@ -90,6 +91,15 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
         }
     }, [newText]);
 
+    useEffect(() => {
+        const token = JSON.parse(localStorage.getItem('democracy-viewer'));
+        if (token && token.user) {
+            setLoggedIn(true);
+        } else {
+            setLoggedIn(false);
+        }
+    }, [])
+
     return <>
         <Box
             sx={{
@@ -131,14 +141,29 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
             >Download these {totalNumResults} results</Button>
         </Box>
 
-        <Tooltip arrow title="Highlight text to suggest changes to the dataset">
-            <FormControlLabel
-                control={<Checkbox defaultChecked={suggest} />}
-                label="Suggest Changes"
-                onChange={event => setSuggest(!suggest)}
-                style={{ marginLeft: "100px" }}
-            />
-        </Tooltip>
+        {
+            loggedIn === true &&
+            <Tooltip arrow title="Highlight text to suggest changes to the dataset">
+                <FormControlLabel
+                    control={<Checkbox defaultChecked={suggest} />}
+                    label="Suggest Changes"
+                    onChange={event => setSuggest(!suggest)}
+                    style={{ marginLeft: "100px" }}
+                />
+            </Tooltip>
+        }
+
+        {
+            loggedIn === false &&
+            <Tooltip arrow title="You must be logged in to suggest changes">
+                <FormControlLabel
+                    control={<Checkbox defaultChecked={false} disabled />}
+                    label="Suggest Changes"
+                    style={{ marginLeft: "100px" }}
+                />
+            </Tooltip>
+        }
+        
         <DataTable 
             value={searchResults} 
             scrollable 
