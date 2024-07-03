@@ -30,17 +30,13 @@ export const FilterDatasets = async (params, page) =>  {
 };
 
 export const FilterDatasetsCount = async (params) =>  {
-    let res;
-    if(params.advanced)
-    {
-        //ADVANCED SEARCH
-        res = await axios.get(`${baseURL}/datasets/count/filter/?type=${params.type}${params.title}${params.description}${params.username}${params.tags}`,apiConfig());
+    const config = { ...apiConfig() };
+    if (params) {
+        config.params = params;
     }
-    else
-    {
-        //SIMPLE SEARCH
-        res = await axios.get(`${baseURL}/datasets/count/filter/?type=${params.type}${params.searchTerm}`,apiConfig());
-    }
+
+    const res = await axios.get(`${ baseURL }/datasets/count/filter`, config)
+
     if(res.status !== 200){
         console.error(`Couldn't get datasets information. ${res.status}`, params)
         return null;
