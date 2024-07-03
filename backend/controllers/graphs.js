@@ -15,19 +15,6 @@ const createGraph = async(knex, dataset, params, user = null) => {
         return files.readJSON(file2, false)
     }
 
-    // Check if the provided metrics is valid
-    const metrics = [
-        "counts",
-        "proportions",
-        "tf-idf",
-        "ll",
-        "jsd",
-        "embeddings-similar"
-    ];
-    if (!metrics.includes(params.metric)) {
-        throw new Error(`Invalid metric ${ params.metric }`);
-    }
-
     // Check dataset metadata to make sure user has access to this dataset
     const metadata = await model.getMetadata(dataset);
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
@@ -35,10 +22,6 @@ const createGraph = async(knex, dataset, params, user = null) => {
     }
 
     params.table_name = dataset;
-    // Use embed_col as group name if embedding metric
-    if (params.metric === "embed") {
-        params.group_name = metadata.embed_col;
-    }
     // Convert params.group_list and params.word_list to arrays if they aren't already
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];

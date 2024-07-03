@@ -4,7 +4,8 @@ export const metricNames = {
     "tf-idf": "TF-IDF",
     "ll": "Log Likelihood",
     "jsd": "Jensen-Shannon Divergence",
-    "embeddings-similar": "Word Embeddings Similarity"
+    "embeddings-similar": "Word Embeddings Similarity",
+    "embeddings-different": "Word Embeddings Difference"
 };
 
 export const metricTypes = {
@@ -18,7 +19,7 @@ export const metricTypes = {
         "jsd"
     ],
     "dotplot": [
-        "embeddings-similar"
+        "embeddings-similar", "embeddings-different"
     ]
 };
 

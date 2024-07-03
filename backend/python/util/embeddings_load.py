@@ -33,11 +33,11 @@ def find_ids(results: list[dict], table_name: str, keyword: str, group_col: str 
         else:
             word = curr["x"]
         df = data.basic_selection(table_name, group_col, [val], [keyword, word], token)
-        results[i]["ids"] = list(df["record_id"])
+        results[i]["ids"] = list(sorted(set(df["record_id"])))
         
     return results
     
-def take_similar_words_over_group(keyword: str, models_per_year: dict, vals: list[str] = []):
+def take_similar_words_over_group(keyword: str, models_per_year: dict, vals: list[str] = [], similar: bool = True):
     results = []
 
     if len(vals) > 0:
@@ -48,7 +48,10 @@ def take_similar_words_over_group(keyword: str, models_per_year: dict, vals: lis
     for time_value in time_values:
         try:
             model: Word2Vec = models_per_year[time_value]
-            similar_words_with_scores = model.wv.most_similar(keyword, topn=5)
+            if similar:
+                similar_words_with_scores = model.wv.most_similar(keyword, topn=5)
+            else:
+                similar_words_with_scores = model.wv.most_similar(negative = keyword, topn=5)
 
             similar_words = [word[0] for word in similar_words_with_scores]
             similarity_scores = [word[1] for word in similar_words_with_scores]
@@ -69,10 +72,13 @@ def take_similar_words_over_group(keyword: str, models_per_year: dict, vals: lis
             
     return results
 
-def take_similar_words(model, keyword: str):
+def take_similar_words(model: Word2Vec, keyword: str, similar: bool = True):
     results = []
     try:
-        similar_words_with_scores = model.wv.most_similar(keyword, topn=5) 
+        if similar:
+            similar_words_with_scores = model.wv.most_similar(keyword, topn=5) 
+        else:
+            similar_words_with_scores = model.wv.most_similar(negative = keyword, topn=5) 
         similar_words = [word[0] for word in similar_words_with_scores]
         similarity_scores = [word[1] for word in similar_words_with_scores]
         # add keyword and its similarity score
@@ -91,7 +97,7 @@ def take_similar_words(model, keyword: str):
         
     return results
 
-def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], processing: str = "none", language: str = "English", token: str | None = None):
+def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], processing: str = "none", language: str = "English", similar = True, token: str | None = None):
     # take the model out from pkl
     if group_col is not None:
         pkl_name = "{}_{}".format(table_name, group_col)
@@ -103,8 +109,8 @@ def get_similar_words(table_name: str, keyword: str, group_col: str | None = Non
     # the keyword will be include w a similarity score of 1
     if group_col is not None:
         #NOTE: here we assume that if user doesn't select a group col for embedding, our SQL will return NA
-        results = take_similar_words_over_group(keyword, models_load, vals)
+        results = take_similar_words_over_group(keyword, models_load, vals, similar)
     else:
-        results = take_similar_words(models_load,keyword)
+        results = take_similar_words(models_load,keyword, similar)
         
     return find_ids(results, table_name, keyword, group_col, processing, language, token)

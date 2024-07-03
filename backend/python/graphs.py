@@ -61,7 +61,9 @@ elif params["metric"] == "tf-idf":
 elif params["metric"] == "proportions":
     output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), TOKEN)
 elif params["metric"] == "embeddings-similar":
-    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), metadata["preprocessing_type"], metadata["language"], TOKEN)
+    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), metadata["preprocessing_type"], metadata["language"], True, TOKEN)
+elif params["metric"] == "embeddings-different":
+    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), metadata["preprocessing_type"], metadata["language"], False, TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
 print("Computation time: {} seconds".format(time() - start_time))
