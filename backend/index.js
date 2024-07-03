@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+require("dotenv").config();
 
 // Delete old files to prevent clutter
 const cleanup = require("./cleanup");
@@ -23,7 +24,10 @@ const app = express();
 const port = 8000;
 
 // Use middleware
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_ENDPOINT,
+    optionsSuccessStatus: 200
+}));
 app.use(requestLog);
 app.use(optAuthenticateJWT);
 app.use(createDatabaseConnection);

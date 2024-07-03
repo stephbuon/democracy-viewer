@@ -1,7 +1,7 @@
 export const metricNames = {
     "counts": "Word Counts",
     "proportions": "Proportion",
-    "tf-idf": "tfi-idf",
+    "tf-idf": "TF-IDF",
     "ll": "Log Likelihood",
     "jsd": "Jensen-Shannon Divergence",
     "embeddings-similar": "Word Embeddings Similarity"
