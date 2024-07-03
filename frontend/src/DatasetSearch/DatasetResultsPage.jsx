@@ -183,6 +183,7 @@ export const DatasetResultsPage = (props) => {
                                         focused
                                         value={searchTerm}
                                         onChange={event => { setSearchTerm(event.target.value) }}
+                                        onKeyDown = {onEnter}
                                     />
                                 </div>
                             </Box>
