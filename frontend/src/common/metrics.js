@@ -5,7 +5,8 @@ export const metricNames = {
     "ll": "Log Likelihood",
     "jsd": "Jensen-Shannon Divergence",
     "embeddings-similar": "Word Embeddings Similarity",
-    "embeddings-different": "Word Embeddings Difference"
+    "embeddings-different": "Word Embeddings Difference",
+    "embeddings-raw": "Word Embedding Vectors"
 };
 
 export const metricTypes = {
@@ -13,7 +14,7 @@ export const metricTypes = {
         "counts", "proportions"
     ],
     "scatter": [
-        "tf-idf", "ll"
+        "tf-idf", "ll", "embeddings-raw"
     ],
     "heatmap": [
         "jsd"

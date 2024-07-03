@@ -65,7 +65,12 @@ export const Graph = (props) => {
           }
         });
       } else if(metricTypes.scatter.indexOf(metric) !== -1){
-        const keys = [groupList[0].label, groupList[1].label];
+        let keys;
+        if (groupList.length < 2) {
+          keys = ["X", "Y"];
+        } else {
+          keys = [groupList[0].label, groupList[1].label];
+        }
         tempData.xLabel = keys[0];
         tempData.yLabel = keys[1];
         tempData.titleList.push(keys[0], keys[1])

@@ -3,7 +3,7 @@ start_time = time()
 total_start_time = time()
 # Import metrics
 import util.metrics as metrics
-from util.embeddings_load import get_similar_words
+from util.embeddings_load import get_similar_words, get_word_vectors
 # Other imports
 from json import load, dump
 from sys import argv
@@ -64,6 +64,8 @@ elif params["metric"] == "embeddings-similar":
     output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), metadata["preprocessing_type"], metadata["language"], True, TOKEN)
 elif params["metric"] == "embeddings-different":
     output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), metadata["preprocessing_type"], metadata["language"], False, TOKEN)
+elif params["metric"] == "embeddings-raw":
+    output = get_word_vectors(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
 print("Computation time: {} seconds".format(time() - start_time))

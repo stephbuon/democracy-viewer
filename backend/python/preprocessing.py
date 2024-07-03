@@ -146,7 +146,7 @@ print("Total time: {} minutes".format(final_time))
 params = {
     "username": metadata["username"],
     "title": metadata["title"],
-    "time": final_time
+    "time": round(final_time, 3)
 }
 user = sql.get_user(engine, meta, metadata["username"])
 send_email("processing_complete", params, "Processing Complete", user["email"])

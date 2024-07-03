@@ -1,13 +1,14 @@
 from gensim.models import Word2Vec
 from os import path
 from pickle import load
+from sklearn.decomposition import PCA
 from util.s3 import download_file
 import util.data_queries as data
 # Word processing
 from util.word_processing import lemmatize, stem
 
 # move top similar words with keywords requested here
-def load_data_from_pkl(pkl_name: str, token: str | None = None):
+def load_data_from_pkl(pkl_name: str, token: str | None = None) -> Word2Vec:
     pkl_model_file_name = download_file("embeddings", "model_{}.pkl".format(pkl_name), token)
 
     if path.isfile(pkl_model_file_name):
@@ -18,7 +19,7 @@ def load_data_from_pkl(pkl_name: str, token: str | None = None):
     else:
         raise Exception("Pickle files not found.")# TO DO: change this to some error message for backend
     
-def find_ids(results: list[dict], table_name: str, keyword: str, group_col: str | None = None, processing: str = "none", language: str = "English", token: str | None = None):
+def find_ids(results: list[dict], table_name: str, keyword: str, group_col: str | None = None, processing: str = "none", language: str = "English", token: str | None = None) -> list[dict]:
     for i in range(len(results)):
         curr = results[i]
         if group_col is None:
@@ -32,12 +33,12 @@ def find_ids(results: list[dict], table_name: str, keyword: str, group_col: str 
             word = lemmatize(curr["x"], language)[0]
         else:
             word = curr["x"]
-        df = data.basic_selection(table_name, group_col, [val], [keyword, word], token)
-        results[i]["ids"] = list(sorted(set(df["record_id"])))
+        df = data.basic_selection(table_name, group_col, None if val is None else [val], [keyword, word], token)
+        results[i]["ids"] = sorted(set(df["record_id"]))
         
     return results
     
-def take_similar_words_over_group(keyword: str, models_per_year: dict, vals: list[str] = [], similar: bool = True):
+def take_similar_words_over_group(keyword: str, models_per_year: dict[str, Word2Vec], vals: list[str] = [], similar: bool = True) -> list[dict]:
     results = []
 
     if len(vals) > 0:
@@ -47,7 +48,7 @@ def take_similar_words_over_group(keyword: str, models_per_year: dict, vals: lis
         
     for time_value in time_values:
         try:
-            model: Word2Vec = models_per_year[time_value]
+            model = models_per_year[time_value]
             if similar:
                 similar_words_with_scores = model.wv.most_similar(keyword, topn=5)
             else:
@@ -72,7 +73,7 @@ def take_similar_words_over_group(keyword: str, models_per_year: dict, vals: lis
             
     return results
 
-def take_similar_words(model: Word2Vec, keyword: str, similar: bool = True):
+def take_similar_words(model: Word2Vec, keyword: str, similar: bool = True) -> list[dict]:
     results = []
     try:
         if similar:
@@ -97,7 +98,7 @@ def take_similar_words(model: Word2Vec, keyword: str, similar: bool = True):
         
     return results
 
-def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], processing: str = "none", language: str = "English", similar = True, token: str | None = None):
+def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], processing: str = "none", language: str = "English", similar = True, token: str | None = None) -> dict:
     # take the model out from pkl
     if group_col is not None:
         pkl_name = "{}_{}".format(table_name, group_col)
@@ -114,3 +115,85 @@ def get_similar_words(table_name: str, keyword: str, group_col: str | None = Non
         results = take_similar_words(models_load,keyword, similar)
         
     return find_ids(results, table_name, keyword, group_col, processing, language, token)
+
+def get_vectors(model: Word2Vec, keywords: list[str]) -> list[dict]:
+    results = []
+        
+    pca = PCA(2)
+    vectors = []
+    used_words = []
+    for word in keywords:
+        try:
+            vectors.append(model.wv.get_vector(word))
+            used_words.append(word)
+        except Exception:
+            pass
+        
+    vectors_2d = pca.fit_transform(vectors)
+    for i, word in enumerate(used_words):
+        results.append({
+            "word": word,
+            "x": vectors_2d[i, 0],
+            "y": vectors_2d[i, 1]
+        })
+            
+    return results
+
+def get_vectors_over_group(keywords: list[str], models: dict[str, Word2Vec], vals: list[str] = []) -> list[dict]:
+    results = []
+
+    if len(vals) > 0:
+        time_value = sorted(set(vals))[0]
+    else:
+        time_value = list(models.keys())[0]
+        
+    pca = PCA(2)
+    vectors = []
+    used_words = []
+    for word in keywords:
+        try:
+            model = models[time_value]
+            vectors.append(model.wv.get_vector(word))
+            used_words.append(word)
+        except Exception:
+            pass
+        
+    vectors_2d = pca.fit_transform(vectors)
+    for i, word in enumerate(used_words):
+        results.append({
+            "word": word,
+            "group": time_value,
+            "x": vectors_2d[i, 0],
+            "y": vectors_2d[i, 1]
+        })
+            
+    return results
+
+def find_vector_ids(results: list[dict], table_name: str, group_col: str | None = None, token: str | None = None) -> list[dict]:
+    for i in range(len(results)):
+        curr = results[i]
+        if group_col is None:
+            val = None
+        else:
+            val = curr["group"]
+        df = data.basic_selection(table_name, group_col, None if val is None else [val], [curr["word"]], token)
+        results[i]["ids"] = sorted(set(df["record_id"]))
+        
+    return results
+
+def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> dict:
+    # take the model out from pkl
+    if group_col is not None:
+        pkl_name = "{}_{}".format(table_name, group_col)
+    else:
+        pkl_name = table_name
+        
+    models_load = load_data_from_pkl(pkl_name, token)
+    
+    if group_col is not None:
+        #NOTE: here we assume that if user doesn't select a group col for embedding, our SQL will return NA
+        results = get_vectors_over_group(keywords, models_load, vals)
+    else:
+        results = get_vectors(models_load,keywords)
+        
+    return find_vector_ids(results, table_name, group_col, token)

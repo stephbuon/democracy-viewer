@@ -99,9 +99,9 @@ export const GraphComponent = ({ data, setData }) => {
                 };
                 if (metricTypes.bar.indexOf(data.metric) !== -1) {
                     tempData.words = [dataPoint.x];
-                } else if (metricTypes.bar.indexOf(data.metric) !== -1) {
+                } else if (metricTypes.scatter.indexOf(data.metric) !== -1) {
                     tempData.words = [dataPoint.text];
-                } else if (metricTypes.bar.indexOf(data.metric) !== -1) {
+                } else if (metricTypes.heatmap.indexOf(data.metric) !== -1) {
                     tempData.words = [...data.titleList];
                 } else if (metricTypes.dotplot.indexOf(data.metric) !== -1) {
                     tempData.words = [dataPoint.data.name, data.titleList[0]];
