@@ -19,6 +19,11 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     output.rename({ "word": "x", "count": "y" }, axis = 1, inplace = True)
     # Add ids
     output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
+    # If a word list was not provided, cap the number of words returned at 5
+    if len(word_list) == 0:
+        top_words = output.groupby("x")["y"].sum().sort_values(ascending=False)
+        top_words = list(top_words.index)[0:5]
+        output = output[output["x"].isin(top_words)]
     
     return output
 
@@ -27,16 +32,16 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     group_counts = data.group_count_by_words(table_name, word_list, column, token)
     # Get total group count
     total_groups = data.group_count(table_name, column, token)
+        
+    # Get records by words and groups
+    df = data.basic_selection(table_name, column, values, word_list, token)
     # Compute smoothed idf
     idf = {}
-    for word in word_list:
+    for word in df["word"]:
         if group_counts[word] > 0:
             idf[word] = log2(1 + (total_groups / group_counts[word]))
         else:
             idf[word] = 0
-        
-    # Get records by words and groups
-    df = data.basic_selection(table_name, column, values, word_list, token)
     # Group by word and group
     group_cols = [ "word", "group" ]
     # Store ids as list
@@ -48,7 +53,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     output["count"] = 1 + log2(output["count"])
     # Join with idf
     idf_lst = []
-    for i, row in output.iterrows():
+    for _, row in output.iterrows():
         idf_lst.append(idf[row["word"]])
     output["idf"] = idf_lst
     # Compute tf-idf
@@ -86,6 +91,11 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     output.rename({ "word": "x", "proportion": "y" }, axis = 1, inplace = True)
     # Add ids
     output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
+    # If a word list was not provided, cap the number of words returned at 5
+    if len(word_list) == 0:
+        top_words = output.groupby("x")["y"].sum().sort_values(ascending=False)
+        top_words = list(top_words.index)[0:5]
+        output = output[output["x"].isin(top_words)]
     
     return output
 
@@ -135,6 +145,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], t
         output = concat(output)
         # Rename columns
         output.rename({ "group1": "x", "group2": "y", "jsd": "fill" }, axis = 1, inplace = True)
+        print(output["fill"])
         return output
     else:
         return DataFrame()

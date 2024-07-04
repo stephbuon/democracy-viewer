@@ -66,7 +66,7 @@ export const Layout = (props) => {
             sx={{ mr: 2 }}
             onClick={handleDrawerToggle}
           >
-            <MenuIcon />
+            <MenuIcon sx={{ color: "white" }} />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {getCurrentPage()}

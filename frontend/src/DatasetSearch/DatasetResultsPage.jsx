@@ -139,8 +139,7 @@ export const DatasetResultsPage = (props) => {
                 onClose={() => handleSnackBarClose1()}
             >
                 <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
-                    {alert === 1 && <>Must choose dataset first</>}
-                    {alert === 2 && <>Could not use distributed connection</>}
+                    {alert === 1 && <>You must choose a dataset first</>}
                 </Alert>
             </Snackbar>
             <Grid container component="main" sx={{ height: '100vh' }}>

@@ -94,7 +94,7 @@ def split_text(df: DataFrame):
         split_data = concat([DataFrame(expand_counter(row)) for _, row in split_data.iterrows()], ignore_index=True)
         
         # Remove words with unwanted pos
-        split_data = split_data[~split_data["pos"].isin(["num", "part", "punct", "sym", "x"])].dropna()
+        split_data = split_data[~split_data["pos"].isin(["num", "part", "punct", "sym", "x", "space"])].dropna()
     else:
         if metadata["preprocessing_type"] == "stem":
             split_data["text"] = split_data["text"].apply(lambda x: stem(x, metadata["language"]))

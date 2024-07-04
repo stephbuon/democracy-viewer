@@ -24,3 +24,45 @@ export const metricTypes = {
     ]
 };
 
+export const metricSettings = {
+    "counts": {
+        column: false,
+        values: false,
+        words: false
+    },
+    "proportions": {
+        column: false,
+        values: false,
+        words: false
+    },
+    "tf-idf": {
+        column: true,
+        values: 2,
+        words: false
+    },
+    "ll": {
+        column: true,
+        values: 2,
+        words: false
+    },
+    "jsd": {
+        column: true,
+        values: false,
+        words: false
+    },
+    "embeddings-similar": {
+        column: false,
+        values: false,
+        words: 1
+    },
+    "embeddings-different": {
+        column: false,
+        values: false,
+        words: 1
+    },
+    "embeddings-raw": {
+        column: false,
+        values: false,
+        words: false
+    }
+}

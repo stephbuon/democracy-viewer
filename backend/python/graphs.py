@@ -74,6 +74,6 @@ output_file = params_file.replace("/input/", "/output/")
 if type(output) == dict or type(output) == list:
     dump(output, open(output_file, "w"), indent = 4)
 else:
-    output.to_json(output_file, orient = "records")
+    output.to_json(output_file, orient = "records", indent = 4)
 
 print("Total time: {} seconds".format(time() - total_start_time))

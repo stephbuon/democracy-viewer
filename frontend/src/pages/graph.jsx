@@ -107,7 +107,7 @@ export const Graph = (props) => {
           hoverongaps: false
         })
 
-        const groups = groupList.map(x => x.label);
+        const groups = [ ...new Set([ ...res.map(pnt => pnt.x), ...res.map(pnt => pnt.y) ]) ];
         groups.forEach(grp => {
           tempData.graph[0].x.push(grp);
           tempData.graph[0].y.push(grp);
@@ -183,7 +183,7 @@ export const Graph = (props) => {
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if (demoV === undefined) {
+    if (!demoV || !demoV.dataset) {
       navigate('/datasetSearch')
       props.setNavigated(true);
     }

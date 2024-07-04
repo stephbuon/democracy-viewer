@@ -49,14 +49,10 @@ export const App = () => {
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
   }
   const logout = () => {
-    setUser(undefined)
-    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if(!demoV)
-    {
-      demoV = {user:undefined, dataset:undefined}
-    }
+    setUser(undefined);
+    demoV = {user:undefined, dataset:undefined};
     demoV.user = undefined;
-    localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+    localStorage.removeItem("democracy-viewer");
     //navigate('/') //where ever you call logout also navigate back to homepage. Error occurs if here since App not in Router
   }
 
