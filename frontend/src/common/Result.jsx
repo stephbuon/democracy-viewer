@@ -238,7 +238,7 @@ export const Result = (props) => {
                         </>
                     }
                     {
-                        loggedIn && !dataset.liked &&
+                        loggedIn && dataset.liked === false &&
                         <Button 
                         variant="contained" 
                         disableElevation
@@ -255,7 +255,7 @@ export const Result = (props) => {
                     }
 
                     {
-                        loggedIn && dataset.liked &&
+                        loggedIn && dataset.liked === true &&
                         <Button 
                         variant="contained" 
                         disableElevation

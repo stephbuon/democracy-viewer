@@ -280,8 +280,19 @@ const getColumnValues = async(knex, table, column) => {
 const getFilteredDatasets = async(knex, query, username, page) => {
     const model = new datasets(knex);
 
-    const result = await model.getFilteredDatasets(query, username, true, page);
-    return result;
+    const results = await model.getFilteredDatasets(query, username, true, page);
+    // Get tags and likes for search results
+    for (let i = 0; i < results.length; i++) {
+        results[i].tags = await getTags(knex, results[i].table_name);
+        if (username) {
+            results[i].liked = await model.getLike(username, results[i].table_name);
+        } else {
+            results[i].liked = false;
+        }
+        results[i].likes = await model.getLikeCount(results[i].table_name);
+    }
+
+    return results;
 }
 
 // Get count of dataset filter
@@ -332,7 +343,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     }
 
     // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
     let fullOutput = [];
     let columns = [];
     if (util.fileExists(filename)) {
@@ -396,7 +407,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
     }
 
     // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
     let fullOutput;
     if (util.fileExists(filename)) {
         fullOutput = util.readJSON(filename, false);
@@ -433,7 +444,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
         util.generateJSON(filename, fullOutput);
     }
 
-    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
+    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
     await util.generateCSV(newFilename, fullOutput);
     return newFilename;
 }
