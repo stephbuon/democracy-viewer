@@ -11,7 +11,11 @@ export const GraphComponent = ({ data, setData }) => {
 
     // Function definitions
     const listToString = (list) => {
-        let string = ""
+        if (list.length === 0) {
+            return ""
+        }
+
+        let string = " for ";
         list.forEach((word, i) => {
             if (list.length == 1) {
                 string += "'" + word + "'";
@@ -37,7 +41,7 @@ export const GraphComponent = ({ data, setData }) => {
     // Other variable definitions
     try {
         var layout = {
-            title: metricNames[data.metric] + " for " + listToString(data.titleList),
+            title: metricNames[data.metric] + listToString(data.titleList),
             width: 1000,
             height: 500,
             margin: {

@@ -43,7 +43,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
     cols = ["record_id", "word", "count"]
     
     # If grouping values are defined, filter by them
-    if column != None:
+    if column is not None and column != "":
         df_raw.rename({ column: "group" }, axis = 1, inplace = True)
         cols.append("group")
         if len(values) > 0:
@@ -78,7 +78,7 @@ def group_count_by_words(table_name: str, word_list: list[str], column: str | No
     # Get record/group count for each word
     records = {}
     for word in df["word"].unique():
-        if column is None:
+        if column is None or column == "":
             records[word] = len(df[df["word"] == word])
         else:
             records[word] = len(df[df["word"] == word][column].unique())

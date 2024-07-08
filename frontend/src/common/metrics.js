@@ -1,6 +1,6 @@
 export const metricNames = {
     "counts": "Word Counts",
-    "proportions": "Proportion",
+    "proportions": "Proportions",
     "tf-idf": "TF-IDF",
     "ll": "Log Likelihood",
     "jsd": "Jensen-Shannon Divergence",

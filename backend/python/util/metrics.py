@@ -8,10 +8,10 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     
     # Goup by word and group (if defined)
     group_cols = [ "word" ]
-    if column != None:
+    if column != None and column != "":
         group_cols.append("group")
     # Store ids as list
-    ids = df.groupby(group_cols)["record_id"].apply(list).reset_index(name = "ids")
+    ids = df.groupby(group_cols)["record_id"].apply(lambda x: list(sorted(set(x)))).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     output = df.groupby(group_cols).sum().reset_index()
@@ -45,7 +45,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     # Group by word and group
     group_cols = [ "word", "group" ]
     # Store ids as list
-    ids = df.groupby("word")["record_id"].apply(list).reset_index(name = "ids")
+    ids = df.groupby("word")["record_id"].apply(lambda x: list(sorted(set(x)))).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     output = df.groupby(group_cols).sum().reset_index()
@@ -73,24 +73,31 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     df = data.basic_selection(table_name, column, values, [], token)
     
     # Store ids as list
-    ids = df.groupby(["word", "group"])["record_id"].apply(list).reset_index(name = "ids")
+    cols = ["word"]
+    if column is not None and column != "":
+        cols.append("group")
+    ids = df.groupby(cols)["record_id"].apply(lambda x: list(sorted(set(x)))).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Get word and group counts
-    output = df.groupby(["word", "group"]).sum().reset_index()
+    output = df.groupby(cols).sum().reset_index()
     # Get group total counts
-    group_counts = output.groupby("group")["count"].sum().reset_index()
-    group_counts.rename(columns = { "count": "total" }, inplace = True)
-    output = merge(output, group_counts, on = "group")
+    if "group" in cols:
+        group_counts = output.groupby("group")["count"].sum().reset_index()
+        group_counts.rename(columns = { "count": "total" }, inplace = True)
+        output = merge(output, group_counts, on = "group")
+    else:
+        output["total"] = output["count"].sum()
     # Filter for word list
-    output = output[output["word"].isin(word_list)]
-    ids = ids[ids["word"].isin(word_list)]
+    if len(word_list) > 0:
+        output = output[output["word"].isin(word_list)]
+        ids = ids[ids["word"].isin(word_list)]
     # Calculate proportion by group
     output["proportion"] = output["count"] / output["total"]
     output.drop(["count", "total"], axis = 1, inplace = True) 
+    # Add ids
+    output = merge(output, ids)
     # Rename columns
     output.rename({ "word": "x", "proportion": "y" }, axis = 1, inplace = True)
-    # Add ids
-    output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
     # If a word list was not provided, cap the number of words returned at 5
     if len(word_list) == 0:
         top_words = output.groupby("x")["y"].sum().sort_values(ascending=False)
@@ -103,7 +110,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], t
     df = data.basic_selection(table_name, column, values, word_list, token)
     
     # Store ids as list
-    ids = df.groupby("group")["record_id"].apply(list).reset_index(name = "ids")
+    ids = df.groupby("group")["record_id"].apply(lambda x: list(sorted(set(x)))).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Get distinct groups
     groups = df["group"].unique()
@@ -161,7 +168,7 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
     # Goup by word and group (if defined)
     group_cols = [ "word", "group" ]
     # Store ids as list
-    ids = df.groupby("word")["record_id"].apply(list).reset_index(name = "ids")
+    ids = df.groupby("word")["record_id"].apply(lambda x: list(sorted(set(x)))).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     df = df.groupby(group_cols).sum().unstack("group").fillna(0)
