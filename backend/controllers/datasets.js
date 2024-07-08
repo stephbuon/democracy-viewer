@@ -505,6 +505,9 @@ const deleteDataset = async(knex, user, table) => {
     // This will delete tags and columns via cascade
     await model.deleteMetadata(table);
 
+    // Delete local files for dataset
+    util.deleteDatasetFiles(table);
+
     return null;
 }
 

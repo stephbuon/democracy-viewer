@@ -152,7 +152,6 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], t
         output = concat(output)
         # Rename columns
         output.rename({ "group1": "x", "group2": "y", "jsd": "fill" }, axis = 1, inplace = True)
-        print(output["fill"])
         return output
     else:
         return DataFrame()

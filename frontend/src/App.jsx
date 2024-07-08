@@ -32,6 +32,7 @@ export const App = () => {
     }
     demoV.dataset = choice;
     localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+    setDataset(choice);
     setData(demoV);
   }
 
@@ -43,7 +44,8 @@ export const App = () => {
       demoV = {user:undefined, dataset:undefined}
     }
     demoV.user = profile;
-    localStorage.setItem('democracy-viewer', JSON.stringify(demoV))
+    localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
+    setUser(profile);
     setData(demoV);
   }
   const logout = () => {

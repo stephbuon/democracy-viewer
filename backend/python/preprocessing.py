@@ -36,38 +36,21 @@ metadata = sql.get_metadata(engine, meta, TABLE_NAME)
 # Extract lemmas, pos, and dependencies from tokens
 def process_sentence(text: str, nlp = load_spacy_model()):
     doc = nlp(text)
-    required_pipes = ["tokenizer", "lemmatizer"]
-    if metadata["pos"]:
-        required_pipes = required_pipes + ["tagger", "parser"]
-        disabled_pipes = [pipe for pipe in nlp.pipe_names if pipe not in required_pipes]
-        with nlp.select_pipes(disable=disabled_pipes):
-            counter = Counter((
-                token.lemma_.lower(), token.pos_.lower(), token.tag_.lower(), 
-                token.dep_.lower(), token.head.lemma_.lower()
-            ) for token in doc)
-    else:
-        disabled_pipes = [pipe for pipe in nlp.pipe_names if pipe not in required_pipes]
-        with nlp.select_pipes(disable=disabled_pipes):
-            counter = Counter((token.lemma_.lower()) for token in doc)
-        
+    counter = Counter((
+        token.lemma_.lower(), token.pos_.lower(), token.tag_.lower(), 
+        token.dep_.lower(), token.head.lemma_.lower()
+    ) for token in doc)
     return counter
 
 # Convert the counter objects to a DataFrame with separate columns
 def expand_counter(row):
-    if metadata["pos"]:
-        return [{
-                "id": row["id"], "col": row["col"], "word": word_pos[0], 
-                "pos": word_pos[1], "tag": word_pos[2], "dep": word_pos[3], "head": word_pos[4],
-                "count": count
-            }
-            for word_pos, count in row["processed"].items() if word_pos[0] is not None
-        ]
-    else:
-        return [{
-                "id": row["id"], "col": row["col"], "word": word_pos[0], "count": count
-            }
-            for word_pos, count in row["processed"].items() if word_pos[0] is not None
-        ]
+    return [{
+            "id": row["id"], "col": row["col"], "word": word_pos[0], 
+            "pos": word_pos[1], "tag": word_pos[2], "dep": word_pos[3], "head": word_pos[4],
+            "count": count
+        }
+        for word_pos, count in row["processed"].items() if word_pos[0] is not None
+    ]
 
 # Split the text of the given data frame
 def split_text(df: DataFrame):

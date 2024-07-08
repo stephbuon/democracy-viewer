@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
 import { getUser } from "../api/users";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { EditProfile } from "./EditProfile";
 import { DatasetTable } from "../common/DatasetTable";
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
@@ -15,6 +15,8 @@ const mdTheme = createTheme();
 const pageLength = 5;
 
 const Profile = (props) => {
+    const navigate = useNavigate();
+
     const [user, setUser] = useState(undefined);
     const [editable, setEditable] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
@@ -29,7 +31,7 @@ const Profile = (props) => {
 
     const GetNewPage = (num) => {
         const filter = {
-            username: props.currUser.username,
+            username: params.username,
             pageLength
         };
         setLoadingResults(true);
@@ -47,7 +49,7 @@ const Profile = (props) => {
 
     const getNewLikePage = (num) => {
         const filter = {
-            liked: props.currUser.username,
+            liked: params.username,
             pageLength
         };
         setLoadingLikeResults(true);
@@ -68,13 +70,15 @@ const Profile = (props) => {
     useEffect(() => {
         if (params.username) {
             getUser(params.username).then(x => setUser(x));
-            if (props.currUser.username === params.username) {
+            if (props.currUser && props.currUser.username === params.username) {
                 setEditable(true);
             }
         }
-        else {
+        else if (props.currUser) {
             getUser(props.currUser.username).then(x => setUser(x));
             setEditable(true);
+        } else {
+            navigate("/");
         }
 
         GetNewPage(1);

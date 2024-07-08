@@ -48,7 +48,6 @@ export const UploadModal = (props) => {
     const [tokenization, setTokenization] = useState("none");
     const [embeddings, setEmbeddings] = useState(false);
     const [embedCol, setEmbedCol] = useState(null);
-    const [pos, setPos] = useState(false);
 
     const [disabled, setDisabled] = useState(true);
 
@@ -64,7 +63,7 @@ export const UploadModal = (props) => {
         const metadata = {
             title, description, is_public: publicPrivate,
             preprocessing_type: tokenization, embeddings,
-            pos, embed_col: embedCol, language,
+            embed_col: embedCol, language,
             date_collected: date, author
         };
         if (useDistributed && distributed) {
@@ -112,12 +111,6 @@ export const UploadModal = (props) => {
             setEmbedCol(null);
         }
     }, [embeddings]);
-
-    useEffect(() => {
-        if (tokenization !== "lemma") {
-            setPos(false);
-        }
-    }, [tokenization]);
 
     useEffect(() => {
         if (useDistributed && distributedOptions.length === 0) {
@@ -318,13 +311,6 @@ export const UploadModal = (props) => {
                                             ))}
                                         </Select>
                                     </FormControl>
-                                </Tooltip>
-                            }
-
-                            {
-                                (tokenization === "lemma") &&
-                                <Tooltip arrow title = "Store the part of speech and other related information of each word in the text. This requires a long computation time for large datasets, so it is disabled by default.">
-                                    <FormControlLabel control={<Checkbox defaultChecked={pos}/>} label="Tag Parts of Speech" onChange={event => setPos(!pos)}/>
                                 </Tooltip>
                             }
                         </FormGroup>
