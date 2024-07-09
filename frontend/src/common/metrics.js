@@ -66,3 +66,21 @@ export const metricSettings = {
         words: false
     }
 }
+
+export const posOptionalMetrics = [
+    "counts",
+    "proportions",
+    "tf-idf",
+    "ll",
+    "jsd"
+]
+
+export const posMetrics = [
+    
+]
+
+export const embeddingMetrics = [
+    "embeddings-similar",
+    "embeddings-different",
+    "embeddings-raw"
+]

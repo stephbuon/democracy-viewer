@@ -62,6 +62,37 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
     # Return df with subset of columns
     return df[cols]
 
+# Select records by group and POS lists
+def pos_selection(table_name: str, column: str | None, values: list[str], pos_list: list[str], token: str | None = None) -> DataFrame:
+    # Download raw and tokenized data
+    df_raw = download("datasets", table_name, token)
+    df_split = download("tokens", table_name, token)
+    
+    # Subset of columns to keep at the end
+    cols = ["record_id", "word", "count"]
+    
+    # If grouping values are defined, filter by them
+    if column is not None and column != "":
+        df_raw.rename({ column: "group" }, axis = 1, inplace = True)
+        cols.append("group")
+        if len(values) > 0:
+            df_raw = df_raw[df_raw["group"].isin(values)]
+        
+    # If a pos list is defined, filter by it
+    if len(pos_list) > 0:
+        df_split = df_split[df_split["pos"].isin(pos_list)]
+     
+    # Sort by the pos   
+    df_split.sort_values("pos", inplace = True)
+    # Rename pos column to word for consistency
+    df_split.rename({ "word": "word_", "pos": "word" }, axis = 1, inplace = True)
+    
+    # Merge datasets
+    df = merge(df_raw, df_split, left_index = True, right_on = "record_id").reset_index()
+    
+    # Return df with subset of columns
+    return df[cols]
+
 # Get number of group values that include words
 def group_count_by_words(table_name: str, word_list: list[str], column: str | None, token: str | None = None) -> dict[str, int]:
     # Download raw and tokenized data
@@ -82,6 +113,29 @@ def group_count_by_words(table_name: str, word_list: list[str], column: str | No
             records[word] = len(df[df["word"] == word])
         else:
             records[word] = len(df[df["word"] == word][column].unique())
+        
+    return records
+
+# Get number of group values that include POS
+def group_count_by_pos(table_name: str, pos_list: list[str], column: str | None, token: str | None = None) -> dict[str, int]:
+    # Download raw and tokenized data
+    df_raw = download("datasets", table_name, token)
+    df_split = download("tokens", table_name, token)
+    
+    # Filter by word list
+    if len(pos_list) > 0:
+        df_split = df_split[df_split["pos"].isin(pos_list)]
+    
+    # Merge datasets
+    df = merge(df_raw, df_split, left_index = True, right_on = "record_id")
+    
+    # Get record/group count for each word
+    records = {}
+    for pos in df["pos"].unique():
+        if column is None or column == "":
+            records[pos] = len(df[df["pos"] == pos])
+        else:
+            records[pos] = len(df[df["pos"] == pos][column].unique())
         
     return records
 

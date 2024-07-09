@@ -1,10 +1,10 @@
 // Imports
 import React, { useEffect, useState } from "react";
 import { getGroupNames, getColumnValues } from "../api/api.js"
-import { Paper, Button, Modal, Tooltip } from "@mui/material";
+import { Paper, Button, Modal, Tooltip, FormControlLabel, Checkbox } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
-import { metricNames, metricSettings } from "./metrics.js";
+import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics } from "./metrics.js";
 import { FormattedMultiTextField } from "./forms";
 import "./list.css";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +29,8 @@ export const GraphSettings = ( props ) => {
     const [selectToggle, setSelectToggle] = useState(true);
     const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
     const [groupLocked, setGroupLocked] = useState(false);
+    const [posValid, setPosValid] = useState(false);
+    const [pos, setPos] = useState(false);
 
     const navigate = useNavigate();
 
@@ -46,15 +48,30 @@ export const GraphSettings = ( props ) => {
             })
             setGroupList(searchList);
         }
+
+        if (!props.dataset.dataset.tokens_done) {
+            handleCancel(null);
+        }
+
         updateGroupNames();
 
         if (!props.dataset.dataset.embeddings || !props.dataset.dataset.embeddings_done) {
-            setMetricOptions([ ...metricOptions ].filter(x => !x.value.includes("embedding")))
+            setMetricOptions([ ...metricOptions ].filter(x => !embeddingMetrics.includes(x.value)));
+        }
+
+        if (props.dataset.dataset.preprocessing_type !== "lemma") {
+            setMetricOptions([ ...metricOptions ].filter(x => !posMetrics.includes(x.value)));
         }
     }, []);
 
     useEffect(() => {
-        if (metric.includes("embedding")) {
+        if (posOptionalMetrics.includes(metric) && props.dataset.dataset.preprocessing_type === "lemma") {
+            setPosValid(true);
+        } else {
+            setPosValid(false);
+        }
+
+        if (embeddingMetrics.includes(metric)) {
             if (props.dataset.dataset.embed_col) {
                 setGroup(props.dataset.dataset.embed_col);
             } else {
@@ -69,16 +86,17 @@ export const GraphSettings = ( props ) => {
     // Closes modal and updates graph data
     const handleClose = (event, reason) => {
         if(reason == undefined){
-            props.setSettings(false);
-            props.updateGraph(group, groupList, metric, searchTerms);
-            setGroupList([]);
             const params = {
                 group_name: group,
                 group_list: groupList.map(x => x.label),
                 metric: metric,
-                word_list: searchTerms
+                word_list: searchTerms,
+                pos
             };
+            props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
+            setGroupList([]);
+            props.setSettings(false);
         }
     }
 
@@ -152,6 +170,15 @@ export const GraphSettings = ( props ) => {
                 setValue={setMetric}
                 options={metricOptions}
                 hideBlankOption={1} />
+
+                {
+                    posValid === true &&
+                    <FormControlLabel 
+                        control={<Checkbox defaultChecked = {pos}/>} 
+                        label="Use Parts of Speech"
+                        onChange={event => setPos(!pos)}
+                    />
+                }
 
                 {/* Column select dropdown */}
                 <SelectField label="Column Name"

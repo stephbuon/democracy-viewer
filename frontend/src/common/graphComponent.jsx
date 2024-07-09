@@ -12,8 +12,8 @@ export const GraphComponent = ({ data, setData }) => {
 
     // Function definitions
     const listToString = (list) => {
-        if (list.length === 0 || data.metric === "embeddings-raw") {
-            return ""
+        if (!list || list.length === 0 || data.metric === "embeddings-raw") {
+            return "";
         }
 
         let string = " for ";
@@ -66,7 +66,10 @@ export const GraphComponent = ({ data, setData }) => {
                   standoff: 40
                 }}
         };
-    } catch {
+    } catch (err) {
+        console.error(err)
+        console.log("that's why")
+        debugger;
         localStorage.removeItem("graph-data");
     }
     

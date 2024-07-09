@@ -3,9 +3,6 @@ from os import path
 from pickle import load
 from sklearn.decomposition import PCA
 from util.s3 import download_file
-import util.data_queries as data
-# Word processing
-from util.word_processing import lemmatize, stem
 
 # move top similar words with keywords requested here
 def load_data_from_pkl(pkl_name: str, token: str | None = None) -> Word2Vec:
@@ -79,7 +76,7 @@ def take_similar_words(model: Word2Vec, keyword: str, similar: bool = True) -> l
         
     return results
 
-def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], processing: str = "none", language: str = "English", similar = True, token: str | None = None) -> dict:
+def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], similar = True, token: str | None = None) -> dict:
     # take the model out from pkl
     if group_col is not None:
         pkl_name = "{}_{}".format(table_name, group_col)

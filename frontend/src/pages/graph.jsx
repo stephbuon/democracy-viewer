@@ -7,7 +7,7 @@ import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
 import { getGraph } from "../api/api.js";
 import { Settings, RotateLeft, Loop } from '@mui/icons-material';
-import { metricTypes } from "../common/metrics.js";
+import { metricTypes, metricNames } from "../common/metrics.js";
 
 export const Graph = (props) => {
 // useState definitions
@@ -24,28 +24,28 @@ export const Graph = (props) => {
 
    // Runs on graph settings submit
    // Generate a graph or update the existing graph
-  const updateGraph = (group, groupList, metric, searchTerms) => {
+  const updateGraph = (params) => {
     setGraph(false);
     setLoading(true);
 
-    getGraph(data.dataset.table_name, group, groupList, metric, searchTerms).then(async (res) => {
+    getGraph(data.dataset.table_name, params).then(async (res) => {
       let tempData = {
         graph: [],
         table_name: data.dataset.table_name,
-        metric: metric,
+        metric: params.metric,
         titleList:[]
       };
 
-      if(metricTypes.bar.indexOf(metric) !== -1){
+      if(metricTypes.bar.indexOf(params.metric) !== -1){
         tempData.xLabel = "Word"
-        if (metric === "counts") {
+        if (params.metric === "counts") {
           tempData.yLabel = "Count"
-        } else if (metric === "proportions") {
+        } else if (params.metric === "proportions") {
           tempData.yLabel = "Proportion"
-        } else if (metric === "embeddings-similar") {
+        } else if (params.metric === "embeddings-similar") {
           tempData.yLabel = "Embedding Similarity"
         }
-        tempData.titleList = searchTerms;
+        tempData.titleList = params.word_list;
 
         res.forEach((dataPoint) => { // Populate data array with request output
           let index = tempData.graph.findIndex((x) => x.name === dataPoint.group);
@@ -62,12 +62,12 @@ export const Graph = (props) => {
             })
           }
         });
-      } else if(metricTypes.scatter.indexOf(metric) !== -1){
+      } else if(metricTypes.scatter.indexOf(params.metric) !== -1){
         let keys;
-        if (groupList.length < 2) {
+        if (!params.group_list || params.group_list.length < 2) {
           keys = ["X", "Y"];
         } else {
-          keys = [groupList[0].label, groupList[1].label];
+          keys = [params.group_list[0].label, params.group_list[1].label];
         }
         tempData.xLabel = keys[0];
         tempData.yLabel = keys[1];
@@ -86,10 +86,10 @@ export const Graph = (props) => {
           tempData.graph[0].y.push(dataPoint.y);
           tempData.graph[0].text.push(dataPoint.word);
         });
-      } else if (metricTypes.heatmap.indexOf(metric) !== -1) {
+      } else if (metricTypes.heatmap.indexOf(params.metric) !== -1) {
         tempData.xLabel = "";
         tempData.yLabel = "";
-        tempData.titleList = searchTerms;
+        tempData.titleList = params.word_list;
 
         tempData.graph.push({
           x: [],
@@ -123,12 +123,10 @@ export const Graph = (props) => {
             }
           });
         });
-      } else if (metricTypes.dotplot.indexOf(metric) !== -1) {
-        tempData.xLabel = "Group"
-        if (metric === "embeddings-similar") {
-          tempData.yLabel = "Embedding Similarity"
-        }
-        tempData.titleList = [searchTerms[0]];
+      } else if (metricTypes.dotplot.indexOf(params.metric) !== -1) {
+        tempData.xLabel = "Group";
+        tempData.yLabel = metricNames[params.metric];
+        tempData.titleList = [params.word_list[0]];
 
         res.forEach((dataPoint) => { // Populate data array with request output
           let index = tempData.graph.findIndex((x) => x.name === dataPoint.x);
@@ -146,8 +144,9 @@ export const Graph = (props) => {
           }
         });
       } else {
-        throw new Error("Metric not implimented")
+        throw new Error(`Metric '${ params.metric }' not implimented`)
       }
+
       localStorage.setItem('graph-data', JSON.stringify(tempData))
       setGraphData(tempData);
       setGraph(true);
@@ -162,6 +161,7 @@ export const Graph = (props) => {
 
   // Resets to blank graph
   const resetGraph = (event) => {
+    debugger;
     setGraph(false);
     localStorage.removeItem("graph-data");
     localStorage.removeItem('selected');
@@ -186,6 +186,7 @@ export const Graph = (props) => {
         setGraph(true);
         setSettings(false);
       } else {
+        debugger;
         localStorage.removeItem("graph-data")
       }
     }
