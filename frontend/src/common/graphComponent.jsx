@@ -89,7 +89,6 @@ export const GraphComponent = ({ data, setData }) => {
             Plotly.newPlot('graph', data.graph, layout, {displayModeBar: false});
             graph.current.on('plotly_click', function (event) { // Click event for zoom page
                 const dataPoint = event.points[0];
-                debugger;
                 let idx;
                 if (typeof dataPoint.pointIndex === "number") {
                     idx = dataPoint.pointIndex;
@@ -99,9 +98,9 @@ export const GraphComponent = ({ data, setData }) => {
                 const params = JSON.parse(localStorage.getItem("graph-settings"));
                 if (metricTypes.bar.indexOf(data.metric) !== -1) {
                     params.group_list = dataPoint.data.name;
-                    params.word_list = dataPoint.x;
+                    params.word_list = [dataPoint.x];
                 } else if (metricTypes.scatter.indexOf(data.metric) !== -1) {
-                    params.word_list = dataPoint.text;
+                    params.word_list = [dataPoint.text];
                 } else if (metricTypes.heatmap.indexOf(data.metric) !== -1) {
                     params.group_list = [dataPoint.x, dataPoint.y];
                 } else if (metricTypes.dotplot.indexOf(data.metric) !== -1) {

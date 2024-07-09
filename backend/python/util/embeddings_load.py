@@ -19,25 +19,6 @@ def load_data_from_pkl(pkl_name: str, token: str | None = None) -> Word2Vec:
     else:
         raise Exception("Pickle files not found.")# TO DO: change this to some error message for backend
     
-def find_ids(results: list[dict], table_name: str, keyword: str, group_col: str | None = None, processing: str = "none", language: str = "English", token: str | None = None) -> list[dict]:
-    for i in range(len(results)):
-        curr = results[i]
-        if group_col is None:
-            val = None
-        else:
-            val = curr["group"]
-            
-        if processing == "stem":
-            word = stem(curr["x"], language)[0]
-        elif processing == "lemma":
-            word = lemmatize(curr["x"], language)[0]
-        else:
-            word = curr["x"]
-        df = data.basic_selection(table_name, group_col, None if val is None else [val], [keyword, word], token)
-        results[i]["ids"] = sorted(set(df["record_id"]))
-        
-    return results
-    
 def take_similar_words_over_group(keyword: str, models_per_year: dict[str, Word2Vec], vals: list[str] = [], similar: bool = True) -> list[dict]:
     results = []
 
@@ -114,7 +95,7 @@ def get_similar_words(table_name: str, keyword: str, group_col: str | None = Non
     else:
         results = take_similar_words(models_load,keyword, similar)
         
-    return find_ids(results, table_name, keyword, group_col, processing, language, token)
+    return results
 
 def get_vectors(model: Word2Vec, keywords: list[str]) -> list[dict]:
     results = []
@@ -180,18 +161,6 @@ def get_vectors_over_group(keywords: list[str], models: dict[str, Word2Vec], val
             
     return results
 
-def find_vector_ids(results: list[dict], table_name: str, group_col: str | None = None, token: str | None = None) -> list[dict]:
-    for i in range(len(results)):
-        curr = results[i]
-        if group_col is None:
-            val = None
-        else:
-            val = curr["group"]
-        df = data.basic_selection(table_name, group_col, None if val is None else [val], [curr["word"]], token)
-        results[i]["ids"] = sorted(set(df["record_id"]))
-        
-    return results
-
 def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> dict:
     # take the model out from pkl
     if group_col is not None:
@@ -207,4 +176,4 @@ def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None
     else:
         results = get_vectors(models_load,keywords)
         
-    return find_vector_ids(results, table_name, group_col, token)
+    return results
