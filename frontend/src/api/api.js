@@ -195,3 +195,16 @@ export const getMetadata = (name) => new Promise((resolve, reject) => {
     reject(x);
   });
 });
+
+export const graphIds = (table, params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/graphs/ids/${ table }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    },
+    params
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});

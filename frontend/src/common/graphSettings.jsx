@@ -72,6 +72,13 @@ export const GraphSettings = ( props ) => {
             props.setSettings(false);
             props.updateGraph(group, groupList, metric, searchTerms);
             setGroupList([]);
+            const params = {
+                group_name: group,
+                group_list: groupList.map(x => x.label),
+                metric: metric,
+                word_list: searchTerms
+            };
+            localStorage.setItem('graph-settings', JSON.stringify(params));
         }
     }
 
@@ -119,7 +126,7 @@ export const GraphSettings = ( props ) => {
         } else if (settings.values !== false && groupList.length !== settings.values) {
             setDisabled(true);
             setDisabledMessage(`You must select ${ settings.values } column value(s) for this metric`);
-        } else if (settings.words !== false && searchTerms.length !== settings.word) {
+        } else if (settings.words !== false && searchTerms.length !== settings.words) {
             setDisabled(true);
             setDisabledMessage(`You must enter ${ settings.words } custom search word(s) for this metric`);
         } else {

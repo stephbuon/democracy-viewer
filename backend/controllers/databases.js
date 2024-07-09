@@ -2,7 +2,6 @@ const encryption = require("../util/encryption");
 const encryptor = new encryption;
 const databases = require("../models/databases");
 const jwt = require("jsonwebtoken");
-const config = require("../util/database_config");
 
 // Establish a new external database connection
 const newConnection = async(knex, name, owner, params) => {

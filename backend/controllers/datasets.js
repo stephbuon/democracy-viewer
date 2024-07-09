@@ -86,7 +86,7 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Extract username from user
     const username = user.username;
 
-    // If the user of this dataset does not match the user making the updates, throw error
+    // If the user of this dataset does not match the user, throw error
     if (!name.includes(username)) {
         throw new Error(`User ${ username } is not the owner of this dataset`);
     }
@@ -119,7 +119,7 @@ const addTag = async(knex, user, table, tags) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
@@ -144,7 +144,7 @@ const addTextCols = async(knex, user, table, cols) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
@@ -176,7 +176,7 @@ const updateMetadata = async(knex, user, table, params) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -337,7 +337,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -401,7 +401,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -456,7 +456,7 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -473,7 +473,7 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -493,7 +493,7 @@ const deleteDataset = async(knex, user, table) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (metadata.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
@@ -518,7 +518,7 @@ const deleteTag = async(knex, user, table, tag) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }

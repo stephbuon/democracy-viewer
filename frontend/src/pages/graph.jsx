@@ -52,13 +52,11 @@ export const Graph = (props) => {
           if (index >= 0) { // Runs if datapoint already exists in tempData
             tempData.graph[index].x.push(dataPoint.x)
             tempData.graph[index].y.push(dataPoint.y)
-            tempData.graph[index].ids.push(dataPoint.ids)
           }
           else {
             tempData.graph.push({
               x: [dataPoint.x],
               y: [dataPoint.y],
-              ids: [dataPoint.ids],
               name: dataPoint.group,
               type: "bar"
             })
@@ -78,7 +76,6 @@ export const Graph = (props) => {
         tempData.graph.push({
           x:[],
           y:[],
-          ids:[],
           text:[],
           mode:"markers",
           type:"scatter"
@@ -87,7 +84,6 @@ export const Graph = (props) => {
         res.forEach((dataPoint) => { // Populate data array with request output
           tempData.graph[0].x.push(dataPoint.x);
           tempData.graph[0].y.push(dataPoint.y);
-          tempData.graph[0].ids.push(dataPoint.ids);
           tempData.graph[0].text.push(dataPoint.word);
         });
       } else if (metricTypes.heatmap.indexOf(metric) !== -1) {
@@ -101,7 +97,6 @@ export const Graph = (props) => {
           z: [],
           zmin: 0,
           zmax: 1,
-          ids: [],
           mode: "markers",
           type: "heatmap",
           hoverongaps: false
@@ -118,15 +113,12 @@ export const Graph = (props) => {
           groups.forEach((grp2, j) => {
             if (i === j) {
               tempData.graph[0].z[i].push(null);
-              tempData.graph[0].ids.push([]);
             } else {
               const dataPoint = res.filter(data => (data.x === grp1 && data.y === grp2) || (data.x === grp2 && data.y === grp1));
               if (dataPoint.length > 0 && dataPoint[0].fill) {
                 tempData.graph[0].z[i].push(dataPoint[0].fill);
-                tempData.graph[0].ids.push(dataPoint[0].ids);
               } else {
                 tempData.graph[0].z[i].push(null);
-                tempData.graph[0].ids.push([]);
               }
             }
           });
@@ -143,13 +135,11 @@ export const Graph = (props) => {
           if (index >= 0) { // Runs if datapoint already exists in tempData
             tempData.graph[index].x.push(dataPoint.x)
             tempData.graph[index].y.push(dataPoint.y)
-            tempData.graph[index].ids.push(dataPoint.ids)
           }
           else {
             tempData.graph.push({
               x: [dataPoint.group],
               y: [dataPoint.y],
-              ids: [dataPoint.ids],
               name: dataPoint.x,
               type: "scatter"
             })
