@@ -50,6 +50,9 @@ export const App = () => {
   }
   const logout = () => {
     localStorage.removeItem("democracy-viewer");
+    localStorage.removeItem("graph-data");
+    localStorage.removeItem("graph-settings");
+    localStorage.removeItem("selected");
     setData(undefined);
     //navigate('/') //where ever you call logout also navigate back to homepage. Error occurs if here since App not in Router
   }
@@ -69,7 +72,7 @@ export const App = () => {
             <Route path="/register" element={<Register currUser={user} login={login}/>} />
             <Route path="/profile/:username" element={<Profile currUser={user} setDataset={chooseDataset}/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
-            <Route path="/zoom" element={<Zoom data={data} />}></Route>
+            <Route path="/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>

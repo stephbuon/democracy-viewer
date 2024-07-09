@@ -124,7 +124,7 @@ export const Layout = (props) => {
               <ListItemIcon>
                 <ShowChartIcon/>
               </ListItemIcon>
-              <ListItemText primary="Graphs" />
+              <ListItemText primary="Visualize" />
             </ListItemButton>
 
             <ListItemButton component={Link} to='/upload' sx = {{ height: "50px" }}>

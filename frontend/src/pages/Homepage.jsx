@@ -120,7 +120,7 @@ export default function Homepage() {
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Upload
+                    Dataset Upload
                   </Typography>
                   <Typography align='center'>
                     Upload a Dataset or
@@ -140,7 +140,7 @@ export default function Homepage() {
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Distributed Connection
+                    Create Distributed Connection
                   </Typography>
                   <Typography align='center'>
                     Create a Distributed Connection to Store Your Datasets in Your Own S3 Bucket
