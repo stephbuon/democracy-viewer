@@ -49,10 +49,6 @@ export const GraphSettings = ( props ) => {
             setGroupList(searchList);
         }
 
-        if (!props.dataset.dataset.tokens_done) {
-            handleCancel(null);
-        }
-
         updateGroupNames();
 
         if (!props.dataset.dataset.embeddings || !props.dataset.dataset.embeddings_done) {

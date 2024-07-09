@@ -41,6 +41,7 @@ export const Acknowledgements = () => {
               flexDirection: 'column',
               alignItems: 'center',
               width: '40%',
+              mb: "50px"
             }}
           >
             <List>

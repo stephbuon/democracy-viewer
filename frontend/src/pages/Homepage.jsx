@@ -58,7 +58,7 @@ export default function Homepage() {
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Search
+                    Dataset Search
                   </Typography>
                   <Typography align='center'>
                     Browse Available Datasets,
@@ -71,25 +71,27 @@ export default function Homepage() {
                 </CardActions>
               </Card>
             </Grid>
+
             <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Upload
+                    Subset Search
                   </Typography>
                   <Typography align='center'>
-                    Upload a Dataset or
+                    Filter Records
                     <br />
-                    Connect to API
+                    in a Dataset
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/upload" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button href="/subsetsearch" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>
+
             <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -110,7 +112,28 @@ export default function Homepage() {
               </Card>
             </Grid>
           </Grid>
+
           <Grid container spacing={4} justifyContent="center" sx={{ mt: "25px"}}>
+            <Grid item xs={12} sm={6} md={4}>
+              <Card
+                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+              >
+                <CardContent sx={{ flexGrow: 1 }}>
+                <Typography gutterBottom variant="h5" component="h2" align='center'>
+                    Upload
+                  </Typography>
+                  <Typography align='center'>
+                    Upload a Dataset or
+                    <br />
+                    Connect to API
+                  </Typography>
+                </CardContent>
+                <CardActions style={{ justifyContent: 'center' }}>
+                  <Button href="/upload" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                </CardActions>
+              </Card>
+            </Grid>
+            
             <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -128,24 +151,6 @@ export default function Homepage() {
                 </CardActions>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Card
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Acknowledgements
-                  </Typography>
-                  <Typography align='center'>
-                    Acknowledgements to the Creators of Democracy Viewer
-                  </Typography>
-                </CardContent>
-                <CardActions style={{ justifyContent: 'center' }}>
-                <Button href="/acknowledgements" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
-                </CardActions>
-              </Card>
-            </Grid>
-            
           </Grid>
         </Container>
       </main>

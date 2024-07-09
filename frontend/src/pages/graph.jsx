@@ -173,28 +173,25 @@ export const Graph = (props) => {
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if (!demoV || !demoV.dataset) {
-      navigate('/datasetSearch')
+    if (!demoV || !demoV.dataset || !demoV.dataset.tokens_done) {
+      navigate('/datasetsearch')
       props.setNavigated(true);
-    }
-    setData(demoV);
+    } else {
+      setData(demoV);
 
-    let graph = JSON.parse(localStorage.getItem('graph-data'));
-    if(graph){
-      if (graph["table_name"] === demoV["dataset"]["table_name"]) {
-        setGraphData(graph);
-        setGraph(true);
-        setSettings(false);
-      } else {
-        debugger;
-        localStorage.removeItem("graph-data")
+      let graph = JSON.parse(localStorage.getItem('graph-data'));
+      if(graph){
+        if (graph["table_name"] === demoV["dataset"]["table_name"]) {
+          setGraphData(graph);
+          setGraph(true);
+          setSettings(false);
+        } else {
+          debugger;
+          localStorage.removeItem("graph-data")
+        }
       }
     }
   }, []);
-
-  // UseEffect: Updates screen on graph change
-  useEffect(() => {
-  }, [graph])
 
   return (
     <>
