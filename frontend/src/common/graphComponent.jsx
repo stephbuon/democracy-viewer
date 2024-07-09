@@ -11,7 +11,7 @@ export const GraphComponent = ({ data, setData }) => {
 
     // Function definitions
     const listToString = (list) => {
-        if (list.length === 0) {
+        if (list.length === 0 || data.metric === "embeddings-raw") {
             return ""
         }
 

@@ -122,12 +122,17 @@ def get_vectors(model: Word2Vec, keywords: list[str]) -> list[dict]:
     pca = PCA(2)
     vectors = []
     used_words = []
-    for word in keywords:
-        try:
+    if len(keywords) > 0:
+        for word in keywords:
+            try:
+                vectors.append(model.wv.get_vector(word))
+                used_words.append(word)
+            except Exception:
+                pass
+    else:
+        for word in model.wv.index_to_key:
             vectors.append(model.wv.get_vector(word))
             used_words.append(word)
-        except Exception:
-            pass
         
     vectors_2d = pca.fit_transform(vectors)
     for i, word in enumerate(used_words):
@@ -150,13 +155,19 @@ def get_vectors_over_group(keywords: list[str], models: dict[str, Word2Vec], val
     pca = PCA(2)
     vectors = []
     used_words = []
-    for word in keywords:
-        try:
-            model = models[time_value]
+    model = models[time_value]
+    if len(keywords) > 0:
+        for word in keywords:
+            try:
+                model = models[time_value]
+                vectors.append(model.wv.get_vector(word))
+                used_words.append(word)
+            except Exception:
+                pass
+    else:
+        for word in model.wv.index_to_key:
             vectors.append(model.wv.get_vector(word))
             used_words.append(word)
-        except Exception:
-            pass
         
     vectors_2d = pca.fit_transform(vectors)
     for i, word in enumerate(used_words):

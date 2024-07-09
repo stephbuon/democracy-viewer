@@ -19,7 +19,7 @@
     "mdbreact": "^5.2.0",
     "ng2-charts": "^4.1.1",
     "plotly": "^1.0.6",
-    "plotly.js-dist": "^2.18.2",
+    "plotly.js-dist": "^2.33.0",
     "primeicons": "^7.0.0",
     "primereact": "^10.6.6",
     "react": "^18.2.0",
