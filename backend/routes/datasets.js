@@ -294,13 +294,13 @@ router.get('/columns/:table/values/:column', async(req, res, next) => {
     next();
 });
 
-// Route to get the percentage of a data set that has been uploaded to the database
-router.get('/upload/:table', async(req, res, next) => {
+// Route to get dataset records by ids
+router.get('/pos/:table', async(req, res, next) => {
     try {
-        const result = await control.getUploadPercent(req.knex, req.params.table);
+        const result = await control.getUniquePos(req.knex, req.params.table, req.user);
         res.status(200).json(result);
     } catch (err) {
-        console.error('Failed to get dataset upload percentage:', err);
+        console.error('Failed to get dataset parts of speech:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

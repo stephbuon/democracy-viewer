@@ -51,15 +51,15 @@ print("Parameter processing time: {} seconds".format(time() - start_time))
 # Call function based on given metric
 start_time = time()
 if params["metric"] == "counts":
-    output = metrics.counts(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos", False), TOKEN)
+    output = metrics.counts(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list",[]), TOKEN)
 elif params["metric"] == "ll":
-    output = metrics.log_likelihood(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos", False), TOKEN)
+    output = metrics.log_likelihood(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list",[]), TOKEN)
 elif params["metric"] == "jsd":
-    output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos", False), TOKEN)
+    output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list",[]), TOKEN)
 elif params["metric"] == "tf-idf":
-    output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos", False), TOKEN)
+    output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list",[]), TOKEN)
 elif params["metric"] == "proportions":
-    output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos", False), TOKEN)
+    output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list",[]), TOKEN)
 elif params["metric"] == "embeddings-similar":
     output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), True, TOKEN)
 elif params["metric"] == "embeddings-different":

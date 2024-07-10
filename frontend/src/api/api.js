@@ -197,3 +197,15 @@ export const graphIds = (table, params) => new Promise((resolve, reject) => {
     reject(x);
   });
 });
+
+export const uniquePos = (table) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/datasets/pos/${ table }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});

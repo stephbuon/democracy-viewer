@@ -3,14 +3,8 @@ from pandas import DataFrame, concat, merge
 # Database interaction
 import util.data_queries as data
 
-def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos = False, token: str | None = None):
-    print(pos)
-    if pos:
-        print("here")
-        df = data.pos_selection(table_name, column, values, word_list, token)
-    else:
-        print("not here")
-        df = data.basic_selection(table_name, column, values, word_list, token)
+def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
     # Goup by word and group (if defined)
     group_cols = [ "word" ]
@@ -29,16 +23,14 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     
     return output
 
-def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos = False, token: str | None = None):
+def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
     # Get total group count
     total_groups = data.group_count(table_name, column, token)
+    # Get group count for each word
+    group_counts = data.group_count_by_words(table_name, word_list, column, token)
     # Get records by words and groups
-    if pos:
-        df = data.pos_selection(table_name, column, values, word_list, token)
-        group_counts = data.group_count_by_pos(table_name, word_list, column, token)
-    else:
-        df = data.basic_selection(table_name, column, values, word_list, token)
-        group_counts = data.group_count_by_words(table_name, word_list, column, token)
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
+    
     # Compute smoothed idf
     idf = {}
     for word in df["word"]:
@@ -69,11 +61,8 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     
     return output
 
-def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos = False, token: str | None = None):
-    if pos:
-        df = data.pos_selection(table_name, column, values, word_list, token)
-    else:
-        df = data.basic_selection(table_name, column, values, word_list, token)
+def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
     cols = ["word"]
     if column is not None and column != "":
@@ -104,11 +93,8 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     
     return output
 
-def jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos = False, token: str | None = None):
-    if pos:
-        df = data.pos_selection(table_name, column, values, word_list, token)
-    else:
-        df = data.basic_selection(table_name, column, values, word_list, token)
+def jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
     df.drop("record_id", axis = 1, inplace = True)
     # Get distinct groups
@@ -151,14 +137,11 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     else:
         return DataFrame()
     
-def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos = False, token: str | None = None):
+def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
     # Get the total number of words in the corpus
     total_corpus_words = data.total_word_count(table_name, token)
     # Get records by words and groups
-    if pos:
-        df = data.pos_selection(table_name, column, values, word_list, token)
-    else:
-        df = data.basic_selection(table_name, column, values, word_list, token)
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     # Get unique words and groups
     words = df["word"].unique()
     groups = df["group"].unique()

@@ -34,7 +34,7 @@ def get_columns(table_name: str, columns: list[str], token: str | None = None):
     return df[columns]
 
 # Select records by group and word lists
-def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], token: str | None = None) -> DataFrame:
+def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> DataFrame:
     # Download raw and tokenized data
     df_raw = download("datasets", table_name, token)
     df_split = download("tokens", table_name, token)
@@ -48,6 +48,10 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         cols.append("group")
         if len(values) > 0:
             df_raw = df_raw[df_raw["group"].isin(values)]
+            
+    # Filter words by POS if list given
+    if len(pos_list) > 0:
+        df_split = df_split[df_split["pos"].isin(pos_list)]
         
     # If a word list is defined, filter by it
     if len(word_list) > 0:
@@ -55,37 +59,6 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
      
     # Sort by the word   
     df_split.sort_values("word", inplace = True)
-    
-    # Merge datasets
-    df = merge(df_raw, df_split, left_index = True, right_on = "record_id").reset_index()
-    
-    # Return df with subset of columns
-    return df[cols]
-
-# Select records by group and POS lists
-def pos_selection(table_name: str, column: str | None, values: list[str], pos_list: list[str], token: str | None = None) -> DataFrame:
-    # Download raw and tokenized data
-    df_raw = download("datasets", table_name, token)
-    df_split = download("tokens", table_name, token)
-    
-    # Subset of columns to keep at the end
-    cols = ["record_id", "word", "count"]
-    
-    # If grouping values are defined, filter by them
-    if column is not None and column != "":
-        df_raw.rename({ column: "group" }, axis = 1, inplace = True)
-        cols.append("group")
-        if len(values) > 0:
-            df_raw = df_raw[df_raw["group"].isin(values)]
-        
-    # If a pos list is defined, filter by it
-    if len(pos_list) > 0:
-        df_split = df_split[df_split["pos"].isin(pos_list)]
-     
-    # Sort by the pos   
-    df_split.sort_values("pos", inplace = True)
-    # Rename pos column to word for consistency
-    df_split.rename({ "word": "word_", "pos": "word" }, axis = 1, inplace = True)
     
     # Merge datasets
     df = merge(df_raw, df_split, left_index = True, right_on = "record_id").reset_index()

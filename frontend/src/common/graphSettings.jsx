@@ -1,7 +1,7 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues } from "../api/api.js"
-import { Paper, Button, Modal, Tooltip, FormControlLabel, Checkbox } from "@mui/material";
+import { getGroupNames, getColumnValues, uniquePos } from "../api/api.js"
+import { Paper, Button, Modal, Tooltip } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics } from "./metrics.js";
@@ -30,7 +30,8 @@ export const GraphSettings = ( props ) => {
     const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
     const [groupLocked, setGroupLocked] = useState(false);
     const [posValid, setPosValid] = useState(false);
-    const [pos, setPos] = useState(false);
+    const [posOptions, setPosOptions] = useState([]);
+    const [posList, setPosList] = useState("");
 
     const navigate = useNavigate();
 
@@ -55,7 +56,16 @@ export const GraphSettings = ( props ) => {
             setMetricOptions([ ...metricOptions ].filter(x => !embeddingMetrics.includes(x.value)));
         }
 
-        if (props.dataset.dataset.preprocessing_type !== "lemma") {
+        if (props.dataset.dataset.preprocessing_type === "lemma") {
+            uniquePos(props.dataset.dataset.table_name).then(pos_ => {
+                setPosOptions(pos_.map(x => {
+                    return {
+                        "value": x,
+                        "label": x
+                    }
+                }));
+            });
+        } else {
             setMetricOptions([ ...metricOptions ].filter(x => !posMetrics.includes(x.value)));
         }
     }, []);
@@ -65,6 +75,7 @@ export const GraphSettings = ( props ) => {
             setPosValid(true);
         } else {
             setPosValid(false);
+            setPosList([]);
         }
 
         if (embeddingMetrics.includes(metric)) {
@@ -87,11 +98,12 @@ export const GraphSettings = ( props ) => {
                 group_list: groupList.map(x => x.label),
                 metric: metric,
                 word_list: searchTerms,
-                pos
+                pos_list: posList.map(x => x.label)
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
             setGroupList([]);
+            setPosList([]);
             props.setSettings(false);
         }
     }
@@ -169,11 +181,18 @@ export const GraphSettings = ( props ) => {
 
                 {
                     posValid === true &&
-                    <FormControlLabel 
-                        control={<Checkbox defaultChecked = {pos}/>} 
-                        label="Use Parts of Speech"
-                        onChange={event => setPos(!pos)}
-                    />
+                    <>
+                        {/* Column value multiselect dropdown */}
+                        <label htmlFor="posSelect">Parts of Speech</label>
+                        <ReactSelect 
+                            options={posOptions}
+                            id="posSelect"
+                            className="mb-3"
+                            closeMenuOnSelect={false}
+                            onChange={(x) => setPosList(x)} 
+                            isMulti
+                        />
+                    </>
                 }
 
                 {/* Column select dropdown */}
@@ -186,7 +205,6 @@ export const GraphSettings = ( props ) => {
                 />
 
                 {/* Column value multiselect dropdown */}
-                {/* TODO No selection = top 10 */}
                 <label htmlFor="valueSelect">Column Value</label>
                 <ReactSelect 
                     options={valueOptions}
