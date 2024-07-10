@@ -1,5 +1,3 @@
-version: "3.3"
-
 services:
   backend:
     # location of docker file for node container
