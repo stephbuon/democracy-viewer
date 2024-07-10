@@ -6,10 +6,10 @@ import { FormattedPatternField, FormattedTextField } from '../common/forms';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { LoginRequest, RegisterRequest } from '../apiFolder/LoginRegister';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useEffect } from 'react';
 import { getUser } from "../api/users";
-import { Alert, Snackbar, Link, Grid, Box, Typography, Container, FormControl} from "@mui/material";
+import { Alert, Snackbar, Grid, Box, Typography, Container } from "@mui/material";
 
 const theme = createTheme();
 
@@ -247,7 +247,7 @@ export default function Register(props) {
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
-                <Link href="/login" variant="body2">
+                <Link to="/login" variant="body2">
                   Already have an account? Sign in
                 </Link>
               </Grid>

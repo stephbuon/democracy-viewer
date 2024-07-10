@@ -1,8 +1,7 @@
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import Table from '@mui/material/Table';
-import Button from '@mui/material/Button';
-import { TableBody, TableHead, TableRow, TableCell, Link, Tooltip } from '@mui/material';
+import { 
+    Box, Button, ButtonGroup, Modal, 
+    Table, TableBody, TableHead, TableRow, TableCell, Tooltip 
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { Popularize } from '../apiFolder/DatasetSearchAPI';
@@ -13,7 +12,7 @@ import { DatasetInformation } from './DatasetInformation';
 import { DatasetTags } from './DatasetTags';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import { ButtonGroup } from '@mui/material'; 
+import { Link } from 'react-router-dom';
 
 export const Result = (props) => {
     const navigate = useNavigate();
@@ -299,7 +298,7 @@ export const Result = (props) => {
                                 <b> Author </b>
                             </TableCell>
                             <TableCell sx={{textAlign: "left"}}>
-                                <Link href={`/profile/${ dataset.username }`}>{dataset.username}</Link>
+                                <Link to={`/profile/${ dataset.username }`}>{dataset.username}</Link>
                             </TableCell>
                             
                         </TableRow>

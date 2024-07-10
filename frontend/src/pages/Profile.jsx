@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { 
-    ListItemText, Link, Paper, Grid, Container, Typography, List,
+    ListItemText, Paper, Grid, Container, Typography, List,
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
 import { getUser } from "../api/users";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./EditProfile";
 import { DatasetTable } from "../common/DatasetTable";
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
@@ -140,17 +140,17 @@ const Profile = (props) => {
                                         )}
                                         {user.email && (
                                             <ListItemText>
-                                                <Email /> Email: <Link href={`mailto: ${user.email}`}>{user.email}</Link>
+                                                <Email /> Email: <Link to={`mailto: ${user.email}`}>{user.email}</Link>
                                             </ListItemText>
                                         )}
                                         {user.linkedin_link && (
                                             <ListItemText>
-                                                <LinkedIn /> LinkedIn: <Link href={user.linkedin_link}>{user.linkedin_link}</Link>
+                                                <LinkedIn /> LinkedIn: <Link to={user.linkedin_link}>{user.linkedin_link}</Link>
                                             </ListItemText>
                                         )}
                                         {user.website && (
                                             <ListItemText>
-                                               <Language /> Website: <Link href={user.website}>{user.website}</Link>
+                                               <Language /> Website: <Link to={user.website}>{user.website}</Link>
                                             </ListItemText>
                                         )}
                                         {user.orcid && (

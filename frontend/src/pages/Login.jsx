@@ -1,8 +1,9 @@
-import { Avatar, Button, CssBaseline, TextField, Link, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert } from "@mui/material";
+import { Avatar, Button, CssBaseline, TextField, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert } from "@mui/material";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useNavigate} from "react-router-dom";
 import { LoginRequest } from '../apiFolder/LoginRegister';
 import { useState, useEffect  } from "react";
+import { Link } from "react-router-dom";
 
 const theme = createTheme();
 
@@ -98,12 +99,12 @@ export default function Login(props) {
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link href="#" variant="body2">
+                <Link to="#" variant="body2">
                   Forgot password?
                 </Link>
               </Grid>
               <Grid item>
-                <Link href="/register" variant="body2">
+                <Link to="/register" variant="body2">
                   {"Don't have an account? Sign Up"}
                 </Link>
               </Grid>
