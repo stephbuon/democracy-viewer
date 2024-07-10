@@ -486,23 +486,6 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     return newFilename;
 }
 
-// Get the unique parts of speech in a dataset
-const getUniquePos = async(knex, dataset, user = undefined) => {
-    const model = new datasets(knex);
-
-    // Check dataset metadata to make sure user has access to this dataset
-    const metadata = await model.getMetadata(dataset);
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
-        throw new Error(`User ${ user.username } does not have access to the dataset ${ dataset }`);
-    }
-
-    // Download dataset tokens
-    const data = await util.downloadDataset(dataset, metadata.distributed, dataset = false, tokens = true);
-
-    // Return unique values from pos column
-    return [ ...new Set(data.tokens.map(x => x.pos)) ];
-}
-
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -573,7 +556,6 @@ module.exports = {
     getFilteredDatasets,
     getFilteredDatasetsCount,
     getRecordsByIds,
-    getUniquePos,
     downloadIds,
     deleteDataset,
     deleteTag,

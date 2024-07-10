@@ -4,7 +4,7 @@ import { getGroupNames, getColumnValues, uniquePos } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
-import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics } from "./metrics.js";
+import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions } from "./metrics.js";
 import { FormattedMultiTextField } from "./forms";
 import "./list.css";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +30,6 @@ export const GraphSettings = ( props ) => {
     const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
     const [groupLocked, setGroupLocked] = useState(false);
     const [posValid, setPosValid] = useState(false);
-    const [posOptions, setPosOptions] = useState([]);
     const [posList, setPosList] = useState([]);
 
     const navigate = useNavigate();
@@ -56,16 +55,7 @@ export const GraphSettings = ( props ) => {
             setMetricOptions([ ...metricOptions ].filter(x => !embeddingMetrics.includes(x.value)));
         }
 
-        if (props.dataset.dataset.preprocessing_type === "lemma") {
-            uniquePos(props.dataset.dataset.table_name).then(pos_ => {
-                setPosOptions(pos_.map(x => {
-                    return {
-                        "value": x,
-                        "label": x
-                    }
-                }));
-            });
-        } else {
+        if (props.dataset.dataset.preprocessing_type !== "lemma") {
             setMetricOptions([ ...metricOptions ].filter(x => !posMetrics.includes(x.value)));
         }
     }, []);
@@ -95,10 +85,10 @@ export const GraphSettings = ( props ) => {
         if(reason == undefined){
             const params = {
                 group_name: group,
-                group_list: groupList.map(x => x.label),
+                group_list: groupList.map(x => x.value),
                 metric: metric,
                 word_list: searchTerms,
-                pos_list: posList.map(x => x.label)
+                pos_list: posList.map(x => x.value)
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));

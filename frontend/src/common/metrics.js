@@ -65,7 +65,7 @@ export const metricSettings = {
         values: false,
         words: false
     }
-}
+};
 
 export const posOptionalMetrics = [
     "counts",
@@ -73,14 +73,65 @@ export const posOptionalMetrics = [
     "tf-idf",
     "ll",
     "jsd"
-]
+];
 
 export const posMetrics = [
     
-]
+];
 
 export const embeddingMetrics = [
     "embeddings-similar",
     "embeddings-different",
     "embeddings-raw"
-]
+];
+
+export const posOptions = [
+    {
+        "label": "Adjective",
+        "value": "adj"
+    },
+    {
+        "label": "Adposition",
+        "value": "adp"
+    },
+    {
+        "label": "Adverb",
+        "value": "adv"
+    },
+    {
+        "label": "Auxiliary Verb",
+        "value": "aux"
+    },
+    {
+        "label": "Conjunction",
+        "value": "conj"
+    },
+    {
+        "label": "Coordinating Conjunction",
+        "value": "cconj"
+    },
+    {
+        "label": "Interjection",
+        "value": "intj"
+    },
+    {
+        "label": "Noun",
+        "value": "noun"
+    },
+    {
+        "label": "Pronoun",
+        "value": "pron"
+    },
+    {
+        "label": "Proper Noun",
+        "value": "propn"
+    },
+    {
+        "label": "Subordinating Conjunction",
+        "value": "sconj"
+    },
+    {
+        "label": "Verb",
+        "value": "verb"
+    }
+];

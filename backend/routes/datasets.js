@@ -294,18 +294,6 @@ router.get('/columns/:table/values/:column', async(req, res, next) => {
     next();
 });
 
-// Route to get dataset records by ids
-router.get('/pos/:table', async(req, res, next) => {
-    try {
-        const result = await control.getUniquePos(req.knex, req.params.table, req.user);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get dataset parts of speech:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
 // Route to delete a datset and its metadata
 router.delete('/:table', authenticateJWT, async(req, res, next) => {
     try {
