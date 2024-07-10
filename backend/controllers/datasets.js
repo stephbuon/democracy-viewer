@@ -86,7 +86,7 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Extract username from user
     const username = user.username;
 
-    // If the user of this dataset does not match the user making the updates, throw error
+    // If the user of this dataset does not match the user, throw error
     if (!name.includes(username)) {
         throw new Error(`User ${ username } is not the owner of this dataset`);
     }
@@ -119,7 +119,7 @@ const addTag = async(knex, user, table, tags) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
@@ -144,7 +144,7 @@ const addTextCols = async(knex, user, table, cols) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
@@ -176,7 +176,7 @@ const updateMetadata = async(knex, user, table, params) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -280,8 +280,19 @@ const getColumnValues = async(knex, table, column) => {
 const getFilteredDatasets = async(knex, query, username, page) => {
     const model = new datasets(knex);
 
-    const result = await model.getFilteredDatasets(query, username, true, page);
-    return result;
+    const results = await model.getFilteredDatasets(query, username, true, page);
+    // Get tags and likes for search results
+    for (let i = 0; i < results.length; i++) {
+        results[i].tags = await getTags(knex, results[i].table_name);
+        if (username) {
+            results[i].liked = await model.getLike(username, results[i].table_name);
+        } else {
+            results[i].liked = false;
+        }
+        results[i].likes = await model.getLikeCount(results[i].table_name);
+    }
+
+    return results;
 }
 
 // Get count of dataset filter
@@ -326,13 +337,13 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
     let fullOutput = [];
     let columns = [];
     if (util.fileExists(filename)) {
@@ -390,13 +401,13 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
+    const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
     let fullOutput;
     if (util.fileExists(filename)) {
         fullOutput = util.readJSON(filename, false);
@@ -433,7 +444,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
         util.generateJSON(filename, fullOutput);
     }
 
-    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).replaceAll(":", "_").replaceAll("\"", "").replaceAll("{", "").replaceAll("}", "") }.json`;
+    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
     await util.generateCSV(newFilename, fullOutput);
     return newFilename;
 }
@@ -445,7 +456,7 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -462,7 +473,7 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (!metadata.is_public && (!user || metadata.username !== user.username)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
@@ -475,6 +486,23 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     return newFilename;
 }
 
+// Get the unique parts of speech in a dataset
+const getUniquePos = async(knex, dataset, user = undefined) => {
+    const model = new datasets(knex);
+
+    // Check dataset metadata to make sure user has access to this dataset
+    const metadata = await model.getMetadata(dataset);
+    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+        throw new Error(`User ${ user.username } does not have access to the dataset ${ dataset }`);
+    }
+
+    // Download dataset tokens
+    const data = await util.downloadDataset(dataset, metadata.distributed, dataset = false, tokens = true);
+
+    // Return unique values from pos column
+    return [ ...new Set(data.tokens.map(x => x.pos)) ];
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -482,7 +510,7 @@ const deleteDataset = async(knex, user, table) => {
     // Get the current metadata for this table
     const metadata = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (metadata.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
@@ -494,6 +522,9 @@ const deleteDataset = async(knex, user, table) => {
     // This will delete tags and columns via cascade
     await model.deleteMetadata(table);
 
+    // Delete local files for dataset
+    util.deleteDatasetFiles(table);
+
     return null;
 }
 
@@ -504,7 +535,7 @@ const deleteTag = async(knex, user, table, tag) => {
     // Get the current metadata for this table
     const curr = await model.getMetadata(table);
 
-    // If the user of this table does not match the user making the updates, throw error
+    // If the user of this table does not match the user, throw error
     if (curr.username !== user) {
         throw new Error(`User ${ curr.username } is not the owner of this dataset`);
     }
@@ -542,6 +573,7 @@ module.exports = {
     getFilteredDatasets,
     getFilteredDatasetsCount,
     getRecordsByIds,
+    getUniquePos,
     downloadIds,
     deleteDataset,
     deleteTag,

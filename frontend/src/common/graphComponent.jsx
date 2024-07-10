@@ -4,6 +4,7 @@ import Plotly from "plotly.js-dist";
 import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { metricNames, metricTypes } from "./metrics";
+import { graphIds } from "../api/api";
 
 export const GraphComponent = ({ data, setData }) => {
     // UseState definitions
@@ -11,7 +12,11 @@ export const GraphComponent = ({ data, setData }) => {
 
     // Function definitions
     const listToString = (list) => {
-        let string = ""
+        if (!list || list.length === 0 || data.metric === "embeddings-raw") {
+            return "";
+        }
+
+        let string = " for ";
         list.forEach((word, i) => {
             if (list.length == 1) {
                 string += "'" + word + "'";
@@ -37,7 +42,7 @@ export const GraphComponent = ({ data, setData }) => {
     // Other variable definitions
     try {
         var layout = {
-            title: metricNames[data.metric] + " for " + listToString(data.titleList),
+            title: metricNames[data.metric] + listToString(data.titleList),
             width: 1000,
             height: 500,
             margin: {
@@ -61,7 +66,10 @@ export const GraphComponent = ({ data, setData }) => {
                   standoff: 40
                 }}
         };
-    } catch {
+    } catch (err) {
+        console.error(err)
+        console.log("that's why")
+        debugger;
         localStorage.removeItem("graph-data");
     }
     
@@ -90,26 +98,32 @@ export const GraphComponent = ({ data, setData }) => {
                 } else {
                     idx = (dataPoint.pointIndex[0] + 1) * (dataPoint.pointIndex[1] + 1) - 1;
                 }
-                const tempData = {
-                    x: dataPoint.x,
-                    y: dataPoint.y,
-                    ids: dataPoint.data.ids[idx],
-                    dataset: data.table_name,
-                    metric: data.metric
-                };
+                const params = JSON.parse(localStorage.getItem("graph-settings"));
                 if (metricTypes.bar.indexOf(data.metric) !== -1) {
-                    tempData.words = [dataPoint.x];
-                } else if (metricTypes.bar.indexOf(data.metric) !== -1) {
-                    tempData.words = [dataPoint.text];
-                } else if (metricTypes.bar.indexOf(data.metric) !== -1) {
-                    tempData.words = [...data.titleList];
+                    params.group_list = dataPoint.data.name;
+                    params.word_list = [dataPoint.x];
+                } else if (metricTypes.scatter.indexOf(data.metric) !== -1) {
+                    params.word_list = [dataPoint.text];
+                } else if (metricTypes.heatmap.indexOf(data.metric) !== -1) {
+                    params.group_list = [dataPoint.x, dataPoint.y];
                 } else if (metricTypes.dotplot.indexOf(data.metric) !== -1) {
-                    tempData.words = [dataPoint.data.name, data.titleList[0]];
+                    params.group_list = dataPoint.x;
+                    params.word_list = [dataPoint.data.name, data.titleList[0]];
                 } else {
                     throw new Error("Graph type not supported")
                 }
-                localStorage.setItem('selected', JSON.stringify(tempData))
-                navigate("/zoom");
+                graphIds(data.table_name, params).then(ids => {
+                    const tempData = {
+                        x: dataPoint.x,
+                        y: dataPoint.y,
+                        ids,
+                        dataset: data.table_name,
+                        metric: data.metric,
+                        words: params.word_list
+                    };
+                    localStorage.setItem('selected', JSON.stringify(tempData))
+                    navigate("/zoom");
+                });
               });
         }
       }, [foundData]);

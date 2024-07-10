@@ -238,7 +238,7 @@ export const Result = (props) => {
                         </>
                     }
                     {
-                        loggedIn && !dataset.liked &&
+                        loggedIn && dataset.liked === false &&
                         <Button 
                         variant="contained" 
                         disableElevation
@@ -255,7 +255,7 @@ export const Result = (props) => {
                     }
 
                     {
-                        loggedIn && dataset.liked &&
+                        loggedIn && dataset.liked === true &&
                         <Button 
                         variant="contained" 
                         disableElevation
@@ -390,24 +390,7 @@ export const Result = (props) => {
                         justifyContent: 'center',
                         marginTop: '.5em'
                     }}>
-                    <Button
-                        variant="contained"
-                        primary
-                        sx={{
-                            marginX: '1em',
-                            borderRadius: 50, 
-                            bgcolor: 'black', 
-                            color: 'white' 
-                        }}
-                        onClick={() => {
-                            chooseDataset()
-                            navigate('/subsetSearch');
-                        }}
-                    >
-                        Subset Search
-                    </Button>
-                    {
-                        dataset.tokens_done == true &&
+                    <div>
                         <Button
                             variant="contained"
                             primary
@@ -415,21 +398,21 @@ export const Result = (props) => {
                                 marginX: '1em',
                                 borderRadius: 50, 
                                 bgcolor: 'black', 
-                                color: 'white'
+                                color: 'white' 
                             }}
                             onClick={() => {
                                 chooseDataset()
-                                navigate('/graph');
+                                navigate('/subsetSearch');
                             }}
                         >
-                            Visualize
+                            Subset Search
                         </Button>
-                    }
-
+                    </div>
+                    
                     {
-                        dataset.tokens_done == false &&
-                        <Tooltip arrow title = "Graphing for this dataset has been disabled until processing is complete">
-        <                   Button
+                        dataset.tokens_done == true &&
+                        <div>
+                            <Button
                                 variant="contained"
                                 primary
                                 sx={{
@@ -438,10 +421,35 @@ export const Result = (props) => {
                                     bgcolor: 'black', 
                                     color: 'white'
                                 }}
-                                disabled
+                                onClick={() => {
+                                    chooseDataset()
+                                    navigate('/graph');
+                                }}
                             >
                                 Visualize
                             </Button>
+                        </div>
+                        
+                    }
+
+                    {
+                        dataset.tokens_done == false &&
+                        <Tooltip arrow title = "Graphing for this dataset has been disabled until processing is complete">
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    primary
+                                    sx={{
+                                        marginX: '1em',
+                                        borderRadius: 50, 
+                                        bgcolor: 'black', 
+                                        color: 'white'
+                                    }}
+                                    disabled
+                                >
+                                    Visualize
+                                </Button>
+                            </div>
                         </Tooltip>
                     }
                 </Box>

@@ -37,25 +37,14 @@ export const upload = (file) => new Promise((resolve, reject) => {
         });
 });
 
-export const getGraph = (dataset, groupName, groupList, metric, wordList) => new Promise((resolve, reject) => {
-  var endpoint = `${baseURL}/graphs/${dataset}?group_name=${groupName}` // Stores concatenated endpoint
-
-  groupList.forEach((group) => { // Add all groups in groupList to endpoint
-    endpoint += `&group_list=${group.value}`
-  })
-
-  // Add metric to endpoint
-  endpoint += `&metric=${metric}`
-
-  wordList.forEach((word) => { // Add all words in wordList to endpoint
-    endpoint += `&word_list=${word}`
-  })
+export const getGraph = (dataset, params) => new Promise((resolve, reject) => {
   // Get graph from endpoint
-  axios.get(endpoint, {
+  axios.get(`${baseURL}/graphs/${dataset}`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
-    }
+    },
+    params
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
     reject(x);
@@ -186,6 +175,31 @@ export const addDistributedConnection = async (name, connection) =>  {
 
 export const getMetadata = (name) => new Promise((resolve, reject) => {
   axios.get(`${ baseURL }/datasets/metadata/${ name }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const graphIds = (table, params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/graphs/ids/${ table }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    },
+    params
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const uniquePos = (table) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/datasets/pos/${ table }`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`

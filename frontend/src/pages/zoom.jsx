@@ -6,10 +6,13 @@ import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
 import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
 import { metricNames } from "../common/metrics.js";
+import { useNavigate } from "react-router-dom";
 
 const pageLength = 10;
 
-export const Zoom = () => {
+export const Zoom = (props) => {
+    const navigate = useNavigate();
+
     // UseState definitions
     const [searchResults, setSearchResults] = useState([]);
     const [graphData, setGraphData] = useState(undefined);
@@ -45,8 +48,13 @@ export const Zoom = () => {
     // UseEffect: Gets record for all data.ids and populates searchResults
     useEffect(() => {
         const graphData_ = JSON.parse(localStorage.getItem('selected'));
-        setGraphData({ ...graphData_ });
-        getTextCols(graphData_.dataset).then(x => setTextCols(x));
+        if (!graphData_ || !graphData_.dataset) {
+            navigate('/graph')
+            props.setNavigated(true);
+        } else {
+            setGraphData({ ...graphData_ });
+            getTextCols(graphData_.dataset).then(x => setTextCols(x));
+        }
     }, []);
 
     useEffect(() => {

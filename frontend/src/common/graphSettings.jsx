@@ -1,10 +1,10 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues } from "../api/api.js"
-import { Paper, Button, Modal } from "@mui/material";
+import { getGroupNames, getColumnValues, uniquePos } from "../api/api.js"
+import { Paper, Button, Modal, Tooltip } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
-import { metricNames } from "./metrics.js";
+import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics } from "./metrics.js";
 import { FormattedMultiTextField } from "./forms";
 import "./list.css";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +18,8 @@ const allMetricOptions = Object.keys(metricNames).map(x => {
 
 export const GraphSettings = ( props ) => {
     // UseState definitions
-    const [searchValue, setSearchValue] = useState("");
+    const [disabled, setDisabled] = useState(true);
+    const [disabledMessage, setDisabledMessage] = useState("");
     const [searchTerms, setSearchTerms] = useState([]);
     const [groupOptions, setGroupOptions] = useState(undefined);
     const [valueOptions, setValueOptions] = useState(undefined);
@@ -28,6 +29,9 @@ export const GraphSettings = ( props ) => {
     const [selectToggle, setSelectToggle] = useState(true);
     const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
     const [groupLocked, setGroupLocked] = useState(false);
+    const [posValid, setPosValid] = useState(false);
+    const [posOptions, setPosOptions] = useState([]);
+    const [posList, setPosList] = useState("");
 
     const navigate = useNavigate();
 
@@ -45,15 +49,36 @@ export const GraphSettings = ( props ) => {
             })
             setGroupList(searchList);
         }
+
         updateGroupNames();
 
         if (!props.dataset.dataset.embeddings || !props.dataset.dataset.embeddings_done) {
-            setMetricOptions([ ...metricOptions ].filter(x => !x.value.includes("embedding")))
+            setMetricOptions([ ...metricOptions ].filter(x => !embeddingMetrics.includes(x.value)));
+        }
+
+        if (props.dataset.dataset.preprocessing_type === "lemma") {
+            uniquePos(props.dataset.dataset.table_name).then(pos_ => {
+                setPosOptions(pos_.map(x => {
+                    return {
+                        "value": x,
+                        "label": x
+                    }
+                }));
+            });
+        } else {
+            setMetricOptions([ ...metricOptions ].filter(x => !posMetrics.includes(x.value)));
         }
     }, []);
 
     useEffect(() => {
-        if (metric.includes("embedding")) {
+        if (posOptionalMetrics.includes(metric) && props.dataset.dataset.preprocessing_type === "lemma") {
+            setPosValid(true);
+        } else {
+            setPosValid(false);
+            setPosList([]);
+        }
+
+        if (embeddingMetrics.includes(metric)) {
             if (props.dataset.dataset.embed_col) {
                 setGroup(props.dataset.dataset.embed_col);
             } else {
@@ -68,13 +93,24 @@ export const GraphSettings = ( props ) => {
     // Closes modal and updates graph data
     const handleClose = (event, reason) => {
         if(reason == undefined){
+            const params = {
+                group_name: group,
+                group_list: groupList.map(x => x.label),
+                metric: metric,
+                word_list: searchTerms,
+                pos_list: posList.map(x => x.label)
+            };
+            props.updateGraph(params);
+            localStorage.setItem('graph-settings', JSON.stringify(params));
+            setGroupList([]);
+            setPosList([]);
             props.setSettings(false);
-            props.updateGraph(group, groupList, metric, searchTerms);
         }
     }
 
     // Handles cancel to close settings if a graph exists
     const handleCancel = (event) => {
+        setGroupList([]);
         if (props.generated) {
             props.setSettings(false);
         } else {
@@ -106,7 +142,24 @@ export const GraphSettings = ( props ) => {
                 setValueOptions([..._valueOptions])
             });
         }
-    }, [group])
+    }, [group]);
+
+    useEffect(() => {
+        const settings = metricSettings[metric];
+        if (settings.column !== false && !group) {
+            setDisabled(true);
+            setDisabledMessage("You must select a column to group by for this metric");
+        } else if (settings.values !== false && groupList.length !== settings.values) {
+            setDisabled(true);
+            setDisabledMessage(`You must select ${ settings.values } column value(s) for this metric`);
+        } else if (settings.words !== false && searchTerms.length !== settings.words) {
+            setDisabled(true);
+            setDisabledMessage(`You must enter ${ settings.words } custom search word(s) for this metric`);
+        } else {
+            setDisabled(false);
+            setDisabledMessage("");
+        }
+    }, [metric, group, searchTerms, groupList]);
 
     return <>
         < Modal open={props.show}
@@ -126,6 +179,22 @@ export const GraphSettings = ( props ) => {
                 options={metricOptions}
                 hideBlankOption={1} />
 
+                {
+                    posValid === true &&
+                    <>
+                        {/* Column value multiselect dropdown */}
+                        <label htmlFor="posSelect">Parts of Speech</label>
+                        <ReactSelect 
+                            options={posOptions}
+                            id="posSelect"
+                            className="mb-3"
+                            closeMenuOnSelect={false}
+                            onChange={(x) => setPosList(x)} 
+                            isMulti
+                        />
+                    </>
+                }
+
                 {/* Column select dropdown */}
                 <SelectField label="Column Name"
                     value={group}
@@ -136,7 +205,6 @@ export const GraphSettings = ( props ) => {
                 />
 
                 {/* Column value multiselect dropdown */}
-                {/* TODO No selection = top 10 */}
                 <label htmlFor="valueSelect">Column Value</label>
                 <ReactSelect 
                     options={valueOptions}
@@ -171,19 +239,44 @@ export const GraphSettings = ( props ) => {
                     </Button>
 
                     {/* {"Generate/update graph button"} */}
-                    <Button 
-                        variant="contained"
-                        onClick={handleClose}
-                        className="mt-2"
-                        sx={{
-                            marginLeft:"2%", 
-                            backgroundColor: "black", 
-                            color: "white"
-                        }}
-                        disabled={!(searchTerms.length > 0 && groupList.length > 0 && group != "")}
-                    >
-                        {props.generated ? 'Update graph' : 'Create graph'}
-                    </Button>
+                    {
+                        disabled === true &&
+                        <Tooltip
+                            arrow
+                            title={disabledMessage}
+                        >
+                            <div style = {{ marginLeft: "2%"}}>
+                                <Button 
+                                    variant="contained"
+                                    className="mt-2"
+                                    sx={{
+                                        backgroundColor: "black", 
+                                        color: "white"
+                                    }}
+                                    disabled={true}
+                                >
+                                    {props.generated ? 'Update graph' : 'Create graph'}
+                                </Button>
+                            </div>
+                        </Tooltip>
+                        
+                    }
+                    {
+                        disabled === false &&
+                        <Button 
+                            variant="contained"
+                            onClick={handleClose}
+                            className="mt-2"
+                            sx={{
+                                marginLeft:"2%", 
+                                backgroundColor: "black", 
+                                color: "white"
+                            }}
+                            disabled={false}
+                        >
+                            {props.generated ? 'Update graph' : 'Create graph'}
+                        </Button>
+                    }
                 </div>
             </Paper>
         </Modal>

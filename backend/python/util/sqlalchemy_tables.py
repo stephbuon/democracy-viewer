@@ -28,7 +28,6 @@ class DatasetMetadata(SQL_BASE):
     clicks = Column("clicks", Integer)
     preprocessing_type = Column("preprocessing_type", String(5))
     embeddings = Column("embeddings", Boolean)
-    pos = Column("pos", Boolean)
     date_posted = Column("date_posted", Date)
     embed_col = Column("embed_col", String(50))
     language = Column("language", String(20))

@@ -21,6 +21,7 @@ export const SubsetResultsPage = (props) => {
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState({});
     const [columns, setColumns] = useState([]);
+    const [selected, setSelected] = useState(false);
 
     const highlight = (results) => {
         const terms = searchTerm.split(" ");
@@ -87,13 +88,19 @@ export const SubsetResultsPage = (props) => {
 
     useEffect(() => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-        if (demoV == undefined || demoV.dataset == undefined) {
-            navigate('/datasetSearch')
+        if (!demoV || !demoV.dataset) {
+            navigate('/datasetsearch')
             props.setNavigated(true)
         } else {
             fetchSubset();
+            setSelected(true);
         }
     }, []);
+
+    if (!selected) {
+        return <></>
+    }
+
     return <>
         <div className='blue'>
             <Box component="main"

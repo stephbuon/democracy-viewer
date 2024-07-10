@@ -167,7 +167,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
         <DataTable 
             value={searchResults} 
             scrollable 
-            scrollHeight="750px" 
+            scrollHeight="80vh" 
             showGridlines 
             stripedRows 
             style={{ marginLeft: "100px" }}

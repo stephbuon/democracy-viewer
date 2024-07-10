@@ -1,13 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItem,ListItemIcon,ListItemText,Box,} from '@mui/material';
-import {Menu as MenuIcon,Home as HomeIcon,Person,Home,Search,} from '@mui/icons-material';
+import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItemIcon,ListItemText,Box,} from '@mui/material';
+import {Menu as MenuIcon, Person, Home, Search, MilitaryTech, ScreenSearchDesktop, Cable} from '@mui/icons-material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import UploadIcon from '@mui/icons-material/Upload';
-import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 import ListItemButton from '@mui/material/ListItemButton';
 import Divider from '@mui/material/Divider';
-import PeopleIcon from '@mui/icons-material/People';
 import { useEffect, useState } from 'react';
 
 export const Layout = (props) => {
@@ -66,7 +64,7 @@ export const Layout = (props) => {
             sx={{ mr: 2 }}
             onClick={handleDrawerToggle}
           >
-            <MenuIcon />
+            <MenuIcon sx={{ color: "white" }} />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {getCurrentPage()}
@@ -101,43 +99,73 @@ export const Layout = (props) => {
           }}
         >
           <List component="nav">
-            <ListItemButton component={Link} to="/" sx={{ pt: 3 }} >
+            <ListItemButton component={Link} to="/" sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <Home />
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/datasetsearch" sx={{ pt: 3 }}>
+
+            <ListItemButton component={Link} to="/datasetsearch" sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <Search />
               </ListItemIcon>
               <ListItemText primary="Dataset Search" />
             </ListItemButton>
 
-            <ListItemButton sx={{ pt: 3 }} component={Link} to='/graph'>
+            <ListItemButton component={Link} to="/subsetsearch" sx = {{ height: "50px" }}>
+              <ListItemIcon>
+                <ScreenSearchDesktop />
+              </ListItemIcon>
+              <ListItemText primary="Subset Search" />
+            </ListItemButton>
+
+            <ListItemButton component={Link} to='/graph' sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <ShowChartIcon/>
               </ListItemIcon>
-              <ListItemText primary="Graphs" />
+              <ListItemText primary="Visualize" />
             </ListItemButton>
-            <ListItemButton component={Link} to='/upload'>
+
+            <ListItemButton component={Link} to='/upload' sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <UploadIcon />
               </ListItemIcon>
-              <ListItemText primary="Upload/Edit Data Sets" />
+              <ListItemText primary="Dataset Upload" />
             </ListItemButton>
-            {props.user !== undefined && <ListItemButton component={Link} to={`/profile/${ props.user.username }`}>
+
+            <ListItemButton component={Link} to='/distributed' sx = {{ height: "50px" }}>
               <ListItemIcon>
-                <Person />
+                <Cable />
               </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </ListItemButton>}
-            {props.user === undefined && <ListItemButton component={Link} to={`/login`}>
+              <ListItemText primary="Create Distributed Connection" />
+            </ListItemButton>
+
+            {
+              props.user !== undefined && 
+              <ListItemButton component={Link} to={`/profile/${ props.user.username }`} sx = {{ height: "50px" }}>
+                <ListItemIcon>
+                  <Person />
+                </ListItemIcon>
+                <ListItemText primary="Profile" />
+              </ListItemButton>
+            }
+            {
+              props.user === undefined && 
+              <ListItemButton component={Link} to={`/login`} sx = {{ height: "50px" }}>
+                <ListItemIcon>
+                  <Person />
+                </ListItemIcon>
+                <ListItemText primary="Profile" />
+              </ListItemButton>
+            }
+
+            <ListItemButton component={Link} to='/acknowledgements' sx = {{ height: "50px" }}>
               <ListItemIcon>
-                <Person />
+                <MilitaryTech />
               </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </ListItemButton>}
+              <ListItemText primary="Acknowledgements" />
+            </ListItemButton>
             
             <Divider sx={{ my: 1 }} />
             

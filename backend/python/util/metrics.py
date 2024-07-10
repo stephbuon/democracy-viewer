@@ -3,44 +3,43 @@ from pandas import DataFrame, concat, merge
 # Database interaction
 import util.data_queries as data
 
-def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], token: str | None = None):
-    df = data.basic_selection(table_name, column, values, word_list, token)
+def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
     # Goup by word and group (if defined)
     group_cols = [ "word" ]
-    if column != None:
+    if column != None and column != "":
         group_cols.append("group")
-    # Store ids as list
-    ids = df.groupby(group_cols)["record_id"].apply(list).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     output = df.groupby(group_cols).sum().reset_index()
     # Rename columns
     output.rename({ "word": "x", "count": "y" }, axis = 1, inplace = True)
-    # Add ids
-    output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
+    # If a word list was not provided, cap the number of words returned at 5
+    if len(word_list) == 0:
+        top_words = output.groupby("x")["y"].sum().sort_values(ascending=False)
+        top_words = list(top_words.index)[0:5]
+        output = output[output["x"].isin(top_words)]
     
     return output
 
-def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], token: str | None = None):
-    # Get group counts for words
-    group_counts = data.group_count_by_words(table_name, word_list, column, token)
+def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
     # Get total group count
     total_groups = data.group_count(table_name, column, token)
+    # Get group count for each word
+    group_counts = data.group_count_by_words(table_name, word_list, column, token)
+    # Get records by words and groups
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
+    
     # Compute smoothed idf
     idf = {}
-    for word in word_list:
+    for word in df["word"]:
         if group_counts[word] > 0:
             idf[word] = log2(1 + (total_groups / group_counts[word]))
         else:
             idf[word] = 0
-        
-    # Get records by words and groups
-    df = data.basic_selection(table_name, column, values, word_list, token)
     # Group by word and group
     group_cols = [ "word", "group" ]
-    # Store ids as list
-    ids = df.groupby("word")["record_id"].apply(list).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     output = df.groupby(group_cols).sum().reset_index()
@@ -48,7 +47,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     output["count"] = 1 + log2(output["count"])
     # Join with idf
     idf_lst = []
-    for i, row in output.iterrows():
+    for _, row in output.iterrows():
         idf_lst.append(idf[row["word"]])
     output["idf"] = idf_lst
     # Compute tf-idf
@@ -59,41 +58,44 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     output = output.pivot(index = "word", columns = "group", values = "tf_idf").reset_index().fillna(0)
     # Rename columns
     output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
-    # Add ids
-    output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
     
     return output
 
-def proportions(table_name: str, column: str, values: list[str], word_list: list[str], token: str | None = None):
-    df = data.basic_selection(table_name, column, values, [], token)
+def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
-    # Store ids as list
-    ids = df.groupby(["word", "group"])["record_id"].apply(list).reset_index(name = "ids")
+    cols = ["word"]
+    if column is not None and column != "":
+        cols.append("group")
     df.drop("record_id", axis = 1, inplace = True)
     # Get word and group counts
-    output = df.groupby(["word", "group"]).sum().reset_index()
+    output = df.groupby(cols).sum().reset_index()
     # Get group total counts
-    group_counts = output.groupby("group")["count"].sum().reset_index()
-    group_counts.rename(columns = { "count": "total" }, inplace = True)
-    output = merge(output, group_counts, on = "group")
+    if "group" in cols:
+        group_counts = output.groupby("group")["count"].sum().reset_index()
+        group_counts.rename(columns = { "count": "total" }, inplace = True)
+        output = merge(output, group_counts, on = "group")
+    else:
+        output["total"] = output["count"].sum()
     # Filter for word list
-    output = output[output["word"].isin(word_list)]
-    ids = ids[ids["word"].isin(word_list)]
+    if len(word_list) > 0:
+        output = output[output["word"].isin(word_list)]
     # Calculate proportion by group
     output["proportion"] = output["count"] / output["total"]
     output.drop(["count", "total"], axis = 1, inplace = True) 
     # Rename columns
     output.rename({ "word": "x", "proportion": "y" }, axis = 1, inplace = True)
-    # Add ids
-    output["ids"] = list(map(lambda x: list(sorted(set(x))), ids["ids"]))
+    # If a word list was not provided, cap the number of words returned at 5
+    if len(word_list) == 0:
+        top_words = output.groupby("x")["y"].sum().sort_values(ascending=False)
+        top_words = list(top_words.index)[0:5]
+        output = output[output["x"].isin(top_words)]
     
     return output
 
-def jsd(table_name: str, column: str, values: list[str], word_list: list[str], token: str | None = None):
-    df = data.basic_selection(table_name, column, values, word_list, token)
+def jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
-    # Store ids as list
-    ids = df.groupby("group")["record_id"].apply(list).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Get distinct groups
     groups = df["group"].unique()
@@ -117,16 +119,12 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], t
             kld = sum(probs * log(probs.div(m, axis = 0)), axis = 1)
             # Compute JSD
             jsd_score = 0.5 * kld.sum()
-            # Get ids for each group
-            ids1 = ids[ids["group"] == groups[i]].reset_index()["ids"][0]
-            ids2 = ids[ids["group"] == groups[j]].reset_index()["ids"][0]
             # Add result to output
             output.append(
                 DataFrame({
                     "group1": [groups[i]],
                     "group2": [groups[j]],
-                    "jsd": [jsd_score],
-                    "ids": [list(sorted(set(ids1 + ids2)))]
+                    "jsd": [jsd_score]
                 })
             )
               
@@ -139,18 +137,16 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], t
     else:
         return DataFrame()
     
-def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], token: str | None = None):
+def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
     # Get the total number of words in the corpus
     total_corpus_words = data.total_word_count(table_name, token)
     # Get records by words and groups
-    df = data.basic_selection(table_name, column, values, word_list, token)
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     # Get unique words and groups
     words = df["word"].unique()
     groups = df["group"].unique()
     # Goup by word and group (if defined)
     group_cols = [ "word", "group" ]
-    # Store ids as list
-    ids = df.groupby("word")["record_id"].apply(list).reset_index(name = "ids")
     df.drop("record_id", axis = 1, inplace = True)
     # Sum counts
     df = df.groupby(group_cols).sum().unstack("group").fillna(0)
@@ -177,8 +173,6 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
                 ll += 2 * b * log(b / e2)
             # Add ll for group to df
             df2[group] = ll
-        # Add ids to df 
-        df2["ids"] = [list(sorted(ids[ids["word"] == word].reset_index()["ids"][0]))]
         output.append(df2)
     
     if len(output) > 0:
