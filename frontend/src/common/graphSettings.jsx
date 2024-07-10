@@ -31,7 +31,7 @@ export const GraphSettings = ( props ) => {
     const [groupLocked, setGroupLocked] = useState(false);
     const [posValid, setPosValid] = useState(false);
     const [posOptions, setPosOptions] = useState([]);
-    const [posList, setPosList] = useState("");
+    const [posList, setPosList] = useState([]);
 
     const navigate = useNavigate();
 

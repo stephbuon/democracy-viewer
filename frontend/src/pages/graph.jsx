@@ -79,7 +79,7 @@ export const Graph = (props) => {
         if (!params.group_list || params.group_list.length < 2) {
           keys = ["X", "Y"];
         } else {
-          keys = [params.group_list[0].label, params.group_list[1].label];
+          keys = [params.group_list[0], params.group_list[1]];
         }
         tempData.xLabel = keys[0];
         tempData.yLabel = keys[1];
