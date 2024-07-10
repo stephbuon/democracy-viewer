@@ -6,7 +6,7 @@ import { Box, Button, Grid, Snackbar, Alert, Container } from "@mui/material";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
 import { getGraph } from "../api/api.js";
-import { Settings, RotateLeft, Loop } from '@mui/icons-material';
+import { Settings, RotateLeft, Loop, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "../common/metrics.js";
 import Plotly from "plotly.js-dist";
 
@@ -274,7 +274,7 @@ export const Graph = (props) => {
                     onClick={handleOpen}
                     className="mt-2"
                     sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  ><Settings /> Graph Settings</Button>
+                  ><Settings sx={{ mr: "10px" }}/>Settings</Button>
                 </Grid>
 
                 {/* {"Reset graph button"} */}
@@ -283,7 +283,7 @@ export const Graph = (props) => {
                     onClick={resetGraph}
                     className="mt-2"
                     sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  ><RotateLeft /> Reset Graph</Button>
+                  ><RotateLeft sx={{ mr: "10px" }}/>Reset</Button>
                 </Grid>
 
                 {/* {"Download graph button"} */}
@@ -292,7 +292,7 @@ export const Graph = (props) => {
                     onClick={() => downloadGraph()}
                     className="mt-2"
                     sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  ><RotateLeft /> Download Graph</Button>
+                  ><Download sx={{ mr: "10px" }}/>Download</Button>
                 </Grid>
             </Grid>
           </Container>
