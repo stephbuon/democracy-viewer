@@ -71,9 +71,9 @@ class datasets {
     }
 
     // Like a dataset
-    async addLike(user, table_name) {
-        await this.knex(likes_table).insert({ user, table_name });
-        const record = await this.knex(likes_table).where({ user, table_name });
+    async addLike(email, table_name) {
+        await this.knex(likes_table).insert({ email, table_name });
+        const record = await this.knex(likes_table).where({ email, table_name });
         return record[0];
     }
 
@@ -87,20 +87,6 @@ class datasets {
     // Increment the dataset's clicks
     async incClicks(table_name) {
         const update = await this.knex(metadata_table).where({ table_name }).increment("clicks", 1);
-        const record = await this.knex(metadata_table).where({ table_name });
-        return record[0];
-    }
-
-    // Increment the dataset's likes
-    async incLikes(table_name) {
-        const update = await this.knex(metadata_table).where({ table_name }).increment("likes", 1);
-        const record = await this.knex(metadata_table).where({ table_name });
-        return record[0];
-    }
-
-    // Decrement the dataset's likes
-    async decLikes(table_name) {
-        const update = await this.knex(metadata_table).where({ table_name }).decrement("likes", 1);
         const record = await this.knex(metadata_table).where({ table_name });
         return record[0];
     }
@@ -236,8 +222,6 @@ class datasets {
             results = await query;
         }
 
-        
-
         return results;
     }
 
@@ -254,8 +238,8 @@ class datasets {
     }
 
     // Determine if a given user liked a given dataset
-    async getLike(user, table_name) {
-        const results = await this.knex(likes_table).where({ user, table_name });
+    async getLike(email, table_name) {
+        const results = await this.knex(likes_table).where({ email, table_name });
         return results.length > 0;
     }
 
@@ -272,8 +256,8 @@ class datasets {
     }
 
     // Delete a user's liked table
-    async deleteLike(user, table_name) {
-        await this.knex(likes_table).where({ user, table_name }).delete();
+    async deleteLike(email, table_name) {
+        await this.knex(likes_table).where({ email, table_name }).delete();
     }
 }
 
