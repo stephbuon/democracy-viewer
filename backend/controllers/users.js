@@ -14,11 +14,11 @@ const createUser = async(knex, body) => {
     return result;
 }
 
-// Get a user by their username
-const findUserByUsername = async(knex, username) => {
+// Get a user by their email
+const findUserByEmail = async(knex, email) => {
     const model = new users(knex);
 
-    const user_ = await model.findUserByUsername(username);
+    const user_ = await model.findUserByEmail(email);
     if (user_) {
         // Delete the user's password
         delete user_.password;
@@ -30,7 +30,7 @@ const findUserByUsername = async(knex, username) => {
 }
 
 // Update a user's information
-const updateUser = async(knex, username, params) => {
+const updateUser = async(knex, email, params) => {
     const model = new users(knex);
 
     // Hash password if changed
@@ -38,8 +38,8 @@ const updateUser = async(knex, username, params) => {
         params.password = bcrypt.hashSync(params.password, 10);
     }
     // Update user record
-    await model.updateUser(username, params);
-    const result = await findUserByUsername(knex, username);
+    await model.updateUser(email, params);
+    const result = await findUserByEmail(knex, email);
     return result;
 }
 
@@ -63,7 +63,7 @@ const deleteUser = async(knex, user) => {
 
 module.exports = {
     createUser,
-    findUserByUsername,
+    findUserByEmail,
     updateUser,
     deleteUser
 };

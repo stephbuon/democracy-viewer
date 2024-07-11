@@ -15,6 +15,8 @@ import 'animate.css';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import CreateDistributedConnection from "./pages/CreateDistributedConnection.jsx";
 import {Acknowledgements} from "./pages/Acknowledgements.jsx";
+import { ForgotPassword } from "./pages/ForgotPassword.jsx";
+import { ResetPassword } from "./pages/ResetPassword.jsx";
   
 export const App = () => {
   // variable definitions
@@ -70,7 +72,7 @@ export const App = () => {
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/register" element={<Register currUser={user} login={login}/>} />
-            <Route path="/profile/:username" element={<Profile currUser={user} setDataset={chooseDataset}/>} />
+            <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset}/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
@@ -79,6 +81,8 @@ export const App = () => {
             <Route path="/upload/complete" element={<UploadComplete/>}></Route>
             <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
             <Route path="/acknowledgements" element={<Acknowledgements/>}/>
+            <Route path="/password/forgot" element={<ForgotPassword/>} />
+            <Route path="/password/reset" element={<ResetPassword navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
         </Routes>
       </BrowserRouter>
     </div>

@@ -12,24 +12,24 @@ class users {
     // Insert new user into DB
     async createNewUser(body) {
         const insert = await this.knex(table).insert({ ...body });
-        const result = await this.findUserByUsername(body.username);
+        const result = await this.findUserByEmail(body.email);
         return result;
     }
 
-    // Return the user with the given username
-    async findUserByUsername(username) {
-        let result = await this.knex(table).where({ username });
+    // Return the user with the given email
+    async findUserByEmail(email) {
+        let result = await this.knex(table).where({ email });
         result = result[0];
         return result;
     }
 
     // Authenticate user credentials
-    async authenticateUser(username, password) {
+    async authenticateUser(email, password) {
         // Get user info
-        const user = await this.findUserByUsername(username);
+        const user = await this.findUserByEmail(email);
         // If user not found, return false
         if (!user) {
-            console.error(`No users matched the username ${username}`);
+            console.error(`No users matched the email ${email}`);
             return false;
         }
         // Extract first value from users
@@ -40,15 +40,15 @@ class users {
     }
 
     // Update a user record
-    async updateUser(username, params) {
-        const update = await this.knex(table).where({ username }).update({ ...params });
-        const record = await this.knex(table).where({ username });
+    async updateUser(email, params) {
+        const update = await this.knex(table).where({ email }).update({ ...params });
+        const record = await this.knex(table).where({ email });
         return record[0];
     }
 
     // Delete a user record
-    async deleteUser(username) {
-        const del = await this.knex(table).where({ username }).delete();
+    async deleteUser(email) {
+        const del = await this.knex(table).where({ email }).delete();
         return del;
     }
 }

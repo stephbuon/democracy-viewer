@@ -49,10 +49,10 @@ const encodeConnection = async(knex, id) => {
 }
 
 // Get all connections by user
-const getConnectionsByUser = async(knex, username) => {
+const getConnectionsByUser = async(knex, email) => {
     const model = new databases(knex);
 
-    const records = await model.getConnectionsByUser(username);
+    const records = await model.getConnectionsByUser(email);
     return records.map(record => {
         return {
             id: record.id,

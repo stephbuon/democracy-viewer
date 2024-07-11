@@ -31,7 +31,7 @@ const Profile = (props) => {
 
     const GetNewPage = (num) => {
         const filter = {
-            username: params.username,
+            email: params.email,
             pageLength
         };
         setLoadingResults(true);
@@ -49,7 +49,7 @@ const Profile = (props) => {
 
     const getNewLikePage = (num) => {
         const filter = {
-            liked: params.username,
+            liked: params.email,
             pageLength
         };
         setLoadingLikeResults(true);
@@ -68,14 +68,14 @@ const Profile = (props) => {
     const params = useParams();
 
     useEffect(() => {
-        if (params.username) {
-            getUser(params.username).then(x => setUser(x));
-            if (props.currUser && props.currUser.username === params.username) {
+        if (params.email) {
+            getUser(params.email).then(x => setUser(x));
+            if (props.currUser && props.currUser.email === params.email) {
                 setEditable(true);
             }
         }
         else if (props.currUser) {
-            getUser(props.currUser.username).then(x => setUser(x));
+            getUser(props.currUser.email).then(x => setUser(x));
             setEditable(true);
         } else {
             navigate("/");
@@ -83,7 +83,7 @@ const Profile = (props) => {
 
         GetNewPage(1);
         getNewLikePage(1);
-    }, [params.username]);
+    }, [params.email]);
 
     if (!user) {
         return <></>
@@ -119,28 +119,25 @@ const Profile = (props) => {
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
-                                        height: 320,
+                                        // height: 320,
                                         width: '100%',
                                     }}
                                 >
                                     {/* User avatar */}
-                                    {/* <Avatar alt={user.username} src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
+                                    {/* <Avatar alt={user.email} src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
                                     <Divider flexItem sx={{ mt: 2, mb: 4 }} /> */}
                                     <Typography variant="h3" component="h4">
                                         {user.first_name} {user.last_name} {user.suffix}
                                     </Typography>
                                     <List>
-                                        <ListItemText>
-                                            <Person /> Username: {user.username}
-                                        </ListItemText>
-                                        {user.title && (
-                                            <ListItemText>
-                                                <Work />  Title: {user.title}
-                                            </ListItemText>
-                                        )}
                                         {user.email && (
                                             <ListItemText>
                                                 <Email /> Email: <Link to={`mailto: ${user.email}`}>{user.email}</Link>
+                                            </ListItemText>
+                                        )}
+                                        {user.title && (
+                                            <ListItemText>
+                                                <Work />  Title: {user.title}
                                             </ListItemText>
                                         )}
                                         {user.linkedin_link && (

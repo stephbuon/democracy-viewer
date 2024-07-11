@@ -8,6 +8,10 @@ export const FormattedPatternField = (props) => {
     const [message, setMessage] = useState("");
 
     useEffect(() => {
+        if (props.setValue) {
+            props.setValue(valueInternal);
+        }
+
         if (props.required && !valueInternal) {
             setMessage(" ");
         } else if (!props.required && !valueInternal) {

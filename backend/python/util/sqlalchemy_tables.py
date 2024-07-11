@@ -5,9 +5,8 @@ SQL_BASE = declarative_base()
 
 class Users(SQL_BASE):
     __tablename__ = "users"
-    username = Column("username", String(20), primary_key = True)
+    email = Column("email", String(30), primary_key=True)
     password = Column("password", String(60))
-    email = Column("email", String(30))
     title = Column("title", String(20))
     first_name = Column("first_name", String(20))
     last_name = Column("last_name", String(20))
@@ -19,7 +18,7 @@ class Users(SQL_BASE):
 class DatasetMetadata(SQL_BASE):
     __tablename__ = "dataset_metadata"
     table_name = Column("table_name", String(100), primary_key = True)
-    username = Column("username", String(20), ForeignKey(Users.username))
+    email = Column("email", String(30), ForeignKey(Users.email))
     title = Column("title", String(50))
     description = Column("description", String(200))
     author = Column("author", String(50))

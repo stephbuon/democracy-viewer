@@ -43,9 +43,11 @@ export default function Login(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    LoginRequest({username: data.get('email'),
-    password: data.get('password'),}).then(async (res) => {
-      props.login({token: res, username: data.get('email')})
+    LoginRequest({
+      email: data.get('email'),
+      password: data.get('password')
+    }).then(async (res) => {
+      props.login({token: res, email: data.get('email')})
     }).then(()=>{navigate('/')}).catch((err => setLoginFailed(true)));
   };
 
@@ -73,7 +75,7 @@ export default function Login(props) {
               required
               fullWidth
               id="email"
-              label="Username"
+              label="Email"
               name="email"
               autoComplete="email"
               autoFocus
@@ -99,7 +101,7 @@ export default function Login(props) {
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link to="#" variant="body2">
+                <Link to="/password/forgot" variant="body2">
                   Forgot password?
                 </Link>
               </Grid>
@@ -130,7 +132,7 @@ export default function Login(props) {
         onClose={() => setLoginFailed(false)}
     >
         <Alert onClose={() => setLoginFailed(false)} severity="error">
-            Username or password incorrect
+            Email or password incorrect
         </Alert>
     </Snackbar>
     </div>

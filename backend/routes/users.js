@@ -16,12 +16,12 @@ router.post('/', async(req, res, next) => {
 });
 
 // Route to update user
-router.put('/:username', authenticateJWT, async(req, res, next) => {
+router.put('/:email', authenticateJWT, async(req, res, next) => {
     try {
-        if (req.params.username !== req.user.username) {
-            throw new Error(`${ req.user.username } cannot update the account ${ req.params.username }`);
+        if (req.params.email !== req.user.email) {
+            throw new Error(`${ req.user.email } cannot update the account ${ req.params.email }`);
         }
-        const result = await control.updateUser(req.knex, req.params.username, req.body);
+        const result = await control.updateUser(req.knex, req.params.email, req.body);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to update account:', err);
@@ -30,10 +30,10 @@ router.put('/:username', authenticateJWT, async(req, res, next) => {
     next();
 });
 
-// Route to get a user by their username
-router.get('/:username', async(req, res, next) => {
+// Route to get a user by their email
+router.get('/:email', async(req, res, next) => {
     try {
-        const result = await control.findUserByUsername(req.knex, req.params.username)
+        const result = await control.findUserByEmail(req.knex, req.params.email)
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get account:', err);
@@ -44,12 +44,9 @@ router.get('/:username', async(req, res, next) => {
 
 
 // Route to delete a user
-router.delete('/:username', authenticateJWT, async(req, res, next) => {
+router.delete('/', authenticateJWT, async(req, res, next) => {
     try {
-        if (req.params.username !== req.user.username) {
-            throw new Error(`${ req.user.username } cannot delete the account ${ req.params.username }`);
-        }
-        const result = await control.deleteUser(req.knex, req.user.username);
+        await control.deleteUser(req.knex, req.user.email);
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete account:', err);

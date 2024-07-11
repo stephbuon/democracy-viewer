@@ -298,7 +298,7 @@ export const Result = (props) => {
                                 <b> Author </b>
                             </TableCell>
                             <TableCell sx={{textAlign: "left"}}>
-                                <Link to={`/profile/${ dataset.username }`}>{dataset.username}</Link>
+                                <Link to={`/profile/${ dataset.email }`}>{dataset.email}</Link>
                             </TableCell>
                             
                         </TableRow>

@@ -17,7 +17,6 @@ export default function Register(props) {
   const [disabled, setDisabled] = useState(true);
   const [openAlert, setOpenAlert] = useState(false);
 
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -60,7 +59,6 @@ export default function Register(props) {
 
   const handleSubmit = () => {
     const data = {
-      username,
       email,
       password,
       title,
@@ -76,12 +74,12 @@ export default function Register(props) {
         delete data[x];
       }
     });
-    
-    getUser(data.username).then(user => {
+    debugger;
+    getUser(data.email).then(user => {
       if (!user) {
         RegisterRequest(data).then(async (res) => {
           LoginRequest(data).then(async (res) => {
-          props.login({token: res, username: data.username})
+          props.login({token: res, email: data.email})
         }).then(()=>{navigate('/')})}).catch(res => setOpenAlert(true));
       } else {
         setOpenAlert(true);
@@ -109,19 +107,6 @@ export default function Register(props) {
           </Typography>
           <Box component="form" noValidate sx={{ mt: 3 }}>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <FormattedTextField
-                    id = "username"
-                    label = "Username"
-                    maxChars = {20}
-                    setValid={setValid}
-                    autoComplete="username"
-                    required
-                    fullWidth
-                    autoFocus
-                    setValue={setUsername}
-                />
-              </Grid>
               <Grid item xs={12}>
                 <FormattedTextField
                     id = "email"
@@ -169,6 +154,7 @@ export default function Register(props) {
                     setValid={setValid}
                     autoComplete="given-name"
                     setValue={setFirstName}
+                    required
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -179,15 +165,7 @@ export default function Register(props) {
                     setValid={setValid}
                     autoComplete="family-name"
                     setValue={setLastName}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormattedTextField
-                    id = "suffix"
-                    label = "Suffix"
-                    maxChars = {10}
-                    setValid={setValid}
-                    setValue={setSuffix}
+                    required
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -197,6 +175,15 @@ export default function Register(props) {
                     maxChars = {20}
                     setValid={setValid}
                     setValue={setTitle}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormattedTextField
+                    id = "suffix"
+                    label = "Suffix"
+                    maxChars = {10}
+                    setValid={setValid}
+                    setValue={setSuffix}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -264,7 +251,7 @@ export default function Register(props) {
         onClose={() => setOpenAlert(false)}
     >
         <Alert onClose={() => setOpenAlert(false)} severity="error">
-            Failed to create account. An account with this username may already exist.
+            Failed to create account. An account with this email may already exist.
         </Alert>
     </Snackbar>
   </>;

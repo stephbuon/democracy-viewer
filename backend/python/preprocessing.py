@@ -126,11 +126,22 @@ if metadata["embeddings"]:
     sql.complete_processing(engine, TABLE_NAME, "embeddings")
 final_time = (time() - start_time) / 60
 print("Total time: {} minutes".format(final_time))
+
+# Get user data for email
+user = sql.get_user(engine, meta, metadata["email"])
 params = {
-    "username": metadata["username"],
     "title": metadata["title"],
     "time": round(final_time, 3)
 }
-user = sql.get_user(engine, meta, metadata["username"])
+# Set name based on provided fields
+name = "{} {}".format(user["first_name"], user["last_name"])
+title = user["title"]
+suffix = user["suffix"]
+if title is not None:
+    name = "{} {}".format(title, name)
+if suffix is not None:
+    name = "{} {}".format(name, suffix)
+params["name"] = name
+
 send_email("processing_complete", params, "Processing Complete", user["email"])
 print("Email sent to", user["email"])

@@ -1,28 +1,35 @@
 -- CREATE DATABASE democracy_viewer;
 
 CREATE TABLE users (
-    username VARCHAR(20) PRIMARY KEY NOT NULL,
+    email VARCHAR(30) PRIMARY KEY,
     password VARCHAR(60) NOT NULL,
-    email VARCHAR(30) NOT NULL,
     title VARCHAR(20),
-    first_name VARCHAR(20),
-    last_name VARCHAR(20),
+    first_name VARCHAR(20) NOT NULL,
+    last_name VARCHAR(20) NOT NULL,
     suffix VARCHAR(10),
     orcid VARCHAR(16),
     linkedin_link VARCHAR(50),
     website VARCHAR(50)
 );
 
+CREATE TABLE password_reset_tokens (
+    token VARCHAR(255) PRIMARY KEY,
+    created_at VARCHAR(255) NOT NULL,
+    expires_at VARCHAR(255) NOT NULL,
+    email VARCHAR(30),
+    FOREIGN KEY(email) REFERENCES users(email)
+);
+
 CREATE TABLE distributed_connections (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    owner VARCHAR(20) NOT NULL,
+    owner VARCHAR(30) NOT NULL,
     region VARCHAR(288) NOT NULL,
     bucket VARCHAR(288) NOT NULL,
     dir VARCHAR(288) NOT NULL DEFAULT '',
     key_ VARCHAR(288) DEFAULT NULL,
     secret VARCHAR(288) DEFAULT NULL,
-    FOREIGN KEY(owner) REFERENCES users(username) ON DELETE CASCADE
+    FOREIGN KEY(owner) REFERENCES users(email) ON DELETE CASCADE
 );
 
 # CREATE TABLE private_groups (
@@ -33,7 +40,7 @@ CREATE TABLE distributed_connections (
 
 CREATE TABLE dataset_metadata (
     table_name VARCHAR(100) PRIMARY KEY NOT NULL,
-    username VARCHAR(20) NOT NULL,
+    email VARCHAR(30) NOT NULL,
 --     private_group BIGINT,
     title VARCHAR(50),
     description VARCHAR(200),
@@ -50,7 +57,7 @@ CREATE TABLE dataset_metadata (
     embeddings_done BOOLEAN DEFAULT FALSE NOT NULL,
     tokens_done BOOLEAN DEFAULT FALSE NOT NULL,
     distributed BIGINT UNSIGNED DEFAULT NULL,
-    FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
@@ -94,22 +101,22 @@ CREATE TABLE dataset_text_cols (
 );
 
 CREATE TABLE liked_datasets (
-    user VARCHAR(20) NOT NULL,
+    email VARCHAR(30) NOT NULL,
     table_name VARCHAR(100) NOT NULL,
-    FOREIGN KEY(user) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
-    PRIMARY KEY(user, table_name)
+    PRIMARY KEY(email, table_name)
 );
 
 CREATE TABLE text_updates (
     id SERIAL PRIMARY KEY,
-    user VARCHAR(20) NOT NULL,
+    email VARCHAR(30) NOT NULL,
     table_name VARCHAR(100) NOT NULL,
     idx INT UNSIGNED NOT NULL,
     col INT UNSIGNED NOT NULL,
     start INT UNSIGNED NOT NULL,
     end INT UNSIGNED NOT NULL,
     new_text VARCHAR(100),
-    FOREIGN KEY(user) REFERENCES users(username) ON DELETE CASCADE,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
