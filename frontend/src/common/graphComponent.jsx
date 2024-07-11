@@ -10,39 +10,10 @@ export const GraphComponent = ({ data, setData }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
 
-    // Function definitions
-    const listToString = (list) => {
-        if (!list || list.length === 0 || data.metric === "embeddings-raw") {
-            return "";
-        }
-
-        let string = " for ";
-        list.forEach((word, i) => {
-            if (list.length == 1) {
-                string += "'" + word + "'";
-            }
-            else if (list.length == 2) {
-                if (i < list.length - 1) {
-                    string += "'" + word + "' and ";
-                }
-                else {
-                    string += "'" + word + "'";
-                }
-            }
-            else if (i < list.length - 1){
-                string += "'" + word + "'" + ", ";
-
-            } else {
-                string += "and " + "'" + word + "'";
-            }
-        });
-        return string;
-    }
-
     // Other variable definitions
     try {
         var layout = {
-            title: metricNames[data.metric] + listToString(data.titleList),
+            title: data.title,
             width: 1000,
             height: 500,
             margin: {
@@ -134,8 +105,8 @@ export const GraphComponent = ({ data, setData }) => {
 
     return <>
         {/* Graph */}
-        <Box className="d-flex vh-100" sx={{ margin: "8px" }}>
-            <div id='graph' ref={graph} hidden={data.graph == undefined}></div>
+        <Box className="d-flex" sx={{ margin: "8px" }}>
+            <div id='graph' style={{ margin: "0 auto" }} ref={graph} hidden={data.graph == undefined}></div>
         </Box>
     </>
 }

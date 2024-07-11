@@ -17,8 +17,8 @@ const createGraph = async(knex, dataset, params, user = null) => {
 
     // Check dataset metadata to make sure user has access to this dataset
     const metadata = await model.getMetadata(dataset);
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
-        throw new Error(`User ${ user.username } does not have access to the dataset ${ dataset }`);
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user.email } does not have access to the dataset ${ dataset }`);
     }
 
     params.table_name = dataset;
@@ -46,8 +46,8 @@ const getIds = async(knex, table, params, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user.email } is not the owner of this dataset`);
     }
 
     // Download tokens from s3

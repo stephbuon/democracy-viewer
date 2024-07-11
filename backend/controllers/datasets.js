@@ -5,14 +5,14 @@ const datasets = require("../models/datasets");
 const FlexSearch = require("flexsearch");
 
 // Upload a new dataset from a csv file
-const createDataset = async(path, username) => {
+const createDataset = async(path, email) => {
     // Get the file name from the file path
     let filepath = path.split("/");
     const comps = filepath.pop().split(".");
     filepath = filepath.join("/");
     const extension = comps.pop();
     const name = comps[comps.length - 1].replace(extension, "");
-    const table_name = `${ name }_${ username }_${ Date.now() }`;
+    const table_name = `${ name }_${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
     const newName = `${ filepath }/${ table_name }.${ extension }`;
     // Rename file
     util.renameFile(path, newName);
@@ -28,7 +28,7 @@ const createDataset = async(path, username) => {
 }
 
 // Import a new dataset from an api
-const createDatasetAPI = async(endpoint, username, token = null) => {
+const createDatasetAPI = async(endpoint, email, token = null) => {
     // Add token if passed
     let apiConfig = {};
     if (token) {
@@ -48,9 +48,9 @@ const createDatasetAPI = async(endpoint, username, token = null) => {
     // If the request succeeded, store data
     const data = res.data;
 
-    // Create table name and file name using user's username
-    const name = `${ username }_${ Date.now() }`;
-    const filename = `files/uploads/${ username }.csv`;
+    // Create table name and file name using user's email
+    const name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
+    const filename = `files/uploads/${ email.replace(/\W+/g, "_") }.csv`;
     
     let output = {};
     if (typeof data === "string") {
@@ -83,16 +83,16 @@ const createDatasetAPI = async(endpoint, username, token = null) => {
 const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     const model = new datasets(knex);
 
-    // Extract username from user
-    const username = user.username;
+    // Extract email from user
+    const email = user.email;
 
     // If the user of this dataset does not match the user, throw error
-    if (!name.includes(username)) {
-        throw new Error(`User ${ username } is not the owner of this dataset`);
+    if (!name.includes(email.replace(/\W+/g, "_"))) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
     }
 
     // Upload metadata
-    await model.createMetadata(name, username, metadata);
+    await model.createMetadata(name, email, metadata);
     // Upload all columns
     const path = `files/uploads/${ name }.json`;
     const data = util.readJSON(path);
@@ -120,8 +120,8 @@ const addTag = async(knex, user, table, tags) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (curr.username !== user) {
-        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    if (curr.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     // If cols is not an array, make it an array
@@ -145,8 +145,8 @@ const addTextCols = async(knex, user, table, cols) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (curr.username !== user) {
-        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    if (curr.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     // If cols is not an array, make it an array
@@ -177,7 +177,7 @@ const updateMetadata = async(knex, user, table, params) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (curr.username !== user) {
+    if (curr.email !== user) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
@@ -277,15 +277,15 @@ const getColumnValues = async(knex, table, column) => {
 }
 
 // Get filtered datasets
-const getFilteredDatasets = async(knex, query, username, page) => {
+const getFilteredDatasets = async(knex, query, email, page) => {
     const model = new datasets(knex);
 
-    const results = await model.getFilteredDatasets(query, username, true, page);
+    const results = await model.getFilteredDatasets(query, email, true, page);
     // Get tags and likes for search results
     for (let i = 0; i < results.length; i++) {
         results[i].tags = await getTags(knex, results[i].table_name);
-        if (username) {
-            results[i].liked = await model.getLike(username, results[i].table_name);
+        if (email) {
+            results[i].liked = await model.getLike(email, results[i].table_name);
         } else {
             results[i].liked = false;
         }
@@ -296,10 +296,10 @@ const getFilteredDatasets = async(knex, query, username, page) => {
 }
 
 // Get count of dataset filter
-const getFilteredDatasetsCount = async(knex, query, username) => {
+const getFilteredDatasetsCount = async(knex, query, email) => {
     const model = new datasets(knex);
 
-    const result = await model.getFilteredDatasetsCount(query, username);
+    const result = await model.getFilteredDatasetsCount(query, email);
     return result;
 }
 
@@ -338,7 +338,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
@@ -402,7 +402,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
@@ -457,7 +457,7 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
@@ -474,7 +474,7 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
@@ -486,23 +486,6 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     return newFilename;
 }
 
-// Get the unique parts of speech in a dataset
-const getUniquePos = async(knex, dataset, user = undefined) => {
-    const model = new datasets(knex);
-
-    // Check dataset metadata to make sure user has access to this dataset
-    const metadata = await model.getMetadata(dataset);
-    if (!metadata.is_public && (!user || metadata.username !== user.username)) {
-        throw new Error(`User ${ user.username } does not have access to the dataset ${ dataset }`);
-    }
-
-    // Download dataset tokens
-    const data = await util.downloadDataset(dataset, metadata.distributed, dataset = false, tokens = true);
-
-    // Return unique values from pos column
-    return [ ...new Set(data.tokens.map(x => x.pos)) ];
-}
-
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -511,8 +494,8 @@ const deleteDataset = async(knex, user, table) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (metadata.username !== user) {
-        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    if (metadata.email !== user) {
+        throw new Error(`User ${ curr.email } is not the owner of this dataset`);
     }
 
     // Delete datasets from s3
@@ -536,8 +519,8 @@ const deleteTag = async(knex, user, table, tag) => {
     const curr = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (curr.username !== user) {
-        throw new Error(`User ${ curr.username } is not the owner of this dataset`);
+    if (curr.email !== user) {
+        throw new Error(`User ${ curr.email } is not the owner of this dataset`);
     }
 
     await model.deleteTag(table, tag);
@@ -573,7 +556,6 @@ module.exports = {
     getFilteredDatasets,
     getFilteredDatasetsCount,
     getRecordsByIds,
-    getUniquePos,
     downloadIds,
     deleteDataset,
     deleteTag,

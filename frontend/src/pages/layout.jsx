@@ -143,7 +143,7 @@ export const Layout = (props) => {
 
             {
               props.user !== undefined && 
-              <ListItemButton component={Link} to={`/profile/${ props.user.username }`} sx = {{ height: "50px" }}>
+              <ListItemButton component={Link} to={`/profile/${ props.user.email }`} sx = {{ height: "50px" }}>
                 <ListItemIcon>
                   <Person />
                 </ListItemIcon>

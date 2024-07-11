@@ -1,18 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Flag from "react-flagkit";
 
 // MUI Imports
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import { FormControl, FormControlLabel, FormGroup, MenuItem, Select, InputLabel } from '@mui/material';
-import Checkbox from '@mui/material/Checkbox';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
+import { 
+    Box, Button, Checkbox,FormControl, FormControlLabel, FormGroup, IconButton, 
+    InputLabel, LinearProgress, MenuItem, Select, Tooltip, Typography
+} from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import LinearProgress from '@mui/material/LinearProgress';
-import Link from '@mui/material/Link';
 
 import { UploadDataset } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
@@ -291,7 +286,7 @@ export const UploadModal = (props) => {
 
                         <FormGroup>
                             <Tooltip arrow title = {(
-                                <p>Word embeddings are a machine learning algorithm that can be used to find similar/different words in the text. This requires a long computation time for large datasets, so it is disabled by default. <Link color = "inherit" href = "https://en.wikipedia.org/wiki/Word_embedding">Learn more about word embeddings here.</Link></p>
+                                <p>Word embeddings are a machine learning algorithm that can be used to find similar/different words in the text. This requires a long computation time for large datasets, so it is disabled by default. <Link color = "inherit" to = "https://en.wikipedia.org/wiki/Word_embedding">Learn more about word embeddings here.</Link></p>
                             )}>
                                 <FormControlLabel control={<Checkbox defaultChecked = {embeddings}/>} label="Compute Word Embeddings" onChange={event => setEmbeddings(!embeddings)}/>
                             </Tooltip>

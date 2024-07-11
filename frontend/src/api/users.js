@@ -17,8 +17,8 @@ const apiConfig = () => {
 };
 
 //I am so sad at this function. :(
-export const getUser = (username) => new Promise((resolve, reject) => {
-    axios.get(`${ baseEndpoint }/${ username }`, apiConfig)
+export const getUser = (email) => new Promise((resolve, reject) => {
+    axios.get(`${ baseEndpoint }/${ email }`, apiConfig)
         .then(x => resolve(x.data))
         .catch(x => {
           alert(x);
@@ -26,8 +26,8 @@ export const getUser = (username) => new Promise((resolve, reject) => {
         });
 });
 
-export const updateUser = async (username, params) => {
-  const res = await axios.put(`${ baseEndpoint }/${username}`,params,apiConfig());
+export const updateUser = async (email, params) => {
+  const res = await axios.put(`${ baseEndpoint }/${email}`,params,apiConfig());
 
   if(res.status !== 200){
     console.error(`Couldn't update user information. ${res.status}`, params)

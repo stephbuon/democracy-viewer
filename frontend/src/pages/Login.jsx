@@ -1,8 +1,9 @@
-import { Avatar, Button, CssBaseline, TextField, Link, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert } from "@mui/material";
+import { Avatar, Button, CssBaseline, TextField, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert } from "@mui/material";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useNavigate} from "react-router-dom";
 import { LoginRequest } from '../apiFolder/LoginRegister';
 import { useState, useEffect  } from "react";
+import { Link } from "react-router-dom";
 
 const theme = createTheme();
 
@@ -42,9 +43,11 @@ export default function Login(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    LoginRequest({username: data.get('email'),
-    password: data.get('password'),}).then(async (res) => {
-      props.login({token: res, username: data.get('email')})
+    LoginRequest({
+      email: data.get('email'),
+      password: data.get('password')
+    }).then(async (res) => {
+      props.login({token: res, email: data.get('email')})
     }).then(()=>{navigate('/')}).catch((err => setLoginFailed(true)));
   };
 
@@ -72,7 +75,7 @@ export default function Login(props) {
               required
               fullWidth
               id="email"
-              label="Username"
+              label="Email"
               name="email"
               autoComplete="email"
               autoFocus
@@ -98,12 +101,12 @@ export default function Login(props) {
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link href="#" variant="body2">
+                <Link to="/password/forgot" variant="body2">
                   Forgot password?
                 </Link>
               </Grid>
               <Grid item>
-                <Link href="/register" variant="body2">
+                <Link to="/register" variant="body2">
                   {"Don't have an account? Sign Up"}
                 </Link>
               </Grid>
@@ -129,7 +132,7 @@ export default function Login(props) {
         onClose={() => setLoginFailed(false)}
     >
         <Alert onClose={() => setLoginFailed(false)} severity="error">
-            Username or password incorrect
+            Email or password incorrect
         </Alert>
     </Snackbar>
     </div>

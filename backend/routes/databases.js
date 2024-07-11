@@ -7,7 +7,7 @@ const { authenticateJWT } = require("../middleware/authentication");
 router.post('/:name', authenticateJWT, async(req, res, next) => {
     try {
         const result = await control.newConnection(
-            req.knex, req.params.name, req.user.username, req.body
+            req.knex, req.params.name, req.user.email, req.body
         );
         res.status(201).json(result);
     } catch (err) {
@@ -20,7 +20,7 @@ router.post('/:name', authenticateJWT, async(req, res, next) => {
 // Route to get connections by user
 router.get('/', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.getConnectionsByUser(req.knex, req.user.username);
+        const result = await control.getConnectionsByUser(req.knex, req.user.email);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get connections by user:', err);

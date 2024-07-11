@@ -2,12 +2,13 @@
 // Imports
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Grid, Snackbar, Alert } from "@mui/material";
+import { Box, Button, Grid, Snackbar, Alert, Container } from "@mui/material";
 import { GraphComponent } from "../common/graphComponent.jsx";
 import { GraphSettings } from "../common/graphSettings.jsx";
 import { getGraph } from "../api/api.js";
-import { Settings, RotateLeft, Loop } from '@mui/icons-material';
+import { Settings, RotateLeft, Loop, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "../common/metrics.js";
+import Plotly from "plotly.js-dist";
 
 export const Graph = (props) => {
   // useState definitions
@@ -79,7 +80,7 @@ export const Graph = (props) => {
         if (!params.group_list || params.group_list.length < 2) {
           keys = ["X", "Y"];
         } else {
-          keys = [params.group_list[0].label, params.group_list[1].label];
+          keys = [params.group_list[0], params.group_list[1]];
         }
         tempData.xLabel = keys[0];
         tempData.yLabel = keys[1];
@@ -159,6 +160,7 @@ export const Graph = (props) => {
         throw new Error(`Metric '${params.metric}' not implimented`)
       }
 
+      tempData.title = metricNames[tempData.metric] + listToString(tempData.titleList);
       localStorage.setItem('graph-data', JSON.stringify(tempData))
       setGraphData(tempData);
       setGraph(true);
@@ -173,12 +175,48 @@ export const Graph = (props) => {
 
   // Resets to blank graph
   const resetGraph = (event) => {
-    debugger;
     setGraph(false);
     localStorage.removeItem("graph-data");
     localStorage.removeItem('selected');
     setSettings(true);
   }
+
+  // Downloads the plot as a png
+  const downloadGraph = (format = "png") => {
+    Plotly.downloadImage("graph", {
+      format: format, 
+      filename: graphData.title
+    });
+  }
+
+  // Generate file name from title string
+  const listToString = (list) => {
+    if (!list || list.length === 0 || data.metric === "embeddings-raw") {
+        return "";
+    }
+
+    let string = " for ";
+    list.forEach((word, i) => {
+        if (list.length == 1) {
+            string += "'" + word + "'";
+        }
+        else if (list.length == 2) {
+            if (i < list.length - 1) {
+                string += "'" + word + "' and ";
+            }
+            else {
+                string += "'" + word + "'";
+            }
+        }
+        else if (i < list.length - 1){
+            string += "'" + word + "'" + ", ";
+
+        } else {
+            string += "and " + "'" + word + "'";
+        }
+    });
+    return string;
+}
 
   // UseEffect: Gets dataset information from local storage
   // Dataset has been selected -> Populates group options array for column name dropdown
@@ -204,7 +242,6 @@ export const Graph = (props) => {
           setGraph(true);
           setSettings(false);
         } else {
-          debugger;
           localStorage.removeItem("graph-data")
         }
       }
@@ -227,37 +264,48 @@ export const Graph = (props) => {
       {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
         updateGraph={updateGraph} generated={graph} />}
 
-      <Box component="div" sx={{ marginLeft: "10%", marginRight: "16px", marginTop: "5%" }}>
+      <Box component="div" sx={{ marginTop: "5%" }}>
         <Grid container justifyContent="center" direction="column">
+          <Container sx={{ py: 4, maxWidth: '70%' }} maxWidth={false}>
+            <Grid container spacing={4} justifyContent="center">
+                {/* {"Open Graph settings button"} */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Button variant="contained"
+                    onClick={handleOpen}
+                    className="mt-2"
+                    sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  ><Settings sx={{ mr: "10px" }}/>Settings</Button>
+                </Grid>
 
-          {/* {"Open Graph settings button"} */}
-          <Grid item xs={12}>
-            <Button variant="contained"
-              onClick={handleOpen}
-              className="mt-2"
-              sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-            ><Settings /> Graph Settings</Button>
-          </Grid>
+                {/* {"Reset graph button"} */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Button variant="contained"
+                    onClick={resetGraph}
+                    className="mt-2"
+                    sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  ><RotateLeft sx={{ mr: "10px" }}/>Reset</Button>
+                </Grid>
 
-          {/* {"Reset graph button"} */}
-          <Grid item xs={12} sx={{ mt: 1.5 }}>
-            <Button variant="contained"
-              onClick={resetGraph}
-              className="mt-2"
-              sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-            ><RotateLeft /> Reset Graph</Button>
-          </Grid>
+                {/* {"Download graph button"} */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Button variant="contained"
+                    onClick={() => downloadGraph()}
+                    className="mt-2"
+                    sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  ><Download sx={{ mr: "10px" }}/>Download</Button>
+                </Grid>
+            </Grid>
+          </Container>
 
           {/* {"Graph component if graph exists"} */}
-          <Grid item xs={12}>
-            {/* Graph */}
+          <Grid item xs="auto">
             {loading && (
               <Box
                 sx={{
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  height: '50vh',
+                  mt: "50px"
                 }}
               >
                 <Loop sx={{ fontSize: 80 }} />
@@ -265,7 +313,6 @@ export const Graph = (props) => {
             )}
             {graph && <GraphComponent border data={graphData} setData={setData} />}
           </Grid>
-
         </Grid>
       </Box>
     </>

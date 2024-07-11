@@ -37,7 +37,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
         });
 
         if (Object.keys(output).length > 0) {
-            updateUser(user.username, output).then(x => {
+            updateUser(user.email, output).then(x => {
                 setUser(x);
             });
         }
@@ -63,21 +63,11 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormattedTextField
-                                id="username"
-                                label="Username"
-                                defaultValue={user.username}
-                                disabled
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <FormattedTextField
                                 id="email"
                                 label="Email Address"
                                 defaultValue={user.email}
                                 email
-                                maxChars={30}
-                                setValid={setValid}
-                                autoComplete="email"
+                                disabled
                             />
                         </Grid>
                         <Grid item xs={12}>

@@ -9,12 +9,12 @@ const accessTokenSecret = process.env.TOKEN_SECRET;
 const authenticateUser = async(knex, body) => {
     const model = new users(knex)
 
-    const username = body.username;
-    const curr = await model.authenticateUser(username, body.password);
+    const email = body.email;
+    const curr = await model.authenticateUser(email, body.password);
     if (curr === false) {
         return null;
     }
-    const user_ = await model.findUserByUsername(username);
+    const user_ = await model.findUserByEmail(email);
     const accessToken = jwt.sign({ ...user_ }, accessTokenSecret);
 
     return accessToken;

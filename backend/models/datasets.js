@@ -32,11 +32,11 @@ class datasets {
     }
 
     // Add initial metadata for a table
-    async createMetadata(table_name, username, metadata = undefined) {
+    async createMetadata(table_name, email, metadata = undefined) {
         if (typeof metadata === "object") {
-            await this.knex(metadata_table).insert({ ...metadata, table_name, username, date_posted: new Date() });
+            await this.knex(metadata_table).insert({ ...metadata, table_name, email, date_posted: new Date() });
         } else {
-            await this.knex(metadata_table).insert({ table_name, username, is_public: 0, date_posted: new Date() });
+            await this.knex(metadata_table).insert({ table_name, email, is_public: 0, date_posted: new Date() });
         }
         
         const record = await this.knex(metadata_table).where({ table_name });
@@ -71,9 +71,9 @@ class datasets {
     }
 
     // Like a dataset
-    async addLike(user, table_name) {
-        await this.knex(likes_table).insert({ user, table_name });
-        const record = await this.knex(likes_table).where({ user, table_name });
+    async addLike(email, table_name) {
+        await this.knex(likes_table).insert({ email, table_name });
+        const record = await this.knex(likes_table).where({ email, table_name });
         return record[0];
     }
 
@@ -87,20 +87,6 @@ class datasets {
     // Increment the dataset's clicks
     async incClicks(table_name) {
         const update = await this.knex(metadata_table).where({ table_name }).increment("clicks", 1);
-        const record = await this.knex(metadata_table).where({ table_name });
-        return record[0];
-    }
-
-    // Increment the dataset's likes
-    async incLikes(table_name) {
-        const update = await this.knex(metadata_table).where({ table_name }).increment("likes", 1);
-        const record = await this.knex(metadata_table).where({ table_name });
-        return record[0];
-    }
-
-    // Decrement the dataset's likes
-    async decLikes(table_name) {
-        const update = await this.knex(metadata_table).where({ table_name }).decrement("likes", 1);
         const record = await this.knex(metadata_table).where({ table_name });
         return record[0];
     }
@@ -136,7 +122,7 @@ class datasets {
     }
 
     // Filter datasets
-    async getFilteredDatasets(params, username, paginate = true, currentPage = 1) {
+    async getFilteredDatasets(params, email, paginate = true, currentPage = 1) {
         const query = this.knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .leftJoin(likes_table, `${ metadata_table }.table_name`, `${ likes_table }.table_name`)
@@ -148,30 +134,27 @@ class datasets {
                     q.where({ is_public: true });
                 } else if (type === "private") {
                     // Get private datasets
-                    if (!username) {
+                    if (!email) {
                         // Throw error if user is not logged in
                         throw new Error("Cannot find private datasets if user is not logged in.");
                     }
 
                     // Get private datasets created by this user
-                    q.where({ is_public: false, username });
+                    q.where({ is_public: false, "dataset_metadata.email": email });
                 } else {
                     // Get private and public datasets
                     q.where(q => {
                         q.orWhere({ is_public: true });
-                        if (username) {
-                            q.orWhere({ is_public: false, username });
+                        if (email) {
+                            q.orWhere({ is_public: false, "dataset_metadata.email": email });
                         }
                     });
                 }
 
                 // Filter by user
-                const user = params.username;
+                const user = params.email;
                 if (user) {
-                    const terms = user.split(" ");
-                    terms.forEach(term => {
-                        q.whereILike("username", `%${ term }%`);
-                    });
+                    q.whereILike("dataset_metadata.email", `%${ user }%`);
                 }
 
                 // Filter by private group
@@ -226,7 +209,7 @@ class datasets {
                 // Search for liked datasets
                 const liked = params.liked;
                 if (liked) {
-                    q.where(`${ likes_table }.user`, liked);
+                    q.where(`${ likes_table }.email`, liked);
                 }
             });
 
@@ -239,14 +222,12 @@ class datasets {
             results = await query;
         }
 
-        
-
         return results;
     }
 
     // Get the number of datasets for a given set of filters
-    async getFilteredDatasetsCount(params, username) {
-        const results = await this.getFilteredDatasets(params, username, false);
+    async getFilteredDatasetsCount(params, email) {
+        const results = await this.getFilteredDatasets(params, email, false);
         return results.length;
     }
 
@@ -257,8 +238,8 @@ class datasets {
     }
 
     // Determine if a given user liked a given dataset
-    async getLike(user, table_name) {
-        const results = await this.knex(likes_table).where({ user, table_name });
+    async getLike(email, table_name) {
+        const results = await this.knex(likes_table).where({ email, table_name });
         return results.length > 0;
     }
 
@@ -275,8 +256,8 @@ class datasets {
     }
 
     // Delete a user's liked table
-    async deleteLike(user, table_name) {
-        await this.knex(likes_table).where({ user, table_name }).delete();
+    async deleteLike(email, table_name) {
+        await this.knex(likes_table).where({ email, table_name }).delete();
     }
 }
 

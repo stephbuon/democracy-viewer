@@ -15,7 +15,7 @@ router.post('/', authenticateJWT, async(req, res, next) => {
             res.status(400).json({ message: "No uploaded file" });
         } else {
             // Create dataset in database from file
-            const result = await control.createDataset(req.file.path, req.user.username);
+            const result = await control.createDataset(req.file.path, req.user.email);
             res.status(201).json(result);
         }
         
@@ -29,7 +29,7 @@ router.post('/', authenticateJWT, async(req, res, next) => {
 // Route to create a dataset via an api
 router.post('/api', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.createDatasetAPI(req.body.endpoint, req.user.username, req.body.token);
+        const result = await control.createDatasetAPI(req.body.endpoint, req.user.email, req.body.token);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to create dataset via API:', err);
@@ -53,7 +53,7 @@ router.post('/upload', authenticateJWT, async(req, res, next) => {
 // Route to add a tag for a dataset
 router.post('/tags', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.addTag(req.knex, req.user.username, req.body.dataset, req.body.tags);
+        const result = await control.addTag(req.knex, req.user.email, req.body.dataset, req.body.tags);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to add dataset tag:', err);
@@ -65,7 +65,7 @@ router.post('/tags', authenticateJWT, async(req, res, next) => {
 // Route to add one or more text columns to a dataset
 router.post('/text', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.addTextCols(req.knex, req.user.username, req.body.dataset, req.body.cols);
+        const result = await control.addTextCols(req.knex, req.user.email, req.body.dataset, req.body.cols);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to add dataset text column(s):', err);
@@ -77,7 +77,7 @@ router.post('/text', authenticateJWT, async(req, res, next) => {
 // Route to like a dataset
 router.post('/like/:table', authenticateJWT, async(req, res, next) => {
     try {
-        await control.addLike(req.knex, req.user.username, req.params.table);
+        await control.addLike(req.knex, req.user.email, req.params.table);
         res.status(201).end();
     } catch (err) {
         console.error('Failed to add dataset text column(s):', err);
@@ -89,7 +89,7 @@ router.post('/like/:table', authenticateJWT, async(req, res, next) => {
 // Route to change dataset metadata
 router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.updateMetadata(req.knex, req.user.username, req.params.table, req.body);
+        const result = await control.updateMetadata(req.knex, req.user.email, req.params.table, req.body);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to update dataset metadata:', err);
@@ -175,7 +175,7 @@ router.get('/filter/:page', async(req, res, next) => {
     try {
         let results;
         if (req.user) {
-            results = await control.getFilteredDatasets(req.knex, req.query, req.user.username, req.params.page);
+            results = await control.getFilteredDatasets(req.knex, req.query, req.user.email, req.params.page);
         } else {
             results = await control.getFilteredDatasets(req.knex, req.query, undefined, req.params.page);
         }
@@ -192,7 +192,7 @@ router.get('/count/filter', async(req, res, next) => {
     try {
         let result;
         if (req.user) {
-            result = await control.getFilteredDatasetsCount(req.knex, req.query, req.user.username);
+            result = await control.getFilteredDatasetsCount(req.knex, req.query, req.user.email);
         } else {
             result = await control.getFilteredDatasetsCount(req.knex, req.query, undefined);
         }
@@ -220,7 +220,7 @@ router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
 router.get('/download/subset/:table', async(req, res, next) => {
     try {
         // Generate file
-        const result = await control.downloadSubset(req.knex, req.params.table, req.query, req.user ? req.user.username : undefined);
+        const result = await control.downloadSubset(req.knex, req.params.table, req.query, req.user ? req.user.email : undefined);
         // Download file
         res.status(200).download(result, (err) => {
             // Error handling
@@ -294,22 +294,10 @@ router.get('/columns/:table/values/:column', async(req, res, next) => {
     next();
 });
 
-// Route to get dataset records by ids
-router.get('/pos/:table', async(req, res, next) => {
-    try {
-        const result = await control.getUniquePos(req.knex, req.params.table, req.user);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get dataset parts of speech:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
 // Route to delete a datset and its metadata
 router.delete('/:table', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.deleteDataset(req.knex, req.user.username, req.params.table);
+        const result = await control.deleteDataset(req.knex, req.user.email, req.params.table);
         res.status(204).json(result);
     } catch (err) {
         console.error('Failed to get dataset records:', err);
@@ -321,7 +309,7 @@ router.delete('/:table', authenticateJWT, async(req, res, next) => {
 // Route to delete the given tag on the given dataset
 router.delete('/:table/tags/:tag', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.deleteTag(req.knex, req.user.username, req.params.table, req.params.tag);
+        const result = await control.deleteTag(req.knex, req.user.email, req.params.table, req.params.tag);
         res.status(204).json(result);
     } catch (err) {
         console.error('Failed to delete tag:', err);
@@ -333,7 +321,7 @@ router.delete('/:table/tags/:tag', authenticateJWT, async(req, res, next) => {
 // Route to delete a text col for a dataset
 router.delete('/:table/text/:col', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.deleteTextCol(req.knex, req.user.username, req.params.table, req.params.col);
+        const result = await control.deleteTextCol(req.knex, req.user.email, req.params.table, req.params.col);
         res.status(204).json(result);
     } catch (err) {
         console.error('Failed to delete text column:', err);
@@ -345,7 +333,7 @@ router.delete('/:table/text/:col', authenticateJWT, async(req, res, next) => {
 // Route to delete a user's like
 router.delete('/like/:table', authenticateJWT, async(req, res, next) => {
     try {
-        await control.deleteLike(req.knex, req.user.username, req.params.table);
+        await control.deleteLike(req.knex, req.user.email, req.params.table);
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete like:', err);

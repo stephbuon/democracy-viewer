@@ -18,7 +18,7 @@ export const AdvancedFilter = (props) => {
     //values
     // const [searchTerm, setSearchTerm] = useState('');
     const [title, setTitle] = useState('');
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(true);
     const [selectedTags, setSelectedTags] = useState([]);
     const [description, setDescription] = useState('');
@@ -28,7 +28,7 @@ export const AdvancedFilter = (props) => {
         const filter = {
             title: title ? title : null,
             description: description ? description : null,
-            username: username ? username : null,
+            email: email ? email : null,
             type: publicPrivate ? 'public' : 'private',
             tag: selectedTags.length > 0 ? selectedTags.map(x => x.value) : null,
             advanced: true
@@ -122,8 +122,8 @@ export const AdvancedFilter = (props) => {
                             background: 'rgb(255, 255, 255)',
                             color: 'rgb(0, 0, 0)'
                         }}
-                        value={username}
-                        onChange={event => { setUsername(event.target.value) }}
+                        value={email}
+                        onChange={event => { setEmail(event.target.value) }}
                     />
                 </Box>
 

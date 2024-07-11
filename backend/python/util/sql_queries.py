@@ -54,12 +54,12 @@ def complete_processing(engine: Engine, table_name: str, processing_type: str) -
         conn.execute(query)
         conn.commit()
 
-# Get a user record by username
-def get_user(engine: Engine, meta: MetaData, username: str) -> dict:
+# Get a user record by email
+def get_user(engine: Engine, meta: MetaData, email: str) -> dict:
     # Make query
     query = (
         select(Users)
-            .where(Users.username == username)
+            .where(Users.email == email)
     )
     with engine.connect() as conn:
         for row in conn.execute(query):
