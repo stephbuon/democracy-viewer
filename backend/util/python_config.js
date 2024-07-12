@@ -19,7 +19,7 @@ const runPython = async(script, args, database = undefined) => {
     }
 
     // Run python program to upload dataset
-    await python.run(script, options).then(x => console.log(x)).catch(x => {
+    await python.run(`python/${ script }`, options).then(x => console.log(x)).catch(x => {
         console.error(x);
         throw new Error(x);
     });

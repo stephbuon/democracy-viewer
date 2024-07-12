@@ -1,5 +1,4 @@
 import { React, useState, useEffect } from "react";
-import { upload } from "../api/api.js";
 
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';

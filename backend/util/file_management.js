@@ -152,7 +152,7 @@ const downloadDataset = async(name, distributed, dataset = false, tokens = false
     }
 
     // Download data from s3 with python
-    await runPython("python/download_dataset.py", [name, downloadType], distributed);
+    await runPython("download_dataset.py", [name, downloadType], distributed);
 
     // Update output
     if (dataset) {

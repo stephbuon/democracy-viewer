@@ -1,9 +1,10 @@
-import { Avatar, Button, CssBaseline, TextField, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert } from "@mui/material";
+import { Avatar, Button, CssBaseline, TextField, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert, Modal } from "@mui/material";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useNavigate} from "react-router-dom";
 import { LoginRequest } from '../apiFolder/LoginRegister';
 import { useState, useEffect  } from "react";
 import { Link } from "react-router-dom";
+import { PasswordResetModal } from "./PasswordResetModal";
 
 const theme = createTheme();
 
@@ -11,6 +12,7 @@ export default function Login(props) {
   const navigate = useNavigate();
   const [snackBarOpen1, setSnackBarOpen1] = useState(false);
   const [loginFailed, setLoginFailed] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const openSnackbar1 = () => {
     setSnackBarOpen1(true)
@@ -51,7 +53,14 @@ export default function Login(props) {
     }).then(()=>{navigate('/')}).catch((err => setLoginFailed(true)));
   };
 
-  return (<div>
+  return <>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      >
+        <PasswordResetModal setModalOpen={setModalOpen}/>
+      </Modal>
+
     <ThemeProvider theme={theme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
@@ -101,7 +110,7 @@ export default function Login(props) {
             </Button>
             <Grid container>
               <Grid item xs>
-                <Link to="/password/forgot" variant="body2">
+                <Link to="#" variant="body2" onClick={() => setModalOpen(true)}>
                   Forgot password?
                 </Link>
               </Grid>
@@ -135,6 +144,5 @@ export default function Login(props) {
             Email or password incorrect
         </Alert>
     </Snackbar>
-    </div>
-  );
+  </>;
 }

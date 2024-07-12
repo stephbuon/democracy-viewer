@@ -12,12 +12,12 @@ CREATE TABLE users (
     website VARCHAR(50)
 );
 
-CREATE TABLE password_reset_tokens (
-    token VARCHAR(255) PRIMARY KEY,
-    created_at VARCHAR(255) NOT NULL,
-    expires_at VARCHAR(255) NOT NULL,
-    email VARCHAR(30),
-    FOREIGN KEY(email) REFERENCES users(email)
+CREATE TABLE password_reset_codes (
+    email VARCHAR(30) PRIMARY KEY,
+    code VARCHAR(60) NOT NULL,
+    expires DATETIME NOT NULL,
+    used BOOLEAN DEFAULT FALSE NOT NULL,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
 );
 
 CREATE TABLE distributed_connections (
