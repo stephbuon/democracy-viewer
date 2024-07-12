@@ -74,7 +74,7 @@ export default function Register(props) {
         delete data[x];
       }
     });
-    debugger;
+
     getUser(data.email).then(user => {
       if (!user) {
         RegisterRequest(data).then(async (res) => {
