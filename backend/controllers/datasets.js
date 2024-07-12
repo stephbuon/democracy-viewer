@@ -18,7 +18,7 @@ const createDataset = async(path, email) => {
     util.renameFile(path, newName);
 
     // Get the first 5 records from the dataset
-    await runPython("python/get_head.py", [ newName ]);
+    await runPython("get_head.py", [ newName ]);
     const data = util.readJSON(newName.replace(extension, "json"), false)
 
     return {
@@ -105,11 +105,11 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     }
     
     // Upload raw data to s3
-    await runPython("python/upload_dataset.py", [ name, path.replace(".json", ".csv") ], metadata.distributed);
+    await runPython("upload_dataset.py", [ name, path.replace(".json", ".csv") ], metadata.distributed);
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    await runPython("python/preprocessing.py", [ name ], metadata.distributed);
+    await runPython("preprocessing.py", [ name ], metadata.distributed);
 }
 
 // Add a tag for a dataset
@@ -204,7 +204,7 @@ const updateText = async(knex, table, params) => {
     // Run python program to replace text
     const paramsFile = `files/python/input/${ table }_${ Date.now() }.json`
     util.generateJSON(paramsFile, params);
-    await runPython("python/update_text.py", [table, paramsFile], metadata.distributed);
+    await runPython("update_text.py", [table, paramsFile], metadata.distributed);
 
     // Delete all files for this dataset to reset them
     util.deleteDatasetFiles(table);
@@ -499,7 +499,7 @@ const deleteDataset = async(knex, user, table) => {
     }
 
     // Delete datasets from s3
-    await runPython("python/delete_dataset.py", [table], metadata.distributed);
+    await runPython("delete_dataset.py", [table], metadata.distributed);
 
     // Delete metadata
     // This will delete tags and columns via cascade

@@ -197,3 +197,26 @@ export const graphIds = (table, params) => new Promise((resolve, reject) => {
     reject(x);
   });
 });
+
+export const createResetPasswordCode = (email) => new Promise((resolve, reject) => {
+  axios.post(`${ baseURL }/users/reset/${ email }`, {}).then(x => resolve(x.data)).catch(x => {
+    // alert(x);
+    reject(x);
+  });
+});
+
+export const verifyResetPasswordCode = (email, code) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/users/reset/verify/${ email }`, { params: { code } }).then(x => resolve(x.data)).catch(x => {
+    // alert(x);
+    reject(x);
+  });
+});
+
+export const resetPassword = (email, password, code) => new Promise((resolve, reject) => {
+  axios.put(`${ baseURL }/users/reset/${ email }`, {
+    password, code
+  }).then(x => resolve(x.data)).catch(x => {
+    // alert(x);
+    reject(x);
+  });
+});

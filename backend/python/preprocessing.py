@@ -133,15 +133,6 @@ params = {
     "title": metadata["title"],
     "time": round(final_time, 3)
 }
-# Set name based on provided fields
-name = "{} {}".format(user["first_name"], user["last_name"])
-title = user["title"]
-suffix = user["suffix"]
-if title is not None:
-    name = "{} {}".format(title, name)
-if suffix is not None:
-    name = "{} {}".format(name, suffix)
-params["name"] = name
 
 send_email("processing_complete", params, "Processing Complete", user["email"])
 print("Email sent to", user["email"])
