@@ -109,7 +109,7 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    await runPython("preprocessing.py", [ name ], metadata.distributed);
+    // await runPython("preprocessing.py", [ name ], metadata.distributed);
 }
 
 // Add a tag for a dataset
