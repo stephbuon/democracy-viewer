@@ -93,6 +93,16 @@ export const Result = (props) => {
         props.setDataset(newDataset);
     }
 
+    const onDelete = () => {
+        deleteDataset(dataset.table_name).then(x => {
+            if (props.deleteCallback) {
+                props.deleteCallback();
+            } else {
+                window.location.reload();
+            }
+        });
+    }
+
     useEffect(() => {
         if (infoDisabled && (title !== dataset.title || publicPrivate != dataset.is_public || description !== dataset.description || author !== dataset.author || date !== dataset.date)) {
             setInfoDisabled(false);
@@ -232,7 +242,7 @@ export const Result = (props) => {
                                 setOpen={setDeleteOpen}
                                 titleText={`Are you sure you want to delete the dataset "${ dataset.title }"?`}
                                 bodyText={"This action cannot be undone."}
-                                action={() => deleteDataset(dataset.table_name).then(x => window.location.reload())}
+                                action={() => onDelete()}
                             />
                         </>
                     }

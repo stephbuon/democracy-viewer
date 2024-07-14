@@ -72,6 +72,8 @@ const Profile = (props) => {
             getUser(params.email).then(x => setUser(x));
             if (props.currUser && props.currUser.email === params.email) {
                 setEditable(true);
+            } else {
+                setEditable(false);
             }
         }
         else if (props.currUser) {
@@ -83,7 +85,7 @@ const Profile = (props) => {
 
         GetNewPage(1);
         getNewLikePage(1);
-    }, [params.email]);
+    }, [params.email, props.currUser]);
 
     if (!user) {
         return <></>
@@ -103,7 +105,7 @@ const Profile = (props) => {
                                 : theme.palette.grey[900],
                         flexGrow: 1,
                         height: '100vh',
-                        overflow: 'auto',
+                        overflow: 'auto'
                     }}
                 >
                     <Toolbar />
@@ -169,7 +171,7 @@ const Profile = (props) => {
                                     )}
                                 </Paper>
                             </Grid>
-                            <Grid  item xs={12} md={6}>
+                            <Grid item xs={12} md={6}>
                                 <Paper
                                     elevation={12}
                                     sx={{
@@ -190,6 +192,7 @@ const Profile = (props) => {
                                         editable={editable}
                                         totalNumResults={totalNumOfResults}
                                         pageLength={pageLength}
+                                        deleteCallback={() => GetNewPage(1)}
                                     />
                                 </Paper>
                             </Grid>
