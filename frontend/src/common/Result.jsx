@@ -13,6 +13,7 @@ import { DatasetTags } from './DatasetTags';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
+import { getUser } from '../api/users';
 
 export const Result = (props) => {
     const navigate = useNavigate();
@@ -23,6 +24,7 @@ export const Result = (props) => {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    const [userName, setUserName] = useState(undefined);
     const [title, setTitle] = useState(dataset.title);
     const [publicPrivate, setPublicPrivate] = useState(dataset.is_public);
     const [description, setDescription] = useState(dataset.description);
@@ -129,6 +131,12 @@ export const Result = (props) => {
             setLoggedIn(false);
         }
     }, [props.result]);
+
+    useEffect(() => {
+        if (open && !userName) {
+            getUser(dataset.email).then(user => setUserName(`${ user.first_name } ${ user.last_name }`));
+        }
+    }, [open]);
 
     return <div>
             <Box 
@@ -309,7 +317,15 @@ export const Result = (props) => {
                                 <b> Author </b>
                             </TableCell>
                             <TableCell sx={{textAlign: "left"}}>
-                                <Link to={`/profile/${ dataset.email }`}>{dataset.email}</Link>
+                                <Link to={`/profile/${ dataset.email }`}>
+                                {
+                                    userName !== undefined && userName
+                                }
+
+                                {
+                                    userName === undefined && dataset.email
+                                }
+                                </Link>
                             </TableCell>
                             
                         </TableRow>
@@ -412,7 +428,7 @@ export const Result = (props) => {
                             }}
                             onClick={() => {
                                 chooseDataset()
-                                navigate('/subsetSearch');
+                                navigate('/subsetsearch');
                             }}
                         >
                             Subset Search
