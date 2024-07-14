@@ -4,11 +4,12 @@ import {
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
-import { getUser } from "../api/users";
+import { getUser, deleteAccount } from "../api/users";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./EditProfile";
 import { DatasetTable } from "../common/DatasetTable";
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
+import { AlertDialog } from "../common/AlertDialog";
 
 const mdTheme = createTheme();
 
@@ -16,10 +17,12 @@ const pageLength = 5;
 
 const Profile = (props) => {
     const navigate = useNavigate();
+    const params = useParams();
 
     const [user, setUser] = useState(undefined);
     const [editable, setEditable] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
 
     const [loadingResults, setLoadingResults] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
@@ -65,7 +68,11 @@ const Profile = (props) => {
         });
     }
 
-    const params = useParams();
+    const onDelete = () => {
+        deleteAccount();
+        props.logout();
+        navigate("/");
+    }
 
     useEffect(() => {
         if (params.email) {
@@ -159,16 +166,40 @@ const Profile = (props) => {
                                         )}
                                         
                                     </List>
-                                    {editable === true && (
-                                        <Button
-                                            variant="contained"
-                                            component="label"
-                                            sx={{ mb: 5, mt: 1,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }}
-                                            onClick={() => setModalOpen(true)}
-                                        >
-                                            Edit Profile
-                                        </Button>
-                                    )}
+                                    {
+                                        editable === true && <>
+                                            <Grid container justifyContent="center" sx={{ mb: 3, mt: 2 }}>
+                                                <Grid item xs={12} sm={6} md={4}>
+                                                    <Button
+                                                        variant="contained"
+                                                        component="label"
+                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }}
+                                                        onClick={() => setModalOpen(true)}
+                                                    >
+                                                        Edit Profile
+                                                    </Button>
+                                                </Grid>
+
+                                                <Grid item xs={12} sm={6} md={4}>
+                                                    <Button 
+                                                        variant="contained"
+                                                        component="label"
+                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }} 
+                                                        onClick={() => setDeleteOpen(true)}
+                                                    >
+                                                        Delete Account
+                                                    </Button>
+                                                    <AlertDialog
+                                                        open={deleteOpen}
+                                                        setOpen={setDeleteOpen}
+                                                        titleText={`Are you sure you want to delete your account?`}
+                                                        bodyText={"This action cannot be undone."}
+                                                        action={() => onDelete()}
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </>
+                                    }
                                 </Paper>
                             </Grid>
                             <Grid item xs={12} md={6}>

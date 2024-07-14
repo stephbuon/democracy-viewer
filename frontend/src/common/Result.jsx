@@ -226,15 +226,16 @@ export const Result = (props) => {
                             />
 
                             <Button 
-                            variant="contained" 
-                            disableElevation
-                            fullWidth={true}
-                            sx={{  
-                                borderRadius: 0, 
-                                width: "100%", 
-                                bgcolor: '#B3B3B3', 
-                                color: 'white' }} 
-                            onClick={() => setDeleteOpen(true)}>
+                                variant="contained" 
+                                disableElevation
+                                fullWidth={true}
+                                sx={{  
+                                    borderRadius: 0, 
+                                    width: "100%", 
+                                    bgcolor: '#B3B3B3', 
+                                    color: 'white' }} 
+                                onClick={() => setDeleteOpen(true)}
+                            >
                                 Delete
                             </Button>
                             <AlertDialog

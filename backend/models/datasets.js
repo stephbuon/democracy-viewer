@@ -152,7 +152,7 @@ class datasets {
                 }
 
                 // Filter by user
-                const user = params.email;
+                const user = params.user;
                 if (user) {
                     q.whereILike("dataset_metadata.email", `%${ user }%`);
                 }
