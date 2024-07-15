@@ -110,6 +110,7 @@ CREATE TABLE liked_datasets (
 
 CREATE TABLE text_updates (
     id SERIAL PRIMARY KEY,
+    post_date DATE NOT NULL,
     email VARCHAR(30) NOT NULL,
     table_name VARCHAR(100) NOT NULL,
     idx INT UNSIGNED NOT NULL,

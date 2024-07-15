@@ -3,6 +3,7 @@ const tag_table = "tags";
 const all_col_table = "dataset_all_cols";
 const text_col_table = "dataset_text_cols";
 const likes_table = "liked_datasets";
+const suggestion_table = "text_updates";
 
 class datasets {
     constructor(knex) {
@@ -75,6 +76,11 @@ class datasets {
         await this.knex(likes_table).insert({ email, table_name });
         const record = await this.knex(likes_table).where({ email, table_name });
         return record[0];
+    }
+
+    // Add a text change suggestion
+    async addSuggestion(email, params) {
+        await this.knex(suggestion_table).insert({ email, post_date, ...params });
     }
 
     // Update the metadata of a table
@@ -215,7 +221,7 @@ class datasets {
 
         let results;
         if (paginate) {
-            const perPage = params.pageLength ? params.pageLength : 50;
+            const perPage = params.pageLength ? params.pageLength : 10;
             results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
             results = results.data;
         } else {
@@ -243,6 +249,50 @@ class datasets {
         return results.length > 0;
     }
 
+    // Get paginated suggestions from a given user
+    async getSuggestionsFrom(email, currentPage = 1, perPage = 10, sort_col = undefined, ascending = true) {
+        const query = this.knex(suggestion_table)
+            .select(`${ suggestion_table }.*`, `${ metadata_table }.title`, { owner_email: `${ metadata_table }.email`})
+            .distinct()
+            .leftJoin(metadata_table, `${ suggestion_table }.table_name`, `${ metadata_table }.table_name`)
+            .where({ email });
+        
+        if (sort_col) {
+            query.orderBy(sort_col, ascending ? "asc" : "desc");
+        }
+
+        const results = await query.paginate({ currentPage, perPage });
+        return {
+            data: results.data,
+            total: results.pagination.total
+        }
+    }
+
+    // Get paginated suggestions to a given user
+    async getSuggestionsFor(email, currentPage = 1, perPage = 10, sort_col = undefined, ascending = true) {
+        const query = this.knex(suggestion_table)
+            .select(`${ suggestion_table }.*`, `${ metadata_table }.title`, `${ metadata_table }.distributed`, { owner_email: `${ metadata_table }.email`})
+            .distinct()
+            .leftJoin(metadata_table, `${ suggestion_table }.table_name`, `${ metadata_table }.table_name`)
+            .where(`${ metadata_table }.email`, email);
+
+            if (sort_col) {
+                query.orderBy(sort_col, ascending ? "asc" : "desc");
+            }
+    
+            const results = await query.paginate({ currentPage, perPage });
+            return {
+                data: results.data,
+                total: results.pagination.total
+            }
+    }
+
+    // Get a suggestion by its id
+    async getSuggestion(id) {
+        const record = await this.knex(suggestion_table).where({ id });
+        return record[0];
+    }
+
     // Delete a dataset's metadata
     async deleteMetadata(table_name) {
         const del = await this.knex(metadata_table).where({ table_name }).delete();
@@ -258,6 +308,16 @@ class datasets {
     // Delete a user's liked table
     async deleteLike(email, table_name) {
         await this.knex(likes_table).where({ email, table_name }).delete();
+    }
+
+    // Delete a suggestion by its id
+    async deleteSuggestionById(id) {
+        await this.knex(suggestion_table).where({ id }).delete();
+    }
+
+    // Delete suggestions by user
+    async deleteSuggestsionsByUser(email) {
+        await this.knex(suggestion_table).where({ email }).delete();
     }
 }
 

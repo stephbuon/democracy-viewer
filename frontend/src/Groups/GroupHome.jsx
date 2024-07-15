@@ -106,7 +106,7 @@ const theme = createTheme();
                       </Typography>
                     </CardContent>
                     <CardActions style={{ justifyContent: 'center' }}>
-                      <Button href="/datasetsearch" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
+                      <Button href="/datasets/search" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
                     </CardActions>
                   </Card>
                 </Grid>
@@ -135,7 +135,7 @@ const theme = createTheme();
                       </Typography>
                     </CardContent>
                     <CardActions style={{ justifyContent: 'center' }}>
-                      <Button href="/subsetsearch" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
+                      <Button href="/datasets/subsets/search" variant="contained" sx={{ borderRadius: 50 }}>SELECT</Button>
                     </CardActions>
                   </Card>
     

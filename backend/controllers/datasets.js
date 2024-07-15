@@ -169,6 +169,14 @@ const addLike = async(knex, user, table) => {
     await model.addLike(user, table);
 }
 
+// Add a text suggestions
+const addSuggestion = async(knex, user, params) => {
+    const model = new datasets(knex);
+
+    const post_date = new Date();
+    await model.addSuggestion(user, { ...params, post_date });
+}
+
 // Update a dataset's metadata
 const updateMetadata = async(knex, user, table, params) => {
     const model = new datasets(knex);
@@ -195,11 +203,16 @@ const incClicks = async(knex, table) => {
 }
 
 // Update the text of a dataset
-const updateText = async(knex, table, params) => {
+const updateText = async(knex, id, user) => {
     const model = new datasets(knex);
 
-    // Get metadata to check if the dataset is in a distributed connection
-    const metadata = await model.getMetadata(table);
+    const params = await model.getSuggestion(id);
+    const curr = await model.getMetadata(params.table_name);
+
+    // If the user of this table does not match the user, throw error
+    if (curr.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
 
     // Run python program to replace text
     const paramsFile = `files/python/input/${ table }_${ Date.now() }.json`
@@ -304,7 +317,7 @@ const getFilteredDatasetsCount = async(knex, query, email) => {
 }
 
 // Get the 2 letter language code for a given language
-const getLanguage = async(language) => {
+const getLanguage = (language) => {
     if (language === "Chinese") {
         return "zh";
     } else if (language === "English") {
@@ -486,6 +499,75 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     return newFilename;
 }
 
+// Get text suggestions from a given user
+const getSuggestionsFrom = async(knex, user, params) => {
+    const model = new datasets(knex);
+
+    const records = await model.getSuggestionsFrom(user, params.page, params.pageLength, params.sort_col, params.ascending);
+
+    // Get user names and old text
+    const names = {};
+    const data = {};
+    for (let i = 0; i < records.data.length; i++) {
+        // User name
+        const email = records.data[i].owner_email;
+        let name = names[email]; 
+        if (!name) {
+            name = await getName(knex, email);
+            names[email] = name;
+        }
+        records.data[i].name = name;
+
+        // Old text
+        const table_name = records.data[i].table_name;
+        let curr = data[table_name];
+        if (!curr) {
+            const temp = await util.downloadDataset(table_name, records.data[i].distributed, true);
+            curr = temp.dataset;
+            data[table_name] = curr;
+        }
+        const str = String(curr[records.data[i].idx][Object.keys(curr[0])[records.data[i].col]])
+        records.data[i].old_text = str.slice(records.data[i].start, records.data[i].end);
+    }
+
+    return records;
+}
+
+// Get text suggestions for a given user
+const getSuggestionsFor = async(knex, user, params) => {
+    const getName = require("../controllers/users").getName;
+    const model = new datasets(knex);
+
+    const records = await model.getSuggestionsFor(user, params.page, params.pageLength, params.sort_col, params.ascending);
+
+    // Get user names and old text
+    const names = {};
+    const data = {};
+    for (let i = 0; i < records.data.length; i++) {
+        // User name
+        const email = records.data[i].email;
+        let name = names[email]; 
+        if (!name) {
+            name = await getName(knex, email);
+            names[email] = name;
+        }
+        records.data[i].name = name;
+
+        // Old text
+        const table_name = records.data[i].table_name;
+        let curr = data[table_name];
+        if (!curr) {
+            const temp = await util.downloadDataset(table_name, records.data[i].distributed, true);
+            curr = temp.dataset;
+            data[table_name] = curr;
+        }
+        const str = String(curr[records.data[i].idx][Object.keys(curr[0])[records.data[i].col]])
+        records.data[i].old_text = str.slice(records.data[i].start, records.data[i].end);
+    }
+
+    return records;
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -507,8 +589,6 @@ const deleteDataset = async(knex, user, table) => {
 
     // Delete local files for dataset
     util.deleteDatasetFiles(table);
-
-    return null;
 }
 
 // Delete the given tag for the given dataset
@@ -520,12 +600,10 @@ const deleteTag = async(knex, user, table, tag) => {
 
     // If the user of this table does not match the user, throw error
     if (curr.email !== user) {
-        throw new Error(`User ${ curr.email } is not the owner of this dataset`);
+        throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     await model.deleteTag(table, tag);
-
-    return null;
 }
 
 // Unlike a dataset
@@ -535,12 +613,43 @@ const deleteLike = async(knex, user, table) => {
     await model.deleteLike(user, table);
 }
 
+// Delete a suggestion by id
+const deleteSuggestionById = async(knex, user, id) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const curr = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (curr.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    await model.deleteSuggestionById(id);
+}
+
+// Delete a suggestion by email
+const deleteSuggestionByEmail = async(knex, user) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const curr = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (curr.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    await model.deleteSuggestionByEmail(user);
+}
+
 module.exports = {
     createDataset,
     createDatasetAPI,
     uploadDataset,
     addTag,
     addTextCols,
+    addSuggestion,
     updateMetadata,
     incClicks,
     updateText,
@@ -557,7 +666,11 @@ module.exports = {
     getFilteredDatasetsCount,
     getRecordsByIds,
     downloadIds,
+    getSuggestionsFor,
+    getSuggestionsFrom,
     deleteDataset,
     deleteTag,
-    deleteLike
+    deleteLike,
+    deleteSuggestionById,
+    deleteSuggestionByEmail
 };

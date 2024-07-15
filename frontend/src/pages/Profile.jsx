@@ -7,7 +7,7 @@ import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icon
 import { getUser, deleteAccount } from "../api/users";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./EditProfile";
-import { DatasetTable } from "../common/DatasetTable";
+import { DatasetTable } from "../common/tables/DatasetTable";
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AlertDialog } from "../common/AlertDialog";
 

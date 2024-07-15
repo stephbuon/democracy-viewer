@@ -4,16 +4,16 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
-import { Popularize } from '../apiFolder/DatasetSearchAPI';
-import { AlertDialog } from './AlertDialog';
-import { deleteDataset, addLike, deleteLike } from '../api/api';
-import { UpdateMetadata, AddTags, DeleteTag } from '../apiFolder/DatasetUploadAPI';
-import { DatasetInformation } from './DatasetInformation';
-import { DatasetTags } from './DatasetTags';
+import { Popularize } from '../../apiFolder/DatasetSearchAPI';
+import { AlertDialog } from '../AlertDialog';
+import { deleteDataset, addLike, deleteLike } from '../../api/api';
+import { UpdateMetadata, AddTags, DeleteTag } from '../../apiFolder/DatasetUploadAPI';
+import { DatasetInformation } from '../DatasetInformation';
+import { DatasetTags } from '../DatasetTags';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
-import { getUser } from '../api/users';
+import { getUser } from '../../api/users';
 
 export const Result = (props) => {
     const navigate = useNavigate();
@@ -318,13 +318,13 @@ export const Result = (props) => {
                             </TableCell>
                             <TableCell sx={{textAlign: "left"}}>
                                 <Link to={`/profile/${ dataset.email }`}>
-                                {
-                                    userName !== undefined && userName
-                                }
+                                    {
+                                        userName !== undefined && userName
+                                    }
 
-                                {
-                                    userName === undefined && dataset.email
-                                }
+                                    {
+                                        userName === undefined && dataset.email
+                                    }
                                 </Link>
                             </TableCell>
                             
@@ -428,7 +428,7 @@ export const Result = (props) => {
                             }}
                             onClick={() => {
                                 chooseDataset()
-                                navigate('/subsetsearch');
+                                navigate('/datasets/subsets/search');
                             }}
                         >
                             Subset Search

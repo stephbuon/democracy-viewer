@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 //Other Imports
 import { DownloadSubset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
-import { PaginatedDataTable } from '../common/PaginatedDataTable';
+import { PaginatedDataTable } from '../common/tables/PaginatedDataTable';
 import Highlighter from "react-highlight-words";
 
 const pageLength = 10;
@@ -89,7 +89,7 @@ export const SubsetResultsPage = (props) => {
     useEffect(() => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (!demoV || !demoV.dataset) {
-            navigate('/datasetsearch')
+            navigate('/datasets/search')
             props.setNavigated(true)
         } else {
             fetchSubset();

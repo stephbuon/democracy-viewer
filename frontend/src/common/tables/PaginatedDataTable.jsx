@@ -6,9 +6,9 @@ import { Column } from "primereact/column";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 import { useEffect, useState } from 'react';
-import { AlertDialog } from './AlertDialog';
-import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
-import { updateText } from '../api/api';
+import { AlertDialog } from '../AlertDialog';
+import { DownloadSubset } from '../../apiFolder/SubsetSearchAPI';
+import { updateText } from '../../api/api';
 
 export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);

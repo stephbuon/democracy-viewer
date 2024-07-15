@@ -86,6 +86,18 @@ router.post('/like/:table', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to create a text suggestions
+router.post('/suggest', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.addSuggestion(req.knex, req.user.email, req.params)
+        res.status(201).end();
+    } catch (err) {
+        console.error('Failed to create text suggestion:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to change dataset metadata
 router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
     try {
@@ -111,9 +123,9 @@ router.put('/click/:table', async(req, res, next) => {
 });
 
 // Route to update text
-router.put('/text/:table', authenticateJWT, async(req, res, next) => {
+router.put('/suggest/:id', authenticateJWT, async(req, res, next) => {
     try {
-        await control.updateText(req.knex, req.params.table, req.body);
+        await control.updateText(req.knex, req.params.id, req.user.email);
         res.status(200).end();
     } catch (err) {
         console.error('Failed to update dataset text:', err);
