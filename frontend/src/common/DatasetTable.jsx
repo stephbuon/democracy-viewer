@@ -5,7 +5,7 @@ import { Column } from "primereact/column";
 import { useState, useEffect } from 'react';
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 
-export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNewPage, editable, pageLength, totalNumResults }) => {
+export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNewPage, editable, pageLength, totalNumResults, deleteCallback }) => {
     const [formattedResults, setFormattedResults] = useState([...Array(pageLength).keys()]);
     const [first, setFirst] = useState(0);
 
@@ -24,6 +24,7 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
                 result = {result} 
                 setDataset={(x) => setDataset(x)} 
                 editable={editable}
+                deleteCallback={deleteCallback}
             />
         } else {
             return <>&nbsp;</>
@@ -47,7 +48,7 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
             style={{
                 color: 'rgb(0, 0, 0)',
                 marginTop: '2rem',
-                width: "80%"
+                width: "100%"
             }}
             lazy
             paginator

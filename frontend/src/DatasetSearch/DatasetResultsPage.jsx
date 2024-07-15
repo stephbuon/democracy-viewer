@@ -236,7 +236,9 @@ export const DatasetResultsPage = (props) => {
                         sx={{
                             display: 'flex',
                             justifyContent: 'center',
-                            my: 20
+                            my: 20,
+                            width: "80%",
+                            mx: "auto"
                     }}>
                         <DatasetTable
                             searchResults={searchResults}

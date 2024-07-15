@@ -102,7 +102,7 @@ const deleteUser = async(knex, user) => {
     const model_datasets = new dataset(knex);
 
     // Get this user's datasets
-    const datasets = await model_datasets.getUserDatasets(user);
+    const datasets = await model_datasets.getFilteredDatasets({ user }, user, false);
     // For each dataset, call delete function
     for (let i = 0; i < datasets.length; i++) {
         await datasetController.deleteDataset(knex, user, datasets[i].table_name)

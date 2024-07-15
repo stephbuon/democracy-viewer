@@ -35,3 +35,10 @@ export const updateUser = async (email, params) => {
   }
   return res.data;
 }
+
+export const deleteAccount = () => new Promise((resolve, reject) => {
+  axios.delete(`${ baseURL }/users`, apiConfig()).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
