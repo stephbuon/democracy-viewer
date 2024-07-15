@@ -159,7 +159,7 @@ export default function Homepage() {
                 component="div"
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
-                <Link to="mailto:rdschaefer@smu.edu">
+                <Link to="mailto:sbuongiorno@smu.edu">
                   Contact Us
                 </Link>
               </Typography>

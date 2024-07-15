@@ -13,6 +13,7 @@ import { DatasetTags } from './DatasetTags';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
+import { getUser } from '../api/users';
 
 export const Result = (props) => {
     const navigate = useNavigate();
@@ -23,6 +24,7 @@ export const Result = (props) => {
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
+    const [userName, setUserName] = useState(undefined);
     const [title, setTitle] = useState(dataset.title);
     const [publicPrivate, setPublicPrivate] = useState(dataset.is_public);
     const [description, setDescription] = useState(dataset.description);
@@ -93,6 +95,16 @@ export const Result = (props) => {
         props.setDataset(newDataset);
     }
 
+    const onDelete = () => {
+        deleteDataset(dataset.table_name).then(x => {
+            if (props.deleteCallback) {
+                props.deleteCallback();
+            } else {
+                window.location.reload();
+            }
+        });
+    }
+
     useEffect(() => {
         if (infoDisabled && (title !== dataset.title || publicPrivate != dataset.is_public || description !== dataset.description || author !== dataset.author || date !== dataset.date)) {
             setInfoDisabled(false);
@@ -119,6 +131,12 @@ export const Result = (props) => {
             setLoggedIn(false);
         }
     }, [props.result]);
+
+    useEffect(() => {
+        if (open && !userName) {
+            getUser(dataset.email).then(user => setUserName(`${ user.first_name } ${ user.last_name }`));
+        }
+    }, [open]);
 
     return <div>
             <Box 
@@ -216,15 +234,16 @@ export const Result = (props) => {
                             />
 
                             <Button 
-                            variant="contained" 
-                            disableElevation
-                            fullWidth={true}
-                            sx={{  
-                                borderRadius: 0, 
-                                width: "100%", 
-                                bgcolor: '#B3B3B3', 
-                                color: 'white' }} 
-                            onClick={() => setDeleteOpen(true)}>
+                                variant="contained" 
+                                disableElevation
+                                fullWidth={true}
+                                sx={{  
+                                    borderRadius: 0, 
+                                    width: "100%", 
+                                    bgcolor: '#B3B3B3', 
+                                    color: 'white' }} 
+                                onClick={() => setDeleteOpen(true)}
+                            >
                                 Delete
                             </Button>
                             <AlertDialog
@@ -232,7 +251,7 @@ export const Result = (props) => {
                                 setOpen={setDeleteOpen}
                                 titleText={`Are you sure you want to delete the dataset "${ dataset.title }"?`}
                                 bodyText={"This action cannot be undone."}
-                                action={() => deleteDataset(dataset.table_name).then(x => window.location.reload())}
+                                action={() => onDelete()}
                             />
                         </>
                     }
@@ -298,7 +317,15 @@ export const Result = (props) => {
                                 <b> Author </b>
                             </TableCell>
                             <TableCell sx={{textAlign: "left"}}>
-                                <Link to={`/profile/${ dataset.email }`}>{dataset.email}</Link>
+                                <Link to={`/profile/${ dataset.email }`}>
+                                {
+                                    userName !== undefined && userName
+                                }
+
+                                {
+                                    userName === undefined && dataset.email
+                                }
+                                </Link>
                             </TableCell>
                             
                         </TableRow>
@@ -401,7 +428,7 @@ export const Result = (props) => {
                             }}
                             onClick={() => {
                                 chooseDataset()
-                                navigate('/subsetSearch');
+                                navigate('/subsetsearch');
                             }}
                         >
                             Subset Search

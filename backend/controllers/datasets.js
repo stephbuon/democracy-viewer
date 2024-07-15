@@ -495,7 +495,7 @@ const deleteDataset = async(knex, user, table) => {
 
     // If the user of this table does not match the user, throw error
     if (metadata.email !== user) {
-        throw new Error(`User ${ curr.email } is not the owner of this dataset`);
+        throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
     // Delete datasets from s3

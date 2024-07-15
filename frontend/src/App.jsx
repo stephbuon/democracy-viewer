@@ -12,7 +12,7 @@ import { UploadComplete } from "./pages/UploadComplete.jsx";
 import { Upload } from "./pages/upload.jsx";
 import "./App.css";
 import 'animate.css';
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import CreateDistributedConnection from "./pages/CreateDistributedConnection.jsx";
 import {Acknowledgements} from "./pages/Acknowledgements.jsx";
   
@@ -54,7 +54,6 @@ export const App = () => {
     localStorage.removeItem("graph-settings");
     localStorage.removeItem("selected");
     setData(undefined);
-    //navigate('/') //where ever you call logout also navigate back to homepage. Error occurs if here since App not in Router
   }
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export const App = () => {
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/register" element={<Register currUser={user} login={login}/>} />
-            <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset}/>} />
+            <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout}/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
             <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
