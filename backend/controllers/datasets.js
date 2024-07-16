@@ -3,6 +3,7 @@ const axios = require("axios").default;
 const runPython = require("../util/python_config");
 const datasets = require("../models/datasets");
 const FlexSearch = require("flexsearch");
+const getName = require("../controllers/users").getName;
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, email) => {
@@ -505,10 +506,18 @@ const getSuggestionsFrom = async(knex, user, params) => {
 
     const records = await model.getSuggestionsFrom(user, params.page, params.pageLength, params.sort_col, params.ascending);
 
+    // Return early if total is 0
+    if (records.total === 0) {
+        return records;
+    }
+
     // Get user names and old text
     const names = {};
     const data = {};
     for (let i = 0; i < records.data.length; i++) {
+        // Update date formatting
+        records.data[i].post_date = records.data[i].post_date.toLocaleDateString();
+
         // User name
         const email = records.data[i].owner_email;
         let name = names[email]; 
@@ -526,7 +535,7 @@ const getSuggestionsFrom = async(knex, user, params) => {
             curr = temp.dataset;
             data[table_name] = curr;
         }
-        const str = String(curr[records.data[i].idx][Object.keys(curr[0])[records.data[i].col]])
+        const str = String(curr[records.data[i].record_id][Object.keys(curr[0])[records.data[i].col]])
         records.data[i].old_text = str.slice(records.data[i].start, records.data[i].end);
     }
 
@@ -535,15 +544,22 @@ const getSuggestionsFrom = async(knex, user, params) => {
 
 // Get text suggestions for a given user
 const getSuggestionsFor = async(knex, user, params) => {
-    const getName = require("../controllers/users").getName;
     const model = new datasets(knex);
 
     const records = await model.getSuggestionsFor(user, params.page, params.pageLength, params.sort_col, params.ascending);
+
+    // Return early if total is 0
+    if (records.total === 0) {
+        return records;
+    }
 
     // Get user names and old text
     const names = {};
     const data = {};
     for (let i = 0; i < records.data.length; i++) {
+        // Update date formatting
+        records.data[i].post_date = records.data[i].post_date.toLocaleDateString();
+        
         // User name
         const email = records.data[i].email;
         let name = names[email]; 
@@ -561,7 +577,7 @@ const getSuggestionsFor = async(knex, user, params) => {
             curr = temp.dataset;
             data[table_name] = curr;
         }
-        const str = String(curr[records.data[i].idx][Object.keys(curr[0])[records.data[i].col]])
+        const str = String(curr[records.data[i].record_id][Object.keys(curr[0])[records.data[i].col]])
         records.data[i].old_text = str.slice(records.data[i].start, records.data[i].end);
     }
 
@@ -617,30 +633,18 @@ const deleteLike = async(knex, user, table) => {
 const deleteSuggestionById = async(knex, user, id) => {
     const model = new datasets(knex);
 
+    // Get suggestion record to check email
+    const record = await model.getSuggestion(id);
+
     // Get the current metadata for this table
-    const curr = await model.getMetadata(table);
+    const curr = await model.getMetadata(record.table_name);
 
     // If the user of this table does not match the user, throw error
-    if (curr.email !== user) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
+    if (curr.email !== user && record.email !== user) {
+        throw new Error(`User ${ user } is not permitted to delete this suggestion`);
     }
 
     await model.deleteSuggestionById(id);
-}
-
-// Delete a suggestion by email
-const deleteSuggestionByEmail = async(knex, user) => {
-    const model = new datasets(knex);
-
-    // Get the current metadata for this table
-    const curr = await model.getMetadata(table);
-
-    // If the user of this table does not match the user, throw error
-    if (curr.email !== user) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
-    }
-
-    await model.deleteSuggestionByEmail(user);
 }
 
 module.exports = {
@@ -671,6 +675,5 @@ module.exports = {
     deleteDataset,
     deleteTag,
     deleteLike,
-    deleteSuggestionById,
-    deleteSuggestionByEmail
+    deleteSuggestionById
 };

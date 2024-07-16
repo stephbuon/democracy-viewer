@@ -145,13 +145,6 @@ export const deleteLike = (table) => new Promise((resolve, reject) => {
   });
 });
 
-export const updateText = (table, params) => new Promise((resolve, reject) => {
-  axios.put(`${ baseURL }/datasets/text/${ table }`, params, apiConfig()).then(x => resolve(x.data)).catch(x => {
-    alert(x);
-    reject(x);
-  });
-});
-
 export const getDistributedConnections = () => new Promise((resolve, reject) => {
   axios.get(`${ baseURL }/distributed`, {
     headers: {
@@ -217,6 +210,41 @@ export const resetPassword = (email, password, code) => new Promise((resolve, re
     password, code
   }).then(x => resolve(x.data)).catch(x => {
     // alert(x);
+    reject(x);
+  });
+});
+
+export const addSuggestion = (params) => new Promise((resolve, reject) => {
+  axios.post(`${ baseURL }/datasets/suggest`, params, apiConfig()).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const getSuggestionsFor = (params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/datasets/suggest/for`, { ...apiConfig(), params }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const getSuggestionsFrom = (params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/datasets/suggest/from`, { ...apiConfig(), params }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const confirmSuggestion = (id) => new Promise((resolve, reject) => {
+  axios.put(`${ baseURL }/datasets/suggest/${ id }`, {}, apiConfig()).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
+export const deleteSuggestion = (id) => new Promise((resolve, reject) => {
+  axios.delete(`${ baseURL }/datasets/suggest/${ id }`, apiConfig()).then(x => resolve(x.data)).catch(x => {
+    alert(x);
     reject(x);
   });
 });

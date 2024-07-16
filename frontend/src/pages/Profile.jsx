@@ -10,6 +10,7 @@ import { EditProfile } from "./EditProfile";
 import { DatasetTable } from "../common/tables/DatasetTable";
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AlertDialog } from "../common/AlertDialog";
+import { SuggestChangesTable } from "../common/tables/SuggestChangesTable";
 
 const mdTheme = createTheme();
 
@@ -31,6 +32,10 @@ const Profile = (props) => {
     const [loadingLikeResults, setLoadingLikeResults] = useState(false);
     const [likeSearchResults, setLikeSearchResults] = useState([]);
     const [totalNumOfLikeResults, setTotalNumOfLikeResults] = useState(0);
+
+    const [suggestionsFor, setSuggestionsFor] = useState([]);
+    const [suggestionsFrom, setSuggestionsFrom] = useState([]);
+    const [refreshSuggestions, setRefreshSuggestions] = useState(false);
 
     const GetNewPage = (num) => {
         const filter = {
@@ -248,6 +253,49 @@ const Profile = (props) => {
                                         editable={false}
                                         totalNumResults={totalNumOfLikeResults}
                                         pageLength={pageLength}
+                                    />
+                                </Paper>
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                                <Paper
+                                    elevation={12}
+                                    sx={{
+                                        p: 2,
+                                        m: 5,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <h1>Pending Sent Suggestions</h1>
+                                    <SuggestChangesTable
+                                        pageLength={pageLength}
+                                        type={"from"}
+                                        refresh={refreshSuggestions}
+                                        setRefresh={setRefreshSuggestions}
+                                    />
+                                </Paper>
+                            </Grid>
+                            <Grid  item xs={12} md={6}>
+                                <Paper
+                                    elevation={12}
+                                    sx={{
+                                        p: 2,
+                                        m: 5,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <h1>Recieved Suggestions</h1>
+                                    <SuggestChangesTable
+                                        pageLength={pageLength}
+                                        type={"for"}
+                                        refresh={refreshSuggestions}
+                                        setRefresh={setRefreshSuggestions}
                                     />
                                 </Paper>
                             </Grid>

@@ -89,7 +89,7 @@ router.post('/like/:table', authenticateJWT, async(req, res, next) => {
 // Route to create a text suggestions
 router.post('/suggest', authenticateJWT, async(req, res, next) => {
     try {
-        await control.addSuggestion(req.knex, req.user.email, req.params)
+        await control.addSuggestion(req.knex, req.user.email, req.body)
         res.status(201).end();
     } catch (err) {
         console.error('Failed to create text suggestion:', err);
@@ -306,6 +306,30 @@ router.get('/columns/:table/values/:column', async(req, res, next) => {
     next();
 });
 
+// Route to get suggestions (from)
+router.get('/suggest/from', async(req, res, next) => {
+    try {
+        const result = await control.getSuggestionsFrom(req.knex, req.user.email, req.query);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get suggestions from:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get suggestions (for)
+router.get('/suggest/for', async(req, res, next) => {
+    try {
+        const result = await control.getSuggestionsFor(req.knex, req.user.email, req.query);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get suggestions for:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to delete a datset and its metadata
 router.delete('/:table', authenticateJWT, async(req, res, next) => {
     try {
@@ -349,6 +373,18 @@ router.delete('/like/:table', authenticateJWT, async(req, res, next) => {
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete like:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a suggestion
+router.delete('/suggest/:id', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.deleteSuggestionById(req.knex, req.user.email, req.params.id);
+        res.status(204).end();
+    } catch (err) {
+        console.error('Failed to delete suggestion:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
