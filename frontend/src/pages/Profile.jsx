@@ -257,52 +257,55 @@ const Profile = (props) => {
                                 </Paper>
                             </Grid>
                             
-                            <Grid item xs={12} md={6}>
-                                <Paper
-                                    elevation={12}
-                                    sx={{
-                                        p: 2,
-                                        m: 5,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        width: '100%',
-                                    }}
-                                >
-                                    <h1>Pending Sent Suggestions</h1>
-                                    <SuggestChangesTable
-                                        pageLength={pageLength}
-                                        type={"from"}
-                                        refresh={refreshSuggestions}
-                                        setRefresh={setRefreshSuggestions}
-                                    />
-                                </Paper>
-                            </Grid>
-                            <Grid  item xs={12} md={6}>
-                                <Paper
-                                    elevation={12}
-                                    sx={{
-                                        p: 2,
-                                        m: 5,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        width: '100%',
-                                    }}
-                                >
-                                    <h1>Recieved Suggestions</h1>
-                                    <SuggestChangesTable
-                                        pageLength={pageLength}
-                                        type={"for"}
-                                        refresh={refreshSuggestions}
-                                        setRefresh={setRefreshSuggestions}
-                                    />
-                                </Paper>
-                            </Grid>
+                            {
+                                editable === true && 
+                                <>
+                                    <Grid item xs={12} md={6}>
+                                        <Paper
+                                            elevation={12}
+                                            sx={{
+                                                p: 2,
+                                                m: 5,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                width: '100%',
+                                            }}
+                                        >
+                                            <h1>Pending Sent Suggestions</h1>
+                                            <SuggestChangesTable
+                                                pageLength={pageLength}
+                                                type={"from"}
+                                                refresh={refreshSuggestions}
+                                                setRefresh={setRefreshSuggestions}
+                                            />
+                                        </Paper>
+                                    </Grid>
+                                    <Grid  item xs={12} md={6}>
+                                        <Paper
+                                            elevation={12}
+                                            sx={{
+                                                p: 2,
+                                                m: 5,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                width: '100%',
+                                            }}
+                                        >
+                                            <h1>Recieved Suggestions</h1>
+                                            <SuggestChangesTable
+                                                pageLength={pageLength}
+                                                type={"for"}
+                                                refresh={refreshSuggestions}
+                                                setRefresh={setRefreshSuggestions}
+                                            />
+                                        </Paper>
+                                    </Grid>
+                                </>
+                            }
                         </Grid>
-
                     </Container>
-
                 </Box>
             </Box>
 
