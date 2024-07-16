@@ -39,7 +39,7 @@ const Profile = (props) => {
 
     const GetNewPage = (num) => {
         const filter = {
-            email: params.email,
+            user: params.email,
             pageLength
         };
         setLoadingResults(true);
