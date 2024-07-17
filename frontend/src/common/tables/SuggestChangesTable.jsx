@@ -63,8 +63,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
 
     return <>
         <DataTable
-            value={data} 
-            // scrollHeight="750px" 
+            value={data}
             scrollable 
             showGridlines 
             stripedRows 
@@ -78,12 +77,27 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
             onPage={event => getNewSuggestions(event.page + 1)}
             first={first}
             emptyMessage="No Suggestions Found"
-            columnResizeMode="expand"
-            resizableColumns
+            // columnResizeMode="expand"
+            // resizableColumns
         >
             <Column
                 header="Date"
                 field="post_date"
+                style={{ minWidth: `${4 * 20}px` }}
+            />
+
+            <Column
+                header="Dataset"
+                field="title"
+                style={{ minWidth: `${7 * 20}px` }}
+            />
+
+            <Column
+                header="User"
+                style={{ minWidth: `${4 * 20}px` }}
+                body={x => (
+                    <a href={`/profile/${ type === "for" ? x.email : x.owner_email }`}>{ x.name }</a>
+                )}
             />
 
             <Column
@@ -99,6 +113,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
                         }
                     </div>
                 )}
+                style={{ minWidth: `${8 * 15}px` }}
             />
 
             <Column
@@ -114,6 +129,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
                         }
                     </div>
                 )}
+                style={{ minWidth: `${8 * 15}px` }}
             />
 
             <Column

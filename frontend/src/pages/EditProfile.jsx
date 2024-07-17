@@ -6,6 +6,14 @@ import { useState } from "react";
 export const EditProfile = ({ user, setUser, open, setOpen }) => {
     const [disabled, setDisabled] = useState(false);
 
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [suffix, setSuffix] = useState("");
+    const [title, setTitle] = useState("");
+    const [orcid, setOrcid] = useState("");
+    const [linkedin, setLinkedin] = useState("");
+    const [website, setWebsite] = useState("");
+
     const setValid = (val) => {
         if (!disabled) {
           if (!val) {
@@ -19,12 +27,19 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
         }
     }
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
+    const handleSubmit = () => {
+        const data = {
+            first_name: firstName,
+            last_name: lastName,
+            suffix,
+            title,
+            orcid,
+            linkedin_link: linkedin,
+            website
+        };
         const output = {};
-        data.keys().forEach(key => {
-            let value = data.get(key);
+        Object.keys(data).forEach(key => {
+            let value = data[key];
             if (key === "orcid") {
                 value = value.replaceAll("-", "");
             }
@@ -59,7 +74,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                     borderRadius: ".5em .5em",
                 }}
             >
-                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }} className="text-center">
+                <Box component="form" noValidate sx={{ mt: 1 }} className="text-center">
                     <Grid container spacing={2}>
                         <Grid item xs={12}>
                             <FormattedTextField
@@ -78,6 +93,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 maxChars={20}
                                 setValid={setValid}
                                 autoComplete="given-name"
+                                setValue={setFirstName}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -88,6 +104,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 maxChars={20}
                                 setValid={setValid}
                                 autoComplete="family-name"
+                                setValue={setLastName}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -97,6 +114,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 defaultValue={user.suffix}
                                 maxChars={10}
                                 setValid={setValid}
+                                setValue={setSuffix}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -106,6 +124,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 defaultValue={user.title}
                                 maxChars={20}
                                 setValid={setValid}
+                                setValue={setTitle}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -117,6 +136,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 format="####-####-####-####"
                                 mask="_"
                                 numeric
+                                setValue={setOrcid}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -128,6 +148,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 setValid={setValid}
                                 website
                                 autoComplete="LinkedIn"
+                                setValue={setLinkedin}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -138,6 +159,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 maxChars={50}
                                 setValid={setValid}
                                 website
+                                setValue={setWebsite}
                             />
                         </Grid>
                     </Grid>
@@ -146,6 +168,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                         variant="contained"
                         sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
                         disabled={disabled}
+                        onClick={() => handleSubmit()}
                     >
                         Update Profile
                     </Button>

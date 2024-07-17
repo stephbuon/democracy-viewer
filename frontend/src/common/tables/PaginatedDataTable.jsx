@@ -212,7 +212,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                                 }}>
                                     {rowData[col]}
                                 </div>
-                        )}
+                            )}
                             headerStyle={{verticalAlign: 'top'}}
                         />
 

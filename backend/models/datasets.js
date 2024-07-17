@@ -274,7 +274,7 @@ class datasets {
     // Get paginated suggestions to a given user
     async getSuggestionsFor(email, currentPage = 1, perPage = 10, sort_col = undefined, ascending = true) {
         const query = this.knex(suggestion_table)
-            .select(`${ suggestion_table }.*`, `${ metadata_table }.title`, `${ metadata_table }.distributed`, { owner_email: `${ metadata_table }.email`})
+            .select(`${ suggestion_table }.*`, `${ metadata_table }.title`, { owner_email: `${ metadata_table }.email`})
             .distinct()
             .leftJoin(metadata_table, `${ suggestion_table }.table_name`, `${ metadata_table }.table_name`)
             .where(`${ metadata_table }.email`, email);
