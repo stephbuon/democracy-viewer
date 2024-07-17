@@ -77,6 +77,9 @@ def take_similar_words(model: Word2Vec, keyword: str, similar: bool = True) -> l
     return results
 
 def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], similar = True, token: str | None = None) -> dict:
+    if group_col is not None and len(group_col.strip()) == 0:
+        group_col = None
+    
     # take the model out from pkl
     if group_col is not None:
         pkl_name = "{}_{}".format(table_name, group_col)
@@ -159,6 +162,9 @@ def get_vectors_over_group(keywords: list[str], models: dict[str, Word2Vec], val
     return results
 
 def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> dict:
+    if group_col is not None and len(group_col.strip()) == 0:
+        group_col = None
+    
     # take the model out from pkl
     if group_col is not None:
         pkl_name = "{}_{}".format(table_name, group_col)
