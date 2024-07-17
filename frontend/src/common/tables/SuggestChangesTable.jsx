@@ -3,8 +3,10 @@ import { Column } from "primereact/column";
 import { getSuggestionsFor, getSuggestionsFrom, confirmSuggestion, deleteSuggestion } from "../../api/api";
 import { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { ResultLink } from './ResultLink';
 
-export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) => {
+export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, setDataset }) => {
     const [first, setFirst] = useState(0);
     const [data, setData] = useState([...Array(pageLength).keys()]);
     const [totalNumResults, setTotalNumResults] = useState(0);
@@ -88,15 +90,21 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
 
             <Column
                 header="Dataset"
-                field="title"
+                // field="title"
                 style={{ minWidth: `${7 * 20}px` }}
+                body={x => (
+                    <ResultLink
+                        table_name={x.table_name}
+                        setDataset={setDataset}
+                    />
+                )}
             />
 
             <Column
                 header="User"
                 style={{ minWidth: `${4 * 20}px` }}
                 body={x => (
-                    <a href={`/profile/${ type === "for" ? x.email : x.owner_email }`}>{ x.name }</a>
+                    <Link to={`/profile/${ type === "for" ? x.email : x.owner_email }`}>{ x.name }</Link>
                 )}
             />
 
@@ -113,7 +121,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
                         }
                     </div>
                 )}
-                style={{ minWidth: `${8 * 15}px` }}
+                style={{ minWidth: `${8 * 25}px` }}
             />
 
             <Column
@@ -129,7 +137,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
                         }
                     </div>
                 )}
-                style={{ minWidth: `${8 * 15}px` }}
+                style={{ minWidth: `${8 * 25}px` }}
             />
 
             <Column

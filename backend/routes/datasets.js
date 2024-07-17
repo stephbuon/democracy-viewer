@@ -146,6 +146,18 @@ router.get('/metadata/:table', async(req, res, next) => {
     next();
 });
 
+// Route to get full dataset metadata
+router.get('/metadata/full/:table', async(req, res, next) => {
+    try {
+        const result = await control.getFullMetadata(req.knex, req.params.table, req.user ? req.user.email : undefined);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get full dataset metadata:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to get all unique tags
 router.get('/tags/unique', async(req, res, next) => {
     try {

@@ -260,7 +260,7 @@ const Profile = (props) => {
                             {
                                 editable === true && 
                                 <>
-                                    <Grid item xs={12} md={6}>
+                                    <Grid item xs={12} md={12}>
                                         <Paper
                                             elevation={12}
                                             sx={{
@@ -278,10 +278,11 @@ const Profile = (props) => {
                                                 type={"from"}
                                                 refresh={refreshSuggestions}
                                                 setRefresh={setRefreshSuggestions}
+                                                setDataset={props.setDataset}
                                             />
                                         </Paper>
                                     </Grid>
-                                    <Grid  item xs={12} md={6}>
+                                    <Grid  item xs={12} md={12}>
                                         <Paper
                                             elevation={12}
                                             sx={{
@@ -299,6 +300,7 @@ const Profile = (props) => {
                                                 type={"for"}
                                                 refresh={refreshSuggestions}
                                                 setRefresh={setRefreshSuggestions}
+                                                setDataset={props.setDataset}
                                             />
                                         </Paper>
                                     </Grid>

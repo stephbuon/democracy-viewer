@@ -3,7 +3,8 @@ const axios = require("axios").default;
 const runPython = require("../util/python_config");
 const datasets = require("../models/datasets");
 const FlexSearch = require("flexsearch");
-const getName = require("../controllers/users").getName;
+const { getName } = require("../util/user_name");
+const emails = require("../util/email_management");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, email) => {
@@ -185,10 +186,11 @@ const addSuggestion = async(knex, user, params) => {
         suggestion.record_id, suggestion.col,
         suggestion.start, suggestion.end
     ); 
-    await runPython("send_email", [
-        curr.email, "suggestion_added", suggestion.email, name,
-        curr.title, oldText, suggestion.new_text, suggestion.record_id
-    ]);
+
+    await emails.suggestionEmail(
+        knex, curr.email, suggestion.email, curr.title,
+        oldText, suggestion.new_text, suggestion.record_id, "add"
+    );
 }
 
 // Update a dataset's metadata
@@ -239,11 +241,10 @@ const updateText = async(knex, id, user) => {
     await runPython("update_text", [paramsFile], curr.distributed);
 
     // Send an email to the person who made the suggestion
-    const name = await getName(knex, curr.email);
-    await runPython("send_email", [
-        suggestion.email, "suggestion_confirmed", curr.email, name,
-        curr.title, oldText, suggestion.new_text, suggestion.record_id
-    ]);
+    await emails.suggestionEmail(
+        knex, suggestion.email, curr.email, curr.title,
+        oldText, suggestion.new_text, suggestion.record_id, "confirm"
+    );
 
     // Delete all files for this dataset to reset them
     util.deleteDatasetFiles(suggestion.table_name);
@@ -256,6 +257,23 @@ const getMetadata = async(knex, table) => {
     const model = new datasets(knex);
 
     const result = await model.getMetadata(table);
+    return result;
+}
+
+// Get metadata including data from other columns
+const getFullMetadata = async(knex, table, email) => {
+    const model = new datasets(knex);
+
+    const result = await getMetadata(knex, table);
+
+    result.tags = await getTags(knex, table);
+    if (email) {
+        result.liked = await model.getLike(email, result.table_name);
+    } else {
+        result.liked = false;
+    }
+    result.likes = await model.getLikeCount(result.table_name);
+
     return result;
 }
 
@@ -684,6 +702,7 @@ module.exports = {
     updateText,
     addLike,
     getMetadata,
+    getFullMetadata,
     getSubset,
     downloadSubset,
     getUniqueTags,

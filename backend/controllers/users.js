@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const chance = require("chance").Chance();
-const runPython = require("../util/python_config");
+const emails = require("../util/email_management");
 
 const dataset = require("../models/datasets");
 const users = require("../models/users");
@@ -29,7 +29,7 @@ const createResetCode = async(knex, email) => {
     // Add new code
     await model.addResetCode(email, hashedCode);
     // Send email to user
-    await runPython("send_email", [email, "reset_password", code]);
+    await emails.resetPasswordEmail(knex, email, code);
 }
 
 // Get a user by their email
@@ -62,22 +62,6 @@ const verifyResetCode = async(knex, email, code) => {
     } else {
         throw new Error(`No active reset token for the email ${ email }`);
     }
-}
-
-// Get a user's formatted name
-const getName = async(knex, email) => {
-    const model = new users(knex);
-
-    const record = await model.findUserByEmail(email);
-    let name = `${ record.first_name } ${ record.last_name }`;
-    if (record.title) {
-        name = `${ record.title } ${ name }`;
-    }
-    if (record.suffix) {
-        name = `${ name } ${ record.suffix }`;
-    }
-
-    return name;
 }
 
 // Update a user's information
@@ -134,7 +118,6 @@ module.exports = {
     createResetCode,
     findUserByEmail,
     verifyResetCode,
-    getName,
     updateUser,
     resetPassword,
     deleteUser

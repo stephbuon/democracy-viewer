@@ -167,7 +167,7 @@ export const addDistributedConnection = async (name, connection) =>  {
 };
 
 export const getMetadata = (name) => new Promise((resolve, reject) => {
-  axios.get(`${ baseURL }/datasets/metadata/${ name }`, {
+  axios.get(`${ baseURL }/datasets/metadata/full/${ name }`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`

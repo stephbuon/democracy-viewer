@@ -10,7 +10,7 @@ const maxUploadSize = 100 * 1024 * 1024;
 
 // Read a file into memory as a readable stream
 const readFile = (path) => {
-    return fs.createReadStream(path);
+    return fs.readFileSync(path, "utf8");
 }
 
 // Delete all files for a given dataset

@@ -4,9 +4,9 @@ The suggestion you made to the dataset "[[title]]" has been confirmed by <a href
 
 This suggestion implemented the following change:
 
-Old: "[[old]]"
+Old: "[[old_text]]"
 
-New: "[[new]]"
+New: "[[new_text]]"
 
 <a href="[[url]]/subsets/search?id=[[record_id]]">Click here to view the record that was affected by this change.</a>
 

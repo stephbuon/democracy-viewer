@@ -4,8 +4,8 @@ A new suggestion has been made by <a href="[[url]]/profile/[[email2]]">[[name2]]
 
 They suggest the following change:
 
-Old: "[[old]]"
-New: "[[new]]"
+Old: "[[old_text]]"
+New: "[[new_text]]"
 
 <a href="[[url]]/subsets/search?id=[[record_id]]">Click here to view the record that would be affected by this change.</a>
 
