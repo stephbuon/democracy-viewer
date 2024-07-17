@@ -6,7 +6,7 @@ import { Button } from '@mui/material';
 
 export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) => {
     const [first, setFirst] = useState(0);
-    const [data, setData] = useState([]);
+    const [data, setData] = useState([...Array(pageLength).keys()]);
     const [totalNumResults, setTotalNumResults] = useState(0);
 
     const updateData = (x) => {
@@ -94,7 +94,9 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
                         overflowY: 'auto',
                         alignContent: "center"
                     }}>
-                        {x.old_text}
+                        {
+                            x.old_text != undefined && <>"{x.old_text}"</>
+                        }
                     </div>
                 )}
             />
@@ -107,7 +109,9 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh }) =
                         overflowY: 'auto',
                         alignContent: "center"
                     }}>
-                        {x.new_text}
+                        {
+                            x.new_text != undefined && <>"{x.new_text}"</>
+                        }
                     </div>
                 )}
             />

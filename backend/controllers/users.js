@@ -29,7 +29,7 @@ const createResetCode = async(knex, email) => {
     // Add new code
     await model.addResetCode(email, hashedCode);
     // Send email to user
-    await runPython("send_email.py", [email, "reset", code]);
+    await runPython("send_email", [email, "reset_password", code]);
 }
 
 // Get a user by their email

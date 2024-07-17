@@ -80,7 +80,10 @@ class datasets {
 
     // Add a text change suggestion
     async addSuggestion(email, params) {
-        await this.knex(suggestion_table).insert({ email, ...params });
+        const insert = await this.knex(suggestion_table).insert({ email, ...params });
+        const id = insert[0];
+        const record = await this.knex(suggestion_table).where({ id });
+        return record[0]
     }
 
     // Update the metadata of a table

@@ -19,7 +19,7 @@ const createDataset = async(path, email) => {
     util.renameFile(path, newName);
 
     // Get the first 5 records from the dataset
-    await runPython("get_head.py", [ newName ]);
+    await runPython("get_head", [ newName ]);
     const data = util.readJSON(newName.replace(extension, "json"), false)
 
     return {
@@ -106,11 +106,11 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     }
     
     // Upload raw data to s3
-    await runPython("upload_dataset.py", [ name, path.replace(".json", ".csv") ], metadata.distributed);
+    await runPython("upload_dataset", [ name, path.replace(".json", ".csv") ], metadata.distributed);
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
-    // await runPython("preprocessing.py", [ name ], metadata.distributed);
+    // await runPython("preprocessing", [ name ], metadata.distributed);
 }
 
 // Add a tag for a dataset
@@ -175,7 +175,20 @@ const addSuggestion = async(knex, user, params) => {
     const model = new datasets(knex);
 
     const post_date = new Date();
-    await model.addSuggestion(user, { ...params, post_date });
+    const suggestion = await model.addSuggestion(user, { ...params, post_date });
+    
+    // Send an email to the owner of the dataset
+    const curr = await model.getMetadata(suggestion.table_name);
+    const name = await getName(knex, suggestion.email);
+    const oldText = await getText(
+        suggestion.table_name, suggestion.distributed, 
+        suggestion.record_id, suggestion.col,
+        suggestion.start, suggestion.end
+    ); 
+    await runPython("send_email", [
+        curr.email, "suggestion_added", suggestion.email, name,
+        curr.title, oldText, suggestion.new_text, suggestion.record_id
+    ]);
 }
 
 // Update a dataset's metadata
@@ -207,8 +220,8 @@ const incClicks = async(knex, table) => {
 const updateText = async(knex, id, user) => {
     const model = new datasets(knex);
 
-    const params = await model.getSuggestion(id);
-    const curr = await model.getMetadata(params.table_name);
+    const suggestion = await model.getSuggestion(id);
+    const curr = await model.getMetadata(suggestion.table_name);
 
     // If the user of this table does not match the user, throw error
     if (curr.email !== user) {
@@ -216,12 +229,26 @@ const updateText = async(knex, id, user) => {
     }
 
     // Run python program to replace text
-    const paramsFile = `files/python/input/${ table }_${ Date.now() }.json`
-    util.generateJSON(paramsFile, params);
-    await runPython("update_text.py", [table, paramsFile], metadata.distributed);
+    const oldText = await getText(
+        suggestion.table_name, suggestion.distributed, 
+        suggestion.record_id, suggestion.col,
+        suggestion.start, suggestion.end
+    ); 
+    const paramsFile = `files/python/input/${ suggestion.table_name }_${ Date.now() }.json`
+    util.generateJSON(paramsFile, suggestion);
+    await runPython("update_text", [paramsFile], curr.distributed);
+
+    // Send an email to the person who made the suggestion
+    const name = await getName(knex, curr.email);
+    await runPython("send_email", [
+        suggestion.email, "suggestion_confirmed", curr.email, name,
+        curr.title, oldText, suggestion.new_text, suggestion.record_id
+    ]);
 
     // Delete all files for this dataset to reset them
-    util.deleteDatasetFiles(table);
+    util.deleteDatasetFiles(suggestion.table_name);
+    // Delete the suggestion record
+    await deleteSuggestionById(knex, user, id);
 }
 
 // Get dataset metadata
@@ -500,6 +527,14 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     return newFilename;
 }
 
+// Get the text for a given index substring
+const getText = async(table_name, distributed, record_id, col, start, end) => {
+    const data = await util.downloadDataset(table_name, distributed, true);
+    const str = String(data.dataset[record_id][Object.keys(data.dataset[0])[col]]);
+    const substr = str.slice(start, end);
+    return substr
+}
+
 // Get text suggestions from a given user
 const getSuggestionsFrom = async(knex, user, params) => {
     const model = new datasets(knex);
@@ -513,7 +548,6 @@ const getSuggestionsFrom = async(knex, user, params) => {
 
     // Get user names and old text
     const names = {};
-    const data = {};
     for (let i = 0; i < records.data.length; i++) {
         // Update date formatting
         records.data[i].post_date = records.data[i].post_date.toLocaleDateString();
@@ -528,15 +562,11 @@ const getSuggestionsFrom = async(knex, user, params) => {
         records.data[i].name = name;
 
         // Old text
-        const table_name = records.data[i].table_name;
-        let curr = data[table_name];
-        if (!curr) {
-            const temp = await util.downloadDataset(table_name, records.data[i].distributed, true);
-            curr = temp.dataset;
-            data[table_name] = curr;
-        }
-        const str = String(curr[records.data[i].record_id][Object.keys(curr[0])[records.data[i].col]])
-        records.data[i].old_text = str.slice(records.data[i].start, records.data[i].end);
+        records.data[i].old_text = await getText(
+            records.data[i].table_name, records.data[i].distributed, 
+            records.data[i].record_id, records.data[i].col,
+            records.data[i].start, records.data[i].end
+        );
     }
 
     return records;
@@ -555,7 +585,6 @@ const getSuggestionsFor = async(knex, user, params) => {
 
     // Get user names and old text
     const names = {};
-    const data = {};
     for (let i = 0; i < records.data.length; i++) {
         // Update date formatting
         records.data[i].post_date = records.data[i].post_date.toLocaleDateString();
@@ -570,15 +599,11 @@ const getSuggestionsFor = async(knex, user, params) => {
         records.data[i].name = name;
 
         // Old text
-        const table_name = records.data[i].table_name;
-        let curr = data[table_name];
-        if (!curr) {
-            const temp = await util.downloadDataset(table_name, records.data[i].distributed, true);
-            curr = temp.dataset;
-            data[table_name] = curr;
-        }
-        const str = String(curr[records.data[i].record_id][Object.keys(curr[0])[records.data[i].col]])
-        records.data[i].old_text = str.slice(records.data[i].start, records.data[i].end);
+        records.data[i].old_text = await getText(
+            records.data[i].table_name, records.data[i].distributed, 
+            records.data[i].record_id, records.data[i].col,
+            records.data[i].start, records.data[i].end
+        );
     }
 
     return records;
@@ -597,7 +622,7 @@ const deleteDataset = async(knex, user, table) => {
     }
 
     // Delete datasets from s3
-    await runPython("delete_dataset.py", [table], metadata.distributed);
+    await runPython("delete_dataset", [table], metadata.distributed);
 
     // Delete metadata
     // This will delete tags and columns via cascade
