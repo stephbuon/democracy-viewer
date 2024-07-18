@@ -38,9 +38,6 @@ export const GraphComponent = ({ data, setData }) => {
                 }}
         };
     } catch (err) {
-        console.error(err)
-        console.log("that's why")
-        debugger;
         localStorage.removeItem("graph-data");
     }
     
@@ -60,7 +57,7 @@ export const GraphComponent = ({ data, setData }) => {
 
       useEffect(() => {
         if (foundData) {
-            Plotly.newPlot('graph', data.graph, layout, {displayModeBar: false});
+            Plotly.newPlot('graph', data.graph, layout, { displayModeBar: true });
             graph.current.on('plotly_click', function (event) { // Click event for zoom page
                 const dataPoint = event.points[0];
                 let idx;
