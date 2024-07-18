@@ -239,6 +239,9 @@ const updateText = async(knex, id, user) => {
     util.generateJSON(paramsFile, suggestion);
     await runPython("update_text", [paramsFile], curr.distributed);
 
+    // Update updates count
+    await model.incUpdates(suggestion.table_name);
+
     // Send an email to the person who made the suggestion
     await emails.suggestionEmail(
         knex, suggestion.email, curr.email, curr.title,
