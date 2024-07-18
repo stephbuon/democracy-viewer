@@ -8,7 +8,7 @@ import { Stack } from '@mui/system';
 // Other Imports
 import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AdvancedFilter } from './AdvancedFilter';
-import { DatasetTable } from '../common/DatasetTable';
+import { DatasetTable } from '../common/tables/DatasetTable';
 
 const pageLength = 5;
 

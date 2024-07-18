@@ -224,7 +224,7 @@ export const Graph = (props) => {
   useEffect(() => {
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if (!demoV || !demoV.dataset || !demoV.dataset.tokens_done) {
-      navigate('/datasetsearch')
+      navigate('/datasets/search')
       props.setNavigated(true);
     } else {
       setData(demoV);

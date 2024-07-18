@@ -16,14 +16,20 @@ def send_email(template: str, params: dict, subject: str, to: str):
         name = "{} {}".format(title, name)
     if suffix is not None:
         name = "{} {}".format(name, suffix)
+    params["name"] = name
     
     # Fill in remaining parameters in email template
     with open("util/emails/{}.txt".format(template), "r") as file:
-        text = file.read()
-        text = text.replace("[[name]]", name)
-        for key, val in params.items():
-            text = text.replace("[[{}]]".format(key), str(val))
-        message = MIMEText(text)
+        full_text = ""
+        for line in file.readlines():
+            if len(line) > 0:
+                text = "<p>{}</p>".format(line)
+                text = text.replace("[[name]]", name)
+                for key, val in params.items():
+                    text = text.replace("[[{}]]".format(key), str(val))
+                full_text += text    
+                
+        message = MIMEText(full_text, "html")
 
     # Set headers
     from_email = environ.get("FROM_EMAIL")

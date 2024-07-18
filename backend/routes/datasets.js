@@ -86,6 +86,18 @@ router.post('/like/:table', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to create a text suggestions
+router.post('/suggest', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.addSuggestion(req.knex, req.user.email, req.body)
+        res.status(201).end();
+    } catch (err) {
+        console.error('Failed to create text suggestion:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to change dataset metadata
 router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
     try {
@@ -111,9 +123,9 @@ router.put('/click/:table', async(req, res, next) => {
 });
 
 // Route to update text
-router.put('/text/:table', authenticateJWT, async(req, res, next) => {
+router.put('/suggest/:id', authenticateJWT, async(req, res, next) => {
     try {
-        await control.updateText(req.knex, req.params.table, req.body);
+        await control.updateText(req.knex, req.params.id, req.user.email);
         res.status(200).end();
     } catch (err) {
         console.error('Failed to update dataset text:', err);
@@ -129,6 +141,18 @@ router.get('/metadata/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset metadata:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get full dataset metadata
+router.get('/metadata/full/:table', async(req, res, next) => {
+    try {
+        const result = await control.getFullMetadata(req.knex, req.params.table, req.user ? req.user.email : undefined);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get full dataset metadata:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -294,6 +318,42 @@ router.get('/columns/:table/values/:column', async(req, res, next) => {
     next();
 });
 
+// Route to get suggestions (from)
+router.get('/suggest/from', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.getSuggestionsFrom(req.knex, req.user.email, req.query);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get suggestions from:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get suggestions (for)
+router.get('/suggest/for', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.getSuggestionsFor(req.knex, req.user.email, req.query);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get suggestions for:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get a suggestion by id
+router.get('/suggest/id/:id', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.getSuggestion(req.knex, req.user.email, req.params.id);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get suggestions for:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to delete a datset and its metadata
 router.delete('/:table', authenticateJWT, async(req, res, next) => {
     try {
@@ -337,6 +397,18 @@ router.delete('/like/:table', authenticateJWT, async(req, res, next) => {
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete like:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a suggestion
+router.delete('/suggest/:id', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.deleteSuggestionById(req.knex, req.user.email, req.params.id);
+        res.status(204).end();
+    } catch (err) {
+        console.error('Failed to delete suggestion:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

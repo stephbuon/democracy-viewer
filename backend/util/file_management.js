@@ -10,7 +10,7 @@ const maxUploadSize = 100 * 1024 * 1024;
 
 // Read a file into memory as a readable stream
 const readFile = (path) => {
-    return fs.createReadStream(path);
+    return fs.readFileSync(path, "utf8");
 }
 
 // Delete all files for a given dataset
@@ -152,7 +152,7 @@ const downloadDataset = async(name, distributed, dataset = false, tokens = false
     }
 
     // Download data from s3 with python
-    await runPython("download_dataset.py", [name, downloadType], distributed);
+    await runPython("download_dataset", [name, downloadType], distributed);
 
     // Update output
     if (dataset) {

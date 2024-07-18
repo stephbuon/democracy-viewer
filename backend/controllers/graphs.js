@@ -32,7 +32,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
     files.generateJSON(file1, params);
 
     // Run python program that generates graph data
-    await runPython("graphs.py", [ file1 ], metadata.distributed);
+    await runPython("graphs", [ file1 ], metadata.distributed);
    
     // Read python output files and return results
     return files.readJSON(file2, false);

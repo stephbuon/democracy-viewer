@@ -39,6 +39,12 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
         setFormattedResults(searchResults_);
     }, [searchResults]);
 
+    useEffect(() => {
+        if (loadingResults) {
+            setFormattedResults([...Array(pageLength).keys()]);
+        }
+    }, [loadingResults])
+
     return <>
         <DataTable
             value={formattedResults} 
@@ -56,6 +62,7 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
             totalRecords={totalNumResults}
             onPage={onPage}
             first={first}
+            emptyMessage="No Datasets Found"
         >
             <Column
                 header="Results"

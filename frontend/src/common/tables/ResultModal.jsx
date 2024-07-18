@@ -1,36 +1,32 @@
-import { 
-    Box, Button, ButtonGroup, Modal, 
-    Table, TableBody, TableHead, TableRow, TableCell, Tooltip 
+import {
+    Box, Button, ButtonGroup, Modal,
+    Table, TableBody, TableHead, TableRow, TableCell, Tooltip
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
-import { Popularize } from '../apiFolder/DatasetSearchAPI';
-import { AlertDialog } from './AlertDialog';
-import { deleteDataset, addLike, deleteLike } from '../api/api';
-import { UpdateMetadata, AddTags, DeleteTag } from '../apiFolder/DatasetUploadAPI';
-import { DatasetInformation } from './DatasetInformation';
-import { DatasetTags } from './DatasetTags';
+import { Popularize } from '../../apiFolder/DatasetSearchAPI';
+import { AlertDialog } from '../AlertDialog';
+import { deleteDataset, addLike, deleteLike } from '../../api/api';
+import { UpdateMetadata, AddTags, DeleteTag } from '../../apiFolder/DatasetUploadAPI';
+import { DatasetInformation } from '../DatasetInformation';
+import { DatasetTags } from '../DatasetTags';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
-import { getUser } from '../api/users';
+import { getUser } from '../../api/users';
 
-export const Result = (props) => {
+export const ResultModal = (props) => {
     const navigate = useNavigate();
 
-    const [loggedIn, setLoggedIn] = useState(false);
-    const [dataset, setDataset] = useState(props.result);
-    const [open, setOpen] = useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
+    const handleClose = () => props.setOpen(false);
 
     const [userName, setUserName] = useState(undefined);
-    const [title, setTitle] = useState(dataset.title);
-    const [publicPrivate, setPublicPrivate] = useState(dataset.is_public);
-    const [description, setDescription] = useState(dataset.description);
-    const [author, setAuthor] = useState(dataset.author);
-    const [date, setDate] = useState(dataset.date);
-    const [tags, setTags] = useState(dataset.tags);
+    const [title, setTitle] = useState(props.dataset.title);
+    const [publicPrivate, setPublicPrivate] = useState(props.dataset.is_public);
+    const [description, setDescription] = useState(props.dataset.description);
+    const [author, setAuthor] = useState(props.dataset.author);
+    const [date, setDate] = useState(props.dataset.date);
+    const [tags, setTags] = useState(props.dataset.tags);
 
     // Open edit dialogs
     const [infoOpen, setInfoOpen] = useState(false);
@@ -42,61 +38,58 @@ export const Result = (props) => {
     const [disabled, setDisabled] = useState(false);
 
     const chooseDataset = () => {
-        Popularize(dataset.table_name)
-        props.setDataset(dataset);
+        Popularize(props.dataset.table_name)
+        props.setDataset(props.dataset);
     }
 
     const updateInfo = () => {
         const params = {
-            title: title !== dataset.title ? title : null,
-            is_public: publicPrivate !== dataset.is_public ? publicPrivate : null,
-            description: description !== dataset.description ? description : null,
-            author: author !== dataset.author ? author : null,
-            date: date !== dataset.date ? date : null
+            title: title !== props.dataset.title ? title : null,
+            is_public: publicPrivate !== props.dataset.is_public ? publicPrivate : null,
+            description: description !== props.dataset.description ? description : null,
+            author: author !== props.dataset.author ? author : null,
+            date: date !== props.dataset.date ? date : null
         };
 
         const keys = Object.keys(params).filter(x => params[x] === null);
         keys.forEach(x => delete params[x]);
 
-        UpdateMetadata(dataset.table_name, params).then(x => {
+        UpdateMetadata(props.dataset.table_name, params).then(x => {
             const newDataset = { ...x, tags };
-            setDataset(newDataset);
             props.setDataset(newDataset);
         });
     }
 
     const updateTags = () => {
-        const newTags = tags.filter(x => dataset.tags.indexOf(x) === -1);
-        const deletedTags = dataset.tags.filter(x => tags.indexOf(x) === -1);
+        const newTags = tags.filter(x => props.dataset.tags.indexOf(x) === -1);
+        const deletedTags = props.dataset.tags.filter(x => tags.indexOf(x) === -1);
 
         if (newTags.length > 0) {
-            AddTags(dataset.table_name, newTags);
-        } 
-        deletedTags.forEach(x => DeleteTag(dataset.table_name, x));
+            AddTags(props.dataset.table_name, newTags);
+        }
+        deletedTags.forEach(x => DeleteTag(props.dataset.table_name, x));
 
-        const newDataset = { ...dataset, tags };
-        setDataset(newDataset);
+        const newDataset = { ...props.dataset, tags };
+        props.setDataset(newDataset);
         props.setDataset(newDataset);
     }
 
     const like = () => {
-        addLike(dataset.table_name);
+        addLike(props.dataset.table_name);
 
-        const newDataset = { ...dataset, liked: true, likes: dataset.likes + 1 };
-        setDataset(newDataset);
+        const newDataset = { ...props.dataset, liked: true, likes: props.dataset.likes + 1 };
         props.setDataset(newDataset);
     }
 
     const dislike = () => {
-        deleteLike(dataset.table_name);
+        deleteLike(props.dataset.table_name);
 
-        const newDataset = { ...dataset, liked: false, likes: dataset.likes - 1 };
-        setDataset(newDataset);
+        const newDataset = { ...props.dataset, liked: false, likes: props.dataset.likes - 1 };
         props.setDataset(newDataset);
     }
 
     const onDelete = () => {
-        deleteDataset(dataset.table_name).then(x => {
+        deleteDataset(props.dataset.table_name).then(x => {
             if (props.deleteCallback) {
                 props.deleteCallback();
             } else {
@@ -106,89 +99,69 @@ export const Result = (props) => {
     }
 
     useEffect(() => {
-        if (infoDisabled && (title !== dataset.title || publicPrivate != dataset.is_public || description !== dataset.description || author !== dataset.author || date !== dataset.date)) {
+        if (infoDisabled && (title !== props.dataset.title || publicPrivate != props.dataset.is_public || description !== props.dataset.description || author !== props.dataset.author || date !== props.dataset.date)) {
             setInfoDisabled(false);
-        } else if (!infoDisabled && title === dataset.title && publicPrivate == dataset.is_public && description === dataset.description && author === dataset.author && date === dataset.date) {
+        } else if (!infoDisabled && title === props.dataset.title && publicPrivate == props.dataset.is_public && description === props.dataset.description && author === props.dataset.author && date === props.dataset.date) {
             setInfoDisabled(true);
         }
     }, [title, publicPrivate, description, author, date]);
 
     useEffect(() => {
-        if (tagsDisabled && JSON.stringify(tags.sort()) !== JSON.stringify(dataset.tags.sort())) {
+        if (tagsDisabled && JSON.stringify(tags.sort()) !== JSON.stringify(props.dataset.tags.sort())) {
             setTagsDisabled(false);
-        } else if (!tagsDisabled && JSON.stringify(tags.sort()) === JSON.stringify(dataset.tags.sort())) {
+        } else if (!tagsDisabled && JSON.stringify(tags.sort()) === JSON.stringify(props.dataset.tags.sort())) {
             setTagsDisabled(true);
         }
     }, [tags]);
 
     useEffect(() => {
-        setDataset(props.result);
-
-        const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-        if (demoV && demoV.user) {
-            setLoggedIn(true);
-        } else {
-            setLoggedIn(false);
+        if (props.open && !userName) {
+            getUser(props.dataset.email).then(user => setUserName(`${user.first_name} ${user.last_name}`));
         }
-    }, [props.result]);
+    }, [props.open]);
 
-    useEffect(() => {
-        if (open && !userName) {
-            getUser(dataset.email).then(user => setUserName(`${ user.first_name } ${ user.last_name }`));
-        }
-    }, [open]);
-
-    return <div>
-            <Box 
-                onClick={() => handleOpen()}
+    return <>
+        <Modal
+            open={props.open}
+            onClose={() => handleClose()}
+        >
+            <Box
                 sx={{
-                    "&:hover": {
-                        "cursor": "pointer"
-                    }
+                    position: 'absolute',
+                    top: '20%',
+                    left: '15%',
+                    height: "60%",
+                    overflow: "scroll",
+                    width: "70%",
+                    bgcolor: 'background.paper',
+                    border: '1px solid #000',
+                    borderRadius: ".5em .5em",
+                    paddingBottom: "15px"
                 }}
             >
-                {dataset.title}
-            </Box>
-            <Modal
-                open={open}
-                onClose={() => handleClose()}
-            >
-                <Box
+                <ButtonGroup
                     sx={{
-                        position: 'absolute',
-                        top: '20%',
-                        left: '15%',
-                        height: "60%",
-                        overflow: "scroll",
-                        width: "70%",
-                        bgcolor: 'background.paper',
-                        border: '1px solid #000',
-                        borderRadius: ".5em .5em",
-                        paddingBottom: "15px"
-                    }}
-                >
-                    <ButtonGroup 
-                        sx={{
-                            width: "100%"
-                        }}>
+                        width: "100%"
+                    }}>
                     {
                         props.editable && <>
-                            <Button 
-                                variant="contained" 
+                            <Button
+                                variant="contained"
                                 disableElevation
                                 fullWidth={true}
-                                sx={{ 
-                                    borderRadius: 0, 
-                                    width: "100%", 
-                                    bgcolor: '#B3B3B3', 
-                                    color: 'white' }} 
+                                sx={{
+                                    borderRadius: 0,
+                                    width: "100%",
+                                    bgcolor: '#B3B3B3',
+                                    color: 'white'
+                                }}
                                 onClick={() => setInfoOpen(true)}>
                                 Edit
                             </Button>
                             <AlertDialog
                                 open={infoOpen}
                                 setOpen={setInfoOpen}
-                                titleText={`Edit Dataset "${ dataset.title }"`}
+                                titleText={`Edit Dataset "${props.dataset.title}"`}
                                 bodyText={
                                     <DatasetInformation
                                         title={title}
@@ -207,22 +180,23 @@ export const Result = (props) => {
                                 }
                                 action={() => updateInfo()}
                             />
-                            <Button 
-                                variant="contained" 
+                            <Button
+                                variant="contained"
                                 disableElevation
                                 fullWidth={true}
-                                sx={{  
-                                    borderRadius: 0, 
-                                    width: "100%", 
-                                    bgcolor: '#B3B3B3', 
-                                    color: 'white' }} 
+                                sx={{
+                                    borderRadius: 0,
+                                    width: "100%",
+                                    bgcolor: '#B3B3B3',
+                                    color: 'white'
+                                }}
                                 onClick={() => setTagsOpen(true)}>
                                 Edit Tags
                             </Button>
                             <AlertDialog
                                 open={tagsOpen}
                                 setOpen={setTagsOpen}
-                                titleText={`Edit dataset "${ dataset.title }"`}
+                                titleText={`Edit dataset "${props.dataset.title}"`}
                                 bodyText={
                                     <DatasetTags
                                         tags={tags}
@@ -233,15 +207,16 @@ export const Result = (props) => {
                                 disabled={tagsDisabled}
                             />
 
-                            <Button 
-                                variant="contained" 
+                            <Button
+                                variant="contained"
                                 disableElevation
                                 fullWidth={true}
-                                sx={{  
-                                    borderRadius: 0, 
-                                    width: "100%", 
-                                    bgcolor: '#B3B3B3', 
-                                    color: 'white' }} 
+                                sx={{
+                                    borderRadius: 0,
+                                    width: "100%",
+                                    bgcolor: '#B3B3B3',
+                                    color: 'white'
+                                }}
                                 onClick={() => setDeleteOpen(true)}
                             >
                                 Delete
@@ -249,65 +224,67 @@ export const Result = (props) => {
                             <AlertDialog
                                 open={deleteOpen}
                                 setOpen={setDeleteOpen}
-                                titleText={`Are you sure you want to delete the dataset "${ dataset.title }"?`}
+                                titleText={`Are you sure you want to delete the dataset "${props.dataset.title}"?`}
                                 bodyText={"This action cannot be undone."}
                                 action={() => onDelete()}
                             />
                         </>
                     }
                     {
-                        loggedIn && dataset.liked === false &&
-                        <Button 
-                        variant="contained" 
-                        disableElevation
-                        fullWidth={true}
-                        sx={{  
-                            borderRadius: 0, 
-                            width: "100%", 
-                            bgcolor: '#B3B3B3', 
-                            color: 'white' }} 
-                        endIcon={<BookmarkBorderIcon />} 
-                        onClick={() => like()}>
+                        props.loggedIn && props.dataset.liked === false &&
+                        <Button
+                            variant="contained"
+                            disableElevation
+                            fullWidth={true}
+                            sx={{
+                                borderRadius: 0,
+                                width: "100%",
+                                bgcolor: '#B3B3B3',
+                                color: 'white'
+                            }}
+                            endIcon={<BookmarkBorderIcon />}
+                            onClick={() => like()}>
                             Bookmark
                         </Button>
                     }
 
                     {
-                        loggedIn && dataset.liked === true &&
-                        <Button 
-                        variant="contained" 
-                        disableElevation
-                        fullWidth={true}
-                        sx={{  
-                            borderRadius: 0, 
-                            width: "100%", 
-                            bgcolor: '#B3B3B3', 
-                            color: 'white' }} 
-                        endIcon={<BookmarkIcon />} 
-                        onClick={() => dislike()}>
+                        props.loggedIn && props.dataset.liked === true &&
+                        <Button
+                            variant="contained"
+                            disableElevation
+                            fullWidth={true}
+                            sx={{
+                                borderRadius: 0,
+                                width: "100%",
+                                bgcolor: '#B3B3B3',
+                                color: 'white'
+                            }}
+                            endIcon={<BookmarkIcon />}
+                            onClick={() => dislike()}>
                             Remove Bookmark
                         </Button>
                     }
-                </ButtonGroup> 
-                
+                </ButtonGroup>
+
                 <Table sx={{ border: 'none' }}>
                     <TableHead>
-                        
                         <TableRow>
                             <TableCell
                                 sx={{
-                                    paddingTop: "20px", 
+                                    paddingTop: "20px",
                                     align: 'center'
 
                                 }}>
-                                <b>{dataset.title}</b>
+                                <b>{props.dataset.title}</b>
                             </TableCell>
-                            <TableCell 
+                            <TableCell
                                 sx={{
-                                    textAlign: "left", 
-                                    paddingTop: "20px" }}>
-                                {dataset.is_public==1 && <span>Public</span>}
-                                {dataset.is_public==0 && <span>Private</span>}
+                                    textAlign: "left",
+                                    paddingTop: "20px"
+                                }}>
+                                {props.dataset.is_public == 1 && <span>Public</span>}
+                                {props.dataset.is_public == 0 && <span>Private</span>}
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -316,48 +293,48 @@ export const Result = (props) => {
                             <TableCell>
                                 <b> Author </b>
                             </TableCell>
-                            <TableCell sx={{textAlign: "left"}}>
-                                <Link to={`/profile/${ dataset.email }`}>
-                                {
-                                    userName !== undefined && userName
-                                }
+                            <TableCell sx={{ textAlign: "left" }}>
+                                <Link to={`/profile/${props.dataset.email}`}>
+                                    {
+                                        userName !== undefined && userName
+                                    }
 
-                                {
-                                    userName === undefined && dataset.email
-                                }
+                                    {
+                                        userName === undefined && props.dataset.email
+                                    }
                                 </Link>
                             </TableCell>
-                            
+
                         </TableRow>
                         <TableRow>
                             <TableCell>
                                 <b> Description </b>
                             </TableCell>
-                            <TableCell sx={{textAlign: "left"}}>
-                                {dataset.description}
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.description}
                             </TableCell>
                         </TableRow>
 
                         {
-                            dataset.author &&
+                            props.dataset.author &&
                             <TableRow>
                                 <TableCell>
                                     <b> Source </b>
                                 </TableCell>
-                                <TableCell sx={{textAlign: "left"}}>
-                                    {dataset.author}
+                                <TableCell sx={{ textAlign: "left" }}>
+                                    {props.dataset.author}
                                 </TableCell>
                             </TableRow>
                         }
 
                         {
-                            dataset.date_collected &&
+                            props.dataset.date_collected &&
                             <TableRow>
                                 <TableCell>
                                     <b> Date Collected: </b>
                                 </TableCell>
-                                <TableCell sx={{textAlign: "left"}}>
-                                    {new Date(dataset.date_collected).toLocaleDateString()}
+                                <TableCell sx={{ textAlign: "left" }}>
+                                    {new Date(props.dataset.date_collected).toLocaleDateString()}
                                 </TableCell>
                             </TableRow>
                         }
@@ -366,37 +343,37 @@ export const Result = (props) => {
                             <TableCell>
                                 <b> Views </b>
                             </TableCell>
-                            <TableCell sx={{textAlign: "left"}}>
-                                {dataset.clicks}
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.clicks}
                             </TableCell>
-                            
+
                         </TableRow>
 
                         <TableRow>
                             <TableCell>
                                 <b> Bookmarks </b>
                             </TableCell>
-                            <TableCell sx={{textAlign: "left"}}>
-                                {dataset.likes}
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.likes}
                             </TableCell>
-                            
+
                         </TableRow>
                         <TableRow>
                             <TableCell>
                                 <b> Tags </b>
                             </TableCell>
-                            <TableCell sx={{textAlign: "left"}}>
-                            <div class="row">
-                            {dataset.tags.map((tag, index) => {
-                                if (index < 5) {
-                                    return <span class="col"
+                            <TableCell sx={{ textAlign: "left" }}>
+                                <div class="row">
+                                    {props.dataset.tags.map((tag, index) => {
+                                        if (index < 5) {
+                                            return <span class="col"
                                                 key={index} >
-                                        {tag}
-                                    </span>
-                                }
-                            })}
-                            </div>
-                            </TableCell> 
+                                                {tag}
+                                            </span>
+                                        }
+                                    })}
+                                </div>
+                            </TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
@@ -422,29 +399,29 @@ export const Result = (props) => {
                             primary
                             sx={{
                                 marginX: '1em',
-                                borderRadius: 50, 
-                                bgcolor: 'black', 
-                                color: 'white' 
+                                borderRadius: 50,
+                                bgcolor: 'black',
+                                color: 'white'
                             }}
                             onClick={() => {
                                 chooseDataset()
-                                navigate('/subsetsearch');
+                                navigate('/datasets/subsets/search');
                             }}
                         >
                             Subset Search
                         </Button>
                     </div>
-                    
+
                     {
-                        dataset.tokens_done == true &&
+                        props.dataset.tokens_done == true &&
                         <div>
                             <Button
                                 variant="contained"
                                 primary
                                 sx={{
                                     marginX: '1em',
-                                    borderRadius: 50, 
-                                    bgcolor: 'black', 
+                                    borderRadius: 50,
+                                    bgcolor: 'black',
                                     color: 'white'
                                 }}
                                 onClick={() => {
@@ -455,20 +432,20 @@ export const Result = (props) => {
                                 Visualize
                             </Button>
                         </div>
-                        
+
                     }
 
                     {
-                        dataset.tokens_done == false &&
-                        <Tooltip arrow title = "Graphing for this dataset has been disabled until processing is complete">
+                        props.dataset.tokens_done == false &&
+                        <Tooltip arrow title="Graphing for this dataset has been disabled until processing is complete">
                             <div>
                                 <Button
                                     variant="contained"
                                     primary
                                     sx={{
                                         marginX: '1em',
-                                        borderRadius: 50, 
-                                        bgcolor: 'black', 
+                                        borderRadius: 50,
+                                        bgcolor: 'black',
                                         color: 'white'
                                     }}
                                     disabled
@@ -481,6 +458,5 @@ export const Result = (props) => {
                 </Box>
             </Box>
         </Modal>
-
-    </div>
+    </>
 }

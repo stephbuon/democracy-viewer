@@ -1,7 +1,7 @@
 // Imports
 import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
-import { PaginatedDataTable } from "../common/PaginatedDataTable.jsx";
+import { PaginatedDataTable } from "../common/tables/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
 import { getTextCols } from "../api/api.js";
 import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";

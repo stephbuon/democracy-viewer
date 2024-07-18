@@ -1,14 +1,14 @@
 //MUI Imports
-import { Box, Button, TextField, Tooltip, Checkbox, FormControlLabel } from '@mui/material';
+import { Box, Button, TextField, Tooltip, Checkbox, FormControlLabel, Alert, Snackbar } from '@mui/material';
 
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 import { useEffect, useState } from 'react';
-import { AlertDialog } from './AlertDialog';
-import { DownloadSubset } from '../apiFolder/SubsetSearchAPI';
-import { updateText } from '../api/api';
+import { AlertDialog } from '../AlertDialog';
+import { DownloadSubset } from '../../apiFolder/SubsetSearchAPI';
+import { addSuggestion } from '../../api/api';
 
 export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);
@@ -22,6 +22,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     const [suggest, setSuggest] = useState(false);
     const [first, setFirst] = useState(0);
     const [loggedIn, setLoggedIn] = useState(false);
+    const [alert, setAlert] = useState(0);
 
     const onPage = (event) => {
         GetNewPage(event.page + 1);
@@ -54,11 +55,11 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     }
 
     const submitUpdate = () => {
-        updateText(table_name, {
-            row: clickRow, col: clickCol,
+        addSuggestion({
+            record_id: clickRow, col: clickCol,
             start: editStart, end: editEnd,
-            text: newText
-        }).then(x => GetNewPage((first / pageLength) + 1));
+            new_text: newText, table_name
+        }).then(x => setAlert(1));
     }
 
     useEffect(() => {
@@ -101,6 +102,18 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     }, [])
 
     return <>
+        <Snackbar
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            open={alert !== 0}
+            autoHideDuration={6000}
+        >
+            <Alert onClose={() => setAlert(0)} severity="success" sx={{ width: '100%' }}>
+                Your suggestion has been submitted to the owner of this dataset for review.
+                <br/>
+                You will be sent an email when it has been confirmed.
+            </Alert>
+        </Snackbar>
+
         <Box
             sx={{
                 display: 'flex',
@@ -177,6 +190,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
             totalRecords={totalNumResults}
             onPage={onPage}
             first={first}
+            emptyMessage="No Records Found"
         >
             {
                 columns.map((col, i) => {
@@ -191,14 +205,14 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                             style={{ minWidth: `${col.length * 15}px` }}
                             body={(rowData) => (
                                 <div style={{ 
-                                    maxHeight: '125px', 
+                                    height: '125px', 
                                     overflowY: 'auto', 
                                     verticalAlign: 'top', 
                                     paddingTop: '5px' 
                                 }}>
                                     {rowData[col]}
                                 </div>
-                        )}
+                            )}
                             headerStyle={{verticalAlign: 'top'}}
                         />
 

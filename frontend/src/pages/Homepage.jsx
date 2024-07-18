@@ -60,7 +60,7 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/datasetsearch" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button href="/datasets/search" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>
@@ -80,7 +80,7 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/subsetsearch" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button href="/datasets/subsets/search" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>

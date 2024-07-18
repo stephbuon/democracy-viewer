@@ -15,6 +15,7 @@ import 'animate.css';
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import CreateDistributedConnection from "./pages/CreateDistributedConnection.jsx";
 import {Acknowledgements} from "./pages/Acknowledgements.jsx";
+import { SubsetSuggestion } from "./pages/SubsetSuggestion.jsx";
   
 export const App = () => {
   // variable definitions
@@ -72,8 +73,9 @@ export const App = () => {
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout}/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
-            <Route path='/subsetsearch' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
-            <Route path='/datasetsearch' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
+            <Route path='/datasets/subsets/search' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
+            <Route path='/datasets/subsets/suggestion/:id' element={<SubsetSuggestion/>} />
+            <Route path='/datasets/search' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/upload/complete" element={<UploadComplete/>}></Route>
             <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>

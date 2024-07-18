@@ -1,0 +1,15 @@
+Dear [[name]],
+
+The suggestion you made to the dataset "[[title]]" has been confirmed by <a href="[[url]]/profile/[[email2]]">[[name2]]</a>, the owner of the dataset.
+
+This suggestion implemented the following change:
+
+Old: "[[old_text]]"
+
+New: "[[new_text]]"
+
+<a href="[[url]]/datasets/subsets/suggestion/[[id]]">Click here to view the record that was affected by this change.</a>
+
+This updated the text in subset search, but visualizations will not be updated unless [[name2]] chooses the reprocess the dataset.
+
+- Democracy Viewer Team

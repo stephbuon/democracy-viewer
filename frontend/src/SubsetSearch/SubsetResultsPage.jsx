@@ -2,12 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 import 'react-resizable/css/styles.css';
 // MUI Imports
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
+import { Alert, Box, Button, TextField } from '@mui/material';
 //Other Imports
 import { DownloadSubset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
-import { PaginatedDataTable } from '../common/PaginatedDataTable';
+import { PaginatedDataTable } from '../common/tables/PaginatedDataTable';
 import Highlighter from "react-highlight-words";
 
 const pageLength = 10;
@@ -89,7 +87,7 @@ export const SubsetResultsPage = (props) => {
     useEffect(() => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (!demoV || !demoV.dataset) {
-            navigate('/datasetsearch')
+            navigate('/datasets/search')
             props.setNavigated(true)
         } else {
             fetchSubset();

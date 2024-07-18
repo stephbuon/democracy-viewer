@@ -25,7 +25,7 @@ export const Layout = (props) => {
     switch (location.pathname) {
       case '/':
         return 'Home';
-      case '/datasetsearch':
+      case '/datasets/search':
         return 'Search';
       case '/graph':
         return 'Graphs';
@@ -33,7 +33,7 @@ export const Layout = (props) => {
         return 'Login';
       case '/register':
         return 'Register';
-      case '/subsetsearch':
+      case '/datasets/subsets/search':
         return 'Subset Search';
       case '/acknowledgements':
         return "Acknowledgements";
@@ -106,14 +106,14 @@ export const Layout = (props) => {
               <ListItemText primary="Home" />
             </ListItemButton>
 
-            <ListItemButton component={Link} to="/datasetsearch" sx = {{ height: "50px" }}>
+            <ListItemButton component={Link} to="/datasets/search" sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <Search />
               </ListItemIcon>
               <ListItemText primary="Dataset Search" />
             </ListItemButton>
 
-            <ListItemButton component={Link} to="/subsetsearch" sx = {{ height: "50px" }}>
+            <ListItemButton component={Link} to="/datasets/subsets/search" sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <ScreenSearchDesktop />
               </ListItemIcon>

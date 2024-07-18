@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const chance = require("chance").Chance();
-const runPython = require("../util/python_config");
+const emails = require("../util/email_management");
 
 const dataset = require("../models/datasets");
 const users = require("../models/users");
@@ -29,7 +29,7 @@ const createResetCode = async(knex, email) => {
     // Add new code
     await model.addResetCode(email, hashedCode);
     // Send email to user
-    await runPython("send_email.py", [email, "reset", code]);
+    await emails.resetPasswordEmail(knex, email, code);
 }
 
 // Get a user by their email
