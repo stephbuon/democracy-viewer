@@ -319,7 +319,7 @@ router.get('/columns/:table/values/:column', async(req, res, next) => {
 });
 
 // Route to get suggestions (from)
-router.get('/suggest/from', async(req, res, next) => {
+router.get('/suggest/from', authenticateJWT, async(req, res, next) => {
     try {
         const result = await control.getSuggestionsFrom(req.knex, req.user.email, req.query);
         res.status(200).json(result);
@@ -331,9 +331,21 @@ router.get('/suggest/from', async(req, res, next) => {
 });
 
 // Route to get suggestions (for)
-router.get('/suggest/for', async(req, res, next) => {
+router.get('/suggest/for', authenticateJWT, async(req, res, next) => {
     try {
         const result = await control.getSuggestionsFor(req.knex, req.user.email, req.query);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get suggestions for:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get a suggestion by id
+router.get('/suggest/id/:id', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.getSuggestion(req.knex, req.user.email, req.params.id);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get suggestions for:', err);

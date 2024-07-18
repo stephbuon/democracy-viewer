@@ -44,7 +44,7 @@ const sendEmail = async(knex, template, params, subject, to) => {
     await transporter.sendMail(mailOptions);
 }
 
-const suggestionEmail = async(knex, email, email2, title, old_text, new_text, record_id, type) => {
+const suggestionEmail = async(knex, email, email2, title, old_text, new_text, id, type) => {
     const name2 = await getName(knex, email2);
 
     const params = {
@@ -53,16 +53,17 @@ const suggestionEmail = async(knex, email, email2, title, old_text, new_text, re
         title,
         old_text,
         new_text,
-        record_id
+        id,
+        url: process.env.FRONTEND_ENDPOINT
     };
 
     let subject;
     let template;
     if (type.includes("confirm")) {
-        subject = "You Have Received a New Suggestion";
+        subject = "Your Suggestion Has Been Confirmed";
         template = "suggestion_confirmed";
     } else if (type.includes("add")) {
-        subject = "Your Suggestion Has Been Confirmed";
+        subject = "You Have Received a New Suggestion";
         template = "suggestion_added";
     } else {
         throw new Error(`Invalid email type: ${ type }`);

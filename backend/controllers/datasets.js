@@ -189,7 +189,7 @@ const addSuggestion = async(knex, user, params) => {
 
     await emails.suggestionEmail(
         knex, curr.email, suggestion.email, curr.title,
-        oldText, suggestion.new_text, suggestion.record_id, "add"
+        oldText, suggestion.new_text, suggestion.id, "add"
     );
 }
 
@@ -243,7 +243,7 @@ const updateText = async(knex, id, user) => {
     // Send an email to the person who made the suggestion
     await emails.suggestionEmail(
         knex, suggestion.email, curr.email, curr.title,
-        oldText, suggestion.new_text, suggestion.record_id, "confirm"
+        oldText, suggestion.new_text, suggestion.id, "confirm"
     );
 
     // Delete all files for this dataset to reset them
@@ -627,6 +627,37 @@ const getSuggestionsFor = async(knex, user, params) => {
     return records;
 }
 
+// Get a suggestion by its id
+const getSuggestion = async(knex, user, id) => {
+    const model = new datasets(knex);
+
+    const record = await model.getSuggestion(id);
+    
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(record.table_name);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== user && record.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    // Update date formatting
+    record.post_date = record.post_date.toLocaleDateString();
+        
+    // User name
+    const email = record.email;
+    record.name = await getName(knex, email);
+
+    // Old text
+    record.old_text = await getText(
+        record.table_name, record.distributed, 
+        record.record_id, record.col,
+        record.start, record.end
+    );
+
+    return record;
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -716,6 +747,7 @@ module.exports = {
     downloadIds,
     getSuggestionsFor,
     getSuggestionsFrom,
+    getSuggestion,
     deleteDataset,
     deleteTag,
     deleteLike,

@@ -255,7 +255,7 @@ class datasets {
     // Get paginated suggestions from a given user
     async getSuggestionsFrom(email, currentPage = 1, perPage = 10, sort_col = undefined, ascending = true) {
         let query = this.knex(suggestion_table)
-            .select(`${ suggestion_table }.*`, `${ metadata_table }.title`, { owner_email: `${ metadata_table }.email`})
+            .select(`${ suggestion_table }.*`, { owner_email: `${ metadata_table }.email`})
             .distinct()
             .leftJoin(metadata_table, `${ suggestion_table }.table_name`, `${ metadata_table }.table_name`)
             .where(`${ suggestion_table }.email`, email);
@@ -274,7 +274,7 @@ class datasets {
     // Get paginated suggestions to a given user
     async getSuggestionsFor(email, currentPage = 1, perPage = 10, sort_col = undefined, ascending = true) {
         const query = this.knex(suggestion_table)
-            .select(`${ suggestion_table }.*`, `${ metadata_table }.title`, { owner_email: `${ metadata_table }.email`})
+            .select(`${ suggestion_table }.*`, { owner_email: `${ metadata_table }.email`})
             .distinct()
             .leftJoin(metadata_table, `${ suggestion_table }.table_name`, `${ metadata_table }.table_name`)
             .where(`${ metadata_table }.email`, email);
@@ -292,7 +292,12 @@ class datasets {
 
     // Get a suggestion by its id
     async getSuggestion(id) {
-        const record = await this.knex(suggestion_table).where({ id });
+        const record = await this.knex(suggestion_table)
+            .select(`${ suggestion_table }.*`, { owner_email: `${ metadata_table }.email`})
+            .distinct()
+            .leftJoin(metadata_table, `${ suggestion_table }.table_name`, `${ metadata_table }.table_name`)
+            .where(`${ suggestion_table }.id`, id);
+
         return record[0];
     }
 

@@ -269,7 +269,6 @@ export const ResultModal = (props) => {
 
                 <Table sx={{ border: 'none' }}>
                     <TableHead>
-
                         <TableRow>
                             <TableCell
                                 sx={{

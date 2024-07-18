@@ -235,6 +235,13 @@ export const getSuggestionsFrom = (params) => new Promise((resolve, reject) => {
   });
 });
 
+export const getSuggestion = (id) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/datasets/suggest/id/${ id }`, apiConfig()).then(x => resolve(x.data)).catch(x => {
+    // alert(x);
+    reject(x);
+  });
+});
+
 export const confirmSuggestion = (id) => new Promise((resolve, reject) => {
   axios.put(`${ baseURL }/datasets/suggest/${ id }`, {}, apiConfig()).then(x => resolve(x.data)).catch(x => {
     alert(x);

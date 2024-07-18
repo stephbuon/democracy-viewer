@@ -3,10 +3,12 @@ import { Column } from "primereact/column";
 import { getSuggestionsFor, getSuggestionsFrom, confirmSuggestion, deleteSuggestion } from "../../api/api";
 import { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ResultLink } from './ResultLink';
 
 export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, setDataset }) => {
+    const navigate = useNavigate();
+
     const [first, setFirst] = useState(0);
     const [data, setData] = useState([...Array(pageLength).keys()]);
     const [totalNumResults, setTotalNumResults] = useState(0);
@@ -89,22 +91,34 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
             />
 
             <Column
-                header="Dataset"
-                // field="title"
-                style={{ minWidth: `${7 * 20}px` }}
-                body={x => (
-                    <ResultLink
-                        table_name={x.table_name}
-                        setDataset={setDataset}
-                    />
-                )}
-            />
-
-            <Column
                 header="User"
                 style={{ minWidth: `${4 * 20}px` }}
                 body={x => (
                     <Link to={`/profile/${ type === "for" ? x.email : x.owner_email }`}>{ x.name }</Link>
+                )}
+            />
+
+            <Column
+                header="Dataset"
+                style={{ minWidth: `${7 * 20}px` }}
+                body={x => (
+                    <>
+                        {
+                            x.table_name !== undefined &&
+                            <ResultLink
+                                table_name={x.table_name}
+                                setDataset={setDataset}
+                            />
+                        }
+                    </>
+                )}
+            />
+
+            <Column
+                header="Record Number"
+                style={{ minWidth: `${4 * 20}px` }}
+                body={x => (
+                    <>{ x.record_id !== undefined && x.record_id + 1 }</>
                 )}
             />
 
@@ -151,7 +165,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
                                 color: 'white',
                                 background: 'black'
                             }}
-                            onClick={() => {}}
+                            onClick={() => navigate(`/datasets/subsets/suggestion/${ x.id }`)}
                         >
                             View
                         </Button>

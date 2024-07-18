@@ -7,7 +7,7 @@ They suggest the following change:
 Old: "[[old_text]]"
 New: "[[new_text]]"
 
-<a href="[[url]]/subsets/search?id=[[record_id]]">Click here to view the record that would be affected by this change.</a>
+<a href="[[url]]/datasets/subsets/suggestion/[[id]]">Click here to view the record that would be affected by this change.</a>
 
 To confirm or reject this change, scroll to the bottom of <a href="[[url]]/profile/[[email]]">your profile</a> and find this change under "Received Suggestions."
 
