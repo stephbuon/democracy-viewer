@@ -65,6 +65,12 @@ const suggestionEmail = async(knex, email, email2, title, old_text, new_text, id
     } else if (type.includes("add")) {
         subject = "You Have Received a New Suggestion";
         template = "suggestion_added";
+    } else if (type.includes("cancel")) {
+        subject = "A Suggestion For Your Dataset Has Been Canceled";
+        template = "suggestion_canceled";
+    } else if (type.includes("reject")) {
+        subject = "Your Suggestion Has Been Declined";
+        template = "suggestion_rejected";
     } else {
         throw new Error(`Invalid email type: ${ type }`);
     }
