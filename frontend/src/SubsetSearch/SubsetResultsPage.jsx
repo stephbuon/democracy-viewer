@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
-import 'react-resizable/css/styles.css';
+// import 'react-resizable/css/styles.css';
 // MUI Imports
 import { Alert, Box, Button, TextField } from '@mui/material';
 //Other Imports

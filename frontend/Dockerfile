@@ -1,5 +1,5 @@
-# We are using node version 22
-FROM node:22
+# We are using node version 18
+FROM node:18
 
 # Set the working directory within docker image
 WORKDIR /usr/src/app
