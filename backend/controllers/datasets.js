@@ -180,7 +180,6 @@ const addSuggestion = async(knex, user, params) => {
     
     // Send an email to the owner of the dataset
     const curr = await model.getMetadata(suggestion.table_name);
-    const name = await getName(knex, suggestion.email);
     const oldText = await getText(
         suggestion.table_name, suggestion.distributed, 
         suggestion.record_id, suggestion.col,
@@ -240,6 +239,9 @@ const updateText = async(knex, id, user) => {
     util.generateJSON(paramsFile, suggestion);
     await runPython("update_text", [paramsFile], curr.distributed);
 
+    // Update updates count
+    await model.incUpdates(suggestion.table_name);
+
     // Send an email to the person who made the suggestion
     await emails.suggestionEmail(
         knex, suggestion.email, curr.email, curr.title,
@@ -249,7 +251,7 @@ const updateText = async(knex, id, user) => {
     // Delete all files for this dataset to reset them
     util.deleteDatasetFiles(suggestion.table_name);
     // Delete the suggestion record
-    await deleteSuggestionById(knex, user, id);
+    await model.deleteSuggestionById(knex, user, id);
 }
 
 // Get dataset metadata
@@ -719,6 +721,30 @@ const deleteSuggestionById = async(knex, user, id) => {
     }
 
     await model.deleteSuggestionById(id);
+
+    // Send reject/cancel email depending on who submitted delete request
+    // Don't send email if the same user
+    if (curr.email !== record.email) {
+        const oldText = await getText(
+            record.table_name, record.distributed, 
+            record.record_id, record.col,
+            record.start, record.end
+        ); 
+        
+        if (curr.email === user) {
+            // Send reject email
+            await emails.suggestionEmail(
+                knex, record.email, curr.email, curr.title,
+                oldText, record.new_text, record.id, "reject"
+            );
+        } else {
+            // Send cancel email
+            await emails.suggestionEmail(
+                knex, curr.email, record.email, curr.title,
+                oldText, record.new_text, record.id, "cancel"
+            );
+        }
+    }
 }
 
 module.exports = {

@@ -1,0 +1,11 @@
+Dear [[name]],
+
+The suggestion made to your dataset "[[title]]" has been canceled by the suggestor, <a href="[[url]]/profile/[[email2]]">[[name2]]</a>.
+
+This suggestion would have implemented the following change:
+
+Old: "[[old_text]]"
+
+New: "[[new_text]]"
+
+- Democracy Viewer Team

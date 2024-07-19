@@ -1,17 +1,9 @@
 import { React, useState, useEffect } from "react";
 
-import Modal from '@mui/material/Modal';
-import Button from '@mui/material/Button';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import Stack from '@mui/material/Stack';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Grid from '@mui/material/Grid';
+import {
+  Alert, Box, Button, Card, CardActions, CardContent, Container, Grid,
+  Modal, Snackbar, Stack, Typography
+} from "@mui/material";
 
 import { UploadModal } from './UploadModal';
 import { Table, TableBody, TableRow, TableCell, TextField } from '@mui/material';
@@ -19,6 +11,8 @@ import { GetCSVFromAPI, CreateDataset } from "../apiFolder/DatasetUploadAPI.js";
 import { useNavigate } from "react-router-dom";
 
 export const Upload = (props) => {
+  const navigate = useNavigate();
+
   const [file, setFile] = useState(undefined);
   const [fileLoaded, setFileLoaded] = useState(false);
   const [headers, setheaders] = useState([]);
@@ -102,7 +96,7 @@ export const Upload = (props) => {
     }
     return false;
   }
-  const navigate = useNavigate();
+  
   useEffect(() => {
     if(!loggedIn())
     {
@@ -245,21 +239,14 @@ export const Upload = (props) => {
               </CardActions>
             </Card>
             <Box sx={{ position: 'absolute', top: -25, right: 0 }}>
-              {fileUploaded && 
               <Button
                 variant="contained"
                 sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
                 onClick={() => { setFileLoaded(true); setFileUploaded(false) }}
+                disabled={!fileUploaded}
               >
                 Continue
-              </Button>}
-              {!fileUploaded && <Button
-                variant="contained"
-                disabled
-                sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-              >
-                Continue
-              </Button>}
+              </Button>
             </Box>
           </Grid>
         </Grid>

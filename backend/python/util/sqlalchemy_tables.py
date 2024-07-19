@@ -34,6 +34,7 @@ class DatasetMetadata(SQL_BASE):
     embeddings_done = Column("embeddings_done", Boolean)
     tokens_done = Column("tokens_done", Boolean)
     distributed = Column("distributed", BigInteger)
+    unprocessed_updates = Column("unprocessed_updates", Integer)
     
 class Tags(SQL_BASE):
     __tablename__ = "tags"

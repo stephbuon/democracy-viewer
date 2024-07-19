@@ -135,7 +135,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
                         }
                     </div>
                 )}
-                style={{ minWidth: `${8 * 25}px` }}
+                style={{ minWidth: `${8 * 20}px` }}
             />
 
             <Column
@@ -151,7 +151,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
                         }
                     </div>
                 )}
-                style={{ minWidth: `${8 * 25}px` }}
+                style={{ minWidth: `${8 * 20}px` }}
             />
 
             <Column
@@ -191,6 +191,30 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
                                 onClick={() => onConfirm(x.id)}
                             >
                                 Confirm
+                            </Button>
+                        } else {
+                            return <></>
+                        }
+                    }}
+                />
+            }
+
+            {
+                type === "for" && 
+                <Column
+                    header="Reject Suggestion"
+                    field={x => {
+                        if (typeof x.post_date === "string") {
+                            return <Button
+                                variant="contained"
+                                color="primary"
+                                sx={{
+                                    color: 'white',
+                                    background: 'black'
+                                }}
+                                onClick={() => onDelete(x.id)}
+                            >
+                                Reject
                             </Button>
                         } else {
                             return <></>

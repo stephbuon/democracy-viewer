@@ -57,6 +57,7 @@ CREATE TABLE dataset_metadata (
     embeddings_done BOOLEAN DEFAULT FALSE NOT NULL,
     tokens_done BOOLEAN DEFAULT FALSE NOT NULL,
     distributed BIGINT UNSIGNED DEFAULT NULL,
+    unprocessed_updates INT UNSIGNED NOT NULL DEFAULT 0,
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE

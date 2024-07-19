@@ -3,46 +3,37 @@ import React, { useRef, useEffect, useState } from "react";
 import Plotly from "plotly.js-dist";
 import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { metricNames, metricTypes } from "./metrics";
+import { metricTypes } from "./metrics";
 import { graphIds } from "../api/api";
 
 export const GraphComponent = ({ data, setData }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
-
-    // Other variable definitions
-    try {
-        var layout = {
-            title: data.title,
-            width: 1000,
-            height: 500,
-            margin: {
-                l: 50,
-                r: 50,
-                b: 100,
-                t: 50,
-                pad: 4
-            },
-            xaxis: {
-                automargin: true,
-                title: {
-                  text: data.xLabel,
-                  standoff: 20
-                }},
-              yaxis: {
-                automargin: true,
-                tickangle: 0,
-                title: {
-                  text: data.yLabel,
-                  standoff: 40
-                }}
-        };
-    } catch (err) {
-        console.error(err)
-        console.log("that's why")
-        debugger;
-        localStorage.removeItem("graph-data");
-    }
+    const [layout, setLayout] = useState({
+        title: data.title,
+        width: 1000,
+        height: 500,
+        margin: {
+            l: 50,
+            r: 50,
+            b: 100,
+            t: 50,
+            pad: 4
+        },
+        xaxis: {
+            automargin: true,
+            title: {
+              text: data.xLabel,
+              standoff: 20
+            }},
+          yaxis: {
+            automargin: true,
+            tickangle: 0,
+            title: {
+              text: data.yLabel,
+              standoff: 40
+            }}
+    });
     
     const navigate = useNavigate();
     const graph = useRef(null);
@@ -55,12 +46,29 @@ export const GraphComponent = ({ data, setData }) => {
         } else {
             // Generate graph if there is data
             setFoundData(true);
+
+            // Hide legend if a dot plot
+            if (
+                metricTypes.dotplot.includes(data.metric) || 
+                metricTypes.scatter.includes(data.metric) ||
+                (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
+            ) {
+                setLayout({
+                    ...layout,
+                    showlegend: false
+                });
+            } else {
+                setLayout({
+                    ...layout,
+                    showlegend: true
+                });
+            }
         }
       }, [data]);
 
       useEffect(() => {
         if (foundData) {
-            Plotly.newPlot('graph', data.graph, layout, {displayModeBar: false});
+            Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" });
             graph.current.on('plotly_click', function (event) { // Click event for zoom page
                 const dataPoint = event.points[0];
                 let idx;

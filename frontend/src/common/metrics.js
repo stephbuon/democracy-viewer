@@ -62,7 +62,7 @@ export const metricSettings = {
     },
     "embeddings-raw": {
         column: false,
-        values: false,
+        values: 1,
         words: false
     }
 };

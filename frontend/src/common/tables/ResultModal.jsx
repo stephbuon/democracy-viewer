@@ -358,6 +358,17 @@ export const ResultModal = (props) => {
                             </TableCell>
 
                         </TableRow>
+
+                        <TableRow>
+                            <TableCell>
+                                <b> Unprocessed Updates </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.unprocessed_updates}
+                            </TableCell>
+
+                        </TableRow>
+
                         <TableRow>
                             <TableCell>
                                 <b> Tags </b>

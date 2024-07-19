@@ -100,6 +100,11 @@ class datasets {
         return record[0];
     }
 
+    // Increment the number of unprocessed updates
+    async incUpdates(table_name) {
+        await this.knex(metadata_table).where({ table_name }).increment("unprocessed_updates", 1);
+    }
+
     // Get the metadata for the given table
     async getMetadata(table_name) {
         const record = await this.knex(metadata_table).where({ table_name });
