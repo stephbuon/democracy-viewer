@@ -1,22 +1,22 @@
 services:
-  # backend:
-  #   # location of docker file for node container
-  #   build: ./backend
-  #   # restart on crashes
-  #   restart: always
-  #   # working directory in container to place files
-  #   working_dir: /usr/src/app/backend
-  #   # startup command
-  #   command: bash -c "node index"
-  #   # map code volumes from local to inside working directory, changes made locally will update into the container
-  #   volumes:
-  #     - ./backend:/usr/src/app/backend
-  #   # ports to map, YOU CANNOT RUN ANYTHING ELSE ON PORT 8000
-  #   ports:
-  #     - 8000:8000
-  #   # shared network
-  #   networks:
-  #     - api
+  backend:
+    # location of docker file for node container
+    build: ./backend
+    # restart on crashes
+    restart: always
+    # working directory in container to place files
+    working_dir: /usr/src/app/backend
+    # startup command
+    command: bash -c "node index"
+    # map code volumes from local to inside working directory, changes made locally will update into the container
+    volumes:
+      - ./backend:/usr/src/app/backend
+    # ports to map, YOU CANNOT RUN ANYTHING ELSE ON PORT 8000
+    ports:
+      - 8000:8000
+    # shared network
+    networks:
+      - api
 
   frontend:
     # option to allow Create React App run with tty requirement
@@ -33,8 +33,8 @@ services:
     volumes:
       - ./frontend:/usr/src/app/frontend
     # specify dependency on mysql db
-    # depends_on:
-    #   - backend
+    depends_on:
+      - backend
     # ports to map, YOU CANNOT RUN ANYTHING ELSE ON PORT 3000
     ports:
       - 3000:3000
