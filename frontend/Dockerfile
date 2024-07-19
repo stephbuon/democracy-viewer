@@ -6,8 +6,7 @@ WORKDIR /usr/src/app
 
 # Install dependencies
 COPY package.json .
-RUN npm install
-RUN npm audit fix --force
+RUN npm ci
 
 # Expose port 3000
 EXPOSE 3000
