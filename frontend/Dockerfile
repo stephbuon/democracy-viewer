@@ -8,7 +8,8 @@ WORKDIR /usr/src/app
 COPY package.json .
 RUN npm cache clean --force \
     && npm install @jridgewell/sourcemap-codec @rollup/plugin-terser lru-cache \
-    && npm install
+    && npm install \
+    && npm audit fix --force
 
 # Expose port 3000
 EXPOSE 3000
