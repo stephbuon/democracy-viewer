@@ -48,7 +48,11 @@ export const GraphComponent = ({ data, setData }) => {
             setFoundData(true);
 
             // Hide legend if a dot plot
-            if (metricTypes.dotplot.includes(data.metric) || metricTypes.scatter.includes(data.metric)) {
+            if (
+                metricTypes.dotplot.includes(data.metric) || 
+                metricTypes.scatter.includes(data.metric) ||
+                (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
+            ) {
                 setLayout({
                     ...layout,
                     showlegend: false

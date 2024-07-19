@@ -3,7 +3,7 @@ from pandas import DataFrame, concat, merge
 # Database interaction
 import util.data_queries as data
 
-def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None):
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
     # Goup by word and group (if defined)
@@ -17,9 +17,45 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     output.rename({ "word": "x", "count": "y" }, axis = 1, inplace = True)
     # If a word list was not provided, cap the number of words returned at 5
     if len(word_list) == 0:
-        top_words = output.groupby("x")["y"].sum().sort_values(ascending=False)
-        top_words = list(top_words.index)[0:5]
+        output["y_norm"] = output.groupby("group")["y"].transform(lambda x: (x - x.mean()) / x.std())
+        top_words = output.groupby("x")["y_norm"].sum().sort_values(ascending=False)
+        top_words = list(top_words.index)[0:topn]
         output = output[output["x"].isin(top_words)]
+        output.drop(["y_norm"], axis = 1, inplace = True)
+    
+    return output
+
+def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None):
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
+    
+    cols = ["word"]
+    if column is not None and column != "":
+        cols.append("group")
+    df.drop("record_id", axis = 1, inplace = True)
+    # Get word and group counts
+    output = df.groupby(cols).sum().reset_index()
+    # Get group total counts
+    if "group" in cols:
+        group_counts = output.groupby("group")["count"].sum().reset_index()
+        group_counts.rename(columns = { "count": "total" }, inplace = True)
+        output = merge(output, group_counts, on = "group")
+    else:
+        output["total"] = output["count"].sum()
+    # Filter for word list
+    if len(word_list) > 0:
+        output = output[output["word"].isin(word_list)]
+    # Calculate proportion by group
+    output["proportion"] = output["count"] / output["total"]
+    output.drop(["count", "total"], axis = 1, inplace = True) 
+    # Rename columns
+    output.rename({ "word": "x", "proportion": "y" }, axis = 1, inplace = True)
+    # If a word list was not provided, cap the number of words returned at 5
+    if len(word_list) == 0:
+        output["y_norm"] = output.groupby("group")["y"].transform(lambda x: (x - x.mean()) / x.std())
+        top_words = output.groupby("x")["y_norm"].sum().sort_values(ascending=False)
+        top_words = list(top_words.index)[0:topn]
+        output = output[output["x"].isin(top_words)]
+        output.drop(["y_norm"], axis = 1, inplace = True)
     
     return output
 
@@ -58,38 +94,6 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     output = output.pivot(index = "word", columns = "group", values = "tf_idf").reset_index().fillna(0)
     # Rename columns
     output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
-    
-    return output
-
-def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
-    
-    cols = ["word"]
-    if column is not None and column != "":
-        cols.append("group")
-    df.drop("record_id", axis = 1, inplace = True)
-    # Get word and group counts
-    output = df.groupby(cols).sum().reset_index()
-    # Get group total counts
-    if "group" in cols:
-        group_counts = output.groupby("group")["count"].sum().reset_index()
-        group_counts.rename(columns = { "count": "total" }, inplace = True)
-        output = merge(output, group_counts, on = "group")
-    else:
-        output["total"] = output["count"].sum()
-    # Filter for word list
-    if len(word_list) > 0:
-        output = output[output["word"].isin(word_list)]
-    # Calculate proportion by group
-    output["proportion"] = output["count"] / output["total"]
-    output.drop(["count", "total"], axis = 1, inplace = True) 
-    # Rename columns
-    output.rename({ "word": "x", "proportion": "y" }, axis = 1, inplace = True)
-    # If a word list was not provided, cap the number of words returned at 5
-    if len(word_list) == 0:
-        top_words = output.groupby("x")["y"].sum().sort_values(ascending=False)
-        top_words = list(top_words.index)[0:5]
-        output = output[output["x"].isin(top_words)]
     
     return output
 
