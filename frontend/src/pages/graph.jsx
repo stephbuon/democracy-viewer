@@ -84,14 +84,26 @@ export const Graph = (props) => {
         }
         tempData.xLabel = keys[0];
         tempData.yLabel = keys[1];
-        tempData.titleList.push(keys[0], keys[1])
+        if (keys[0] === "X" && params.group_list && params.group_list.length > 0) {
+          tempData.titleList.push(params.group_list[0]);
+        } else {
+          tempData.titleList.push(keys[0], keys[1]);
+        }
+        
 
         tempData.graph.push({
           x: [],
           y: [],
           text: [],
-          mode: "markers",
-          type: "scatter"
+          mode: "markers+text",
+          type: "scatter",
+          textposition: "top center",
+          textfont: {
+            color: 'rgba(0, 0, 0, 0.5)'
+          },
+          marker: {
+            color: 'rgba(0, 0, 255, 0.5)'
+          }
         });
 
         res.forEach((dataPoint) => { // Populate data array with request output
@@ -152,7 +164,16 @@ export const Graph = (props) => {
               x: [dataPoint.group],
               y: [dataPoint.y],
               name: dataPoint.x,
-              type: "scatter"
+              text: dataPoint.x,
+              mode: "markers+text",
+              type: "scatter",
+              textposition: "right",
+              textfont: {
+                color: 'rgba(0, 0, 0, 0.5)'
+              },
+              marker: {
+                color: 'rgba(0, 0, 255, 1)'
+              }
             })
           }
         });
