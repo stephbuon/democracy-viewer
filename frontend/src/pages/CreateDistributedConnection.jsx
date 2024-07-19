@@ -16,7 +16,7 @@ import Alert from '@mui/material/Alert';
 import { useState, useEffect } from "react";
 import { addDistributedConnection } from '../api/api';
 
-let FileSaver = require('file-saver');
+// let FileSaver = require('file-saver');
 
 const theme = createTheme();
 
