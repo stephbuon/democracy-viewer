@@ -6,7 +6,9 @@ WORKDIR /usr/src/app
 
 # Install dependencies
 COPY package.json .
-RUN npm install
+RUN npm cache clean --force \
+    && npm install @jridgewell/sourcemap-codec @rollup/plugin-terser lru-cache \
+    && npm install
 
 # Expose port 3000
 EXPOSE 3000
