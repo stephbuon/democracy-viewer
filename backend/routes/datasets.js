@@ -161,7 +161,7 @@ router.get('/metadata/full/:table', async(req, res, next) => {
 // Route to get all unique tags
 router.get('/tags/unique', async(req, res, next) => {
     try {
-        const results = await control.getUniqueTags(req.knex);
+        const results = await control.getUniqueTags(req.knex, req.query);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get unique tags:', err);

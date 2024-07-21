@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 //MUI Imports
 import Box from '@mui/material/Box';
@@ -8,21 +8,19 @@ import FormControl from '@mui/material/FormControl';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import Typography from '@mui/material/Typography';
-import ReactSelect from 'react-select';
 
 //Other Imports
 import './AdvancedFilter.css'
 import { GetAllTags } from '../apiFolder/DatasetSearchAPI';
+import { FormattedMultiSelectField } from "../common/forms";
 
 export const AdvancedFilter = (props) => {
     //values
-    // const [searchTerm, setSearchTerm] = useState('');
     const [title, setTitle] = useState('');
     const [email, setEmail] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(true);
     const [selectedTags, setSelectedTags] = useState([]);
     const [description, setDescription] = useState('');
-    const [allTags, setAllTags] = useState([]);
 
     const filterResults = () => {
         const filter = {
@@ -40,16 +38,6 @@ export const AdvancedFilter = (props) => {
         });
         props.advancedFilterResults(filter);
     };
-
-    useEffect(() => {
-        GetAllTags().then(res => {
-            let _tags = [];
-            res.forEach(tag => {
-                _tags.push({ value: tag, label: tag });
-            });
-            setAllTags([..._tags]);
-        });
-    }, []);
 
     return (
         <Box
@@ -142,12 +130,11 @@ export const AdvancedFilter = (props) => {
 
                 <Box sx={{ mb: 2 }}>
                     <Typography>Tags:</Typography>
-                    <ReactSelect
-                        options={allTags}
+                    <FormattedMultiSelectField
+                        selectedOptions={selectedTags}
+                        setSelectedOptions={setSelectedTags}
+                        getData={GetAllTags}
                         id="valueSelect"
-                        closeMenuOnSelect={false}
-                        onChange={(x) => setSelectedTags(x)}
-                        isMulti
                     />
                 </Box>
 

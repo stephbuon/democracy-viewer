@@ -280,11 +280,11 @@ const getFullMetadata = async(knex, table, email) => {
 }
 
 // Get unique tags
-const getUniqueTags = async(knex) => {
+const getUniqueTags = async(knex, query) => {
     const model = new datasets(knex);
 
     // Get tag names from table
-    const records = await model.getUniqueTags();
+    const records = await model.getUniqueTags(query.search, query.page, query.pageLength);
     // Convert objects to strings with tag names
     const results = records.map(x => x.tag_name);
     return results;
