@@ -35,18 +35,50 @@ export const Acknowledgements = () => {
             </Typography>
             <List>
               <Box sx={{ mb: "20px" }}>
-                <ListItemText sx={{  }}>
-                  Project Lead: <Link to = "https://stephbuon.github.io/" target="_blank" rel="noopener noreferrer">Steph Buongiorno</Link>, Southern Methodist University
+                <ListItemText 
+                primary="Project Lead"
+                primaryTypographyProps={{style: {fontSize: '27px'}}}
+                />
+                <ListItemText sx={{ }}>
+                Steph Buongiorno 
                 </ListItemText>
-                <ListItemText>
-                  Technical Lead: <Link to = "https://www.linkedin.com/in/ryandschaefer/" target="_blank" rel="noopener noreferrer">Ryan Schaefer</Link>, Univeristy of California, Berkeley
+                <ListItemText sx={{ }}>
+                Southern Methodist University
                 </ListItemText>
-                <ListItemText>
-                  Project Sponsor: <Link to = "https://www.joguldi.com/" target="_blank" rel="noopener noreferrer">Jo Guldi</Link>, Emory University
+                <ListItemText sx={{}}>
+                <Link to = "https://stephbuon.github.io/" target="_blank" rel="noopener noreferrer">GitHub</Link>
+                </ListItemText>
+                <ListItemText 
+                primary="Technical Lead"
+                primaryTypographyProps={{style: {fontSize: '27px'}}}
+                />
+                <ListItemText sx={{ }}>
+                Ryan Schaefer
+                </ListItemText>
+                <ListItemText sx={{ }}>
+                University of California, Berkeley
+                </ListItemText>
+                <ListItemText sx={{}}>
+                <Link to = "https://www.linkedin.com/in/ryandschaefer/" target="_blank" rel="noopener noreferrer">LinkedIn</Link>
+                </ListItemText>
+                <ListItemText
+                  primary="Project Sponsor"
+                  primaryTypographyProps={{style: {fontSize: '27px'}}}
+                />
+                <ListItemText sx={{ }}>
+                Jo Guldi
+                </ListItemText>
+                <ListItemText sx={{ }}>
+                Emory University
+                </ListItemText>
+                <ListItemText sx={{}}>
+                <Link to = "https://www.joguldi.com/" target="_blank" rel="noopener noreferrer">Website</Link>
                 </ListItemText>
               </Box>
               <ListItemText>
-                Thank you to the students and researchers who contributed their hard work to Democracy Viewer: 
+                  <Typography sx={{ fontSize: '27px'}}>
+                    Thank you to the students and researchers who contributed their hard work to Democracy Viewer:
+                  </Typography>
                 <List>
                   <ListItemText><Link to = "https://www.linkedin.com/in/wes-anderson-47552220a/" target="_blank" rel="noopener noreferrer">Wes Anderson</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/hailey-demark-3708a0289/" target="_blank" rel="noopener noreferrer">Hailey DeMark</Link></ListItemText>
