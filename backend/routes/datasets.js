@@ -161,7 +161,7 @@ router.get('/metadata/full/:table', async(req, res, next) => {
 // Route to get all unique tags
 router.get('/tags/unique', async(req, res, next) => {
     try {
-        const results = await control.getUniqueTags(req.knex);
+        const results = await control.getUniqueTags(req.knex, req.query);
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get unique tags:', err);
@@ -309,7 +309,7 @@ router.get('/columns/:table', async(req, res, next) => {
 // Route to get dataset column names
 router.get('/columns/:table/values/:column', async(req, res, next) => {
     try {
-        const result = await control.getColumnValues(req.knex, req.params.table, req.params.column);
+        const result = await control.getColumnValues(req.knex, req.params.table, req.params.column, req.query.search);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset column names:', err);

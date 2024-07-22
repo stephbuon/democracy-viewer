@@ -1,5 +1,5 @@
 from numpy import log, log2, sum
-from pandas import DataFrame, concat, merge
+from pandas import DataFrame, concat, merge, Categorical
 # Database interaction
 import util.data_queries as data
 
@@ -15,13 +15,19 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     output = df.groupby(group_cols).sum().reset_index()
     # Rename columns
     output.rename({ "word": "x", "count": "y" }, axis = 1, inplace = True)
-    # If a word list was not provided, cap the number of words returned at 5
-    if len(word_list) == 0:
+    # Sort by normalized sum of y and take topn if word_list not provided
+    if "group" in output.columns:
         output["y_norm"] = output.groupby("group")["y"].transform(lambda x: (x - x.mean()) / x.std())
-        top_words = output.groupby("x")["y_norm"].sum().sort_values(ascending=False)
-        top_words = list(top_words.index)[0:topn]
+    else:
+        output["y_norm"] = output["y"].transform(lambda x: (x - x.mean()) / x.std())
+    top_words = output.groupby("x")["y_norm"].sum().sort_values(ascending=False)
+    top_words = list(top_words.index)
+    if len(word_list) == 0:
+        top_words = top_words[0:int(topn)]
         output = output[output["x"].isin(top_words)]
-        output.drop(["y_norm"], axis = 1, inplace = True)
+    output.drop(["y_norm"], axis = 1, inplace = True)
+    output["x"] = Categorical(output["x"], categories=top_words, ordered=True)
+    output.sort_values("x", inplace = True)
     
     return output
 
@@ -51,9 +57,12 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     output.rename({ "word": "x", "proportion": "y" }, axis = 1, inplace = True)
     # If a word list was not provided, cap the number of words returned at 5
     if len(word_list) == 0:
-        output["y_norm"] = output.groupby("group")["y"].transform(lambda x: (x - x.mean()) / x.std())
+        if "group" in output.columns:
+            output["y_norm"] = output.groupby("group")["y"].transform(lambda x: (x - x.mean()) / x.std())
+        else:
+            output["y_norm"] = output["y"].transform(lambda x: (x - x.mean()) / x.std())
         top_words = output.groupby("x")["y_norm"].sum().sort_values(ascending=False)
-        top_words = list(top_words.index)[0:topn]
+        top_words = list(top_words.index)[0:int(topn)]
         output = output[output["x"].isin(top_words)]
         output.drop(["y_norm"], axis = 1, inplace = True)
     

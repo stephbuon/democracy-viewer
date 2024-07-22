@@ -112,9 +112,20 @@ class datasets {
     }
 
     // Get all unique tags
-    async getUniqueTags() {
-        const results = await this.knex(tag_table).select("tag_name").distinct();
-        return results;
+    async getUniqueTags(search = "", currentPage = 1, perPage = 10) {
+        const results = await this.knex(tag_table)
+            .select("tag_name")
+            .count("tag_name as total")
+            .groupBy("tag_name")
+            .having(q => {
+                if (search) {
+                    q.whereILike("tag_name", `%${ query.search }%`)
+                }
+            })
+            .orderBy("total", "desc")
+            .paginate({ currentPage, perPage })
+        //.select("tag_name").distinct();
+        return results.data;
     }
 
     // Get tags by datset

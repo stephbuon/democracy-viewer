@@ -65,13 +65,14 @@ export const getGroupNames = (dataset) => new Promise((resolve, reject) => {
 });
 
 //{{base_url}}/datasets/columns/{{hansard_1870}}/values/speaker
-export const getColumnValues = (dataset, group) => new Promise((resolve, reject) => {
+export const getColumnValues = (dataset, group, params) => new Promise((resolve, reject) => {
   // Get graph from endpoint
   axios.get(`${baseURL}/datasets/columns/${dataset}/values/${group}`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
-    }
+    },
+    params
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
     reject(x);

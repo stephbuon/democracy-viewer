@@ -44,8 +44,8 @@ export const FilterDatasetsCount = async (params) =>  {
     return res.data;
 };
 
-export const GetAllTags = async () =>  {
-    const res = await axios.get(`${baseURL}/datasets/tags/unique`);
+export const GetAllTags = async (params) =>  {
+    const res = await axios.get(`${baseURL}/datasets/tags/unique`, { params });
     if(res.status !== 200){
         console.error(`Couldn't get tags. ${res.status}`, apiConfig())
         return null;

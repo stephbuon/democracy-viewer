@@ -280,11 +280,11 @@ const getFullMetadata = async(knex, table, email) => {
 }
 
 // Get unique tags
-const getUniqueTags = async(knex) => {
+const getUniqueTags = async(knex, query) => {
     const model = new datasets(knex);
 
     // Get tag names from table
-    const records = await model.getUniqueTags();
+    const records = await model.getUniqueTags(query.search, query.page, query.pageLength);
     // Convert objects to strings with tag names
     const results = records.map(x => x.tag_name);
     return results;
@@ -326,15 +326,43 @@ const getColumnNames = async(knex, table) => {
 }
 
 // Get unique values in a dataset column
-const getColumnValues = async(knex, table, column) => {
+const getColumnValues = async(knex, table, column, search = undefined, page = 1, pageLength = 10) => {
     const model = new datasets(knex);
 
     // Get metadata to check for a distributed connection
     const metadata = await model.getMetadata(table);
     // Download dataset from s3
     const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
-    // Return unique values in given column
-    return [ ...new Set(data.dataset.map(x => x[column])) ];
+
+    // Filter and grab first 10 results
+    const start = pageLength * (page - 1);
+    const end = pageLength * page;
+    let results;
+    if (search) {
+        // Filter if query is defined
+        // Configure parser to search dataset
+        const index = new FlexSearch.Document({
+            document: {
+                id: "__id__",
+                index: column
+            },
+            language: getLanguage(metadata.language),
+            tokenize: "forward"
+        });
+        data.dataset.forEach((row, i) => index.add({ ...row, __id__: i }));
+
+        // Filter dataset
+        const result = index.search(search);
+
+        // Get records from search result
+        const ids = [ ...new Set(...result.map(x => x.result)) ];
+        results = [ ...new Set(ids.map(i => data.dataset[i][column])) ].slice(start, end)
+    } else {
+        // Return unique values in given column
+        results = [ ...new Set(data.dataset.map(x => x[column])) ].slice(start, end);
+    }
+
+    return results;
 }
 
 // Get filtered datasets
