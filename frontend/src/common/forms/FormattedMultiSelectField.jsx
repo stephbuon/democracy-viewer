@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import ReactSelect from 'react-select';
 import { FixedSizeList } from 'react-window';
 
-const pageLength = 10;
-
 export const FormattedMultiSelectField = (props) => {
   const [options, setOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,17 +24,19 @@ export const FormattedMultiSelectField = (props) => {
   }
 
   useEffect(() => {
-    if (inputValue) {
-      fetchOptions(inputValue);
-    } else {
-      fetchOptions();
+    if (!props.isDisabled) {
+      if (inputValue) {
+        fetchOptions(inputValue);
+      } else {
+        fetchOptions();
+      }
     }
-  }, [inputValue]);
+  }, [inputValue, props.isDisabled]);
 
   return (
     <div style={{ margin: '20px 0' }}>
       <ReactSelect
-        // { ...props }
+        { ...props }
         isMulti
         value={props.selectedOptions}
         onChange={x => props.setSelectedOptions(x)}
@@ -58,11 +58,13 @@ export const FormattedMultiSelectField = (props) => {
 }
 
 const MenuList = (props) => {
+  const height = 50;
+
   return (
     <FixedSizeList
-      height={150}
+      height={Math.min(props.children.length, 3) * height}
       itemCount={props.children.length}
-      itemSize={50}
+      itemSize={height}
     >
       {({ index, style }) => <div style={style}>{props.children[index]}</div>}
     </FixedSizeList>

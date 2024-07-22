@@ -72,7 +72,7 @@ export const AdvancedFilter = (props) => {
                     <TextField
                         id="Title"
                         label="Title"
-                        variant="filled"
+                        // variant="filled"
                         fullWidth
                         sx={{
                             background: 'rgb(255, 255, 255)',
@@ -88,7 +88,7 @@ export const AdvancedFilter = (props) => {
                     <TextField
                         id="Description"
                         label="Description"
-                        variant="filled"
+                        // variant="filled"
                         fullWidth
                         sx={{
                             background: 'rgb(255, 255, 255)',
@@ -104,7 +104,7 @@ export const AdvancedFilter = (props) => {
                     <TextField
                         id="Owner"
                         label="Owner"
-                        variant="filled"
+                        // variant="filled"
                         fullWidth
                         sx={{
                             background: 'rgb(255, 255, 255)',
@@ -117,7 +117,11 @@ export const AdvancedFilter = (props) => {
 
                 <Box sx={{ mb: 2 }}>
                     <Typography>Privacy:</Typography>
-                    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                    <FormControl
+                        fullWidth
+                        // variant="filled" 
+                        sx={{ background: 'rgb(255, 255, 255)' }}
+                    >
                         <Select
                             value={publicPrivate}
                             onChange={event => setPublicPrivate(event.target.value)}

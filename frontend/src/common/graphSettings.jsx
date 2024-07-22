@@ -1,11 +1,11 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues, uniquePos } from "../api/api.js"
-import { Paper, Button, Modal, Tooltip } from "@mui/material";
+import { getGroupNames, getColumnValues } from "../api/api.js"
+import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions } from "./metrics.js";
-import { FormattedMultiTextField } from "./forms";
+import { FormattedMultiTextField, FormattedMultiSelectField } from "./forms";
 import "./list.css";
 import { useNavigate } from "react-router-dom";
 
@@ -22,7 +22,6 @@ export const GraphSettings = ( props ) => {
     const [disabledMessage, setDisabledMessage] = useState("");
     const [searchTerms, setSearchTerms] = useState([]);
     const [groupOptions, setGroupOptions] = useState(undefined);
-    const [valueOptions, setValueOptions] = useState(undefined);
     const [groupList, setGroupList] = useState([]);
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
@@ -123,14 +122,8 @@ export const GraphSettings = ( props ) => {
     // updates array for column value dropdown
     useEffect(() => {
         setSelectToggle(group === "");
-        if (group !== "") {
-            getColumnValues(props.dataset.dataset.table_name, group).then(async (res) => {
-                let _valueOptions = []
-                for(let i = 0; i < res.length; i++){
-                    _valueOptions.push({value: res[i], label: res[i]})
-                }
-                setValueOptions([..._valueOptions])
-            });
+        if (group === "") {
+            setGroupList([]);
         }
     }, [group]);
 
@@ -194,16 +187,15 @@ export const GraphSettings = ( props ) => {
                     disabled={groupLocked}
                 />
 
-                {/* Column value multiselect dropdown */}
-                <label htmlFor="valueSelect">Column Value</label>
-                <ReactSelect 
-                    options={valueOptions}
+                <Typography>Column Value</Typography>
+                <FormattedMultiSelectField
+                    selectedOptions={groupList}
+                    setSelectedOptions={setGroupList}
+                    getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
                     id="valueSelect"
+                    isDisabled={selectToggle}
                     className="mb-3"
                     closeMenuOnSelect={false}
-                    isDisabled={selectToggle}
-                    onChange={(x) => setGroupList(x)} 
-                    isMulti
                 />
 
                 {/* Custom search + terms list */}
