@@ -47,22 +47,38 @@ export const GraphComponent = ({ data, setData }) => {
             // Generate graph if there is data
             setFoundData(true);
 
+            // Update layout
+            let layout_ = { ...layout };
             // Hide legend if a dot plot
             if (
                 metricTypes.dotplot.includes(data.metric) || 
                 metricTypes.scatter.includes(data.metric) ||
                 (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
             ) {
-                setLayout({
-                    ...layout,
+                layout_ = {
+                    ...layout_,
                     showlegend: false
-                });
+                };
             } else {
-                setLayout({
-                    ...layout,
+                layout_ = {
+                    ...layout_,
                     showlegend: true
-                });
+                };
             }
+
+            // Unsort x-axis
+            if (metricTypes.bar.includes(data.metric)) {
+                layout_ = {
+                    ...layout_,
+                    xaxis: {
+                        ...layout_.xaxis,
+                        categoryorder: 'array',
+                        categoryarray: data.graph[0].x
+                    }
+                }
+            }
+
+            setLayout({ ...layout_ });
         }
       }, [data]);
 

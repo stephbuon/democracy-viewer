@@ -5,7 +5,7 @@ import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions } from "./metrics.js";
-import { FormattedMultiTextField, FormattedMultiSelectField } from "./forms";
+import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "./forms";
 import "./list.css";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +30,7 @@ export const GraphSettings = ( props ) => {
     const [groupLocked, setGroupLocked] = useState(false);
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
+    const [topn, setTopn] = useState("5");
 
     const navigate = useNavigate();
 
@@ -87,19 +88,20 @@ export const GraphSettings = ( props ) => {
                 group_list: groupList.map(x => x.value),
                 metric: metric,
                 word_list: searchTerms,
-                pos_list: posList.map(x => x.value)
+                pos_list: posList.map(x => x.value),
+                topn: parseInt(topn)
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
-            setGroupList([]);
-            setPosList([]);
+            // setGroupList([]);
+            // setPosList([]);
             props.setSettings(false);
         }
     }
 
     // Handles cancel to close settings if a graph exists
     const handleCancel = (event) => {
-        setGroupList([]);
+        // setGroupList([]);
         if (props.generated) {
             props.setSettings(false);
         } else {
@@ -123,7 +125,7 @@ export const GraphSettings = ( props ) => {
     useEffect(() => {
         setSelectToggle(group === "");
         if (group === "") {
-            setGroupList([]);
+            // setGroupList([]);
         }
     }, [group]);
 
@@ -166,14 +168,14 @@ export const GraphSettings = ( props ) => {
                     posValid === true &&
                     <>
                         {/* Column value multiselect dropdown */}
-                        <label htmlFor="posSelect">Parts of Speech</label>
-                        <ReactSelect 
-                            options={posOptions}
+                        <Typography>Parts of Speech</Typography>
+                        <FormattedMultiSelectField
+                            selectedOptions={posList}
+                            setSelectedOptions={setPosList}
+                            getData={() => posOptions}
                             id="posSelect"
                             className="mb-3"
                             closeMenuOnSelect={false}
-                            onChange={(x) => setPosList(x)} 
-                            isMulti
                         />
                     </>
                 }
@@ -187,7 +189,7 @@ export const GraphSettings = ( props ) => {
                     disabled={groupLocked}
                 />
 
-                <Typography>Column Value</Typography>
+                <Typography>Column Values</Typography>
                 <FormattedMultiSelectField
                     selectedOptions={groupList}
                     setSelectedOptions={setGroupList}
@@ -208,6 +210,19 @@ export const GraphSettings = ( props ) => {
                     words={searchTerms}
                     setWords={setSearchTerms}
                 />
+
+                {
+                    searchTerms.length === 0 && ["counts", "proportions"].includes(metric) &&
+                    <FormattedTextField
+                        id="topn"
+                        label="Top Words"
+                        fullWidth
+                        defaultValue={topn}
+                        setValue={setTopn}
+                        numeric
+                        sx={{ zIndex: 0 }}
+                    />
+                }
 
                 <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
                     {/* {"Cancel button"} */}

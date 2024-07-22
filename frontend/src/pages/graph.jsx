@@ -65,8 +65,7 @@ export const Graph = (props) => {
           if (index >= 0) { // Runs if datapoint already exists in tempData
             tempData.graph[index].x.push(dataPoint.x)
             tempData.graph[index].y.push(dataPoint.y)
-          }
-          else {
+          } else {
             tempData.graph.push({
               x: [dataPoint.x],
               y: [dataPoint.y],
