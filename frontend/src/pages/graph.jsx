@@ -52,11 +52,12 @@ export const Graph = (props) => {
       if (metricTypes.bar.indexOf(params.metric) !== -1) {
         tempData.xLabel = "Word"
         if (params.metric === "counts") {
-          tempData.yLabel = "Count"
+          tempData.yLabel = "Count";
         } else if (params.metric === "proportions") {
-          tempData.yLabel = "Proportion"
-        } else if (params.metric === "embeddings-similar") {
-          tempData.yLabel = "Embedding Similarity"
+          tempData.yLabel = "Proportion";
+        } else if (params.metric === "embeddings-different") {
+          tempData.yLabel = "Embedding Similarity";
+          tempData.xLabel = "Group";
         }
         tempData.titleList = params.word_list;
 

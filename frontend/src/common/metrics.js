@@ -11,7 +11,7 @@ export const metricNames = {
 
 export const metricTypes = {
     "bar": [
-        "counts", "proportions"
+        "counts", "proportions", "embeddings-different"
     ],
     "scatter": [
         "tf-idf", "ll", "embeddings-raw"
@@ -20,7 +20,7 @@ export const metricTypes = {
         "jsd"
     ],
     "dotplot": [
-        "embeddings-similar", "embeddings-different"
+        "embeddings-similar"
     ]
 };
 
@@ -58,7 +58,7 @@ export const metricSettings = {
     "embeddings-different": {
         column: false,
         values: false,
-        words: 1
+        words: 2
     },
     "embeddings-raw": {
         column: false,

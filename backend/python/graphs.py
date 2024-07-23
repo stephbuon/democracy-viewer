@@ -3,7 +3,7 @@ start_time = time()
 total_start_time = time()
 # Import metrics
 import util.metrics as metrics
-from util.embeddings_load import get_similar_words, get_word_vectors
+import util.embeddings_load as embed
 # Other imports
 from json import load, dump
 from sys import argv
@@ -61,11 +61,11 @@ elif params["metric"] == "ll":
 elif params["metric"] == "jsd":
     output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), TOKEN)
 elif params["metric"] == "embeddings-similar":
-    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), True, TOKEN)
+    output = embed.get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), params.get("topn", 5), TOKEN)
 elif params["metric"] == "embeddings-different":
-    output = get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), False, TOKEN)
+    output = embed.get_words_similarity_grouped(params["table_name"], params["word_list"][0], params["word_list"][1], params.get("group_name", None), params.get("group_list", []), TOKEN)
 elif params["metric"] == "embeddings-raw":
-    output = get_word_vectors(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), TOKEN)
+    output = embed.get_word_vectors(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
 print("Computation time: {} seconds".format(time() - start_time))
