@@ -83,10 +83,16 @@ export const DatasetResultsPage = (props) => {
     };
 
     const loggedIn = () => {
-        if (props.currUser) {
+        if(props.currUser) {
             return true;
-        }
-        return false;
+          } else {
+            const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+            if (demoV && demoV.user) {
+              return true;
+            } else {
+              return false;
+            }
+          }
     }
     const openSnackbar = () => {
         if (!loggedIn()) {
