@@ -125,7 +125,7 @@ export const GraphSettings = ( props ) => {
     useEffect(() => {
         setSelectToggle(group === "");
         if (group === "") {
-            // setGroupList([]);
+            setGroupList([]);
         }
     }, [group]);
 
@@ -159,10 +159,11 @@ export const GraphSettings = ( props ) => {
 
                 {/* Metric select dropdown */}
                 <SelectField label="Metric"
-                value={metric}
-                setValue={setMetric}
-                options={metricOptions}
-                hideBlankOption={1} />
+                    value={metric}
+                    setValue={setMetric}
+                    options={metricOptions}
+                    hideBlankOption={1}
+                />
 
                 {
                     posValid === true &&

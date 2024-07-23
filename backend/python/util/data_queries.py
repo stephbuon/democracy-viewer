@@ -38,6 +38,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
     # Download raw and tokenized data
     df_raw = download("datasets", table_name, token)
     df_split = download("tokens", table_name, token)
+    df_tokens = df_split.copy()
     
     # Subset of columns to keep at the end
     cols = ["record_id", "word", "count"]
@@ -49,13 +50,20 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         if len(values) > 0:
             df_raw = df_raw[df_raw["group"].isin(values)]
             
+    # If a word list is defined, filter by it
+    if len(word_list) > 0:
+        df_split = df_split[df_split["word"].isin(word_list)]        
+    
     # Filter words by POS if list given
     if len(pos_list) > 0:
         df_split = df_split[df_split["pos"].isin(pos_list)]
-        
-    # If a word list is defined, filter by it
-    if len(word_list) > 0:
-        df_split = df_split[df_split["word"].isin(word_list)]
+        # Collocates
+        if "adj-noun" in pos_list:
+            pairs = adj_noun_pairs(df_tokens, word_list)
+            df_split = concat([df_split, pairs])
+        if "subj-verb" in pos_list:
+            pairs = subj_verb_pairs(df_tokens, word_list)
+            df_split = concat([df_split, pairs])
      
     # Sort by the word   
     df_split.sort_values("word", inplace = True)
@@ -71,33 +79,41 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
 def adj_noun_pairs(tokens: DataFrame, word_list: list[str]):
     nouns = tokens[tokens["pos"] == "noun"]
     adjs = tokens[tokens["pos"] == "adj"]
-    
-    if len(word_list) > 0:
-        nouns = nouns[nouns["word"].isin(word_list)]
-        adjs = adjs[adjs["word"].isin(word_list)]
         
     pairs = merge(adjs, nouns, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
+    if len(word_list) > 0:
+        pairs = pairs[(pairs["word_x"].isin(word_list) | (pairs["word_y"].isin(word_list)))]
+    if len(pairs) == 0:
+        return DataFrame()
+        
     pairs["count"] = pairs[["count_x", "count_y"]].min(axis=1)
     pairs["word"] = pairs[["word_x", "word_y"]].agg(" ".join, axis = 1)
-    pairs = pairs.drop(pairs.columns[pairs.columns.str.contains("_")], axis = 1)
+    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ], axis = 1)
     
     return pairs
        
 ### Subject/Verb
-def adj_noun_pairs(tokens: DataFrame, word_list: list[str]):
-    nouns = tokens[tokens["pos"] == "noun"]
-    adjs = tokens[tokens["pos"] == "adj"]
+def subj_verb_pairs(tokens: DataFrame, word_list: list[str]):
+    subjects = tokens[tokens["dep"].isin(["nsubj", "nsubjpass"])]
+    verbs = tokens[tokens["pos"] == "verb"]
     
     if len(word_list) > 0:
-        nouns = nouns[nouns["word"].isin(word_list)]
-        adjs = adjs[adjs["word"].isin(word_list)]
+        subjects = subjects[subjects["word"].isin(word_list)]
+        verbs = verbs[verbs["word"].isin(word_list)]
         
-    pairs = merge(adjs, nouns, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
-    pairs["count"] = pairs[["count_x", "count_y"]].min(axis=1)
-    pairs["word"] = pairs[["word_x", "word_y"]].agg(" ".join, axis = 1)
-    pairs = pairs.drop(pairs.columns[pairs.columns.str.contains("_")], axis = 1)
+    verb_first = merge(verbs, subjects, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
+    verb_second = merge(verbs, subjects, left_on = ["record_id", "col", "word"], right_on = ["record_id", "col", "head"])
+    pairs = concat([verb_first, verb_second])
+    if len(word_list) > 0:
+        pairs = pairs[(pairs["word_x"].isin(word_list) | (pairs["word_y"].isin(word_list)))]
+    if len(pairs) == 0:
+        return DataFrame()
     
-    return pairs 
+    pairs["count"] = pairs[["count_x", "count_y"]].min(axis=1)
+    pairs["word"] = pairs[["word_y", "word_x"]].agg(" ".join, axis = 1)
+    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ], axis = 1)
+    
+    return pairs
 
 # Get number of group values that include words
 def group_count_by_words(table_name: str, word_list: list[str], column: str | None, token: str | None = None) -> dict[str, int]:

@@ -182,9 +182,11 @@ export const Graph = (props) => {
       }
 
       tempData.title = metricNames[tempData.metric] + listToString(tempData.titleList);
-      localStorage.setItem('graph-data', JSON.stringify(tempData))
-      setGraphData(tempData);
-      setGraph(true);
+      if (tempData.graph.length > 0) {
+        localStorage.setItem('graph-data', JSON.stringify(tempData))
+        setGraphData(tempData);
+        setGraph(true);
+      }
       setLoading(false);
     });
   };
@@ -258,7 +260,7 @@ export const Graph = (props) => {
 
       let graph = JSON.parse(localStorage.getItem('graph-data'));
       if (graph) {
-        if (graph["table_name"] === demoV["dataset"]["table_name"]) {
+        if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
           setGraphData(graph);
           setGraph(true);
           setSettings(false);
@@ -332,7 +334,8 @@ export const Graph = (props) => {
                 <Loop sx={{ fontSize: 80 }} />
               </Box>
             )}
-            {graph && <GraphComponent border data={graphData} setData={setData} />}
+            {graph === true && <GraphComponent border data={graphData} setData={setData} />}
+            {graph === false && settings === false && loading === false && <div id = "test" style={{ textAlign: "center"}}>No Results Found</div>}
           </Grid>
         </Grid>
       </Box>

@@ -133,5 +133,13 @@ export const posOptions = [
     {
         "label": "Verb",
         "value": "verb"
+    },
+    {
+        "label": "Adjective/Noun Pairs",
+        "value": "adj-noun"
+    },
+    {
+        "label": "Subject/Verb Pairs",
+        "value": "subj-verb"
     }
 ];
