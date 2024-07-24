@@ -51,7 +51,7 @@ export const GraphComponent = ({ data, setData }) => {
 
             // Update layout
             let layout_ = { ...layout };
-            // Hide legend if a dot plot
+            // Hide legend
             if (
                 metricTypes.dotplot.includes(data.metric) ||
                 metricTypes.scatter.includes(data.metric) ||
@@ -61,6 +61,15 @@ export const GraphComponent = ({ data, setData }) => {
                     ...layout_,
                     showlegend: false
                 };
+            } else if (metricTypes.multibar.includes(data.metric)) {
+                layout_ = {
+                    ...layout_,
+                    legend: {
+                        title: {
+                            text: "Rank"
+                        }
+                    }
+                }
             } else {
                 layout_ = {
                     ...layout_,
