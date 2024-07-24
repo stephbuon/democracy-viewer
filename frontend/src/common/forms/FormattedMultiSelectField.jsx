@@ -11,10 +11,16 @@ export const FormattedMultiSelectField = (props) => {
     setIsLoading(true);
     try {
       const data = await props.getData({ search });
-      const fetchedOptions = data.map(item => ({
-        value: item,
-        label: item
-      }));
+      const fetchedOptions = data.map(item => {
+        if (typeof item === "object") {
+          return item;
+        } else {
+          return {
+            value: item,
+            label: item
+          }
+        }
+      });
       setOptions(fetchedOptions);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -47,7 +53,7 @@ export const FormattedMultiSelectField = (props) => {
             <MenuList
               {...props}
               setLoading={setIsLoading}
-              fetchMoreData={() => fetchOptions(inputValue)}
+              // fetchMoreData={() => fetchOptions(inputValue)}
             />
           ),
         }}

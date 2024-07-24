@@ -52,11 +52,12 @@ export const Graph = (props) => {
       if (metricTypes.bar.indexOf(params.metric) !== -1) {
         tempData.xLabel = "Word"
         if (params.metric === "counts") {
-          tempData.yLabel = "Count"
+          tempData.yLabel = "Count";
         } else if (params.metric === "proportions") {
-          tempData.yLabel = "Proportion"
-        } else if (params.metric === "embeddings-similar") {
-          tempData.yLabel = "Embedding Similarity"
+          tempData.yLabel = "Proportion";
+        } else if (params.metric === "embeddings-different") {
+          tempData.yLabel = "Embedding Similarity";
+          tempData.xLabel = "Group";
         }
         tempData.titleList = params.word_list;
 
@@ -181,9 +182,11 @@ export const Graph = (props) => {
       }
 
       tempData.title = metricNames[tempData.metric] + listToString(tempData.titleList);
-      localStorage.setItem('graph-data', JSON.stringify(tempData))
-      setGraphData(tempData);
-      setGraph(true);
+      if (tempData.graph.length > 0) {
+        localStorage.setItem('graph-data', JSON.stringify(tempData))
+        setGraphData(tempData);
+        setGraph(true);
+      }
       setLoading(false);
     });
   };
@@ -257,7 +260,7 @@ export const Graph = (props) => {
 
       let graph = JSON.parse(localStorage.getItem('graph-data'));
       if (graph) {
-        if (graph["table_name"] === demoV["dataset"]["table_name"]) {
+        if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
           setGraphData(graph);
           setGraph(true);
           setSettings(false);
@@ -331,7 +334,8 @@ export const Graph = (props) => {
                 <Loop sx={{ fontSize: 80 }} />
               </Box>
             )}
-            {graph && <GraphComponent border data={graphData} setData={setData} />}
+            {graph === true && <GraphComponent border data={graphData} setData={setData} />}
+            {graph === false && settings === false && loading === false && <div id = "test" style={{ textAlign: "center"}}>No Results Found</div>}
           </Grid>
         </Grid>
       </Box>

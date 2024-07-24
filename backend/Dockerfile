@@ -12,17 +12,10 @@ RUN apt-get install curl -y
 RUN curl -sL https://deb.nodesource.com/setup_22.x | bash
 # and install node 
 RUN apt-get install nodejs
-# confirm that it was successful 
-RUN node -v && sleep 3
-# npm installs automatically 
-RUN npm -v && sleep 3
 
 # Install node dependencies
 COPY package.json .
 RUN npm install
-
-# Check Python version
-RUN python3 --version && sleep 3
 
 # Install Python dependencies
 ADD requirements.txt .

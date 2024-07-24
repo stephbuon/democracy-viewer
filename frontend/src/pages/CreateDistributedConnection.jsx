@@ -27,11 +27,16 @@ export default function CreateDistributedConnection(props) {
 
 
   const loggedIn = () => {
-    if(props.currUser)
-    {
+    if(props.currUser) {
       return true;
+    } else {
+      const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+      if (demoV && demoV.user) {
+        return true;
+      } else {
+        return false;
+      }
     }
-    return false;
   }
   useEffect(() => {
     if(!loggedIn())

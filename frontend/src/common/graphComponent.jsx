@@ -23,18 +23,20 @@ export const GraphComponent = ({ data, setData }) => {
         xaxis: {
             automargin: true,
             title: {
-              text: data.xLabel,
-              standoff: 20
-            }},
-          yaxis: {
+                text: data.xLabel,
+                standoff: 20
+            }
+        },
+        yaxis: {
             automargin: true,
             tickangle: 0,
             title: {
-              text: data.yLabel,
-              standoff: 40
-            }}
+                text: data.yLabel,
+                standoff: 40
+            }
+        }
     });
-    
+
     const navigate = useNavigate();
     const graph = useRef(null);
 
@@ -51,7 +53,7 @@ export const GraphComponent = ({ data, setData }) => {
             let layout_ = { ...layout };
             // Hide legend if a dot plot
             if (
-                metricTypes.dotplot.includes(data.metric) || 
+                metricTypes.dotplot.includes(data.metric) ||
                 metricTypes.scatter.includes(data.metric) ||
                 (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
             ) {
@@ -80,9 +82,9 @@ export const GraphComponent = ({ data, setData }) => {
 
             setLayout({ ...layout_ });
         }
-      }, [data]);
+    }, [data]);
 
-      useEffect(() => {
+    useEffect(() => {
         if (foundData) {
             Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" });
             graph.current.on('plotly_click', function (event) { // Click event for zoom page
@@ -119,13 +121,9 @@ export const GraphComponent = ({ data, setData }) => {
                     localStorage.setItem('selected', JSON.stringify(tempData))
                     navigate("/zoom");
                 });
-              });
+            });
         }
-      }, [foundData]);
-
-    if (!foundData) {
-        return <>No data</>
-    }
+    }, [foundData]);
 
     return <>
         {/* Graph */}

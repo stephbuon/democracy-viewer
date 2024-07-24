@@ -4,7 +4,7 @@ import { getGroupNames, getColumnValues } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import ReactSelect from 'react-select';
-import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions } from "./metrics.js";
+import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "./forms";
 import "./list.css";
 import { useNavigate } from "react-router-dom";
@@ -125,7 +125,7 @@ export const GraphSettings = ( props ) => {
     useEffect(() => {
         setSelectToggle(group === "");
         if (group === "") {
-            // setGroupList([]);
+            setGroupList([]);
         }
     }, [group]);
 
@@ -159,10 +159,11 @@ export const GraphSettings = ( props ) => {
 
                 {/* Metric select dropdown */}
                 <SelectField label="Metric"
-                value={metric}
-                setValue={setMetric}
-                options={metricOptions}
-                hideBlankOption={1} />
+                    value={metric}
+                    setValue={setMetric}
+                    options={metricOptions}
+                    hideBlankOption={1}
+                />
 
                 {
                     posValid === true &&
@@ -212,16 +213,20 @@ export const GraphSettings = ( props ) => {
                 />
 
                 {
-                    searchTerms.length === 0 && ["counts", "proportions"].includes(metric) &&
-                    <FormattedTextField
-                        id="topn"
-                        label="Top Words"
-                        fullWidth
-                        defaultValue={topn}
-                        setValue={setTopn}
-                        numeric
-                        sx={{ zIndex: 0 }}
-                    />
+                    (
+                        (metricTypes.bar.includes(metric) && metric !== "embeddings-different" && searchTerms.length === 0) ||
+                        (metricTypes.dotplot.includes(metric))
+                    ) && (
+                        <FormattedTextField
+                            id="topn"
+                            label="Top Words"
+                            fullWidth
+                            defaultValue={topn}
+                            setValue={setTopn}
+                            numeric
+                            sx={{ zIndex: 0, marginTop: "10px" }}
+                        />
+                    )
                 }
 
                 <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>

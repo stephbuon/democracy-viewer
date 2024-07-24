@@ -3,11 +3,13 @@ import {
   Box, Button, Card, CardActions, CardContent, Container, CssBaseline, Grid, Stack, Typography,
   createTheme, ThemeProvider
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const theme = createTheme();
 
 export default function Homepage() {
+  const navigate = useNavigate();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -60,7 +62,7 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/datasets/search" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button onClick={() => navigate("/datasets/search")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>
@@ -80,7 +82,7 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/datasets/subsets/search" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button onClick={() => navigate("/datasets/subsets/search")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>
@@ -100,7 +102,7 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/graph" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button onClick={() => navigate("/graph")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>
@@ -122,7 +124,7 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/upload" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button onClick={() => navigate("/upload")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>
@@ -140,7 +142,7 @@ export default function Homepage() {
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button href="/distributed" variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button onClick={() => navigate("/distributed")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
             </Grid>
