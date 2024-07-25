@@ -54,8 +54,10 @@ if params["metric"] == "counts":
     output = metrics.counts(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), params.get("topn", 5), TOKEN)
 elif params["metric"] == "proportions":
     output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), params.get("topn", 5), TOKEN)
-elif params["metric"] == "tf-idf":
+elif params["metric"] == "tf-idf-scatter":
     output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), TOKEN)
+elif params["metric"] == "tf-idf-bar":
+    output = metrics.tf_idf_bar(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), params.get("topn", 5), TOKEN)
 elif params["metric"] == "ll":
     output = metrics.log_likelihood(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), TOKEN)
 elif params["metric"] == "jsd":

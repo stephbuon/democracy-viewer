@@ -101,8 +101,49 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     output.drop(["count", "idf"], axis = 1, inplace = True)
     # Rearrange columns
     output = output.pivot(index = "word", columns = "group", values = "tf_idf").reset_index().fillna(0)
-    # Rename columns
-    output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
+    try:
+        # Rename columns
+        output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
+    except:
+        pass
+    
+    return output
+
+def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None):
+    bar = []
+    # Compute TF-IDF in scatter plot format
+    scatter = tf_idf(table_name, column, values, word_list, pos_list, token)
+    # Translate scatter plot format into bar plot format
+    for _, record in scatter.iterrows():
+        for col in scatter.columns:
+            if col != "word":
+                if col == "x":
+                    x = values[0]
+                elif col == "y":
+                    x = values[1]
+                else:
+                    x = col
+                bar.append(
+                    DataFrame({
+                        "x": [x],
+                        "y": [record[col]],
+                        "group": [record["word"]]
+                    })
+                )
+    output = concat(bar)
+    
+    # Keep topn words for each group
+    if len(word_list) == 0:
+        output = (
+            output
+                .sort_values("y", ascending = False)
+                .groupby("x")
+                .head(n=int(topn))
+        )
+    output["set"] = (
+        output.groupby("x")["y"]
+            .rank(method = "first", ascending = False)
+    )
     
     return output
 

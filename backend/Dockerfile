@@ -9,7 +9,7 @@ RUN apt-get install curl -y
 
 # Install node
 # get install script and pass it to execute: 
-RUN curl -sL https://deb.nodesource.com/setup_22.x | bash
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash
 # and install node 
 RUN apt-get install nodejs
 
@@ -42,7 +42,7 @@ RUN python3 -m spacy download ru_core_news_sm
 RUN python3 -m spacy download es_core_news_sm
 # Third party language models
 ### Latin
-RUN python3 -m pip install https://huggingface.co/latincy/la_core_web_sm/blob/main/la_core_web_sm-3.7.6-py3-none-any.whl
+RUN python3 -m pip install https://huggingface.co/latincy/la_core_web_sm/resolve/main/la_core_web_sm-3.7.6-py3-none-any.whl
 
 # Expose port 8000
 EXPOSE 8000

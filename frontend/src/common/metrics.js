@@ -1,7 +1,8 @@
 export const metricNames = {
     "counts": "Word Counts",
     "proportions": "Proportions",
-    "tf-idf": "TF-IDF",
+    "tf-idf-scatter": "TF-IDF (Scatter Plot)",
+    "tf-idf-bar": "TF-IDF (Bar Plot)",
     "ll": "Log Likelihood",
     "jsd": "Jensen-Shannon Divergence",
     "embeddings-similar": "Word Embeddings Similarity",
@@ -14,13 +15,16 @@ export const metricTypes = {
         "counts", "proportions", "embeddings-different"
     ],
     "scatter": [
-        "tf-idf", "ll", "embeddings-raw"
+        "tf-idf-scatter", "ll", "embeddings-raw"
     ],
     "heatmap": [
         "jsd"
     ],
     "dotplot": [
         "embeddings-similar"
+    ],
+    "multibar": [
+        "tf-idf-bar"
     ]
 };
 
@@ -35,9 +39,14 @@ export const metricSettings = {
         values: false,
         words: false
     },
-    "tf-idf": {
+    "tf-idf-scatter": {
         column: true,
         values: 2,
+        words: false
+    },
+    "tf-idf-bar": {
+        column: true,
+        values: false,
         words: false
     },
     "ll": {
@@ -70,7 +79,8 @@ export const metricSettings = {
 export const posOptionalMetrics = [
     "counts",
     "proportions",
-    "tf-idf",
+    "tf-idf-scatter",
+    "tf-idf-bar",
     "ll",
     "jsd"
 ];

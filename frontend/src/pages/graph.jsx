@@ -177,11 +177,34 @@ export const Graph = (props) => {
             })
           }
         });
+      } else if (metricTypes.multibar.includes(params.metric)) {
+        tempData.xLabel = "Group"
+        if (params.metric === "tf-idf-bar") {
+          tempData.yLabel = "TF-IDF"
+        }
+        tempData.titleList = params.word_list;
+
+        res.forEach((dataPoint) => { // Populate data array with request output
+          let index = tempData.graph.findIndex((x) => x.name === dataPoint.set);
+          if (index >= 0) { // Runs if datapoint already exists in tempData
+            tempData.graph[index].x.push(dataPoint.x);
+            tempData.graph[index].y.push(dataPoint.y);
+            tempData.graph[index].text.push(dataPoint.group);
+          } else {
+            tempData.graph.push({
+              x: [dataPoint.x],
+              y: [dataPoint.y],
+              name: dataPoint.set,
+              text: [dataPoint.group],
+              type: "bar"
+            })
+          }
+        });
       } else {
         throw new Error(`Metric '${params.metric}' not implimented`)
       }
 
-      tempData.title = metricNames[tempData.metric] + listToString(tempData.titleList);
+      tempData.title = metricNames[tempData.metric].replace(/ \([^()]*\)/g, '') + listToString(tempData.titleList);
       if (tempData.graph.length > 0) {
         localStorage.setItem('graph-data', JSON.stringify(tempData))
         setGraphData(tempData);
