@@ -70,9 +70,11 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
 
 def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
     # Get total group count
-    total_groups = data.group_count(table_name, column, token)
+    total_groups = len(values)
+    if total_groups == 0:
+        total_groups = data.group_count(table_name, column, token)
     # Get group count for each word
-    group_counts = data.group_count_by_words(table_name, word_list, column, token)
+    group_counts = data.group_count_by_words(table_name, word_list, column, values, token)
     # Get records by words and groups
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
@@ -96,7 +98,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
         idf_lst.append(idf[row["word"]])
     output["idf"] = idf_lst
     # Compute tf-idf
-    output["tf_idf"] = output["count"] / output["idf"]
+    output["tf_idf"] = output["count"] * output["idf"]
     # Drop unneeded columns
     output.drop(["count", "idf"], axis = 1, inplace = True)
     # Rearrange columns
