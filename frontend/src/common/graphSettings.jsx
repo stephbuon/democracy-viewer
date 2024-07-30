@@ -215,7 +215,8 @@ export const GraphSettings = ( props ) => {
                 {
                     (
                         (metricTypes.bar.includes(metric) && metric !== "embeddings-different" && searchTerms.length === 0) ||
-                        (metricTypes.dotplot.includes(metric))
+                        (metricTypes.dotplot.includes(metric)) ||
+                        (metricTypes.multibar.includes(metric))
                     ) && (
                         <FormattedTextField
                             id="topn"
