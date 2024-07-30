@@ -321,7 +321,7 @@ const getColumnNames = async(knex, table) => {
     // Get text columns
     const textCols = await getTextCols(knex, table);
     // Filter out text columns
-    const results = names.map(x => x.col).filter(x => textCols.indexOf(x) === -1);
+    const results = names.map(x => x.col).filter(x => !textCols.includes(x));
     return results;
 }
 

@@ -105,16 +105,19 @@ export const GraphComponent = ({ data, setData }) => {
                     idx = (dataPoint.pointIndex[0] + 1) * (dataPoint.pointIndex[1] + 1) - 1;
                 }
                 const params = JSON.parse(localStorage.getItem("graph-settings"));
-                if (metricTypes.bar.indexOf(data.metric) !== -1) {
+                if (metricTypes.bar.includes(data.metric)) {
                     params.group_list = dataPoint.data.name;
                     params.word_list = [dataPoint.x];
-                } else if (metricTypes.scatter.indexOf(data.metric) !== -1) {
+                } else if (metricTypes.scatter.includes(data.metric)) {
                     params.word_list = [dataPoint.text];
-                } else if (metricTypes.heatmap.indexOf(data.metric) !== -1) {
+                } else if (metricTypes.heatmap.includes(data.metric)) {
                     params.group_list = [dataPoint.x, dataPoint.y];
-                } else if (metricTypes.dotplot.indexOf(data.metric) !== -1) {
+                } else if (metricTypes.dotplot.includes(data.metric)) {
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.data.name, data.titleList[0]];
+                } else if (metricTypes.multibar.includes(data.metric)) {
+                    params.group_list = dataPoint.x;
+                    params.word_list = [dataPoint.text];
                 } else {
                     throw new Error("Graph type not supported")
                 }

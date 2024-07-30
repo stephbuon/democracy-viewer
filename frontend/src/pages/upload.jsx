@@ -205,14 +205,7 @@ export const Upload = (props) => {
               <Table>
                 <TableBody>
                   <TableRow>
-                    <TableCell className='col-6'
-                      sx={[
-                        clicked == 2 && {
-                          background: 'grey',
-                        }
-                      ]}
-                      onClick={() => click(2)}
-                    >
+                    <TableCell className='col-6'>
                       <TextField
                         margin="normal"
                         fullWidth
@@ -239,7 +232,7 @@ export const Upload = (props) => {
                   sx={{ mb: 5, bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
                   onClick={() => APIcsv()}
                 >
-                  Get csv
+                  Call API
                 </Button>
               </CardActions>
             </Card>

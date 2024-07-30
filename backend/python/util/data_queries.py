@@ -116,7 +116,7 @@ def subj_verb_pairs(tokens: DataFrame, word_list: list[str]):
     return pairs
 
 # Get number of group values that include words
-def group_count_by_words(table_name: str, word_list: list[str], column: str | None, token: str | None = None) -> dict[str, int]:
+def group_count_by_words(table_name: str, word_list: list[str], column: str | None, values: list[str], token: str | None = None) -> dict[str, int]:
     # Download raw and tokenized data
     df_raw = download("datasets", table_name, token)
     df_split = download("tokens", table_name, token)
@@ -133,6 +133,8 @@ def group_count_by_words(table_name: str, word_list: list[str], column: str | No
     for word in df["word"].unique():
         if column is None or column == "":
             records[word] = len(df[df["word"] == word])
+        elif len(values) > 0:
+            records[word] = len(df[(df["word"] == word) & (df[column].isin(values))][column].unique())
         else:
             records[word] = len(df[df["word"] == word][column].unique())
         
