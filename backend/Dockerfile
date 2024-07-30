@@ -42,7 +42,7 @@ RUN python3 -m spacy download ru_core_news_sm
 RUN python3 -m spacy download es_core_news_sm
 # Third party language models
 ### Latin
-RUN python3 -m pip install https://huggingface.co/latincy/la_core_web_sm/resolve/main/la_core_web_sm-3.7.6-py3-none-any.whl
+RUN python3 -m pip install https://huggingface.co/latincy/la_core_web_sm/resolve/main/la_core_web_sm-any-py3-none-any.whl
 
 # Expose port 8000
 EXPOSE 8000
