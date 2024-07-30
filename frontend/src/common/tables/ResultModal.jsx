@@ -61,8 +61,8 @@ export const ResultModal = (props) => {
     }
 
     const updateTags = () => {
-        const newTags = tags.filter(x => props.dataset.tags.indexOf(x) === -1);
-        const deletedTags = props.dataset.tags.filter(x => tags.indexOf(x) === -1);
+        const newTags = tags.filter(x => !props.dataset.tags.includes(x));
+        const deletedTags = props.dataset.tags.filter(x => !tags.includes(x));
 
         if (newTags.length > 0) {
             AddTags(props.dataset.table_name, newTags);

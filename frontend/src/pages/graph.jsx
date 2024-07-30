@@ -49,7 +49,7 @@ export const Graph = (props) => {
         titleList: []
       };
 
-      if (metricTypes.bar.indexOf(params.metric) !== -1) {
+      if (metricTypes.bar.includes(params.metric)) {
         tempData.xLabel = "Word"
         if (params.metric === "counts") {
           tempData.yLabel = "Count";
@@ -75,7 +75,7 @@ export const Graph = (props) => {
             })
           }
         });
-      } else if (metricTypes.scatter.indexOf(params.metric) !== -1) {
+      } else if (metricTypes.scatter.includes(params.metric)) {
         let keys;
         if (!params.group_list || params.group_list.length < 2) {
           keys = ["X", "Y"];
@@ -111,7 +111,7 @@ export const Graph = (props) => {
           tempData.graph[0].y.push(dataPoint.y);
           tempData.graph[0].text.push(dataPoint.word);
         });
-      } else if (metricTypes.heatmap.indexOf(params.metric) !== -1) {
+      } else if (metricTypes.heatmap.includes(params.metric)) {
         tempData.xLabel = "";
         tempData.yLabel = "";
         tempData.titleList = params.word_list;
@@ -148,7 +148,7 @@ export const Graph = (props) => {
             }
           });
         });
-      } else if (metricTypes.dotplot.indexOf(params.metric) !== -1) {
+      } else if (metricTypes.dotplot.includes(params.metric)) {
         tempData.xLabel = "Group";
         tempData.yLabel = metricNames[params.metric];
         tempData.titleList = [params.word_list[0]];
