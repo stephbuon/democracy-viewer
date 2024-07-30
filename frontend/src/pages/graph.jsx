@@ -9,6 +9,7 @@ import { getGraph } from "../api/api.js";
 import { Settings, RotateLeft, Loop, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "../common/metrics.js";
 import Plotly from "plotly.js-dist";
+import { quantileSeq } from "mathjs";
 
 export const Graph = (props) => {
   // useState definitions
@@ -27,6 +28,12 @@ export const Graph = (props) => {
   const openSnackbar1 = () => {
       setSnackBarOpen1(true)
   }
+
+  // Function to determine if two labels overlap
+  const isOverlapping = (x1, y1, x2, y2, threshold = 1) => {
+    const distance = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+    return distance < threshold;
+  };
 
   const handleSnackBarClose1 = (event, reason) => {
       if (reason === 'clickaway') {
@@ -89,12 +96,12 @@ export const Graph = (props) => {
         } else {
           tempData.titleList.push(keys[0], keys[1]);
         }
-        
 
         tempData.graph.push({
           x: [],
           y: [],
           text: [],
+          hovertext: [],
           mode: "markers+text",
           type: "scatter",
           textposition: "top center",
@@ -106,11 +113,53 @@ export const Graph = (props) => {
           }
         });
 
-        res.forEach((dataPoint) => { // Populate data array with request output
+        // Compute threshold
+        const diffs = [];
+        res.forEach((point1, i) => {
+          res.forEach((point2, j) => {
+            if (j > i) {
+              const curr = Math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2);
+              if (curr > 0) {
+                diffs.push(curr);
+              }
+            }
+            
+          });
+        });
+        diffs.sort();
+        // Adjust percentile to change label hiding threshold
+        const threshold = quantileSeq(diffs, 0.0015, true);
+
+        // Array to store non-overlapping labels
+        const nonOverlappingLabels = [];
+        // Populate data array with request output
+        res.forEach(dataPoint => {
+          // Check for overlap with previously added labels
+          const overlap = nonOverlappingLabels.some((existingPoint) =>
+            isOverlapping(existingPoint.x, existingPoint.y, dataPoint.x, dataPoint.y, threshold)
+          );
+
+          // Add point to the graph regardless of overlap
           tempData.graph[0].x.push(dataPoint.x);
           tempData.graph[0].y.push(dataPoint.y);
-          tempData.graph[0].text.push(dataPoint.word);
+          tempData.graph[0].hovertext.push(dataPoint.word); // Show on hover
+
+          if (!overlap) {
+            // If no overlap, display the text on the graph
+            nonOverlappingLabels.push(dataPoint);
+            tempData.graph[0].text.push(dataPoint.word);
+          } else {
+            // If overlapping, hide the text on the graph
+            tempData.graph[0].text.push(''); // Empty string for hidden text
+          }
         });
+
+        // Reverse arrays for formatting purposes
+        Object.keys(tempData.graph[0]).forEach(key => {
+          if (Array.isArray(tempData.graph[0][key])) {
+            tempData.graph[0][key].reverse();
+          }
+        })
       } else if (metricTypes.heatmap.includes(params.metric)) {
         tempData.xLabel = "";
         tempData.yLabel = "";
