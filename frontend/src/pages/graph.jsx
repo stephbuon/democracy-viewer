@@ -270,27 +270,6 @@ export const Graph = (props) => {
             tempData.graph[0][key].reverse();
           }
         });
-
-        // Array to store non-overlapping labels
-        // res.forEach((dataPoint) => { // Populate data array with request output
-        //   tempData.graph.push({
-        //     x: [dataPoint.group],
-        //     y: [dataPoint.y],
-        //     name: dataPoint.x,
-        //     text: dataPoint.x,
-        //     hovertext: dataPoint.x,
-        //     mode: "markers+text",
-        //     type: "scatter",
-        //     textposition: "right",
-        //     textfont: {
-        //       color: 'rgba(0, 0, 0, 0.5)'
-        //     },
-        //     marker: {
-        //       color: 'rgba(0, 0, 255, 1)'
-        //     }
-        //   });
-        // });
-        // tempData.graph.reverse();
       } else if (metricTypes.multibar.includes(params.metric)) {
         tempData.xLabel = "Group"
         if (params.metric === "tf-idf-bar") {
