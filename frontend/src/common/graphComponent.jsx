@@ -109,7 +109,7 @@ export const GraphComponent = ({ data, setData }) => {
                     params.group_list = dataPoint.data.name;
                     params.word_list = [dataPoint.x];
                 } else if (metricTypes.scatter.includes(data.metric)) {
-                    params.word_list = [dataPoint.text];
+                    params.word_list = [dataPoint.hovertext];
                 } else if (metricTypes.heatmap.includes(data.metric)) {
                     params.group_list = [dataPoint.x, dataPoint.y];
                 } else if (metricTypes.dotplot.includes(data.metric)) {

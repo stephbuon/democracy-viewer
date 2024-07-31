@@ -20,7 +20,7 @@ export const Upload = (props) => {
   const [APIEndpoint, setAPIEndpoint] = useState("");
   const [Token, setToken] = useState("");
   const [clicked, setClicked] = useState(undefined);
-  const [alert, setAlert] = useState(true);
+  const [alert, setAlert] = useState(0);
   const [fileUploaded, setFileUploaded] = useState(false);
 
   const [snackBarOpen, setSnackBarOpen] = useState(false);
@@ -35,9 +35,6 @@ export const Upload = (props) => {
     setFileLoaded(false);
   }
 
-  const openSnackbar = () => {
-    setSnackBarOpen(true)
-  }
   const handleSnackBarClose = (event, reason) => {
     if (reason === 'clickaway') {
       return;
@@ -49,8 +46,7 @@ export const Upload = (props) => {
     if (file && file.name) {
       const validExtensions = [".csv", ".xls", ".xlsx"];
       if (validExtensions.filter((x, i) => file.name.includes(x)).length === 0) {
-        setAlert(true)
-        openSnackbar()
+        setAlert(1)
       }
       else {
         uploadCsv();
@@ -66,9 +62,9 @@ export const Upload = (props) => {
       settableName(res.table_name)
       setheaders([...Object.keys(res.data[0])])
       setFileUploaded(true);
+      setAlert(3);
     }).catch(() => {
-      setAlert(false)
-      openSnackbar()
+      setAlert(2);
     }).finally(() => {
       setFile(undefined);
     })
@@ -79,9 +75,9 @@ export const Upload = (props) => {
       settableName(res.table_name)
       setheaders([...Object.keys(res.data[0])])
       setFileUploaded(true);
+      setAlert(3);
     }).catch(() => {
-      setAlert(false)
-      openSnackbar()
+      setAlert(2);
     })
   }
 
@@ -109,6 +105,14 @@ export const Upload = (props) => {
       navigate('/login');
     }
   }, []);
+
+  useEffect(() => {
+    if (alert !== 0) {
+      setSnackBarOpen(true);
+    } else {
+      setSnackBarOpen(false);
+    }
+  }, [alert])
 
   return (
     <>
@@ -138,9 +142,10 @@ export const Upload = (props) => {
         autoHideDuration={6000}
         onClose={() => handleSnackBarClose()}
       >
-        <Alert onClose={handleSnackBarClose} severity="error" sx={{ width: '100%' }}>
-          {alert && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
-          {!alert && <div>An error occurred uploading the dataset</div>}
+        <Alert onClose={handleSnackBarClose} severity={alert === 3 ? "success" : "error"} sx={{ width: '100%' }}>
+          {alert === 1 && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
+          {alert === 2 && <div>An error occurred uploading the dataset</div>}
+          {alert === 3 && <div>Dataset successfully uploaded</div>}
         </Alert>
       </Snackbar>
       <Modal

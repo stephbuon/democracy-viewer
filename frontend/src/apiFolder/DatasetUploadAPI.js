@@ -15,7 +15,7 @@ const apiConfig = () => {
     }
   };
 
-export const CreateDataset = async (dataset) =>  {
+export const CreateDataset = (dataset) => new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", dataset);
     let headers = apiConfig();
@@ -23,13 +23,14 @@ export const CreateDataset = async (dataset) =>  {
         ...headers.headers,
         "Content-Type": "multipart/form-data"
     }
-    const res = await axios.post(`${baseURL}/datasets`, formData, headers);
-    if(res.status !== 201){
-        console.error(`Couldn't create. ${res.status}`)
-        return null;
-    }
-    return res.data;
-};
+    axios.post(`${baseURL}/datasets`, formData, headers)
+        .then(x => resolve(x.data))
+        .catch(x => {
+            // alert(x);
+            reject(x);
+        }
+    );
+});
 
 export const UploadDataset = async (table_name, metadata, text, tags) =>  {
     const params = {
@@ -81,11 +82,12 @@ export const UpdateMetadata = async (dataset, params) =>  {
 
 
 
-export const GetCSVFromAPI = async (endpoint, token) =>  {
-    const res = await axios.post(`${baseURL}/datasets/api`, {endpoint, token}, apiConfig());
-    if(res.status !== 201){
-        console.error(`Couldn't get API csv. ${res.status}`)
-        return null;
-    }
-    return res.data;
-};
+export const GetCSVFromAPI = (endpoint, token) => new Promise((resolve, reject) => {
+    axios.post(`${baseURL}/datasets/api`, {endpoint, token}, apiConfig())
+        .then(x => resolve(x.data))
+        .catch(x => {
+            // alert(x);
+            reject(x);
+        }
+    );
+});

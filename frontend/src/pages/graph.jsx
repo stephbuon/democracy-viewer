@@ -9,6 +9,7 @@ import { getGraph } from "../api/api.js";
 import { Settings, RotateLeft, Loop, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "../common/metrics.js";
 import Plotly from "plotly.js-dist";
+import { quantileSeq } from "mathjs";
 
 export const Graph = (props) => {
   // useState definitions
@@ -25,14 +26,14 @@ export const Graph = (props) => {
 
   // Function definitions
   const openSnackbar1 = () => {
-      setSnackBarOpen1(true)
+    setSnackBarOpen1(true)
   }
 
   const handleSnackBarClose1 = (event, reason) => {
-      if (reason === 'clickaway') {
-          return;
-      }
-      setSnackBarOpen1(false);
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackBarOpen1(false);
   };
 
   // Runs on graph settings submit
@@ -89,12 +90,12 @@ export const Graph = (props) => {
         } else {
           tempData.titleList.push(keys[0], keys[1]);
         }
-        
 
         tempData.graph.push({
           x: [],
           y: [],
           text: [],
+          hovertext: [],
           mode: "markers+text",
           type: "scatter",
           textposition: "top center",
@@ -106,11 +107,56 @@ export const Graph = (props) => {
           }
         });
 
-        res.forEach((dataPoint) => { // Populate data array with request output
+        // Get the range of x and y axes
+        const allX = [];
+        const allY = [];
+        res.forEach(dataPoint => {
+          allX.push(dataPoint.x);
+          allY.push(dataPoint.y);
+        });
+        const rangeX = Math.max(...allX) - Math.min(...allX);
+        const rangeY = Math.max(...allY) - Math.min(...allY);
+        // Function to determine if two labels overlap
+        const isOverlapping = (x1, y1, x2, y2) => {
+          // Adjust fraction to change how many labels to hide
+          const fraction = 0.05;
+          const xThreshold = rangeX * fraction;
+          const yThreshold = rangeY * fraction;
+          const xDistance = Math.abs(x1 - x2);
+          const yDistance = Math.abs(y1 - y2);
+          return xDistance < xThreshold && yDistance < yThreshold;
+        };
+
+        // Array to store non-overlapping labels
+        const nonOverlappingLabels = [];
+        // Populate data array with request output
+        res.forEach(dataPoint => {
+          // Check for overlap with previously added labels
+          const overlap = nonOverlappingLabels.some((existingPoint) =>
+            isOverlapping(existingPoint.x, existingPoint.y, dataPoint.x, dataPoint.y)
+          );
+
+          // Add point to the graph regardless of overlap
           tempData.graph[0].x.push(dataPoint.x);
           tempData.graph[0].y.push(dataPoint.y);
-          tempData.graph[0].text.push(dataPoint.word);
+          tempData.graph[0].hovertext.push(dataPoint.word); // Show on hover
+
+          if (!overlap) {
+            // If no overlap, display the text on the graph
+            nonOverlappingLabels.push(dataPoint);
+            tempData.graph[0].text.push(dataPoint.word);
+          } else {
+            // If overlapping, hide the text on the graph
+            tempData.graph[0].text.push(''); // Empty string for hidden text
+          }
         });
+
+        // Reverse arrays for formatting purposes
+        Object.keys(tempData.graph[0]).forEach(key => {
+          if (Array.isArray(tempData.graph[0][key])) {
+            tempData.graph[0][key].reverse();
+          }
+        })
       } else if (metricTypes.heatmap.includes(params.metric)) {
         tempData.xLabel = "";
         tempData.yLabel = "";
@@ -153,28 +199,75 @@ export const Graph = (props) => {
         tempData.yLabel = metricNames[params.metric];
         tempData.titleList = [params.word_list[0]];
 
-        res.forEach((dataPoint) => { // Populate data array with request output
-          let index = tempData.graph.findIndex((x) => x.name === dataPoint.x);
-          if (index >= 0) { // Runs if datapoint already exists in tempData
-            tempData.graph[index].x.push(dataPoint.x)
-            tempData.graph[index].y.push(dataPoint.y)
+        // Get the range of x and y axes
+        const allY = {};
+        res.forEach(dataPoint => {
+          if (Object.keys(allY).includes(dataPoint.group)) {
+            allY[dataPoint.group].push(dataPoint.y);
+          } else {
+            allY[dataPoint.group] = [dataPoint.y];
           }
-          else {
-            tempData.graph.push({
-              x: [dataPoint.group],
-              y: [dataPoint.y],
-              name: dataPoint.x,
-              text: dataPoint.x,
-              mode: "markers+text",
-              type: "scatter",
-              textposition: "right",
-              textfont: {
-                color: 'rgba(0, 0, 0, 0.5)'
-              },
-              marker: {
-                color: 'rgba(0, 0, 255, 1)'
-              }
-            })
+        });
+        const rangeY = {};
+        Object.keys(allY).forEach(key => {
+          rangeY[key] = Math.max(...allY[key]) - Math.min(...allY[key]);
+        });
+        // Function to determine if two labels overlap
+        const isOverlapping = (x1, y1, x2, y2) => {
+          if (x1 !== x2) {
+            return false;
+          }
+          // Adjust fraction to change how many labels to hide
+          const fraction = 0.1;
+          const yThreshold = rangeY[x1] * fraction;
+          const yDistance = Math.abs(y1 - y2);
+          return yDistance < yThreshold;
+        };
+
+        tempData.graph.push({
+          x: [],
+          y: [],
+          text: [],
+          hovertext: [],
+          mode: "markers+text",
+          type: "scatter",
+          textposition: "right",
+          textfont: {
+            color: 'rgba(0, 0, 0, 0.5)'
+          },
+          marker: {
+            color: 'rgba(0, 0, 255, 1)'
+          }
+        });
+
+        // Array to store non-overlapping labels
+        const nonOverlappingLabels = [];
+        // Populate data array with request output
+        res.forEach(dataPoint => {
+          // Check for overlap with previously added labels
+          const overlap = nonOverlappingLabels.some((existingPoint) =>
+            isOverlapping(existingPoint.group, existingPoint.y, dataPoint.group, dataPoint.y)
+          );
+
+          // Add point to the graph regardless of overlap
+          tempData.graph[0].x.push(dataPoint.group);
+          tempData.graph[0].y.push(dataPoint.y);
+          tempData.graph[0].hovertext.push(dataPoint.x); // Show on hover
+
+          if (!overlap) {
+            // If no overlap, display the text on the graph
+            nonOverlappingLabels.push(dataPoint);
+            tempData.graph[0].text.push(dataPoint.x);
+          } else {
+            // If overlapping, hide the text on the graph
+            tempData.graph[0].text.push(''); // Empty string for hidden text
+          }
+        });
+
+        // Reverse arrays for formatting purposes
+        Object.keys(tempData.graph[0]).forEach(key => {
+          if (Array.isArray(tempData.graph[0][key])) {
+            tempData.graph[0][key].reverse();
           }
         });
       } else if (metricTypes.multibar.includes(params.metric)) {
@@ -230,7 +323,7 @@ export const Graph = (props) => {
   // Downloads the plot as a png
   const downloadGraph = (format = "png") => {
     Plotly.downloadImage("graph", {
-      format: format, 
+      format: format,
       filename: graphData.title
     });
   }
@@ -238,31 +331,31 @@ export const Graph = (props) => {
   // Generate file name from title string
   const listToString = (list) => {
     if (!list || list.length === 0 || data.metric === "embeddings-raw") {
-        return "";
+      return "";
     }
 
     let string = " for ";
     list.forEach((word, i) => {
-        if (list.length == 1) {
-            string += "'" + word + "'";
+      if (list.length == 1) {
+        string += "'" + word + "'";
+      }
+      else if (list.length == 2) {
+        if (i < list.length - 1) {
+          string += "'" + word + "' and ";
         }
-        else if (list.length == 2) {
-            if (i < list.length - 1) {
-                string += "'" + word + "' and ";
-            }
-            else {
-                string += "'" + word + "'";
-            }
+        else {
+          string += "'" + word + "'";
         }
-        else if (i < list.length - 1){
-            string += "'" + word + "'" + ", ";
+      }
+      else if (i < list.length - 1) {
+        string += "'" + word + "'" + ", ";
 
-        } else {
-            string += "and " + "'" + word + "'";
-        }
+      } else {
+        string += "and " + "'" + word + "'";
+      }
     });
     return string;
-}
+  }
 
   // UseEffect: Gets dataset information from local storage
   // Dataset has been selected -> Populates group options array for column name dropdown
@@ -314,32 +407,32 @@ export const Graph = (props) => {
         <Grid container justifyContent="center" direction="column">
           <Container sx={{ py: 4, maxWidth: '70%' }} maxWidth={false}>
             <Grid container spacing={4} justifyContent="center">
-                {/* {"Open Graph settings button"} */}
-                <Grid item xs={12} sm={6} md={4}>
-                  <Button variant="contained"
-                    onClick={handleOpen}
-                    className="mt-2"
-                    sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  ><Settings sx={{ mr: "10px" }}/>Settings</Button>
-                </Grid>
+              {/* {"Open Graph settings button"} */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Button variant="contained"
+                  onClick={handleOpen}
+                  className="mt-2"
+                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                ><Settings sx={{ mr: "10px" }} />Settings</Button>
+              </Grid>
 
-                {/* {"Reset graph button"} */}
-                <Grid item xs={12} sm={6} md={4}>
-                  <Button variant="contained"
-                    onClick={resetGraph}
-                    className="mt-2"
-                    sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  ><RotateLeft sx={{ mr: "10px" }}/>Reset</Button>
-                </Grid>
+              {/* {"Reset graph button"} */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Button variant="contained"
+                  onClick={resetGraph}
+                  className="mt-2"
+                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                ><RotateLeft sx={{ mr: "10px" }} />Reset</Button>
+              </Grid>
 
-                {/* {"Download graph button"} */}
-                <Grid item xs={12} sm={6} md={4}>
-                  <Button variant="contained"
-                    onClick={() => downloadGraph()}
-                    className="mt-2"
-                    sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  ><Download sx={{ mr: "10px" }}/>Download</Button>
-                </Grid>
+              {/* {"Download graph button"} */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Button variant="contained"
+                  onClick={() => downloadGraph()}
+                  className="mt-2"
+                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                ><Download sx={{ mr: "10px" }} />Download</Button>
+              </Grid>
             </Grid>
           </Container>
 
@@ -358,7 +451,7 @@ export const Graph = (props) => {
               </Box>
             )}
             {graph === true && <GraphComponent border data={graphData} setData={setData} />}
-            {graph === false && settings === false && loading === false && <div id = "test" style={{ textAlign: "center"}}>No Results Found</div>}
+            {graph === false && settings === false && loading === false && <div id="test" style={{ textAlign: "center" }}>No Results Found</div>}
           </Grid>
         </Grid>
       </Box>
