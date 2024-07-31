@@ -9,7 +9,6 @@ import { getGraph } from "../api/api.js";
 import { Settings, RotateLeft, Loop, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "../common/metrics.js";
 import Plotly from "plotly.js-dist";
-import { quantileSeq } from "mathjs";
 
 export const Graph = (props) => {
   // useState definitions
