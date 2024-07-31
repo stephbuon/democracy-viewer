@@ -199,26 +199,98 @@ export const Graph = (props) => {
         tempData.yLabel = metricNames[params.metric];
         tempData.titleList = [params.word_list[0]];
 
-        // Array to store non-overlapping labels
-        res.forEach((dataPoint) => { // Populate data array with request output
-          tempData.graph.push({
-            x: [dataPoint.group],
-            y: [dataPoint.y],
-            name: dataPoint.x,
-            text: dataPoint.x,
-            hovertext: dataPoint.x,
-            mode: "markers+text",
-            type: "scatter",
-            textposition: "right",
-            textfont: {
-              color: 'rgba(0, 0, 0, 0.5)'
-            },
-            marker: {
-              color: 'rgba(0, 0, 255, 1)'
-            }
-          });
+        // Get the range of x and y axes
+        const allY = {};
+        res.forEach(dataPoint => {
+          if (Object.keys(allY).includes(dataPoint.group)) {
+            allY[dataPoint.group].push(dataPoint.y);
+          } else {
+            allY[dataPoint.group] = [dataPoint.y];
+          }
         });
-        tempData.graph.reverse();
+        const rangeY = {};
+        Object.keys(allY).forEach(key => {
+          rangeY[key] = Math.max(...allY[key]) - Math.min(...allY[key]);
+        });
+        // Function to determine if two labels overlap
+        const isOverlapping = (x1, y1, x2, y2) => {
+          if (x1 !== x2) {
+            return false;
+          }
+          // Adjust fraction to change how many labels to hide
+          const fraction = 0.1;
+          const yThreshold = rangeY[x1] * fraction;
+          const yDistance = Math.abs(y1 - y2);
+          return yDistance < yThreshold;
+        };
+
+        tempData.graph.push({
+          x: [],
+          y: [],
+          text: [],
+          hovertext: [],
+          mode: "markers+text",
+          type: "scatter",
+          textposition: "right",
+          textfont: {
+            color: 'rgba(0, 0, 0, 0.5)'
+          },
+          marker: {
+            color: 'rgba(0, 0, 255, 1)'
+          }
+        });
+
+        // Array to store non-overlapping labels
+        const nonOverlappingLabels = [];
+        // Populate data array with request output
+        res.forEach(dataPoint => {
+          // Check for overlap with previously added labels
+          const overlap = nonOverlappingLabels.some((existingPoint) =>
+            isOverlapping(existingPoint.group, existingPoint.y, dataPoint.group, dataPoint.y)
+          );
+
+          // Add point to the graph regardless of overlap
+          tempData.graph[0].x.push(dataPoint.group);
+          tempData.graph[0].y.push(dataPoint.y);
+          tempData.graph[0].hovertext.push(dataPoint.x); // Show on hover
+
+          if (!overlap) {
+            // If no overlap, display the text on the graph
+            nonOverlappingLabels.push(dataPoint);
+            tempData.graph[0].text.push(dataPoint.x);
+          } else {
+            // If overlapping, hide the text on the graph
+            tempData.graph[0].text.push(''); // Empty string for hidden text
+          }
+        });
+
+        // Reverse arrays for formatting purposes
+        Object.keys(tempData.graph[0]).forEach(key => {
+          if (Array.isArray(tempData.graph[0][key])) {
+            tempData.graph[0][key].reverse();
+          }
+        });
+
+        // Array to store non-overlapping labels
+        // res.forEach((dataPoint) => { // Populate data array with request output
+        //   tempData.graph.push({
+        //     x: [dataPoint.group],
+        //     y: [dataPoint.y],
+        //     name: dataPoint.x,
+        //     text: dataPoint.x,
+        //     hovertext: dataPoint.x,
+        //     mode: "markers+text",
+        //     type: "scatter",
+        //     textposition: "right",
+        //     textfont: {
+        //       color: 'rgba(0, 0, 0, 0.5)'
+        //     },
+        //     marker: {
+        //       color: 'rgba(0, 0, 255, 1)'
+        //     }
+        //   });
+        // });
+        // tempData.graph.reverse();
       } else if (metricTypes.multibar.includes(params.metric)) {
         tempData.xLabel = "Group"
         if (params.metric === "tf-idf-bar") {
