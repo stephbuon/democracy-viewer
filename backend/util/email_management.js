@@ -25,8 +25,8 @@ const sendEmail = async(knex, template, params, subject, to) => {
     const fromEmail = process.env.FROM_EMAIL;
     const transporter = nodemailer.createTransport({
         host: process.env.EMAIL_SERVER,
-        port: 587,
-        secure: false,
+        port: parseInt(process.env.EMAIL_PORT),
+        secure: true,
         auth: {
             user: fromEmail,
             pass: process.env.EMAIL_PASSWORD
@@ -48,6 +48,7 @@ const suggestionEmail = async(knex, email, email2, title, old_text, new_text, id
     const name2 = await getName(knex, email2);
 
     const params = {
+        email,
         email2,
         name2,
         title,
