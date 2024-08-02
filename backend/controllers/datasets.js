@@ -251,7 +251,7 @@ const updateText = async(knex, id, user) => {
     // Delete all files for this dataset to reset them
     util.deleteDatasetFiles(suggestion.table_name);
     // Delete the suggestion record
-    await model.deleteSuggestionById(knex, user, id);
+    await model.deleteSuggestionById(id);
 }
 
 // Get dataset metadata
