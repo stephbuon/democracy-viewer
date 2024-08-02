@@ -21,6 +21,9 @@ RUN npm install
 ADD requirements.txt .
 RUN python3 -m pip install -r requirements.txt
 
+# Install NLTK packages
+RUN python3.11 -m nltk.downloader stopwords punkt
+
 # Install SpaCy language models
 ### Chinese
 RUN python3 -m spacy download zh_core_web_sm

@@ -1,5 +1,5 @@
 from email.mime.text import MIMEText
-from smtplib import SMTP
+from smtplib import SMTP_SSL
 from os import environ
 from util.sql_connect import sql_connect
 from util.sql_queries import get_user
@@ -19,7 +19,7 @@ def send_email(template: str, params: dict, subject: str, to: str):
     params["name"] = name
     
     # Fill in remaining parameters in email template
-    with open("util/emails/{}.txt".format(template), "r") as file:
+    with open("../util/emails/{}.txt".format(template), "r") as file:
         full_text = ""
         for line in file.readlines():
             if len(line) > 0:
@@ -38,8 +38,8 @@ def send_email(template: str, params: dict, subject: str, to: str):
     message["To"] = to
     
     # Send email
-    server = SMTP(environ.get("EMAIL_SERVER"), int(environ.get("EMAIL_PORT")))
-    server.starttls()
+    server = SMTP_SSL(environ.get("EMAIL_SERVER"), int(environ.get("EMAIL_PORT")))
+    # server.set_debuglevel(1)
     server.login(from_email, environ.get("EMAIL_PASSWORD"))
     server.sendmail(from_email, to, message.as_string())
     server.quit()
