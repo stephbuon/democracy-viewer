@@ -86,7 +86,7 @@ export const Acknowledgements = () => {
                   <ListItemText><Link to = "https://www.linkedin.com/in/christophermiller222/" target="_blank" rel="noopener noreferrer">Chris Miller</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/grace-schultz44/" target="_blank" rel="noopener noreferrer">Grace Schultz</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/matthew-swigart-11bb1721b/" target="_blank" rel="noopener noreferrer">Matthew Swigart</Link></ListItemText>
-                  <ListItemText><Link to = "https://www.linkedin.com/in/latifaaiyoutan/" target="_blank" rel="noopener noreferrer">Latifa Tan</Link></ListItemText>
+                  {/* <ListItemText><Link to = "https://www.linkedin.com/in/latifaaiyoutan/" target="_blank" rel="noopener noreferrer">Latifa Tan</Link></ListItemText> */}
                 </List>
               </ListItemText>
             </List>
