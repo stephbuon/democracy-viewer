@@ -67,7 +67,7 @@ export const Upload = (props) => {
   }, [file]);
 
   const uploadCsv = () => {
-    setUploadProgress(0);
+    setUploadProgress(1);
     setDisableButtons(true);
     CreateDataset(file, setUploadProgress).then(res => {
       settableName(res.table_name)
