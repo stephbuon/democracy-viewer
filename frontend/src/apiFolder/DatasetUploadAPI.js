@@ -15,13 +15,19 @@ const apiConfig = () => {
     }
   };
 
-export const CreateDataset = (dataset) => new Promise((resolve, reject) => {
+export const CreateDataset = (dataset, setProgress) => new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", dataset);
     let headers = apiConfig();
     headers.headers = {
         ...headers.headers,
         "Content-Type": "multipart/form-data"
+    }
+    if (setProgress) {
+        headers.onUploadProgress = (progressEvent) => {
+            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            setProgress(progress);
+        }
     }
     axios.post(`${baseURL}/datasets`, formData, headers)
         .then(x => resolve(x.data))
