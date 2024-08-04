@@ -86,6 +86,30 @@ const readCSV = (path, del = true) => new Promise((resolve, reject) => {
         });
 });
 
+// Get the column names of a csv file
+const getCsvHeaders = async(path) => new Promise((resolve, reject) => {
+    const stream = fs.createReadStream(path);
+    const parser = csv_read();
+    let headers = [];
+
+    parser.on("headers", (h) => {
+        headers = h;
+        // Close the stream after reading the headers
+        stream.destroy();
+        resolve(headers);
+    });
+
+    parser.on("error", (error) => {
+        reject(error);
+    });
+
+    stream.on("error", (error) => {
+        reject(error);
+    });
+
+    stream.pipe(parser);
+});
+
 // Read a JSON file
 const readJSON = (path, del = true) => {
     const str = fs.readFileSync(path);
@@ -173,6 +197,7 @@ module.exports = {
     generateJSON,
     generateFile,
     readCSV,
+    getCsvHeaders,
     readJSON,
     uploadFile,
     renameFile,

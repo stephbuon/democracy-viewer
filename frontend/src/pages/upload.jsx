@@ -67,11 +67,11 @@ export const Upload = (props) => {
   }, [file]);
 
   const uploadCsv = () => {
-    setUploadProgress(1);
+    setUploadProgress(0);
     setDisableButtons(true);
     CreateDataset(file, setUploadProgress).then(res => {
       settableName(res.table_name)
-      setheaders([...Object.keys(res.data[0])])
+      setheaders(res.headers)
       setFileUploaded(true);
       setAlert(3);
     }).catch(() => {
@@ -86,7 +86,7 @@ export const Upload = (props) => {
     GetCSVFromAPI(APIEndpoint, Token)
       .then((res) => {
         settableName(res.table_name);
-        setheaders([...Object.keys(res.data[0])]);
+        setheaders(res.headers);
         setFileUploaded(true);
         setAlert(3);
       })

@@ -1,10 +1,20 @@
 from boto3 import client
+from boto3.s3.transfer import TransferConfig
 from jwt import decode
 from os import environ
 from os.path import exists
 from pandas import DataFrame, read_parquet
+from time import time
 
-BASE_PATH = "files/s3/{}".format(environ.get("DB_VERSION"))
+BASE_PATH = "../files/s3/{}".format(environ.get("DB_VERSION"))
+
+# Use TransferConfig to optimize the download
+config = TransferConfig(
+    multipart_threshold=1024 * 500,  # 100MB
+    max_concurrency=10,
+    multipart_chunksize=1024 * 500,  # 100MB
+    use_threads=True
+)
 
 def get_creds(token: str | None = None) -> dict[str, str]:
     if token == None:
@@ -23,8 +33,10 @@ def upload(df: DataFrame, folder: str, name: str, token: str | None = None) -> N
     distributed = get_creds(token)
     
     # Convert file to parquet
+    start_time = time()
     local_file = "{}/{}/{}.parquet".format(BASE_PATH, folder, name)
     df.to_parquet(local_file, engine = "pyarrow", index = False)
+    print("Conversion time: {} minutes".format((time() - start_time) / 60))
     
     # Upload file to s3
     if "key_" in distributed.keys() and "secret" in distributed.keys():
@@ -45,11 +57,14 @@ def upload(df: DataFrame, folder: str, name: str, token: str | None = None) -> N
     else:
         path = "{}/{}.parquet".format(folder, name)
         
+    start_time = time()
     s3_client.upload_file(
         local_file,
         distributed["bucket"],
-        path
+        path,
+        Config = config
     )
+    print("Upload time: {} minutes".format((time() - start_time) / 60))
     
 def upload_file(folder: str, name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
@@ -73,12 +88,15 @@ def upload_file(folder: str, name: str, token: str | None = None) -> None:
         path = "{}/{}/{}".format(distributed["dir"], folder, name)
     else:
         path = "{}/{}".format(folder, name)
-        
+      
+    start_time = time()  
     s3_client.upload_file(
         local_file,
         distributed["bucket"],
-        path
+        path,
+        Config = config
     )
+    print("Upload time: {} minutes".format((time() - start_time) / 60))
     
 def download(folder: str, name: str, token: str | None = None) -> DataFrame:
     distributed = get_creds(token)
@@ -105,13 +123,21 @@ def download(folder: str, name: str, token: str | None = None) -> DataFrame:
             path = "{}/{}/{}.parquet".format(distributed["dir"], folder, name)
         else:
             path = "{}/{}.parquet".format(folder, name)
+            
+        start_time = time()
         s3_client.download_file(
             distributed["bucket"],
             path,
-            download_path
+            download_path,
+            Config = config
         )
+        print("Download time: {} minutes".format((time() - start_time) / 60))
     
-    return read_parquet(download_path, engine = "pyarrow")
+    start_time = time()
+    df = read_parquet(download_path, engine = "pyarrow")
+    print("Conversion time: {} minutes".format((time() - start_time) / 60))
+    
+    return df
 
 def download_file(folder: str, name: str, token: str | None = None) -> str:
     distributed = get_creds(token)
@@ -138,11 +164,15 @@ def download_file(folder: str, name: str, token: str | None = None) -> str:
             path = "{}/{}/{}".format(distributed["dir"], folder, name)
         else:
             path = "{}/{}".format(folder, name)
+            
+        start_time = time()
         s3_client.download_file(
             distributed["bucket"],
             path,
-            download_path
+            download_path,
+            Config = config
         )
+        print("Download time: {} minutes".format((time() - start_time) / 60))
     
     return download_path
 

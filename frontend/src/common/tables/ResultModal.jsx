@@ -404,24 +404,49 @@ export const ResultModal = (props) => {
                         justifyContent: 'center',
                         marginTop: '.5em'
                     }}>
-                    <div>
-                        <Button
-                            variant="contained"
-                            primary
-                            sx={{
-                                marginX: '1em',
-                                borderRadius: 50,
-                                bgcolor: 'black',
-                                color: 'white'
-                            }}
-                            onClick={() => {
-                                chooseDataset()
-                                navigate('/datasets/subsets/search');
-                            }}
-                        >
-                            Subset Search
-                        </Button>
-                    </div>
+                    {
+                        props.dataset.uploaded == true &&
+                        <div>
+                            <Button
+                                variant="contained"
+                                primary
+                                sx={{
+                                    marginX: '1em',
+                                    borderRadius: 50,
+                                    bgcolor: 'black',
+                                    color: 'white'
+                                }}
+                                onClick={() => {
+                                    chooseDataset()
+                                    navigate('/datasets/subsets/search');
+                                }}
+                            >
+                                Subset Search
+                            </Button>
+                        </div>
+
+                    }
+
+                    {
+                        props.dataset.uploaded == false &&
+                        <Tooltip arrow title="Subset search for this dataset has been disabled until the dataset is fully uploaded">
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    primary
+                                    sx={{
+                                        marginX: '1em',
+                                        borderRadius: 50,
+                                        bgcolor: 'black',
+                                        color: 'white'
+                                    }}
+                                    disabled
+                                >
+                                    Subset Search
+                                </Button>
+                            </div>
+                        </Tooltip>
+                    }
 
                     {
                         props.dataset.tokens_done == true &&

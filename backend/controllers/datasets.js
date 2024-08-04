@@ -19,13 +19,12 @@ const createDataset = async(path, email) => {
     // Rename file
     util.renameFile(path, newName);
 
-    // Get the first 5 records from the dataset
-    await runPython("get_head", [ newName ]);
-    const data = util.readJSON(newName.replace(extension, "json"), false)
+    // Get column names
+    const headers = await util.getCsvHeaders(newName);
 
     return {
         table_name,
-        data
+        headers
     };
 }
 
@@ -96,9 +95,9 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Upload metadata
     await model.createMetadata(name, email, metadata);
     // Upload all columns
-    const path = `files/uploads/${ name }.json`;
-    const data = util.readJSON(path);
-    await model.addCols(name, Object.keys(data[0]));
+    const path = `files/uploads/${ name }.csv`;
+    const headers = await util.getCsvHeaders(path);
+    await model.addCols(name, headers);
     // Upload text columns
     await model.addTextCols(name, textCols);
     // Upload tags
@@ -107,7 +106,10 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     }
     
     // Upload raw data to s3
-    await runPython("upload_dataset", [ name, path.replace(".json", ".csv") ], metadata.distributed);
+    await runPython("upload_dataset", [ name, path ], metadata.distributed);
+
+    // Set dataset as uploaded
+    await model.updateMetadata(name, { uploaded: true });
 
     // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
     // Begin preprocessing
