@@ -1,10 +1,10 @@
-from boto3 import client
+from awswrangler import s3
+from boto3 import client, Session
 from boto3.s3.transfer import TransferConfig
 from jwt import decode
 from os import environ
 from os.path import exists
 from pandas import DataFrame, read_parquet
-from s3fs import S3FileSystem
 from time import time
 
 BASE_PATH = "../files/s3/{}".format(environ.get("DB_VERSION"))
@@ -106,19 +106,19 @@ def download(folder: str, name: str, token: str | None = None) -> DataFrame:
     if exists(download_path):
         # Do nothing if file already downloaded
         print("{} already exists".format(name))
-        df = read_parquet(download_path, engine = "pyarrow")
     else:
         # Download file from s3
         if "key_" in distributed.keys() and "secret" in distributed.keys():
-            # Create an S3 file system with credentials
-            s3_client = S3FileSystem(
-                key=distributed["key_"],
-                secret=distributed["secret"],
-                client_kwargs={'region_name': distributed["region"]}
+            s3_client = Session(
+                # "s3",
+                aws_access_key_id = distributed["key_"],
+                aws_secret_access_key = distributed["secret"],
+                region_name = distributed["region"]
             )
         else:
-            s3_client = S3FileSystem(
-                client_kwargs={'region_name': distributed["region"]}
+            s3_client = Session(
+                # "s3",
+                region_name = distributed["region"]
             )
         if "dir" in distributed.keys():
             path = "{}/{}/{}.parquet".format(distributed["dir"], folder, name)
@@ -126,12 +126,16 @@ def download(folder: str, name: str, token: str | None = None) -> DataFrame:
             path = "{}/{}.parquet".format(folder, name)
             
         start_time = time()
-        df = read_parquet("s3://{}/{}".format(distributed["bucket"], path), engine='pyarrow', storage_options={
-            "key":distributed["key_"],
-            "secret":distributed["secret"],
-            "client_kwargs":{'region_name': distributed["region"]}
-        })
+        df = s3.read_parquet(
+            "s3://{}/{}".format(distributed["bucket"], path),
+            use_threads = True,
+            boto3_session=s3_client
+        )
         print("Download time: {} minutes".format((time() - start_time) / 60))
+    
+    start_time = time()
+    df = read_parquet(download_path, engine = "pyarrow")
+    print("Conversion time: {} minutes".format((time() - start_time) / 60))
     
     return df
 
