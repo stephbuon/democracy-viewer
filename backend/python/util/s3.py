@@ -106,18 +106,17 @@ def download(folder: str, name: str, token: str | None = None) -> DataFrame:
     if exists(download_path):
         # Do nothing if file already downloaded
         print("{} already exists".format(name))
+        df = read_parquet(download_path)
     else:
         # Download file from s3
         if "key_" in distributed.keys() and "secret" in distributed.keys():
             s3_client = Session(
-                # "s3",
                 aws_access_key_id = distributed["key_"],
                 aws_secret_access_key = distributed["secret"],
                 region_name = distributed["region"]
             )
         else:
             s3_client = Session(
-                # "s3",
                 region_name = distributed["region"]
             )
         if "dir" in distributed.keys():
@@ -132,10 +131,6 @@ def download(folder: str, name: str, token: str | None = None) -> DataFrame:
             boto3_session=s3_client
         )
         print("Download time: {} minutes".format((time() - start_time) / 60))
-    
-    start_time = time()
-    df = read_parquet(download_path, engine = "pyarrow")
-    print("Conversion time: {} minutes".format((time() - start_time) / 60))
     
     return df
 
