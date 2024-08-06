@@ -5,21 +5,21 @@ total_start_time = time()
 import util.metrics as metrics
 import util.embeddings_load as embed
 # Other imports
-from json import load, dump
-from sys import argv
+import json
+import sys
 # Import sql helpers
 from util.sql_connect import sql_connect
-from util.sql_queries import get_metadata
+import util.sql_queries as sql
 # Word processing
-from util.word_processing import lemmatize, stem
+import util.word_processing as wp
 print("Import time: {} seconds".format(time() - start_time))
 
 # Get input file from command line argument
-params_file = argv[1]
+params_file = sys.argv[1]
 
 # Get distributed token if defined
 try:
-    TOKEN = argv[2]
+    TOKEN = sys.argv[2]
 except:
     TOKEN = None
 
@@ -28,10 +28,10 @@ engine, meta = sql_connect()
 start_time = time()
 # Parse input files
 with open(params_file, "r") as file:
-    params = load(file)
+    params: dict = json.load(file)
     
 # Get metadata to determine preprocessing type
-metadata = get_metadata(engine, meta, params["table_name"])
+metadata = sql.get_metadata(engine, meta, params["table_name"])
 
 # If group_list or word_list are not in params, set to empty list
 # Also remove Nones from lists
@@ -43,9 +43,9 @@ if "word_list" not in params.keys():
 # Lemmatize or stem words in word_list
 if params["metric"] not in ["embed"]:
     if metadata["preprocessing_type"] == "stem":
-        params["word_list"] = list(map(lambda x: stem(x, metadata["language"])[0], params["word_list"]))
+        params["word_list"] = list(map(lambda x: wp.stem(x, metadata["language"])[0], params["word_list"]))
     elif metadata["preprocessing_type"] == "lemma":
-        params["word_list"] = list(map(lambda x: lemmatize(x, metadata["language"])[0], params["word_list"]))
+        params["word_list"] = list(map(lambda x: wp.lemmatize(x, metadata["language"])[0], params["word_list"]))
 print("Parameter processing time: {} seconds".format(time() - start_time))
 
 # Call function based on given metric
@@ -74,7 +74,7 @@ print("Computation time: {} seconds".format(time() - start_time))
 
 output_file = params_file.replace("/input/", "/output/")
 if type(output) == dict or type(output) == list:
-    dump(output, open(output_file, "w"), indent = 4)
+    json.dump(output, open(output_file, "w"), indent = 4)
 else:
     output.to_json(output_file, orient = "records", indent = 4)
 

@@ -1,14 +1,14 @@
 from gensim.models import Word2Vec
-from os import path
+import os
 from pickle import load
 from sklearn.decomposition import PCA
-from util.s3 import download_file
+import util.s3 as s3
 
 # move top similar words with keywords requested here
 def load_data_from_pkl(pkl_name: str, token: str | None = None) -> Word2Vec | dict[str, Word2Vec]:
-    pkl_model_file_name = download_file("embeddings", "model_{}.pkl".format(pkl_name), token)
+    pkl_model_file_name = s3.download_file("embeddings", "model_{}.pkl".format(pkl_name), token)
 
-    if path.isfile(pkl_model_file_name):
+    if os.path.isfile(pkl_model_file_name):
         with open(pkl_model_file_name, 'rb') as f:
             models_per_year = load(f)
         

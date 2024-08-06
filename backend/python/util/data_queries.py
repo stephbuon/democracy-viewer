@@ -1,132 +1,135 @@
-from pandas import DataFrame, concat, merge
+import polars as pl
 from sqlalchemy import Engine
-from time import time
-from util.s3 import download
+import util.s3 as s3
 import util.sql_queries as sql
 
 # Retrieve data from s3 and keep required data
-def get_text(engine: Engine, table_name: str, token: str | None = None) -> DataFrame:
-    start = time()
-    
+def get_text(engine: Engine, table_name: str, token: str | None = None) -> pl.LazyFrame:
     # Get all text columns
     text_cols = sql.get_text_cols(engine, table_name)
     
     # Download raw data from s3
-    df_raw = download("datasets", table_name, token)
+    df_raw = s3.download("datasets", table_name, token).with_row_index()
     # Reformat data to prep for preprocessing
     df = []
     for col in text_cols:
-        df.append(DataFrame({
-            "id": df_raw.index,
-            "text": df_raw[col],
-            "col": col
-        }))
-    df = concat(df)
-    
-    print("Loading data: {} seconds".format(time() - start))
+        df.append((
+            df_raw.select(col)
+                .with_row_index()
+                .with_columns(col=col)
+        ))
+    df = pl.concat(df)
     
     return df
 
 # Get the values of a subset of columns for each record
-def get_columns(table_name: str, columns: list[str], token: str | None = None):
-    df = download("datasets", table_name, token)
+def get_columns(table_name: str, columns: list[str], token: str | None = None) -> pl.LazyFrame:
+    df = s3.download("datasets", table_name, token)
     
-    return df[columns]
+    return df.select(columns)
 
 # Select records by group and word lists
-def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> DataFrame:
+def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.LazyFrame:
     # Download raw and tokenized data
-    df_raw = download("datasets", table_name, token)
-    df_split = download("tokens", table_name, token)
-    df_tokens = df_split.copy()
+    df_raw = s3.download("datasets", table_name, token)
+    df_split = s3.download("tokens", table_name, token)
+    df_tokens = df_split.clone()
     
     # Subset of columns to keep at the end
     cols = ["record_id", "word", "count"]
     
     # If grouping values are defined, filter by them
     if column is not None and column != "":
-        df_raw.rename({ column: "group" }, axis = 1, inplace = True)
+        df_raw = df_raw.rename({ column: "group" })
         cols.append("group")
         if len(values) > 0:
-            df_raw = df_raw[df_raw["group"].isin(values)]
+            df_raw = df_raw.filter(pl.col("group").is_in(values))
             
     # If a word list is defined, filter by it
     if len(word_list) > 0:
-        df_split = df_split[df_split["word"].isin(word_list)]        
+        df_split = df_split.filter(pl.col("word").is_in(word_list))    
     
     # Filter words by POS if list given
     if len(pos_list) > 0:
-        df_split = df_split[df_split["pos"].isin(pos_list)]
+        df_split = df_split.filter(pl.col("pos").is_in(pos_list))
         # Collocates
         if "adj-noun" in pos_list:
             pairs = adj_noun_pairs(df_tokens, word_list)
-            df_split = concat([df_split, pairs])
+            df_split = pl.concat([df_split, pairs])
         if "subj-verb" in pos_list:
             pairs = subj_verb_pairs(df_tokens, word_list)
-            df_split = concat([df_split, pairs])
+            df_split = pl.concat([df_split, pairs])
      
-    # Sort by the word   
-    df_split.sort_values("word", inplace = True)
+    # Sort by the word
+    df_split = df_split.sort("word")
     
     # Merge datasets
-    df = merge(df_raw, df_split, left_index = True, right_on = "record_id").reset_index()
+    df = df_raw.with_row_index("record_id").join(df_split, on = "record_id")
     
     # Return df with subset of columns
-    return df[cols]
+    return df.select(cols)
 
 # POS collocates
 ### Adjective/Noun
-def adj_noun_pairs(tokens: DataFrame, word_list: list[str]):
-    nouns = tokens[tokens["pos"] == "noun"]
-    adjs = tokens[tokens["pos"] == "adj"]
-        
-    pairs = merge(adjs, nouns, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
+def adj_noun_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
+    nouns = tokens.filter(pl.col("pos") == "noun")
+    adjs = tokens.filter(pl.col("pos") == "adj")
+    pairs = adjs.join(nouns, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
+    
     if len(word_list) > 0:
-        pairs = pairs[(pairs["word_x"].isin(word_list) | (pairs["word_y"].isin(word_list)))]
-    if len(pairs) == 0:
-        return DataFrame()
+        pairs = pairs.filter((pl.col("word_x").is_in(word_list)) | (pl.col("word_y").is_in(word_list)))
         
-    pairs["count"] = pairs[["count_x", "count_y"]].min(axis=1)
-    pairs["word"] = pairs[["word_x", "word_y"]].agg(" ".join, axis = 1)
-    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ], axis = 1)
+    if len(pairs) == 0:
+        return pl.LazyFrame()
+        
+    pairs = pairs.with_columns(
+        count = pl.max_horizontal("count_x", "count_y"),
+        word = pl.concat_str(["word_x", "word_y"], separator=" ")
+    )
+    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ])
     
     return pairs
        
 ### Subject/Verb
-def subj_verb_pairs(tokens: DataFrame, word_list: list[str]):
-    subjects = tokens[tokens["dep"].isin(["nsubj", "nsubjpass"])]
-    verbs = tokens[tokens["pos"] == "verb"]
+def subj_verb_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
+    subjects = tokens.filter(pl.col("dep").is_in(["nsubj", "nsubjpass"]))
+    verbs = tokens.filter(pl.col("pos") == "verb")
     
     if len(word_list) > 0:
-        subjects = subjects[subjects["word"].isin(word_list)]
-        verbs = verbs[verbs["word"].isin(word_list)]
-        
-    verb_first = merge(verbs, subjects, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
-    verb_second = merge(verbs, subjects, left_on = ["record_id", "col", "word"], right_on = ["record_id", "col", "head"])
-    pairs = concat([verb_first, verb_second])
+        subjects = subjects.filter(pl.col("word").is_in(word_list))
+        verbs = verbs.filter(pl.col("word").is_in(word_list))
+    
+    verb_first = verbs.join(subjects, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
+    verb_second = verbs.join(subjects, left_on = ["record_id", "col", "word"], right_on = ["record_id", "col", "head"])
+    pairs = pl.concat([verb_first, verb_second])
+    
     if len(word_list) > 0:
         pairs = pairs[(pairs["word_x"].isin(word_list) | (pairs["word_y"].isin(word_list)))]
+        pairs = pairs.filter((pl.col("word_x").is_in(word_list)) | (pl.col("word_y").is_in(word_list)))
+        
     if len(pairs) == 0:
-        return DataFrame()
+        return pl.LazyFrame()
     
-    pairs["count"] = pairs[["count_x", "count_y"]].min(axis=1)
-    pairs["word"] = pairs[["word_y", "word_x"]].agg(" ".join, axis = 1)
-    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ], axis = 1)
+    pairs = pairs.with_columns(
+        count = pl.max_horizontal("count_x", "count_y"),
+        word = pl.concat_str(["word_x", "word_y"], separator=" ")
+    )
+    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ])
     
     return pairs
 
 # Get number of group values that include words
 def group_count_by_words(table_name: str, word_list: list[str], column: str | None, values: list[str], token: str | None = None) -> dict[str, int]:
     # Download raw and tokenized data
-    df_raw = download("datasets", table_name, token)
-    df_split = download("tokens", table_name, token)
+    df_raw = s3.download("datasets", table_name, token).with_row_index("record_id")
+    df_split = s3.download("tokens", table_name, token)
     
     # Filter by word list
     if len(word_list) > 0:
-        df_split = df_split[df_split["word"].isin(word_list)]
+        df_split = df_split.filter(pl.col("word").is_in(word_list))
     
     # Merge datasets
-    df = merge(df_raw, df_split, left_index = True, right_on = "record_id")
+    df = df_raw.join(df_split, on = "record_id")
     
     # Get record/group count for each word
     records = {}
@@ -140,80 +143,86 @@ def group_count_by_words(table_name: str, word_list: list[str], column: str | No
         
     return records
 
-# Get number of group values that include POS
-def group_count_by_pos(table_name: str, pos_list: list[str], column: str | None, token: str | None = None) -> dict[str, int]:
-    # Download raw and tokenized data
-    df_raw = download("datasets", table_name, token)
-    df_split = download("tokens", table_name, token)
-    
-    # Filter by word list
-    if len(pos_list) > 0:
-        df_split = df_split[df_split["pos"].isin(pos_list)]
-    
-    # Merge datasets
-    df = merge(df_raw, df_split, left_index = True, right_on = "record_id")
-    
-    # Get record/group count for each word
-    records = {}
-    for pos in df["pos"].unique():
-        if column is None or column == "":
-            records[pos] = len(df[df["pos"] == pos])
-        else:
-            records[pos] = len(df[df["pos"] == pos][column].unique())
-        
-    return records
-
 # Get the total number of distinct group values
 def group_count(table_name: str, column: str, token: str | None = None) -> int:
     # Download raw data
-    df_raw = download("datasets", table_name, token)
+    df_raw = s3.download("datasets", table_name, token)
     
     # Get distinct values in column
-    df_col = df_raw[column].unique()
+    n_unique = (
+        df_raw
+            .select(pl.col(column).n_unique())
+            .collect()
+            .get_column(column)
+            .to_list()[0]
+    )
         
-    return len(df_col)
-
-# Get the total number of records
-def record_count(table_name: str, token: str | None = None) -> int:
-    df = download("datasets", table_name, token)
-        
-    return len(df)
+    return n_unique
 
 # Get the total word count in a corpus
 def total_word_count(table_name: str, token: str | None = None) -> int:
     # Download tokenized data
-    df_split = download("tokens", table_name, token)
+    df_split = s3.download("tokens", table_name, token)
     
     # Return sum of count column
-    return df_split["count"].sum()
+    cnt = (
+        df_split
+            .select(pl.col("count").sum())
+            .collect()
+            .get_column("count")
+            .to_list()[0]
+    )
+    
+    return cnt
 
 # Get the count of the given words in a corpus
 def word_counts(table_name: str, word_list: list[str], token: str | None = None) -> dict[str, int]:
     # Download tokenized data
-    df_split = download("tokens", table_name, token)
+    df_split = s3.download("tokens", table_name, token)
     
-    # Sum the counts for each word in word_list
+    
+    df_split = (
+        df_split
+            # Filter for words in word_list
+            .filter(pl.col("word").is_in(word_list))
+            .select(["word", "count"])
+            # Sum the counts for each word
+            .group_by("word")
+            .agg(count = pl.col("count").sum())
+            .collect()
+    )
+    
+    # Convert to dict for easy access
     records = {}
-    for word in word_list:
-        records[word] = df_split[df_split["word"] == word]["count"].sum()
+    for row in df_split.iter_rows(named = True):
+        records[row["word"]] = row["count"]
         
     return records
 
 # Get the word count of group values
 def group_counts(table_name: str, column: str, values: list[str], token: str | None = None) -> dict[str, int]:
     # Download raw and tokenized data
-    df_raw = download("datasets", table_name, token)
-    df_split = download("tokens", table_name, token)
+    df_raw = s3.download("datasets", table_name, token).with_row_index("__id__")
+    df_split = s3.download("tokens", table_name, token)
     
     # Filter raw data for column values
     if len(values) > 0:
-        df_raw = df_raw[df_raw[column].isin(values)]
+        df_raw = df_raw.filter(pl.col(column).is_in(values))
     
     # Merge datasets
-    df = merge(df_raw, df_split, left_index = True, right_on = "record_id")
+    df = df_raw.join(df_split, left_on = "__id__", right_on = "record_id")
+    
+    df = (
+        df_raw
+            .select(["__id__", column])
+            .join(df_split, left_on = "__id__", right_on = "record_id")
+            .group_by(column)
+            .agg(count = pl.col("count").sum())
+            .collect()
+    )
         
     records = {}
-    for value in values:
-        records[value] = df[df[column] == value]["count"].sum()
+    for row in df.iter_rows(named = True):
+        records[row[column]] = row["count"]
         
     return records

@@ -1,32 +1,40 @@
-from json import load
-from sys import argv
-from util.s3 import download, upload
+import json
+import polars as pl
+import sys
+import util.s3 as s3
 
-PARAMS_FILE = argv[1]
+PARAMS_FILE = sys.argv[1]
 
 # Get distributed token if defined
 try:
-    TOKEN = argv[3]
+    TOKEN = sys.argv[2]
 except:
     TOKEN = None
 
 # Read params
-params = load(open(PARAMS_FILE))
+params: dict = json.load(open(PARAMS_FILE))
 # Download dataset
-df = download("datasets", params["table_name"], TOKEN)
+df = s3.download("datasets", params["table_name"], TOKEN)
+col_name = df.columns[int(params["col"])]
+df = df.with_row_index("__id__")
 
-# Extract text to be edited
-old_text = str(df.iat[int(params["record_id"]), int(params["col"])])
-# Edit the text
-substr1 = old_text[:int(params["start"])]
-substr2 = old_text[int(params["end"]):]
-new_text = substr1 + str(params["new_text"]) + substr2
-print(old_text)
-print(substr1)
-print(substr2)
-print(new_text)
-# Replace text in data frame
-df.iat[int(params["record_id"]), int(params["col"])] = new_text
+# Function to replace text in the specified row and column
+def replace_text(text):
+    substr1 = text[:int(params["start"])]
+    substr2 = text[int(params["end"]):]
+    new_text = substr1 + str(params["new_text"]) + substr2
+    return new_text
+
+# Create a new LazyFrame with the edited text
+df = df.with_columns(
+    pl.when(pl.col("__id__") == int(params["record_id"]))  # Ensure to target the correct row
+    .then(
+        pl.col(col_name).map_elements(replace_text)
+    )
+    .otherwise(pl.col(col_name))
+    .alias(col_name)
+)
+df = df.select([ col for col in df.columns if col != "__id__"])
 
 # Upload new data frame to s3
-upload(df, "datasets", params["table_name"], TOKEN)
+s3.upload(df.collect(), "datasets", params["table_name"], TOKEN)

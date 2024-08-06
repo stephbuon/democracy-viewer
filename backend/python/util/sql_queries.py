@@ -39,20 +39,6 @@ def get_text_cols(engine: Engine, table_name: str) -> list[str]:
         exit(1)
     else:
         return text_cols
-    
-# Update metadata that processing is done
-def complete_processing(engine: Engine, table_name: str, processing_type: str) -> None:
-    query = (
-        update(DatasetMetadata)
-            .where(DatasetMetadata.table_name == table_name)
-            .values({
-                f"{ processing_type }_done": True
-            })
-    )
-    
-    with engine.connect() as conn:
-        conn.execute(query)
-        conn.commit()
 
 # Get a user record by email
 def get_user(engine: Engine, meta: MetaData, email: str) -> dict:

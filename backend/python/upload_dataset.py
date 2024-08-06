@@ -1,22 +1,22 @@
-from pandas import read_csv
-from sys import argv
+import polars as pl
+import sys
 from time import time
-from util.s3 import upload
+import util.s3 as s3
 
 # Get table name and file name from command line argument
-TABLE_NAME = argv[1]
-FILE_NAME = argv[2]
+TABLE_NAME = sys.argv[1]
+FILE_NAME = sys.argv[2]
 
 # Get distributed token if defined
 try:
-    TOKEN = argv[3]
+    TOKEN = sys.argv[3]
 except:
     TOKEN = None
 
 start_time = time()
 
 # Upload file to s3
-df = read_csv(FILE_NAME)
-upload(df, "datasets", TABLE_NAME, TOKEN)
+df = pl.read_csv(FILE_NAME)
+s3.upload(df, "datasets", TABLE_NAME, TOKEN)
 
 print("Upload time: {} seconds".format(time() - start_time))
