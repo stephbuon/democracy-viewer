@@ -2,7 +2,6 @@ import numpy as np
 import polars as pl
 # Database interaction
 import util.data_queries as data
-import util.s3 as s3
 
 def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
@@ -146,43 +145,41 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
             idf[word] = np.log2(1 + (total_groups / group_counts.get(word)))
         else:
             idf[word] = 0
-    # Group by word and group
+    
     group_cols = [ "word", "group" ]
-    df = df.drop("record_id")
-    # Log normalize grouped counts
     output = (
         df
+            # Group by word and group
+            .drop("record_id")
             .group_by(group_cols)
+            
             .agg(count = pl.col("count").sum())
             .with_columns(
-                count = 1 + pl.col("count").log(2)
+                # Log normalize grouped counts
+                count = 1 + pl.col("count").log(2),
+                # Join with IDF
+                idf = pl.lit([idf.get(word, 0) for word in output["word"]]),
+                # Compute tf-idf
+                tf_idf = pl.col("count") * pl.col("idf")
             )
+            # Drop unneeded columns
+            .drop(["count", "idf"])
     )
-    # Join with idf
-    idf_lst = []
-    for _, row in output.iterrows():
-        idf_lst.append(idf[row["word"]])
-    output["idf"] = idf_lst
-    # Compute tf-idf
-    output["tf_idf"] = output["count"] * output["idf"]
-    # Drop unneeded columns
-    output.drop(["count", "idf"], axis = 1, inplace = True)
-    # Rearrange columns
-    output = output.pivot(index = "word", columns = "group", values = "tf_idf").reset_index().fillna(0)
+    
     try:
         # Rename columns
         output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
     except:
         pass
     
-    return output
+    return output.collect()
 
 def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     bar = []
     # Compute TF-IDF in scatter plot format
     scatter = tf_idf(table_name, column, values, word_list, pos_list, token)
     # Translate scatter plot format into bar plot format
-    for _, record in scatter.iterrows():
+    for row in scatter.iter_rows(True):
         for col in scatter.columns:
             if col != "word":
                 if col == "x":
@@ -192,115 +189,173 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
                 else:
                     x = col
                 bar.append(
-                    DataFrame({
+                    pl.DataFrame({
                         "x": [x],
-                        "y": [record[col]],
-                        "group": [record["word"]]
+                        "y": [row[col]],
+                        "group": [row["word"]]
                     })
                 )
-    output = concat(bar)
+    output: pl.DataFrame = pl.concat(bar).la
     
     # Keep topn words for each group
     if len(word_list) == 0:
-        output = (
+        output: pl.DataFrame = (
             output
-                .sort_values("y", ascending = False)
-                .groupby("x")
+                .lazy()
+                .sort("y", descending = True)
+                .group_by("x")
                 .head(n=int(topn))
+                .collect()
         )
-    output["set"] = (
-        output.groupby("x")["y"]
-            .rank(method = "first", ascending = False)
+        
+    output = output.with_columns(
+        set = output.select(
+            pl.col("y")
+                .rank(method = "first", descending=True)
+                .over("x")
+        )
     )
     
     return output
 
+def kld(probs: pl.LazyFrame, m: pl.LazyFrame):
+    return (probs * (probs / m))
+
 def jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
-    df.drop("record_id", axis = 1, inplace = True)
+    df = df.drop("record_id").collect()
     # Get distinct groups
-    groups = df["group"].unique()
+    groups = (
+        df
+            .unique("group")
+            .get_column("group")
+            .to_list()
+    )
     # Get word and group counts
-    df = df.groupby(["word", "group"]).sum()
+    df = (
+        df
+            .group_by(["word", "group"])
+            .sum()
+    )
     # Calculate probabilities
-    df["prob"] = df.groupby(["group"])["count"].transform(lambda x: x / x.sum())
-    df = df.drop("count", axis = 1).unstack("group").fillna(0).reset_index()
-    df.columns = df.columns.get_level_values(1)
-    df.drop("", axis = 1, inplace = True)
+    df = (
+        df
+            .with_columns(
+                prob = pl.col("count") / pl.col("count").sum().over("group")
+            )
+            .drop("count")
+            .pivot(
+                on = "group",
+                values = "prob"
+            )
+            .fill_null(0)
+    )
     
     # Compare all pairs of groups
     output = []
     for i in range(len(groups)):
         for j in range(i+1, len(groups)):
+            group1 = groups[i]
+            group2 = groups[j]
             # Subset data by current groups
-            probs: DataFrame = df[df.columns.intersection([ groups[i], groups[j] ])].copy()
-            # Compute average distribution
-            m = sum(probs, axis = 1) / probs.shape[1]
-            # Compute KLD for each group
-            kld = sum(probs * log(probs.div(m, axis = 0)), axis = 1)
+            probs = df.select([group1, group2])
+            
+            probs = probs.with_columns(
+                # Compute average distribution
+                mean = pl.mean_horizontal(pl.all()),
+                # Compute KLD for each group
+                kld_1 = pl.col(group1) * (pl.col(group1) / pl.col("mean")).log(),
+                kld_2 = pl.col(group2) * (pl.col(group2) / pl.col("mean")).log(),
+                kld = pl.mean_horizontal(["kld_1", "kld_2"])
+            )
+            
             # Compute JSD
-            jsd_score = 0.5 * kld.sum()
+            jsd_score = 0.5 * (
+                probs
+                    .get_column("kld")
+                    .sum()
+            )
             # Add result to output
             output.append(
-                DataFrame({
-                    "group1": [groups[i]],
-                    "group2": [groups[j]],
+                pl.DataFrame({
+                    "group1": [group1],
+                    "group2": [group2],
                     "jsd": [jsd_score]
                 })
             )
               
     # Concatenate results
     if len(output) > 0:
-        output = concat(output)
+        output_df: pl.DataFrame = pl.concat(output)
         # Rename columns
-        output.rename({ "group1": "x", "group2": "y", "jsd": "fill" }, axis = 1, inplace = True)
-        return output
+        output_df = output_df.rename({ "group1": "x", "group2": "y", "jsd": "fill" })
+        return output_df
     else:
-        return DataFrame()
+        return pl.DataFrame()
     
 def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
     # Get the total number of words in the corpus
     total_corpus_words = data.total_word_count(table_name, token)
     # Get records by words and groups
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
     # Get unique words and groups
-    words = df["word"].unique()
-    groups = df["group"].unique()
+    words = df.get_column("word").unique().to_list()
+    groups = df.get_column("group").unique().to_list()
     # Goup by word and group (if defined)
     group_cols = [ "word", "group" ]
-    df.drop("record_id", axis = 1, inplace = True)
+    df = df.drop("record_id")
     # Sum counts
-    df = df.groupby(group_cols).sum().unstack("group").fillna(0)
-    df.columns = df.columns.get_level_values(1)
+    df = df.group_by(group_cols).sum().unstack("group").fill_null(0)
+    # df.columns = df.columns.get_level_values(1)
     output = []
     for word in words:
         # Initialize df for word
-        df2 = DataFrame({
+        df2 = pl.DataFrame({
             "word": [word]
         })
         for group in groups:
             # Compute LL terms
-            a = df.loc[word, group]
-            b = df.loc[word,:].sum() - a
-            c = df.loc[:,group].sum() - a
+            a = (
+                df
+                    .filter(
+                        (pl.col("word") == word) & 
+                        (pl.col("group") == "group")
+                    )
+                    .get_column("count")
+                    .sum()
+            )
+            # b = df.loc[word,:].sum() - a
+            b = (
+                df
+                    .filter(pl.col("word") == word)
+                    .get_column("count")
+                    .sum()
+            ) - a
+            # c = df.loc[:,group].sum() - a
+            c = (
+                df
+                    .filter(pl.col("group") == group)
+                    .get_column("count")
+                    .sum()
+            ) - a
             d = total_corpus_words - a - b - c
             e1 = (a + c) * (a + b) / total_corpus_words
             e2 = (b + d) * (a + b) / total_corpus_words
             if a > 0:
-                ll = 2 * (a * log(a / e1))
+                ll = 2 * (a * np.log(a / e1))
             else:
                 ll = 0
             if b > 0:
-                ll += 2 * b * log(b / e2)
+                ll += 2 * b * np.log(b / e2)
             # Add ll for group to df
             df2[group] = ll
         output.append(df2)
     
     if len(output) > 0:
-        output = concat(output)
+        output_df: pl.DataFrame = pl.concat(output)
         # Rename columns
-        output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
+        output_df = output_df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
         return output
     else:
-        return DataFrame()
+        return pl.DataFrame()
