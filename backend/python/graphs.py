@@ -76,6 +76,6 @@ output_file = params_file.replace("/input/", "/output/")
 if type(output) == dict or type(output) == list:
     json.dump(output, open(output_file, "w"), indent = 4)
 else:
-    output.to_json(output_file, orient = "records", indent = 4)
+    output.to_pandas(use_pyarrow_extension_array=True).to_json(output_file, orient = "records", indent = 4)
 
 print("Total time: {} seconds".format(time() - total_start_time))

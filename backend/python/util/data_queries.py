@@ -64,10 +64,11 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
     df_split = df_split.sort("word")
     
     # Merge datasets
-    df = df_raw.with_row_index("record_id").join(df_split, on = "record_id")
+    df_raw = df_raw.with_row_count("record_id")
+    df = df_raw.join(df_split, on = "record_id")
     
     # Return df with subset of columns
-    return df.select(cols)
+    return df
 
 # POS collocates
 ### Adjective/Noun
@@ -86,7 +87,7 @@ def adj_noun_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
         count = pl.max_horizontal("count_x", "count_y"),
         word = pl.concat_str(["word_x", "word_y"], separator=" ")
     )
-    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ])
+    pairs = pairs.drop([ col for col in pairs.collect_schema().names() if "_" in col and col != "record_id" ])
     
     return pairs
        
@@ -114,7 +115,7 @@ def subj_verb_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
         count = pl.max_horizontal("count_x", "count_y"),
         word = pl.concat_str(["word_x", "word_y"], separator=" ")
     )
-    pairs = pairs.drop([ col for col in pairs.columns if "_" in col and col != "record_id" ])
+    pairs = pairs.drop([ col for col in pairs.collect_schema().names() if "_" in col and col != "record_id" ])
     
     return pairs
 

@@ -10,48 +10,49 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     group_cols = [ "word" ]
     if column != None and column != "":
         group_cols.append("group")
-    df = df.drop("record_id")
+    # df = df.drop("record_id")
     # Sum counts
-    output = df.group_by(group_cols).sum()
-    # Rename columns
-    output = output.rename({ "word": "x", "count": "y" })
+    df = df.group_by(group_cols).sum()
     # Sort by normalized sum of y and take topn if word_list not provided
-    if "group" in output.columns:
-        output = output.with_columns(
-            y_norm = (pl.col("y") - pl.col("y").mean().over("group")) / pl.col("y").std().over("group")
+    if "group" in df.collect_schema().names():
+        df = df.with_columns(
+            y_norm = (pl.col("count") - pl.col("count").mean().over("group")) / pl.col("count").std().over("group")
         )
     else:
-        output = output.with_columns(
-            y_norm = (pl.col("y") - pl.col("y").mean()) / pl.col("y").std()
+        df = df.with_columns(
+            y_norm = (pl.col("count") - pl.col("count").mean()) / pl.col("count").std()
         )
+        
+    df = df.collect().rename({ "word": "x", "count": "y" })
     top_words = (
-        output
+        df
             # Group by "x" and sum "y_norm"
             .group_by("x")
-            .agg(pl.col("y_norm").sum().alias("y_norm"))
+            .agg(y_norm = pl.col("y_norm").sum())
             # Sort by sum in descending order
             .sort("y_norm", descending=True)
             # Extract top words
-            .collect()
             .get_column("x")
             .to_list()
     )
     if len(word_list) == 0:
         top_words = top_words[0:int(topn)]
-        output = output.filter(pl.col("x").is_in(top_words))
-    output = (
-        output
-            # Drop the "y_norm" column
-            .drop("y_norm")
+        df = df.filter(pl.col("x").is_in(top_words))
+    df = (
+        df
             # Cast "x" to categorical with specific categories and order
             .with_columns(
-                pl.col("x").cast(pl.Categorical, ordering=top_words)
+                x = pl.col("x").cast(pl.Enum(top_words))
             )
             # Sort by "x" based on the categorical order
             .sort("x")
     )
+    if "group" in group_cols:
+        df = df.select(["x", "y", "group"])
+    else:
+        df = df.select(["x", "y"])
     
-    return output.collect()
+    return df
 
 def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
@@ -59,29 +60,28 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     cols = ["word"]
     if column is not None and column != "":
         cols.append("group")
-    df = df.drop("record_id")
+    # df = df.drop("record_id")
     # Get word and group counts
-    output = df.group_by(cols).sum()
+    df = df.group_by(cols).sum()
     # Get group total counts
     if "group" in cols:
-        output = output.with_columns(
-            total = (
-                output
-                    .group_by("group")
-                    .agg(pl.col("count").sum().alias("total"))
-                    
-            )
+        df2 = (
+            df
+                .clone()
+                .group_by("group")
+                .agg(total = pl.col("count").sum())
         )
+        df = df.join(df2, on = "group")
     else:
-        output = output.with_columns(
+        df = df.with_columns(
             total = pl.col("count").sum()
         )
     # Filter for word list
     if len(word_list) > 0:
-        output = output.filter(pl.col("word").is_in(word_list))
+        df = df.filter(pl.col("word").is_in(word_list))
     
-    output = (
-        output
+    df = (
+        df
             .with_columns(
                 proportion = pl.col("count") / pl.col("total")
             )
@@ -91,42 +91,46 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
             .rename({ "word": "x", "proportion": "y" })
     )
     # Sort by normalized sum of y and take topn if word_list not provided
-    if "group" in output.columns:
-        output = output.with_columns(
+    if "group" in df.collect_schema().names():
+        df = df.with_columns(
             y_norm = (pl.col("y") - pl.col("y").mean().over("group")) / pl.col("y").std().over("group")
         )
     else:
-        output = output.with_columns(
+        df = df.with_columns(
             y_norm = (pl.col("y") - pl.col("y").mean()) / pl.col("y").std()
         )  
+        
+    df = df.collect()
     top_words = (
-        output
+        df
             # Group by "x" and sum "y_norm"
             .group_by("x")
             .agg(pl.col("y_norm").sum().alias("y_norm"))
             # Sort by sum in descending order
             .sort("y_norm", descending=True)
             # Extract top words
-            .collect()
             .get_column("x")
             .to_list()
     )
     if len(word_list) == 0:
         top_words = top_words[0:int(topn)]
-        output = output.filter(pl.col("x").is_in(top_words))
-    output = (
-        output
-            # Drop the "y_norm" column
-            .drop("y_norm")
+        df = df.filter(pl.col("x").is_in(top_words))
+    df = (
+        df
             # Cast "x" to categorical with specific categories and order
             .with_columns(
-                pl.col("x").cast(pl.Categorical, ordering=top_words)
+                x = pl.col("x").cast(pl.Enum(top_words))
             )
             # Sort by "x" based on the categorical order
             .sort("x")
     )
     
-    return output.collect()
+    if "group" in cols:
+        df = df.select(["x", "y", "group"])
+    else:
+        df = df.select(["x", "y"])
+    
+    return df
 
 def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
     # Get total group count
@@ -147,7 +151,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
             idf[word] = 0
     
     group_cols = [ "word", "group" ]
-    output = (
+    df = (
         df
             # Group by word and group
             .drop("record_id")
@@ -158,7 +162,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
                 # Log normalize grouped counts
                 count = 1 + pl.col("count").log(2),
                 # Join with IDF
-                idf = pl.lit([idf.get(word, 0) for word in output["word"]]),
+                idf = pl.lit([idf.get(word, 0) for word in df["word"]]),
                 # Compute tf-idf
                 tf_idf = pl.col("count") * pl.col("idf")
             )
@@ -168,11 +172,11 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     
     try:
         # Rename columns
-        output.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
+        df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
     except:
         pass
     
-    return output.collect()
+    return df.collect()
 
 def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     bar = []
@@ -195,12 +199,12 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
                         "group": [row["word"]]
                     })
                 )
-    output: pl.DataFrame = pl.concat(bar).la
+    df: pl.DataFrame = pl.concat(bar).la
     
     # Keep topn words for each group
     if len(word_list) == 0:
-        output: pl.DataFrame = (
-            output
+        df: pl.DataFrame = (
+            df
                 .lazy()
                 .sort("y", descending = True)
                 .group_by("x")
@@ -208,15 +212,15 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
                 .collect()
         )
         
-    output = output.with_columns(
-        set = output.select(
+    df = df.with_columns(
+        set = df.select(
             pl.col("y")
                 .rank(method = "first", descending=True)
                 .over("x")
         )
     )
     
-    return output
+    return df
 
 def kld(probs: pl.LazyFrame, m: pl.LazyFrame):
     return (probs * (probs / m))
@@ -276,7 +280,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
                     .get_column("kld")
                     .sum()
             )
-            # Add result to output
+            # Add result to df
             output.append(
                 pl.DataFrame({
                     "group1": [group1],
@@ -307,7 +311,6 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
     df = df.drop("record_id")
     # Sum counts
     df = df.group_by(group_cols).sum().unstack("group").fill_null(0)
-    # df.columns = df.columns.get_level_values(1)
     output = []
     for word in words:
         # Initialize df for word
@@ -356,6 +359,6 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
         output_df: pl.DataFrame = pl.concat(output)
         # Rename columns
         output_df = output_df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
-        return output
+        return df
     else:
         return pl.DataFrame()

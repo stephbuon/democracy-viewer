@@ -1,9 +1,7 @@
-from awswrangler import s3
 import boto3
 from boto3.s3.transfer import TransferConfig
 import jwt
 import os
-import pandas as pd
 import polars as pl
 from time import time
 
@@ -107,15 +105,17 @@ def download(folder: str, name: str, token: str | None = None) -> pl.LazyFrame:
     else:
         path = "{}/{}.parquet".format(folder, name)
         
-    start_time = time()
     storage_options = {
         "aws_access_key_id": distributed["key_"],
         "aws_secret_access_key": distributed["secret"],
         "aws_region": distributed["region"],
     }
     s3_path = "s3://{}/{}".format(distributed["bucket"], path)
-    df = pl.scan_parquet(s3_path, storage_options=storage_options) 
-    print("Download time: {} minutes".format((time() - start_time) / 60))
+    df = pl.scan_parquet(s3_path, storage_options=storage_options)
+    if folder == "tokens":
+        df = df.with_columns(
+            record_id = pl.col("record_id").cast(pl.UInt32, strict = False)
+        )
     
     return df
 

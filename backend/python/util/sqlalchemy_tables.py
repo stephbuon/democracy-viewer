@@ -35,6 +35,7 @@ class DatasetMetadata(SQL_BASE):
     tokens_done = Column("tokens_done", Boolean)
     distributed = Column("distributed", BigInteger)
     unprocessed_updates = Column("unprocessed_updates", Integer)
+    uploaded = Column("uploaded", Boolean)
     
 class Tags(SQL_BASE):
     __tablename__ = "tags"
