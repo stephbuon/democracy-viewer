@@ -321,23 +321,22 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     # Get distinct groups
     groups = (
         df
-            .unique("group")
             .get_column("group")
+            .unique()
             .to_list()
     )
     # Get word and group counts
     df = (
         df
             .group_by(["word", "group"])
-            .sum()
+            .agg(count = pl.col("count").sum())
+            .with_columns(
+                prob = pl.col("count") / pl.col("count").sum().over("group")
+            )
     )
     # Calculate probabilities
     df = (
         df
-            .with_columns(
-                prob = pl.col("count") / pl.col("count").sum().over("group")
-            )
-            .drop("count")
             .pivot(
                 on = "group",
                 index = "word",
@@ -353,7 +352,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
             group1 = groups[i]
             group2 = groups[j]
             # Subset data by current groups
-            probs = df.select([group1, group2])
+            probs = df.select(["word", group1, group2])
             
             probs = (
                 probs
@@ -369,7 +368,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
                     .fill_nan(0)
                     .with_columns(
                         # Compute mean KLD
-                        kld = pl.mean_horizontal(["kld_1", "kld_2"])
+                        kld = pl.sum_horizontal(["kld_1", "kld_2"])
                     )
             )
             # Compute JSD
