@@ -59,9 +59,6 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         if "subj-verb" in pos_list:
             pairs = subj_verb_pairs(df_tokens, word_list)
             df_split = pl.concat([df_split, pairs])
-     
-    # Sort by the word
-    df_split = df_split.sort("word")
     
     # Merge datasets
     df_raw = df_raw.with_row_count("record_id")
@@ -132,15 +129,31 @@ def group_count_by_words(table_name: str, word_list: list[str], column: str | No
     # Merge datasets
     df = df_raw.join(df_split, on = "record_id")
     
+    if column is None or column == "":
+        df = (
+            df
+                .group_by("word")
+                .count()
+        )
+    elif len(values) > 0:
+        df = (
+            df
+                .filter(pl.col(column).is_in(values))
+                .group_by("word")
+                .agg(count = pl.col(column).n_unique())
+        )
+    else:
+        df = (
+            df
+                .group_by("word")
+                .agg(count = pl.col(column).n_unique())
+        )
+    
     # Get record/group count for each word
     records = {}
-    for word in df["word"].unique():
-        if column is None or column == "":
-            records[word] = len(df[df["word"] == word])
-        elif len(values) > 0:
-            records[word] = len(df[(df["word"] == word) & (df[column].isin(values))][column].unique())
-        else:
-            records[word] = len(df[df["word"] == word][column].unique())
+    df = df.collect()
+    for row in df.iter_rows(named = True):
+        records[row["word"]] = row["count"]
         
     return records
 

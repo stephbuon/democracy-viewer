@@ -144,11 +144,15 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     
     # Compute smoothed idf
     idf = {}
-    for word in word_list:
+    for word in group_counts.keys():
         if group_counts.get(word, 0) > 0:
             idf[word] = np.log2(1 + (total_groups / group_counts.get(word)))
         else:
             idf[word] = 0
+    idf_df = pl.DataFrame({
+        "word": idf.keys(),
+        "idf": idf.values()
+    })
     
     group_cols = [ "word", "group" ]
     df = (
@@ -156,27 +160,103 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
             # Group by word and group
             .drop("record_id")
             .group_by(group_cols)
-            
             .agg(count = pl.col("count").sum())
+            # Join with IDF
+            .join(idf_df.lazy(), on = "word")
             .with_columns(
                 # Log normalize grouped counts
-                count = 1 + pl.col("count").log(2),
-                # Join with IDF
-                idf = pl.lit([idf.get(word, 0) for word in df["word"]]),
+                count = 1 + pl.col("count").log(2)
+            )
+            .with_columns(
                 # Compute tf-idf
                 tf_idf = pl.col("count") * pl.col("idf")
             )
-            # Drop unneeded columns
-            .drop(["count", "idf"])
     )
     
+    df = (
+        df
+            .collect()
+            .pivot(
+                on = "group",
+                index = "word",
+                values = "tf_idf"
+            )
+            .fill_null(0)
+    )
     try:
         # Rename columns
-        df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
+        df = df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" })
     except:
         pass
     
-    return df.collect()
+    return df
+
+def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
+    # Get the total number of words in the corpus
+    total_corpus_words = data.total_word_count(table_name, token)
+    # Get records by words and groups
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
+    # Get unique words and groups
+    words = df.get_column("word").unique().to_list()
+    groups = df.get_column("group").unique().to_list()
+    # Goup by word and group (if defined)
+    group_cols = [ "word", "group" ]
+    # Sum counts
+    df = df.group_by(group_cols).sum()
+    output = []
+    for word in words:
+        # Initialize df for word
+        df2 = pl.DataFrame({
+            "word": [word]
+        })
+        for group in groups:
+            # Compute LL terms
+            a = (
+                df
+                    .filter(
+                        (pl.col("word") == word) & 
+                        (pl.col("group") == group)
+                    )
+                    .get_column("count")
+                    .sum()
+            )
+            # b = df.loc[word,:].sum() - a
+            b = (
+                df
+                    .filter(pl.col("word") == word)
+                    .get_column("count")
+                    .sum()
+            ) - a
+            # c = df.loc[:,group].sum() - a
+            c = (
+                df
+                    .filter(pl.col("group") == group)
+                    .get_column("count")
+                    .sum()
+            ) - a
+            d = total_corpus_words - a - b - c
+            e1 = (a + c) * (a + b) / total_corpus_words
+            e2 = (b + d) * (a + b) / total_corpus_words
+            if a > 0:
+                ll = 2 * (a * np.log(a / e1))
+            else:
+                ll = 0
+            if b > 0:
+                ll += 2 * b * np.log(b / e2)
+            # Add ll for group to df
+            df2 = df2.with_columns(
+                pl.lit(ll).alias(group)
+            )
+        output.append(df2)
+    
+    if len(output) > 0:
+        output_df: pl.DataFrame = pl.concat(output)
+        # Rename columns
+        output_df = output_df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" })
+        
+        return output_df
+    else:
+        return pl.DataFrame()
 
 def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     bar = []
@@ -298,67 +378,3 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     else:
         return pl.DataFrame()
     
-def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
-    # Get the total number of words in the corpus
-    total_corpus_words = data.total_word_count(table_name, token)
-    # Get records by words and groups
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
-    # Get unique words and groups
-    words = df.get_column("word").unique().to_list()
-    groups = df.get_column("group").unique().to_list()
-    # Goup by word and group (if defined)
-    group_cols = [ "word", "group" ]
-    df = df.drop("record_id")
-    # Sum counts
-    df = df.group_by(group_cols).sum().unstack("group").fill_null(0)
-    output = []
-    for word in words:
-        # Initialize df for word
-        df2 = pl.DataFrame({
-            "word": [word]
-        })
-        for group in groups:
-            # Compute LL terms
-            a = (
-                df
-                    .filter(
-                        (pl.col("word") == word) & 
-                        (pl.col("group") == "group")
-                    )
-                    .get_column("count")
-                    .sum()
-            )
-            # b = df.loc[word,:].sum() - a
-            b = (
-                df
-                    .filter(pl.col("word") == word)
-                    .get_column("count")
-                    .sum()
-            ) - a
-            # c = df.loc[:,group].sum() - a
-            c = (
-                df
-                    .filter(pl.col("group") == group)
-                    .get_column("count")
-                    .sum()
-            ) - a
-            d = total_corpus_words - a - b - c
-            e1 = (a + c) * (a + b) / total_corpus_words
-            e2 = (b + d) * (a + b) / total_corpus_words
-            if a > 0:
-                ll = 2 * (a * np.log(a / e1))
-            else:
-                ll = 0
-            if b > 0:
-                ll += 2 * b * np.log(b / e2)
-            # Add ll for group to df
-            df2[group] = ll
-        output.append(df2)
-    
-    if len(output) > 0:
-        output_df: pl.DataFrame = pl.concat(output)
-        # Rename columns
-        output_df = output_df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }, axis = 1, inplace = True)
-        return df
-    else:
-        return pl.DataFrame()
