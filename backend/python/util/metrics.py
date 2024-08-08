@@ -263,7 +263,7 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
     # Compute TF-IDF in scatter plot format
     scatter = tf_idf(table_name, column, values, word_list, pos_list, token)
     # Translate scatter plot format into bar plot format
-    for row in scatter.iter_rows(True):
+    for row in scatter.iter_rows(named = True):
         for col in scatter.columns:
             if col != "word":
                 if col == "x":
@@ -279,7 +279,7 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
                         "group": [row["word"]]
                     })
                 )
-    df: pl.DataFrame = pl.concat(bar).la
+    df: pl.DataFrame = pl.concat(bar)
     
     # Keep topn words for each group
     if len(word_list) == 0:
@@ -292,13 +292,20 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
                 .collect()
         )
         
-    df = df.with_columns(
-        set = df.select(
-            pl.col("y")
-                .rank(method = "first", descending=True)
-                .over("x")
-        )
+    # Rank words in each group
+    df2 = (
+        df
+            .clone()
+            .with_columns(
+                set = (
+                    pl.col("y")
+                        .rank(method = "ordinal", descending = True)
+                        .over("x")
+                )
+            )
+            .select(["x", "set"])
     )
+    df = df.join(df2, on = "x")
     
     return df
 
