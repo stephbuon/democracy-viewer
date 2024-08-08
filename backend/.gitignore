@@ -48,7 +48,7 @@ python/s3_test.py
 accounts.csv
 add_account.sql
 
-datasets
+datasets/*
 latifa_embeddings
 test.js
 test.py

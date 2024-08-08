@@ -342,7 +342,6 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
             )
             .fill_null(0)
     )
-    print(df)
     
     # Compare all pairs of groups
     output = []
@@ -370,7 +369,6 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
                         kld = pl.mean_horizontal(["kld_1", "kld_2"])
                     )
             )
-            print(probs)
             # Compute JSD
             jsd_score = 0.5 * (
                 probs
