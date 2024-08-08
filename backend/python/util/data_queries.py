@@ -9,13 +9,13 @@ def get_text(engine: Engine, table_name: str, token: str | None = None) -> pl.La
     text_cols = sql.get_text_cols(engine, table_name)
     
     # Download raw data from s3
-    df_raw = s3.download("datasets", table_name, token).with_row_index()
+    df_raw = s3.download("datasets", table_name, token)
     # Reformat data to prep for preprocessing
     df = []
     for col in text_cols:
         df.append((
-            df_raw.select(col)
-                .with_row_index()
+            df_raw.select([col, "record_id"])
+                .rename({ f"{col}": "text" })
                 .with_columns(col=col)
         ))
     df = pl.concat(df)
@@ -47,7 +47,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
             
     # If a word list is defined, filter by it
     if len(word_list) > 0:
-        df_split = df_split.filter(pl.col("word").is_in(word_list))    
+        df_split = df_split.filter(pl.col("word").is_in(word_list)) 
     
     # Filter words by POS if list given
     if len(pos_list) > 0:
@@ -61,10 +61,9 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
             df_split = pl.concat([df_split, pairs])
     
     # Merge datasets
-    df_raw = df_raw.with_row_count("record_id")
+    df_raw = df_raw
     df = df_raw.join(df_split, on = "record_id")
     
-    # Return df with subset of columns
     return df
 
 # POS collocates
@@ -119,7 +118,7 @@ def subj_verb_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
 # Get number of group values that include words
 def group_count_by_words(table_name: str, word_list: list[str], column: str | None, values: list[str], token: str | None = None) -> dict[str, int]:
     # Download raw and tokenized data
-    df_raw = s3.download("datasets", table_name, token).with_row_index("record_id")
+    df_raw = s3.download("datasets", table_name, token)
     df_split = s3.download("tokens", table_name, token)
     
     # Filter by word list
@@ -216,7 +215,7 @@ def word_counts(table_name: str, word_list: list[str], token: str | None = None)
 # Get the word count of group values
 def group_counts(table_name: str, column: str, values: list[str], token: str | None = None) -> dict[str, int]:
     # Download raw and tokenized data
-    df_raw = s3.download("datasets", table_name, token).with_row_index("__id__")
+    df_raw = s3.download("datasets", table_name, token)
     df_split = s3.download("tokens", table_name, token)
     
     # Filter raw data for column values
@@ -224,7 +223,7 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
         df_raw = df_raw.filter(pl.col(column).is_in(values))
     
     # Merge datasets
-    df = df_raw.join(df_split, left_on = "__id__", right_on = "record_id")
+    df = df_raw.join(df_split, on = "record_id")
     
     df = (
         df_raw

@@ -112,7 +112,9 @@ def download(folder: str, name: str, token: str | None = None) -> pl.LazyFrame:
     }
     s3_path = "s3://{}/{}".format(distributed["bucket"], path)
     df = pl.scan_parquet(s3_path, storage_options=storage_options)
-    if folder == "tokens":
+    if folder == "datasets":
+        df = df.with_row_index("record_id")
+    elif folder == "tokens":
         df = df.with_columns(
             record_id = pl.col("record_id").cast(pl.UInt32, strict = False)
         )

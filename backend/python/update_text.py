@@ -15,8 +15,7 @@ except:
 params: dict = json.load(open(PARAMS_FILE))
 # Download dataset
 df = s3.download("datasets", params["table_name"], TOKEN)
-col_name = df.columns[int(params["col"])]
-df = df.with_row_index("__id__")
+col_name = df.collect_schema().names()[int(params["col"])]
 
 # Function to replace text in the specified row and column
 def replace_text(text):

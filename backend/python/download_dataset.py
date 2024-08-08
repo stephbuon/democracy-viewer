@@ -11,7 +11,7 @@ except:
     TOKEN = None
 
 if DOWNLOAD_TYPE in ["both", "dataset"]:
-    df_raw = s3.download("datasets", TABLE_NAME, TOKEN).with_row_index("__id__").collect()
+    df_raw = s3.download("datasets", TABLE_NAME, TOKEN).collect()
     df_raw.to_pandas(use_pyarrow_extension_array=True).to_json("files/nodejs/datasets/{}.json".format(TABLE_NAME), "records", indent = 4)
     
 if DOWNLOAD_TYPE in ["both", "tokens"]:

@@ -14,7 +14,9 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     # Sum counts
     df = df.group_by(group_cols).sum()
     # Sort by normalized sum of y and take topn if word_list not provided
-    if "group" in df.collect_schema().names():
+    if len(word_list) == 1:
+        df = df.with_columns(y_norm = pl.col("count"))
+    elif "group" in df.collect_schema().names():
         df = df.with_columns(
             y_norm = (pl.col("count") - pl.col("count").mean().over("group")) / pl.col("count").std().over("group")
         )
@@ -23,7 +25,7 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
             y_norm = (pl.col("count") - pl.col("count").mean()) / pl.col("count").std()
         )
         
-    df = df.collect().rename({ "word": "x", "count": "y" })
+    df = df.rename({ "word": "x", "count": "y" }).collect()
     top_words = (
         df
             # Group by "x" and sum "y_norm"
