@@ -313,9 +313,8 @@ def kld(probs: pl.LazyFrame, m: pl.LazyFrame):
     return (probs * (probs / m))
 
 def jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
     
-    df = df.drop("record_id").collect()
     # Get distinct groups
     groups = (
         df
@@ -338,10 +337,12 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
             .drop("count")
             .pivot(
                 on = "group",
+                index = "word",
                 values = "prob"
             )
             .fill_null(0)
     )
+    print(df)
     
     # Compare all pairs of groups
     output = []
@@ -352,15 +353,24 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
             # Subset data by current groups
             probs = df.select([group1, group2])
             
-            probs = probs.with_columns(
-                # Compute average distribution
-                mean = pl.mean_horizontal(pl.all()),
-                # Compute KLD for each group
-                kld_1 = pl.col(group1) * (pl.col(group1) / pl.col("mean")).log(),
-                kld_2 = pl.col(group2) * (pl.col(group2) / pl.col("mean")).log(),
-                kld = pl.mean_horizontal(["kld_1", "kld_2"])
+            probs = (
+                probs
+                    .with_columns(
+                        # Compute average distribution
+                        mean = pl.mean_horizontal(pl.all())
+                    )
+                    .with_columns(
+                        # Compute KLD for each group
+                        kld_1 = pl.col(group1) * (pl.col(group1) / pl.col("mean")).log(),
+                        kld_2 = pl.col(group2) * (pl.col(group2) / pl.col("mean")).log()
+                    )
+                    .fill_nan(0)
+                    .with_columns(
+                        # Compute mean KLD
+                        kld = pl.mean_horizontal(["kld_1", "kld_2"])
+                    )
             )
-            
+            print(probs)
             # Compute JSD
             jsd_score = 0.5 * (
                 probs
