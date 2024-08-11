@@ -55,7 +55,7 @@ export const Upload = (props) => {
 
   useEffect(() => {
     if (file && file.name) {
-      const validExtensions = [".csv", ".xls", ".xlsx"];
+      const validExtensions = [".csv"];
       if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
         setAlert(1);
       } else {
@@ -182,7 +182,7 @@ export const Upload = (props) => {
                 <Typography gutterBottom variant="h5" component="h2" align="center">
                   Upload File
                 </Typography>
-                <Typography align="center">Upload a CSV or Excel File</Typography>
+                <Typography align="center">Upload a CSV File</Typography>
                 {uploadProgress > 0 && (
                   <LinearProgress
                     variant="determinate"

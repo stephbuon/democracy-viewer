@@ -1,20 +1,14 @@
 from gensim.models import Word2Vec
 import os
-from pickle import load
+import pickle as pkl
 from sklearn.decomposition import PCA
 import util.s3 as s3
 
 # move top similar words with keywords requested here
 def load_data_from_pkl(pkl_name: str, token: str | None = None) -> Word2Vec | dict[str, Word2Vec]:
-    pkl_model_file_name = s3.download_file("embeddings", "model_{}.pkl".format(pkl_name), token)
+    data = s3.download_data("embeddings", "model_{}".format(pkl_name), "pkl", token)
 
-    if os.path.isfile(pkl_model_file_name):
-        with open(pkl_model_file_name, 'rb') as f:
-            models_per_year = load(f)
-        
-        return models_per_year
-    else:
-        raise Exception("Pickle files not found.")# TO DO: change this to some error message for backend
+    return pkl.loads(data)
     
 def take_similar_words_over_group(keyword: str, models_per_year: dict[str, Word2Vec], vals: list[str] = [], topn: int = 5) -> list[dict]:
     results = []

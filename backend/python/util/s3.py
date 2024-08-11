@@ -5,7 +5,7 @@ import os
 import polars as pl
 from time import time
 
-BASE_PATH = "../files/s3/{}".format(os.environ.get("DB_VERSION"))
+BASE_PATH = "files/s3/{}".format(os.environ.get("DB_VERSION"))
 
 # Use TransferConfig to optimize the download
 config = TransferConfig(
@@ -121,42 +121,36 @@ def download(folder: str, name: str, token: str | None = None) -> pl.LazyFrame:
     
     return df
 
-def download_file(folder: str, name: str, token: str | None = None) -> str:
+def download_data(folder: str, name: str, ext: str, token: str | None = None) -> str:
     distributed = get_creds(token)
     
-    download_path = "{}/{}/{}".format(BASE_PATH, folder, name)
-    if os.path.exists(download_path):
-        # Do nothing if file already downloaded
-        print("{} already exists".format(name))
-    else:
-        # Download file from s3
-        if "key_" in distributed.keys() and "secret" in distributed.keys():
-            s3_client = boto3.client(
-                "s3",
-                aws_access_key_id = distributed["key_"],
-                aws_secret_access_key = distributed["secret"],
-                region_name = distributed["region"]
-            )
-        else:
-            s3_client = boto3.client(
-                "s3",
-                region_name = distributed["region"]
-            )
-        if "dir" in distributed.keys():
-            path = "{}/{}/{}".format(distributed["dir"], folder, name)
-        else:
-            path = "{}/{}".format(folder, name)
-            
-        start_time = time()
-        s3_client.download_file(
-            distributed["bucket"],
-            path,
-            download_path,
-            Config = config
+    # Download file from s3
+    if "key_" in distributed.keys() and "secret" in distributed.keys():
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id = distributed["key_"],
+            aws_secret_access_key = distributed["secret"],
+            region_name = distributed["region"]
         )
-        print("Download time: {} minutes".format((time() - start_time) / 60))
+    else:
+        s3_client = boto3.client(
+            "s3",
+            region_name = distributed["region"]
+        )
+    if "dir" in distributed.keys():
+        path = "{}/{}/{}.{}".format(distributed["dir"], folder, name, ext)
+    else:
+        path = "{}/{}.{}".format(folder, name, ext)
+        
+    start_time = time()
+    response = s3_client.get_object(
+        Bucket = distributed["bucket"],
+        Key = path
+    )
+    data = response["Body"].read()
+    print("Download time: {} seconds".format(time() - start_time))
     
-    return download_path
+    return data
 
 def delete(name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
