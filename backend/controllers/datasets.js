@@ -5,6 +5,7 @@ const datasets = require("../models/datasets");
 const FlexSearch = require("flexsearch");
 const { getName } = require("../util/user_name");
 const emails = require("../util/email_management");
+const s3 = require("../util/s3");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, email) => {
@@ -333,35 +334,38 @@ const getColumnValues = async(knex, table, column, search = undefined, page = 1,
 
     // Get metadata to check for a distributed connection
     const metadata = await model.getMetadata(table);
-    // Download dataset from s3
-    const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
+
+    // Check to see if cache of values exists
+    const path = `files/nodejs/values/${ table }_${ column }.json`;
+    let data;
+    if (util.fileExists(path)) {
+        // If file already exists, load data from file
+        data = util.readJSON(path, false);
+    } else {
+        // Else, download dataset from S3
+        const scan = await s3.scanDataset("datasets", metadata);
+        data = scan
+            .select(column)
+            .collectSync()
+            .getColumn(column)
+            .unique()
+            .toArray();
+
+        // Store cache of data
+        util.generateJSON(path, data);
+    }
 
     // Filter and grab first 10 results
     const start = pageLength * (page - 1);
     const end = pageLength * page;
     let results;
     if (search) {
-        // Filter if query is defined
-        // Configure parser to search dataset
-        const index = new FlexSearch.Document({
-            document: {
-                id: "__id__",
-                index: column
-            },
-            language: getLanguage(metadata.language),
-            tokenize: "forward"
-        });
-        data.dataset.forEach((row, i) => index.add({ ...row, __id__: i }));
-
-        // Filter dataset
-        const result = index.search(search);
-
-        // Get records from search result
-        const ids = [ ...new Set(...result.map(x => x.result)) ];
-        results = [ ...new Set(ids.map(i => data.dataset[i][column])) ].slice(start, end)
+        // Filter for search term
+        search = search.toLowerCase();
+        results = data.filter(val => val.toLowerCase().includes(search)).slice(start, end);
     } else {
         // Return unique values in given column
-        results = [ ...new Set(data.dataset.map(x => x[column])) ].slice(start, end);
+        results = data.slice(start, end);
     }
 
     return results;

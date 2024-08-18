@@ -206,13 +206,10 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     total_groups = len(values)
     if total_groups == 0:
         total_groups = data.group_count(table_name, column, token)
-    print(total_groups)
     # Get group count for each word
     group_counts = data.group_count_by_words(table_name, word_list, column, values, token)
-    print(group_counts.get("mother", 0))
     # Get records by words and groups
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
-    print(df.collect().filter(pl.col("word") == "mother"))
     
     # Compute smoothed idf
     idf = {}
@@ -243,7 +240,6 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
                 tf_idf = pl.col("count") * pl.col("idf")
             )
     )
-    print(df.collect().filter(pl.col("word") == "mother"))
     
     df = (
         df

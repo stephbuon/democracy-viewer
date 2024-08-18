@@ -63,6 +63,7 @@ const getConnectionsByUser = async(knex, email) => {
 
 module.exports = {
     newConnection,
+    getCredentials,
     encodeConnection,
     getConnectionsByUser
 }
