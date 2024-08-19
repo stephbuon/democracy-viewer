@@ -30,7 +30,7 @@ const scanDataset = async(folder, dataset) => {
 
     const s3Path = `s3://${ bucket }/${ path }`;
 
-    let df = pl.scanParquet(s3Path, storageOptions);
+    let df = pl.scanParquet(s3Path, {storageOptions});
 
     if (folder === 'tokens') {
         df = df.withColumns({
