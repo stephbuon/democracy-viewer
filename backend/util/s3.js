@@ -2,7 +2,7 @@ const pl = require("nodejs-polars");
 const { getCredentials } = require("../controllers/databases");
 
 const scanDataset = async(folder, dataset) => {
-    const storageOptions = { useSSL: false };
+    let storageOptions = { useSSL: false };
     let dir;
     let bucket;
 
@@ -20,7 +20,13 @@ const scanDataset = async(folder, dataset) => {
         dir = process.env.DB_VERSION;
         bucket = process.env.S3_BUCKET;
     }
-    storageOptions.endpoint = `http://${ bucket }.s3.amazonaws.com`;
+    storageOptions = {
+        ...storageOptions,
+        // endpoint: `http://${ bucket }.s3.amazonaws.com`,
+        endpoint: "s3.amazonaws.com",
+        defaultRegion: storageOptions.region,
+        bucket
+    }
 
     let path;
     if (dir) {
