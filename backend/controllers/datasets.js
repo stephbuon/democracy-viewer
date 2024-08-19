@@ -6,6 +6,7 @@ const FlexSearch = require("flexsearch");
 const { getName } = require("../util/user_name");
 const emails = require("../util/email_management");
 const s3 = require("../util/s3");
+const pl = require("nodejs-polars");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, email) => {
@@ -437,56 +438,89 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
-    let fullOutput = [];
-    let columns = [];
-    if (util.fileExists(filename)) {
-        fullOutput = util.readJSON(filename, false);
-        columns = Object.keys(fullOutput[0]);
-    } else {
-        // If subset has not already been saved, create subset
-        // Download data from s3
-        const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
-        columns = Object.keys(data.dataset[0]);
-
-        if (query.simpleSearch) {
-            // Filter if query is defined
-            // Configure parser to search dataset
-            const index = new FlexSearch.Document({
-                document: {
-                    id: "__id__",
-                    index: columns
-                },
-                language: getLanguage(metadata.language),
-                tokenize: "forward"
-            });
-            data.dataset.forEach((row, i) => index.add({ ...row, __id__: i }));
-
-            // Filter dataset
-            const result = index.search(query.simpleSearch);
-
-            // Get records from search result
-            const ids = [ ...new Set(...result.map(x => x.result)) ];
-            fullOutput = ids.map(i => { return { ...data.dataset[i], __id__: i } });
-        } else {
-            // If query is not defined, return everything
-            fullOutput = data.dataset.map((x, i) => { return { ...x, __id__: i } });
-        }
-        
-        // Output results to local file
-        util.generateJSON(filename, fullOutput);
-    }
-    
-    // Return requested page
+    // Pagination indices
     const start = pageLength * (page - 1);
     const end = pageLength + start;
-    const data = fullOutput.slice(start, end);
-    return {
-        columns,
-        data,
-        count: fullOutput.length
-    };
+    
+    if (!query || !query.simpleSearch) {
+        // If no query, slice from full dataset
+        const scan = await s3.scanDataset("datasets", metadata);
+        const columns = scan.columns;
+        const count = scan
+            .select(pl.col("record_id").count())
+            .collectSync()
+            .getColumn("record_id")
+            .toArray()[0];
+        const data = scan
+            .slice(start, pageLength)
+            .collectSync()
+            .toRecords();
+
+        return {
+            columns,
+            data,
+            count
+        }
+    } else {
+        // Check if subset has already been saved
+        const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
+        let count = 0;
+        let data = [];
+        let columns = []
+
+        // If output file exists, read from file
+        if (util.fileExists(filename)) {
+            fullOutput = util.readJSON(filename, false);
+            columns = Object.keys(fullOutput[0]);
+            count = fullOutput.length;
+            data = fullOutput.slice(start, end);
+        } else {
+            // Convert search to lowercase for filtering
+            const search = query.simpleSearch.toLowerCase();
+
+            // If subset has not already been saved, create subset
+            // Download data from s3
+            const scan = await s3.scanDataset("datasets", metadata);
+
+            columns = scan.columns;
+
+            let colFilter;
+            columns.forEach(col => {
+                const filter = pl.col(col).cast(pl.Utf8).str.toLowerCase().str.contains(search);
+                if (colFilter) {
+                    colFilter = colFilter.or(filter);
+                } else {
+                    colFilter = filter;
+                }
+            });
+
+            // Get the length of full filtered data
+            count = scan
+                .filter(colFilter)
+                .select(pl.count("record_id").alias("count"))
+                .collectSync()
+                .getColumn("count")
+                .toArray()[0];
+        
+            // Filter and collect data
+            fullOutput = scan
+                .filter(colFilter)
+                .slice(start, pageLength)
+                .collectSync()
+                .toRecords();
+            
+            // Output results to local file
+            // util.generateJSON(filename, fullOutput);
+        }
+        
+        // Return requested page
+        
+        return {
+            columns,
+            data,
+            count
+        };
+    }
 }
 
 // Download a subset of a dataset

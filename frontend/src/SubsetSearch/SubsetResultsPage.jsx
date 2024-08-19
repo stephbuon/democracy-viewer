@@ -25,8 +25,11 @@ export const SubsetResultsPage = (props) => {
         const terms = searchTerm.split(" ");
         results.map(row => {
             Object.keys(row).forEach(col => {
-                if (col !== "__id__") {
-                    if (typeof row[col] !== "string") {
+                // debugger;
+                if (col !== "record_id") {
+                    if (!row[col]) {
+                        row[col] = "";
+                    } else if (typeof row[col] !== "string") {
                         row[col] = row[col].toString();
                     }
                     row[col] = (
@@ -50,8 +53,9 @@ export const SubsetResultsPage = (props) => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.downloadData = _query;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
+        // debugger;
 
-        GetSubsetOfDataByPage(props.dataset.table_name, _query, 1, pageLength).then(async (res) => {
+        GetSubsetOfDataByPage(demoV.dataset.table_name, _query, 1, pageLength).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
             } else {

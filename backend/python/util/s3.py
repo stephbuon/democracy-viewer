@@ -1,5 +1,7 @@
 import boto3
 from boto3.s3.transfer import TransferConfig
+import datetime as dt
+import humanize
 import jwt
 import os
 import polars as pl
@@ -33,9 +35,9 @@ def upload(df: pl.DataFrame, folder: str, name: str, token: str | None = None) -
     
     # Convert file to parquet
     start_time = time()
-    local_file = "{}/{}/{}.parquet".format(BASE_PATH, folder, name)
+    local_file = "../{}/{}/{}.parquet".format(BASE_PATH, folder, name)
     df.write_parquet(local_file, use_pyarrow=True)
-    print("Conversion time: {} minutes".format((time() - start_time) / 60))
+    print("Conversion time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
     
     # Upload file to s3
     if "key_" in distributed.keys() and "secret" in distributed.keys():
@@ -63,7 +65,7 @@ def upload(df: pl.DataFrame, folder: str, name: str, token: str | None = None) -
         path,
         Config = config
     )
-    print("Upload time: {} minutes".format((time() - start_time) / 60))
+    print("Upload time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
     
 def upload_file(folder: str, name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
@@ -95,7 +97,7 @@ def upload_file(folder: str, name: str, token: str | None = None) -> None:
         path,
         Config = config
     )
-    print("Upload time: {} minutes".format((time() - start_time) / 60))
+    print("Upload time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
     
 def download(folder: str, name: str, token: str | None = None) -> pl.LazyFrame:
     distributed = get_creds(token)
@@ -112,9 +114,7 @@ def download(folder: str, name: str, token: str | None = None) -> pl.LazyFrame:
     }
     s3_path = "s3://{}/{}".format(distributed["bucket"], path)
     df = pl.scan_parquet(s3_path, storage_options=storage_options)
-    if folder == "datasets":
-        df = df.with_row_index("record_id")
-    elif folder == "tokens":
+    if folder == "tokens":
         df = df.with_columns(
             record_id = pl.col("record_id").cast(pl.UInt32, strict = False)
         )
@@ -148,7 +148,7 @@ def download_data(folder: str, name: str, ext: str, token: str | None = None) ->
         Key = path
     )
     data = response["Body"].read()
-    print("Download time: {} seconds".format(time() - start_time))
+    print("Download time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
     
     return data
 

@@ -1,3 +1,5 @@
+import datetime as dt
+import humanize
 import os
 from sqlalchemy import Engine, MetaData, create_engine
 from time import time
@@ -21,6 +23,6 @@ def sql_connect() -> tuple[Engine, MetaData]:
     meta = MetaData()
     meta.reflect(engine)
     
-    print("Connection time: {} seconds".format(time() - start_time))
+    print("Connection time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
     
     return engine, meta

@@ -1,3 +1,5 @@
+import datetime as dt
+import humanize
 import sys
 from time import time
 from util.s3 import delete
@@ -16,4 +18,4 @@ start_time = time()
 # Delete file from s3
 delete(TABLE_NAME, TOKEN)
 
-print("Delete time: {} seconds".format(time() - start_time))
+print("Delete time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))

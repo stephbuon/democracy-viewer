@@ -1,5 +1,0 @@
-Dear [[name]],
-
-Processing of your dataset [[title]] has completed in [[time]] minutes. Graphing has now been enabled for this dataset.
-
-- Democracy Viewer Team

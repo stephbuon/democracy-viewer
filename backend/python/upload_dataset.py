@@ -1,3 +1,5 @@
+import datetime as dt
+import humanize
 import polars as pl
 import sys
 from time import time
@@ -16,7 +18,7 @@ except:
 start_time = time()
 
 # Upload file to s3
-df = pl.read_csv(FILE_NAME)
+df = pl.read_csv(FILE_NAME).with_row_index("record_id")
 s3.upload(df, "datasets", TABLE_NAME, TOKEN)
 
-print("Upload time: {} seconds".format(time() - start_time))
+print("Upload time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))

@@ -1,6 +1,8 @@
 from time import time
 start_time = time()
 total_start_time = time()
+import datetime as dt
+import humanize
 # Import metrics
 import util.metrics as metrics
 import util.embeddings_load as embed
@@ -12,7 +14,7 @@ from util.sql_connect import sql_connect
 import util.sql_queries as sql
 # Word processing
 import util.word_processing as wp
-print("Import time: {} seconds".format(time() - start_time))
+print("Import time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
 
 # Get input file from command line argument
 params_file = sys.argv[1]
@@ -46,7 +48,7 @@ if params["metric"] not in ["embed"]:
         params["word_list"] = list(map(lambda x: wp.stem(x, metadata["language"])[0], params["word_list"]))
     elif metadata["preprocessing_type"] == "lemma":
         params["word_list"] = list(map(lambda x: wp.lemmatize(x, metadata["language"])[0], params["word_list"]))
-print("Parameter processing time: {} seconds".format(time() - start_time))
+print("Parameter processing time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
 
 # Call function based on given metric
 start_time = time()
@@ -70,7 +72,7 @@ elif params["metric"] == "embeddings-raw":
     output = embed.get_word_vectors(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
-print("Computation time: {} seconds".format(time() - start_time))
+print("Computation time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
 
 output_file = params_file.replace("/input/", "/output/")
 if type(output) == dict or type(output) == list:
@@ -78,4 +80,4 @@ if type(output) == dict or type(output) == list:
 else:
     output.to_pandas(use_pyarrow_extension_array=True).to_json(output_file, orient = "records", indent = 4)
 
-print("Total time: {} seconds".format(time() - total_start_time))
+print("Total time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
