@@ -22,8 +22,7 @@ const scanDataset = async(folder, dataset) => {
     }
     storageOptions = {
         ...storageOptions,
-        // endpoint: `http://${ bucket }.s3.amazonaws.com`,
-        endpoint: "s3.amazonaws.com",
+        endpoint: `http://${ bucket }.s3.${ storageOptions.region }.amazonaws.com`,
         defaultRegion: storageOptions.region,
         bucket
     }
