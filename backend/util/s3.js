@@ -2,7 +2,7 @@ const pl = require("nodejs-polars");
 const { getCredentials } = require("../controllers/databases");
 
 const scanDataset = async(folder, dataset) => {
-    let storageOptions = { useSSL: false };
+    let storageOptions = { sslEnabled: false };
     let dir;
     let bucket;
 
