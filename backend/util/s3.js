@@ -2,6 +2,7 @@ const pl = require("nodejs-polars");
 const { getCredentials } = require("../controllers/databases");
 
 const scanDataset = async(folder, dataset) => {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     let storageOptions = { sslEnabled: false };
     let dir;
     let bucket;
@@ -20,13 +21,6 @@ const scanDataset = async(folder, dataset) => {
         dir = process.env.DB_VERSION;
         bucket = process.env.S3_BUCKET;
     }
-    storageOptions = {
-        ...storageOptions,
-        endpointUrl: `http://${ bucket }.s3.${ storageOptions.region }.amazonaws.com`,
-        defaultRegion: storageOptions.region,
-        bucket
-    }
-
     let path;
     if (dir) {
         path = `${ dir }/${ folder }/${ dataset.table_name }.parquet`;
@@ -35,6 +29,8 @@ const scanDataset = async(folder, dataset) => {
     }
 
     const s3Path = `s3://${ bucket }/${ path }`;
+    console.log(storageOptions)
+    console.log(s3Path)
 
     let df = pl.scanParquet(s3Path, {storageOptions});
 
