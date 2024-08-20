@@ -503,7 +503,7 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
                 .toArray()[0];
         
             // Filter and collect data
-            fullOutput = scan
+            data = scan
                 .filter(colFilter)
                 .slice(start, pageLength)
                 .collectSync()
