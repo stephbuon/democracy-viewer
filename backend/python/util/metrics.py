@@ -178,7 +178,7 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
                 ll += 2 * b * np.log(b / e2)
             # Add ll for group to df
             df2 = df2.with_columns(
-                pl.lit(ll).alias(group)
+                pl.lit(np.log(ll)).alias(group)
             )
         output.append(df2)
     
