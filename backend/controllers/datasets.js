@@ -514,7 +514,6 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
         }
         
         // Return requested page
-        
         return {
             columns,
             data,

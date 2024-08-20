@@ -12,7 +12,7 @@ export const metricNames = {
 
 export const metricTypes = {
     "bar": [
-        "counts", "proportions", "embeddings-different"
+        "embeddings-different"
     ],
     "scatter": [
         "tf-idf-scatter", "ll", "embeddings-raw"
@@ -24,7 +24,7 @@ export const metricTypes = {
         "embeddings-similar"
     ],
     "multibar": [
-        "tf-idf-bar"
+        "counts", "proportions", "tf-idf-bar"
     ]
 };
 
