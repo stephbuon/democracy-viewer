@@ -1,26 +1,27 @@
 from gensim.models import Word2Vec
-import os
 import pickle as pkl
 from sklearn.decomposition import PCA
+import util.data_queries as data
 import util.s3 as s3
 
 # move top similar words with keywords requested here
-def load_data_from_pkl(pkl_name: str, token: str | None = None) -> Word2Vec | dict[str, Word2Vec]:
-    data = s3.download_data("embeddings", "model_{}".format(pkl_name), "pkl", token)
+def load_data_from_pkl(table_name: str, pkl_name: str, token: str | None = None) -> Word2Vec:
+    data = s3.download_data("embeddings/{}".format(table_name), pkl_name, "pkl", token)
 
     return pkl.loads(data)
     
-def take_similar_words_over_group(keyword: str, models_per_year: dict[str, Word2Vec], vals: list[str] = [], topn: int = 5) -> list[dict]:
+def take_similar_words_over_group(table_name: str, keyword: str, group_col: str, vals: list[str] = [], topn: int = 5, token: str | None = None) -> list[dict]:
     results = []
 
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = list(models_per_year.keys()) 
+        time_values = data.get_column_values(table_name, group_col, token)
         
     for time_value in time_values:
         try:
-            model = models_per_year[time_value]
+            pkl_name = "model_{}_{}".format(group_col, time_value)
+            model = load_data_from_pkl(table_name, pkl_name, token)
             similar_words_with_scores = model.wv.most_similar(keyword, topn=int(topn))
 
             similar_words = [word[0] for word in similar_words_with_scores]
@@ -42,9 +43,10 @@ def take_similar_words_over_group(keyword: str, models_per_year: dict[str, Word2
             
     return results
 
-def take_similar_words(model: Word2Vec, keyword: str, topn: int = 5) -> list[dict]:
+def take_similar_words(table_name: str, keyword: str, topn: int = 5, token: str | None = None) -> list[dict]:
     results = []
     try:
+        model = load_data_from_pkl(table_name, "model", token)
         similar_words_with_scores = model.wv.most_similar(keyword, topn=int(topn)) 
         similar_words = [word[0] for word in similar_words_with_scores]
         similarity_scores = [word[1] for word in similar_words_with_scores]
@@ -67,26 +69,20 @@ def take_similar_words(model: Word2Vec, keyword: str, topn: int = 5) -> list[dic
 def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], topn: int = 5, token: str | None = None) -> dict:
     if group_col is not None and len(group_col.strip()) == 0:
         group_col = None
-    
-    # take the model out from pkl
-    if group_col is not None:
-        pkl_name = "{}_{}".format(table_name, group_col)
-    else:
-        pkl_name = table_name
-        
-    models_load = load_data_from_pkl(pkl_name, token)
+
     # get top words with score
     # the keyword will be include w a similarity score of 1
     if group_col is not None:
         #NOTE: here we assume that if user doesn't select a group col for embedding, our SQL will return NA
-        results = take_similar_words_over_group(keyword, models_load, vals, topn)
+        results = take_similar_words_over_group(table_name, keyword, group_col, vals, topn, token)
     else:
-        results = take_similar_words(models_load,keyword, topn)
+        results = take_similar_words(table_name, keyword, topn, token)
         
     return results
 
-def get_words_similarity(model: Word2Vec, word1: str, word2: str) -> list[dict]:
+def get_words_similarity(table_name: str, word1: str, word2: str, token: str | None = None) -> list[dict]:
     try:
+        model = load_data_from_pkl(table_name, "model", token)
         similarity = model.wv.similarity(word1, word2)
         
         return [{
@@ -99,17 +95,18 @@ def get_words_similarity(model: Word2Vec, word1: str, word2: str) -> list[dict]:
             "y": 0
         }]
         
-def get_words_similarity_over_group(models: dict[str, Word2Vec], word1: str, word2: str, vals: list[str] = []) -> list[dict]:
+def get_words_similarity_over_group(table_name: str, word1: str, word2: str, group_col: str, vals: list[str] = [], token: str | None = None) -> list[dict]:
     results = []
 
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = list(models.keys()) 
+        time_values = data.get_column_values(table_name, group_col, token)
         
     for time_value in time_values:
         try:
-            model = models[time_value]
+            pkl_name = "model_{}_{}".format(group_col, time_value)
+            model = load_data_from_pkl(table_name, pkl_name, token)
             similarity = model.wv.similarity(word1, word2)
             results.append({
                 "x": time_value,
@@ -123,24 +120,19 @@ def get_words_similarity_over_group(models: dict[str, Word2Vec], word1: str, wor
 def get_words_similarity_grouped(table_name: str, word1: str, word2: str, group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> list[dict]:
     if group_col is not None and len(group_col.strip()) == 0:
         group_col = None
-        
-    # take the model out from pkl
-    if group_col is not None:
-        pkl_name = "{}_{}".format(table_name, group_col)
-    else:
-        pkl_name = table_name
-    models_load = load_data_from_pkl(pkl_name, token)
     
     if group_col is None:
-        results = get_words_similarity(models_load, word1, word2)
+        results = get_words_similarity(table_name, word1, word2, token)
     else:
-        results = get_words_similarity_over_group(models_load, word1, word2, vals)
+        results = get_words_similarity_over_group(table_name, word1, word2, group_col, vals, token)
         
     return results
     
 
-def get_vectors(model: Word2Vec, keywords: list[str]) -> list[dict]:
+def get_vectors(table_name: str, keywords: list[str], token: str | None = None) -> list[dict]:
     results = []
+    
+    model = load_data_from_pkl(table_name, "model", token)
         
     pca = PCA(2)
     vectors = []
@@ -167,22 +159,22 @@ def get_vectors(model: Word2Vec, keywords: list[str]) -> list[dict]:
             
     return results
 
-def get_vectors_over_group(keywords: list[str], models: dict[str, Word2Vec], vals: list[str] = []) -> list[dict]:
+def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str, vals: list[str] = [], token: str | None = None) -> list[dict]:
     results = []
 
     if len(vals) > 0:
         time_value = sorted(set(vals))[0]
     else:
-        time_value = list(models.keys())[0]
+        time_value = data.get_column_values(table_name, group_col, token)[0]
         
     pca = PCA(2)
     vectors = []
     used_words = []
-    model = models[time_value]
+    pkl_name = "model_{}_{}".format(group_col, time_value)
+    model = load_data_from_pkl(table_name, pkl_name, token)
     if len(keywords) > 0:
         for word in keywords:
             try:
-                model = models[time_value]
                 vectors.append(model.wv.get_vector(word))
                 used_words.append(word)
             except Exception:
@@ -207,18 +199,10 @@ def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None
     if group_col is not None and len(group_col.strip()) == 0:
         group_col = None
     
-    # take the model out from pkl
-    if group_col is not None:
-        pkl_name = "{}_{}".format(table_name, group_col)
-    else:
-        pkl_name = table_name
-        
-    models_load = load_data_from_pkl(pkl_name, token)
-    
     if group_col is not None:
         #NOTE: here we assume that if user doesn't select a group col for embedding, our SQL will return NA
-        results = get_vectors_over_group(keywords, models_load, vals)
+        results = get_vectors_over_group(table_name, keywords, group_col, vals, token)
     else:
-        results = get_vectors(models_load,keywords)
+        results = get_vectors(table_name, keywords, token)
         
     return results

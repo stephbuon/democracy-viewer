@@ -28,6 +28,20 @@ def get_columns(table_name: str, columns: list[str], token: str | None = None) -
     
     return df.select(columns)
 
+# Get the unique values in a given column
+def get_column_values(table_name: str, column: str, token: str | None) -> list:
+    df = s3.download("datasets", table_name, token)
+    
+    values = (
+        df.select(column)
+            .unique()
+            .collect()
+            .get_column(column)
+            .to_list()
+    )
+    
+    return values
+
 # Select records by group and word lists
 def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.LazyFrame:
     # Download raw and tokenized data

@@ -67,7 +67,7 @@ def upload(df: pl.DataFrame, folder: str, name: str, token: str | None = None) -
     )
     print("Upload time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
     
-def upload_file(folder: str, name: str, token: str | None = None) -> None:
+def upload_file(local_folder: str, s3_folder: str, name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
 
     # Upload file to s3
@@ -84,11 +84,11 @@ def upload_file(folder: str, name: str, token: str | None = None) -> None:
             region_name = distributed["region"]
         )
         
-    local_file = "{}/{}/{}".format(BASE_PATH, folder, name)
+    local_file = "{}/{}/{}".format(BASE_PATH, local_folder, name)
     if "dir" in distributed.keys():
-        path = "{}/{}/{}".format(distributed["dir"], folder, name)
+        path = "{}/{}/{}".format(distributed["dir"], s3_folder, name)
     else:
-        path = "{}/{}".format(folder, name)
+        path = "{}/{}".format(s3_folder, name)
       
     start_time = time()  
     s3_client.upload_file(
