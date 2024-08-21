@@ -352,7 +352,7 @@ const getColumnValues = async(knex, table, column, search = undefined, page = 1,
     if (search) {
         // Filter for search term
         search = search.toLowerCase();
-        results = data.filter(val => val.toLowerCase().includes(search)).slice(start, end);
+        results = data.filter(val => String(val).toLowerCase().includes(search)).slice(start, end);
     } else {
         // Return unique values in given column
         results = data.slice(start, end);

@@ -11,7 +11,9 @@ const createGraph = async(knex, dataset, params, user = null) => {
     const model = new datasets(knex);
 
     // If file for graph already exists, skip calculations
-    const file1 = "files/python/input/" + dataset + "_" + JSON.stringify(params).substring(0, 245) + ".json";
+    const paramsString = JSON.stringify(params);
+    const fileName = paramsString.substring(0, 150);
+    const file1 = `files/python/input/${dataset}_${fileName}.json`;
     const file2 = file1.replace("/input/", "/output/");
     if (files.fileExists(file2)) {
         return files.readJSON(file2, false)

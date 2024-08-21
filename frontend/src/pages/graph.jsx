@@ -199,18 +199,11 @@ export const Graph = (props) => {
         tempData.titleList = [params.word_list[0]];
 
         // Get the range of x and y axes
-        const allY = {};
+        const allY = [];
         res.forEach(dataPoint => {
-          if (Object.keys(allY).includes(dataPoint.group)) {
-            allY[dataPoint.group].push(dataPoint.y);
-          } else {
-            allY[dataPoint.group] = [dataPoint.y];
-          }
+          allY.push(dataPoint.y);
         });
-        const rangeY = {};
-        Object.keys(allY).forEach(key => {
-          rangeY[key] = Math.max(...allY[key]) - Math.min(...allY[key]);
-        });
+        const rangeY = Math.max(...allY) - Math.min(...allY);
         // Function to determine if two labels overlap
         const isOverlapping = (x1, y1, x2, y2) => {
           if (x1 !== x2) {
@@ -218,8 +211,9 @@ export const Graph = (props) => {
           }
           // Adjust fraction to change how many labels to hide
           const fraction = 0.1;
-          const yThreshold = rangeY[x1] * fraction;
+          const yThreshold = rangeY * fraction;
           const yDistance = Math.abs(y1 - y2);
+          debugger;
           return yDistance < yThreshold;
         };
 

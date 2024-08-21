@@ -205,7 +205,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     idf = {}
     for word in group_counts.keys():
         if group_counts.get(word, 0) > 0:
-            idf[word] = np.log2(1 + (total_groups / group_counts.get(word)))
+            idf[word] = np.log2(total_groups / group_counts.get(word))
         else:
             idf[word] = 0
     idf_df = pl.DataFrame({
@@ -230,6 +230,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
                 tf_idf = pl.col("count") * pl.col("idf")
             )
     )
+    print(df)
     
     df = (
         df
@@ -241,6 +242,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
             )
             .fill_null(0)
     )
+    print(df)
     try:
         # Rename columns
         df = df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" })
