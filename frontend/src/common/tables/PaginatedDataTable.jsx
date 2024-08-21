@@ -12,7 +12,7 @@ import { addSuggestion } from '../../api/api';
 
 export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);
-    const [clickCol, setClickCol] = useState(-1);
+    const [clickCol, setClickCol] = useState("");
     const [editOpen, setEditOpen] = useState(false);
     const [editStart, setEditStart] = useState(-1);
     const [editEnd, setEditEnd] = useState(-1);
@@ -32,8 +32,9 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     const getCellClick = (event) => {
         const cell = event.target;
         const row = cell.closest("tr").rowIndex - 1;
-        setClickRow(searchResults[row].__id__);
-        setClickCol(cell.closest("td").cellIndex);
+        setClickRow(searchResults[row].record_id);
+        const col = cell.closest("td").cellIndex;
+        setClickCol(columns[col]);
     }
 
     const getSelection = (event) => {
@@ -58,7 +59,8 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
         addSuggestion({
             record_id: clickRow, col: clickCol,
             start: editStart, end: editEnd,
-            new_text: newText, table_name
+            new_text: newText, old_text: editText,
+            table_name
         }).then(x => setAlert(1));
     }
 
@@ -194,12 +196,12 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
         >
             {
                 columns.map((col, i) => {
-                    if (col === "__id__") {
+                    if (col === "record_id") {
                         return <></>
                     }
                     else {
                         return <Column
-                            key={col}
+                            key={i}
                             field={col}
                             header={col}
                             style={{ minWidth: `${col.length * 15}px` }}

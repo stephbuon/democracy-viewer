@@ -228,8 +228,8 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
     
     df = (
         df_raw
-            .select(["__id__", column])
-            .join(df_split, left_on = "__id__", right_on = "record_id")
+            .select(["record_id", column])
+            .join(df_split, on = "record_id")
             .group_by(column)
             .agg(count = pl.col("count").sum())
             .collect()

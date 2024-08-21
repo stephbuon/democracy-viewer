@@ -184,15 +184,9 @@ const addSuggestion = async(knex, user, params) => {
     
     // Send an email to the owner of the dataset
     const curr = await model.getMetadata(suggestion.table_name);
-    const oldText = await getText(
-        suggestion.table_name, suggestion.distributed, 
-        suggestion.record_id, suggestion.col,
-        suggestion.start, suggestion.end
-    ); 
-
     await emails.suggestionEmail(
         knex, curr.email, suggestion.email, curr.title,
-        oldText, suggestion.new_text, suggestion.id, "add"
+        suggestion.old_text, suggestion.new_text, suggestion.id, "add"
     );
 }
 
@@ -234,11 +228,6 @@ const updateText = async(knex, id, user) => {
     }
 
     // Run python program to replace text
-    const oldText = await getText(
-        suggestion.table_name, suggestion.distributed, 
-        suggestion.record_id, suggestion.col,
-        suggestion.start, suggestion.end
-    ); 
     const paramsFile = `files/python/input/${ suggestion.table_name }_${ Date.now() }.json`
     util.generateJSON(paramsFile, suggestion);
     await runPython("update_text", [paramsFile], curr.distributed);
@@ -249,7 +238,7 @@ const updateText = async(knex, id, user) => {
     // Send an email to the person who made the suggestion
     await emails.suggestionEmail(
         knex, suggestion.email, curr.email, curr.title,
-        oldText, suggestion.new_text, suggestion.id, "confirm"
+        suggestion.old_text, suggestion.new_text, suggestion.id, "confirm"
     );
 
     // Delete all files for this dataset to reset them
@@ -614,14 +603,6 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
     return newFilename;
 }
 
-// Get the text for a given index substring
-const getText = async(table_name, distributed, record_id, col, start, end) => {
-    const data = await util.downloadDataset(table_name, distributed, true);
-    const str = String(data.dataset[record_id][Object.keys(data.dataset[0])[col]]);
-    const substr = str.slice(start, end);
-    return substr
-}
-
 // Get text suggestions from a given user
 const getSuggestionsFrom = async(knex, user, params) => {
     const model = new datasets(knex);
@@ -647,13 +628,6 @@ const getSuggestionsFrom = async(knex, user, params) => {
             names[email] = name;
         }
         records.data[i].name = name;
-
-        // Old text
-        records.data[i].old_text = await getText(
-            records.data[i].table_name, records.data[i].distributed, 
-            records.data[i].record_id, records.data[i].col,
-            records.data[i].start, records.data[i].end
-        );
     }
 
     return records;
@@ -684,13 +658,6 @@ const getSuggestionsFor = async(knex, user, params) => {
             names[email] = name;
         }
         records.data[i].name = name;
-
-        // Old text
-        records.data[i].old_text = await getText(
-            records.data[i].table_name, records.data[i].distributed, 
-            records.data[i].record_id, records.data[i].col,
-            records.data[i].start, records.data[i].end
-        );
     }
 
     return records;
@@ -716,13 +683,6 @@ const getSuggestion = async(knex, user, id) => {
     // User name
     const email = record.email;
     record.name = await getName(knex, email);
-
-    // Old text
-    record.old_text = await getText(
-        record.table_name, record.distributed, 
-        record.record_id, record.col,
-        record.start, record.end
-    );
 
     return record;
 }
@@ -792,25 +752,12 @@ const deleteSuggestionById = async(knex, user, id) => {
     // Send reject/cancel email depending on who submitted delete request
     // Don't send email if the same user
     if (curr.email !== record.email) {
-        const oldText = await getText(
-            record.table_name, record.distributed, 
-            record.record_id, record.col,
-            record.start, record.end
-        ); 
-        
-        if (curr.email === user) {
-            // Send reject email
-            await emails.suggestionEmail(
-                knex, record.email, curr.email, curr.title,
-                oldText, record.new_text, record.id, "reject"
-            );
-        } else {
-            // Send cancel email
-            await emails.suggestionEmail(
-                knex, curr.email, record.email, curr.title,
-                oldText, record.new_text, record.id, "cancel"
-            );
-        }
+        // Send appropriate email
+        await emails.suggestionEmail(
+            knex, curr.email, record.email, curr.title,
+            record.old_text, record.new_text, record.id,
+            curr.email === user ? "reject" : "cancel"
+        );
     }
 }
 

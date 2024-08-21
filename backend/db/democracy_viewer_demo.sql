@@ -117,10 +117,12 @@ CREATE TABLE text_updates (
     email VARCHAR(30) NOT NULL,
     table_name VARCHAR(100) NOT NULL,
     record_id INT UNSIGNED NOT NULL,
-    col INT UNSIGNED NOT NULL,
+    col VARCHAR(50) NOT NULL,
     start INT UNSIGNED NOT NULL,
     end INT UNSIGNED NOT NULL,
     new_text VARCHAR(100) NOT NULL DEFAULT '',
+    old_text VARCHAR(100) NOT NULL DEFAULT '',
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
-    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
+    FOREIGN KEY(table_name, col) REFERENCES dataset_all_cols(table_name, col) ON DELETE CASCADE
 );

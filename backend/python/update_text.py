@@ -15,7 +15,6 @@ except:
 params: dict = json.load(open(PARAMS_FILE))
 # Download dataset
 df = s3.download("datasets", params["table_name"], TOKEN)
-col_name = df.collect_schema().names()[int(params["col"])]
 
 # Function to replace text in the specified row and column
 def replace_text(text):
@@ -26,14 +25,13 @@ def replace_text(text):
 
 # Create a new LazyFrame with the edited text
 df = df.with_columns(
-    pl.when(pl.col("__id__") == int(params["record_id"]))  # Ensure to target the correct row
-    .then(
-        pl.col(col_name).map_elements(replace_text)
-    )
-    .otherwise(pl.col(col_name))
-    .alias(col_name)
+    pl.when(pl.col("record_id") == int(params["record_id"]))  # Ensure to target the correct row
+        .then(
+            pl.col(params["col"]).map_elements(replace_text)
+        )
+        .otherwise(pl.col(params["col"]))
+        .alias(params["col"])
 )
-df = df.select([ col for col in df.columns if col != "__id__"])
 
 # Upload new data frame to s3
 s3.upload(df.collect(), "datasets", params["table_name"], TOKEN)
