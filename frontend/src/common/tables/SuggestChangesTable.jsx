@@ -24,6 +24,17 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
         setTotalNumResults(x.total);
     }
 
+    const removeRow = (id) => {
+        const searchResults_ = [ ...data.filter(x => x.id !== id) ];
+        for (let i = searchResults_.length; i < pageLength; i++) {
+            searchResults_.push({
+                post_date: <>&nbsp;</>
+            });
+        }
+        setData(searchResults_);
+        setTotalNumResults(totalNumResults - 1);
+    }
+
     const getNewSuggestions = (page) => {
         setFirst(pageLength * (page - 1));
         if (type === "for") {
@@ -40,20 +51,16 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
     }
 
     const onConfirm = (id) => {
+        removeRow(id);
         confirmSuggestion(id).then(x => {
             getNewSuggestions(1);
-            if (setRefresh) {
-                setRefresh(!refresh);
-            }
         });
     }
 
     const onDelete = (id) => {
+        removeRow(id);
         deleteSuggestion(id).then(x => {
             getNewSuggestions(1);
-            if (setRefresh) {
-                setRefresh(!refresh);
-            }
         });
     }
 
