@@ -523,46 +523,21 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    // Check if subset has already been saved
-    const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
-    let fullOutput;
-    if (util.fileExists(filename)) {
-        fullOutput = util.readJSON(filename, false);
-    } else {
-        // If subset has not already been saved, create subset
-        // Download data from s3
-        const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
-
-        if (query.simpleSearch) {
-            // Filter if query is defined
-            // Configure parser to search dataset
-            const index = new FlexSearch.Document({
-                document: {
-                    id: "__id__",
-                    index: Object.keys(data.dataset[0])
-                },
-                language: getLanguage(metadata.language),
-                tokenize: "forward"
-            });
-            data.dataset.forEach((row, i) => index.add({ ...row, __id__: i }));
-
-            // Filter dataset
-            const result = index.search(query.simpleSearch);
-
-            // Get records from search result
-            const ids = [ ...new Set(...result.map(x => x.result)) ];
-            fullOutput = ids.map(x => data.dataset[x]);
-        } else {
-            // If query is not defined, return everything
-            fullOutput = [ ...data.dataset ];
+    let page = 1;
+    const pageLength = 1000;
+    let total = null;
+    const data = []
+    while (total === null || pageLength + pageLength * (page - 1) <= total) {
+        const curr = await getSubset(knex, table, query, user, page, pageLength);
+        data.push(...curr.data);
+        page += 1;
+        if (total === null) {
+            total = curr.count;
         }
-        
-        // Output results to local file
-        util.generateJSON(filename, fullOutput);
     }
 
     const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
-    await util.generateCSV(newFilename, fullOutput);
+    await util.generateCSV(newFilename, data);
     return newFilename;
 }
 
@@ -578,28 +553,21 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
-    
-    return ids.map(i => { return { ...data.dataset[i], __id__: i } });
+    const scan = await s3.scanDataset("datasets", metadata);
+    const data = scan
+        .filter(pl.col("record_id").cast(pl.Int32).isIn(ids.map(x => parseInt(x))))
+        .collectSync()
+        .toRecords();
+
+    return data;
 }
 
 // Get dataset records by ids
 const downloadIds = async(knex, table, ids, user = undefined) => {
-    const model = new datasets(knex);
+    const data = await getRecordsByIds(knex, table, ids, user);
 
-    // Get the current metadata for this table
-    const metadata = await model.getMetadata(table);
-
-    // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
-    }
-
-    const data = await util.downloadDataset(table, metadata.distributed, dataset = true);
-    
-    const fullOutput = ids.map(x => data.dataset[x]);
     const newFilename = `files/downloads/${ table }_${ Date.now() }.csv`;
-    await util.generateCSV(newFilename, fullOutput);
+    await util.generateCSV(newFilename, data);
     return newFilename;
 }
 

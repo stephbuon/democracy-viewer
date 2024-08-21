@@ -30,12 +30,11 @@ export const SubsetSuggestion = () => {
         if (suggestion) {
             getRecordsByIds(suggestion.table_name, [suggestion.record_id]).then(x => {
                 const record = x[0];
-                const col = Object.keys(record)[suggestion.col];
-                const str = String(record[col]);
+                const str = String(record[suggestion.col]);
                 const beforeHighlight = str.slice(0, suggestion.start);
                 const highlight = str.slice(suggestion.start, suggestion.end);
                 const afterHighlight = str.slice(suggestion.end);
-                record[col] = <span>{ beforeHighlight }<mark>{ highlight }</mark>{ afterHighlight }</span>;
+                record[suggestion.col] = <span>{ beforeHighlight }<mark>{ highlight }</mark>{ afterHighlight }</span>;
                 setSearchResults([record]);
             });
         } else {

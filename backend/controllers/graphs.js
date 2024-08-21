@@ -53,8 +53,8 @@ const getIds = async(knex, table, params, user = undefined) => {
     }
 
     // Download tokens from s3
-    const dataScan = await s3.scanDataset("datasets", metadata);
-    const tokenScan = await s3.scanDataset("tokens", metadata);
+    let dataScan = await s3.scanDataset("datasets", metadata);
+    let tokenScan = await s3.scanDataset("tokens", metadata);
     
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];

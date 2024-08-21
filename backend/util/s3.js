@@ -2,8 +2,7 @@ const pl = require("nodejs-polars");
 const { getCredentials } = require("../controllers/databases");
 
 const scanDataset = async(folder, dataset) => {
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    let storageOptions = { sslEnabled: false };
+    let storageOptions = {};
     let dir;
     let bucket;
 
@@ -29,15 +28,13 @@ const scanDataset = async(folder, dataset) => {
     }
 
     const s3Path = `s3://${ bucket }/${ path }`;
-    console.log(storageOptions)
-    console.log(s3Path)
 
-    let df = pl.scanParquet(s3Path, {storageOptions});
+    let df = pl.scanParquet(s3Path, { storageOptions });
 
     if (folder === 'tokens') {
-        df = df.withColumns({
-            record_id: pl.col('record_id').cast(pl.UInt32, false)
-        });
+        df = df.withColumns(
+            pl.col('record_id').cast(pl.UInt32, false)
+        );
     }
       
     return df;
