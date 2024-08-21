@@ -4,6 +4,8 @@ import polars as pl
 import sys
 from time import time
 import util.s3 as s3
+from util.sql_connect import sql_connect
+import util.sql_queries as sql
 
 # Get table name and file name from command line argument
 TABLE_NAME = sys.argv[1]
@@ -17,8 +19,12 @@ except:
 
 start_time = time()
 
-# Upload file to s3
+# Read file and add record id columns
 df = pl.read_csv(FILE_NAME).with_row_index("record_id")
+# Update metadata with record count
+engine, _ = sql_connect()
+sql.set_num_records(engine, TABLE_NAME, len(df))
+# Upload to S3
 s3.upload(df, "datasets", TABLE_NAME, TOKEN)
 
 print("Upload time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))

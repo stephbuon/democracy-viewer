@@ -43,11 +43,11 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         df_raw = df_raw.rename({ column: "group" })
         cols.append("group")
         if len(values) > 0:
-            df_raw = df_raw.filter(pl.col("group").is_in(values))
+            df_raw = df_raw.filter(pl.col("group").cast(pl.Utf8).is_in(values))
             
     # If a word list is defined, filter by it
     if len(word_list) > 0:
-        df_split = df_split.filter(pl.col("word").is_in(word_list)) 
+        df_split = df_split.filter(pl.col("word").is_in(word_list))
     
     # Filter words by POS if list given
     if len(pos_list) > 0:
@@ -74,14 +74,11 @@ def adj_noun_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
     pairs = adjs.join(nouns, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
     
     if len(word_list) > 0:
-        pairs = pairs.filter((pl.col("word_x").is_in(word_list)) | (pl.col("word_y").is_in(word_list)))
-        
-    if len(pairs) == 0:
-        return pl.LazyFrame()
-        
+        pairs = pairs.filter((pl.col("word").is_in(word_list)) | (pl.col("head").is_in(word_list)))
+    
     pairs = pairs.with_columns(
-        count = pl.max_horizontal("count_x", "count_y"),
-        word = pl.concat_str(["word_x", "word_y"], separator=" ")
+        count = pl.max_horizontal("count", "count_right"),
+        word = pl.concat_str(["word", "head"], separator=" ")
     )
     pairs = pairs.drop([ col for col in pairs.collect_schema().names() if "_" in col and col != "record_id" ])
     
@@ -93,23 +90,27 @@ def subj_verb_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
     verbs = tokens.filter(pl.col("pos") == "verb")
     
     if len(word_list) > 0:
-        subjects = subjects.filter(pl.col("word").is_in(word_list))
+        subjects = subjects.filter((pl.col('pos').is_in(['noun', 'propn', 'pron'])) & (pl.col("word").is_in(word_list)))
         verbs = verbs.filter(pl.col("word").is_in(word_list))
     
     verb_first = verbs.join(subjects, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
-    verb_second = verbs.join(subjects, left_on = ["record_id", "col", "word"], right_on = ["record_id", "col", "head"])
+    verb_second = subjects.join(verbs, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
     pairs = pl.concat([verb_first, verb_second])
     
+    # with pl.Config(tbl_cols=-1):
+    #     print((
+    #         pairs
+    #             .filter((pl.col("word") == "say") & (pl.col("head") == "say"))
+    #             .collect()
+    #     ))
+    # raise Exception()
+    
     if len(word_list) > 0:
-        pairs = pairs[(pairs["word_x"].isin(word_list) | (pairs["word_y"].isin(word_list)))]
-        pairs = pairs.filter((pl.col("word_x").is_in(word_list)) | (pl.col("word_y").is_in(word_list)))
-        
-    if len(pairs) == 0:
-        return pl.LazyFrame()
+        pairs = pairs.filter((pl.col("word").is_in(word_list)) | (pl.col("head").is_in(word_list)))
     
     pairs = pairs.with_columns(
-        count = pl.max_horizontal("count_x", "count_y"),
-        word = pl.concat_str(["word_x", "word_y"], separator=" ")
+        count = pl.max_horizontal("count", "count_right"),
+        word = pl.concat_str(["word", "head"], separator=" ")
     )
     pairs = pairs.drop([ col for col in pairs.collect_schema().names() if "_" in col and col != "record_id" ])
     
@@ -137,7 +138,7 @@ def group_count_by_words(table_name: str, word_list: list[str], column: str | No
     elif len(values) > 0:
         df = (
             df
-                .filter(pl.col(column).is_in(values))
+                .filter(pl.col(column).cast(pl.Utf8).is_in(values))
                 .group_by("word")
                 .agg(count = pl.col(column).n_unique())
         )
@@ -220,7 +221,7 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
     
     # Filter raw data for column values
     if len(values) > 0:
-        df_raw = df_raw.filter(pl.col(column).is_in(values))
+        df_raw = df_raw.filter(pl.col(column).cast(pl.Utf8).is_in(values))
     
     # Merge datasets
     df = df_raw.join(df_split, on = "record_id")

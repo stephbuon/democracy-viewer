@@ -1,6 +1,8 @@
 const files = require("../util/file_management");
 const runPython = require("../util/python_config");
 require('dotenv').config();
+const s3 = require("../util/s3");
+const pl = require("nodejs-polars");
 
 const datasets = require("../models/datasets");
 
@@ -51,28 +53,36 @@ const getIds = async(knex, table, params, user = undefined) => {
     }
 
     // Download tokens from s3
-    const data = await files.downloadDataset(table, metadata.distributed, dataset = true, tokens = true)
+    const dataScan = await s3.scanDataset("datasets", metadata);
+    const tokenScan = await s3.scanDataset("tokens", metadata);
     
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
-    let raw;
+    let rawIds = [];
     if (params.group_name && params.group_list.length > 0) {
-        raw = data.dataset.filter(x => params.group_list.includes(x[params.group_name]));
-    } else {
-        raw = data.dataset;
+        dataScan = dataScan
+            .filter(pl.col(params.group_name).isIn(params.group_list));
     }
+    rawIds = dataScan
+        .select("record_id")
+        .collectSync()
+        .getColumn("record_id")
+        .toArray();
 
-    let split;
+    let splitIds = [];
     if (params.word_list.length > 0) {
-        split = data.tokens.filter(x => params.word_list.includes(x.word));
-    } else {
-        split = data.tokens;
+        tokenScan = tokenScan
+            .filter(pl.col("word").isIn(params.word_list))
     }
+    splitIds = tokenScan
+        .select("record_id")
+        .collectSync()
+        .getColumn("record_id")
+        .unique()
+        .toArray();
 
-    const raw_ids = raw.map(x => x.__id__);
-    const split_ids = split.map(x => x.record_id);
-    return raw_ids.filter(x => split_ids.includes(x))
+    return rawIds.filter(x => splitIds.includes(x));
 }
 
 module.exports = {

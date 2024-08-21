@@ -64,6 +64,20 @@ def complete_processing(engine: Engine, table_name: str, processing_type: str) -
     with engine.connect() as conn:
         conn.execute(query)
         conn.commit()
+        
+# Update metadata with number of records
+def set_num_records(engine: Engine, table_name: str, num_records: int) -> None:
+    query = (
+        update(DatasetMetadata)
+            .where(DatasetMetadata.table_name == table_name)
+            .values({
+                "num_records": num_records
+            })
+    )
+    
+    with engine.connect() as conn:
+        conn.execute(query)
+        conn.commit() 
 
 # Get a user record by email
 def get_user(engine: Engine, meta: MetaData, email: str) -> dict:

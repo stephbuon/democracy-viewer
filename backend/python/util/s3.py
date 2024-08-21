@@ -35,7 +35,7 @@ def upload(df: pl.DataFrame, folder: str, name: str, token: str | None = None) -
     
     # Convert file to parquet
     start_time = time()
-    local_file = "../{}/{}/{}.parquet".format(BASE_PATH, folder, name)
+    local_file = "{}/{}/{}.parquet".format(BASE_PATH, folder, name)
     df.write_parquet(local_file, use_pyarrow=True)
     print("Conversion time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
     
