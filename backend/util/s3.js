@@ -11,12 +11,14 @@ const scanDataset = async(folder, dataset) => {
         storageOptions.accessKeyId = creds.key_;
         storageOptions.secretAccessKey = creds.secret;
         storageOptions.region = creds.region;
+        storageOptions.sslEnabled = false;
         dir = creds.dir;
         bucket = creds.bucket;
     } else {
         storageOptions.accessKeyId = process.env.S3_KEY;
         storageOptions.secretAccessKey = process.env.S3_SECRET;
         storageOptions.region = process.env.S3_REGION;
+        storageOptions.sslEnabled = false;
         dir = process.env.DB_VERSION;
         bucket = process.env.S3_BUCKET;
     }
