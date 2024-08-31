@@ -43,7 +43,7 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
             FROM (
                 SELECT record_id, word
                 FROM tokens_${ table_name }
-                WHERE word IN ('${ terms.join(", ") }')
+                WHERE word IN (${ terms.map(x => `'${ x }'`).join(", ") })
             ) AS tokens
             JOIN (
                 SELECT *
@@ -63,7 +63,7 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
             FROM (
                 SELECT record_id, word
                 FROM tokens_${ table_name }
-                WHERE word IN ('${ terms.join(", ") }')
+                WHERE word IN (${ terms.map(x => `'${ x }'`).join(", ") })
             ) AS tokens
             JOIN (
                 SELECT *
@@ -110,7 +110,7 @@ const getZoomIds = async(table_name, params) => {
         datasetQuery = `
             SELECT record_id
             FROM datasets_${ table_name }
-            WHERE ${ params.group_name } IN ('${ params.group_list.join(", ") }')
+            WHERE ${ params.group_name } IN (${ params.group_list.map(x => `'${ x }'`).join(", ") })
         `;
     }
 
@@ -118,7 +118,7 @@ const getZoomIds = async(table_name, params) => {
         tokenQuery = `
             SELECT record_id
             FROM tokens_${ table_name }
-            WHERE word IN ('${ params.word_list.join(", ") }')
+            WHERE word IN (${ params.word_list.map(x => `'${ x }'`).join(", ") })
         `;
     }
 
