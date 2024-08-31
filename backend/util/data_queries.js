@@ -20,40 +20,73 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
     let terms = search.toLowerCase().split(" ").map(x => x.trim());
     terms = terms.filter(x => x.length > 0);
     
-    let colFilter = "";
-    if (terms.length > 0 && cols.length > 0) {
-        const filters = [];
-        terms.forEach(term => {
-            const colFilters = [];
-            cols.forEach(col => {
-                colFilters.push(`LOWER(CAST(${ col } AS VARCHAR)) LIKE '%${ term }%'`);
-            });
-            filters.push(`(
-                ${ colFilters.join(" OR \n") }
-            )`);
-        });
+    // let colFilter = "";
+    // if (terms.length > 0 && cols.length > 0) {
+    //     const filters = [];
+    //     terms.forEach(term => {
+    //         const colFilters = [];
+    //         cols.forEach(col => {
+    //             colFilters.push(`LOWER(${ col }) LIKE '%${ term }%'`);
+    //         });
+    //         filters.push(`(
+    //             ${ colFilters.join(" OR \n") }
+    //         )`);
+    //     });
 
-        colFilter = `WHERE ${ filters.join(" AND \n") }`;
-    }
+    //     colFilter = `WHERE ${ filters.join(" AND \n") }`;
+    // }
     
     let query;
     if (count) {
         query = `
-            SELECT COUNT(*) AS "count"
-            FROM datasets_${ table_name }
-            ${ colFilter }
+            SELECT COUNT(DISTINCT dataset.record_id) AS "count"
+            FROM (
+                SELECT record_id, word
+                FROM tokens_${ table_name }
+                WHERE word IN ('${ terms.join(", ") }')
+            ) AS tokens
+            JOIN (
+                SELECT *
+                FROM datasets_${ table_name }
+            ) as dataset
+            ON tokens.record_id = dataset.record_id
         `;
+
+        // query = `
+        //     SELECT COUNT(*) AS "count"
+        //     FROM datasets_${ table_name }
+        //     ${ colFilter }
+        // `;
     } else {
         query = `
-            SELECT *
+            SELECT dataset.*
             FROM (
-                SELECT *, ROW_NUMBER() OVER (ORDER BY record_id) AS rn
+                SELECT record_id, word
+                FROM tokens_${ table_name }
+                WHERE word IN ('${ terms.join(", ") }')
+            ) AS tokens
+            JOIN (
+                SELECT *
                 FROM datasets_${ table_name }
-                ${ colFilter }
-                ORDER BY record_id
-            ) AS filtered_data
-            WHERE rn BETWEEN ${ ((page - 1) * pageLength ) + 1 } AND ${ page * pageLength }
+            ) as dataset
+            ON tokens.record_id = dataset.record_id
+            ORDER BY record_id
+            OFFSET ${ (page - 1) * pageLength }
+            LIMIT ${ pageLength}
         `;
+
+        // query = `
+        //     SELECT *
+        //     FROM (
+        //         SELECT *
+        //         FROM datasets_${ table_name }
+        //         ${ colFilter }
+        //         ORDER BY record_id
+        //     ) AS filtered_data
+        //     ORDER BY record_id
+        //     OFFSET ${ (page - 1) * pageLength }
+        //     LIMIT ${ pageLength}
+        // `;
     }
 
     return await s3.download(query);
@@ -77,7 +110,7 @@ const getZoomIds = async(table_name, params) => {
         datasetQuery = `
             SELECT record_id
             FROM datasets_${ table_name }
-            WHERE ${ params.group_name } IN (${ params.group_list.join(", ") })
+            WHERE ${ params.group_name } IN ('${ params.group_list.join(", ") }')
         `;
     }
 
@@ -85,7 +118,7 @@ const getZoomIds = async(table_name, params) => {
         tokenQuery = `
             SELECT record_id
             FROM tokens_${ table_name }
-            WHERE word IN (${ params.word_list.join(", ") })
+            WHERE word IN ('${ params.word_list.join(", ") }')
         `;
     }
 

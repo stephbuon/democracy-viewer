@@ -53,6 +53,7 @@ const waitAthenaQuery = async(queryId) => {
         const status = response.QueryExecution.Status.State.toString();
 
         if (["SUCCEEDED", "FAILED", "CANCELLED"].includes(status)) {
+            console.log(response.QueryExecution.Status)
             return status;
         } else {
             await setTimeoutAsync(100)

@@ -427,14 +427,13 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     
     const cols = await model.getColumnNames(metadata.table_name);
     const columns = cols.map(x => x.col);
-    const dataScan = await dataQueries.subsetSearch(metadata.table_name, query, columns, false, page, pageLength);
-    const countScan = await dataQueries.subsetSearch(metadata.table_name, query, columns, true);
+    const dataScan = await dataQueries.subsetSearch(metadata.table_name, query, ["text"], false, page, pageLength);
+    const countScan = await dataQueries.subsetSearch(metadata.table_name, query, ["text"], true);
     const count = countScan
         .collectSync()
         .getColumn("count")
         .toArray()[0];
     const data = dataScan
-        .drop("rn")
         .collectSync()
         .toRecords();
 
