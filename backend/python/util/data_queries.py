@@ -1,5 +1,3 @@
-import os
-import polars as pl
 import util.s3 as s3
 
 # Get the unique values in a given column
@@ -30,7 +28,9 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
     if column is not None and column != "":
         val_filter = None
         if len(values) > 0:
-            val_filter = f"WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})"
+            val_filter = f'''
+                WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})
+            '''
             
         dataset_query = f'''
             JOIN (
@@ -58,11 +58,11 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT tokens.record_id AS record_id, "group", word, "count"
+        SELECT { "dataset.group," if dataset_query is not None else "" } tokens.word AS word, tokens.count AS "count"
         FROM (
             SELECT record_id, word, "count"
             FROM { tokens_table }
-            { f"WHERE { " AND ".join(token_filter) }" if len(token_filter) > 0 else "" }
+            { "WHERE {}".format(" AND ".join(token_filter)) if len(token_filter) > 0 else "" }
             { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
             { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
         ) AS tokens
@@ -151,7 +151,9 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
     val_filter = None
     
     if len(values) > 0:
-        val_filter = f"WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})"
+        val_filter = f'''
+            WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})
+        '''
 
     if len(word_list) > 0:
         token_filter.append(f'''
@@ -170,20 +172,21 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT word, COUNT(DISTINCT dataset.group) AS "count"
+        SELECT word, COUNT(DISTINCT dataset.{ column }) AS "count"
         FROM (
             SELECT record_id, word
             FROM { tokens_table }
-            { f"WHERE { " AND ".join(token_filter) }" if len(token_filter) > 0 else "" }
+            { "WHERE {}".format(" AND ".join(token_filter)) if len(token_filter) > 0 else "" }
             { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
             { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
         ) AS tokens
         JOIN (
-            SELECT record_id, { column } as "group"
+            SELECT record_id, { column }
             FROM { dataset_table }
             { val_filter if val_filter is not None else "" }
         ) AS dataset
         ON tokens.record_id = dataset.record_id
+        GROUP BY word
     '''
     
     # Get record/group count for each word
@@ -254,7 +257,7 @@ def word_counts(table_name: str, word_list: list[str], pos_list: list[str] = [],
     query = f'''
         SELECT word, SUM(count) AS "count"
         FROM { tokens_table }
-        { f"WHERE { " AND ".join(token_filter) }" if len(token_filter) > 0 else "" }
+        { "WHERE {}".format(" AND ".join(token_filter)) if len(token_filter) > 0 else "" }
         { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
         { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
         GROUP BY word
@@ -275,7 +278,9 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
     val_filter = None
         
     if len(values) > 0:
-        val_filter = f"WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})"
+        val_filter = f'''
+            WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})
+        '''
         
     query = f'''
         SELECT dataset.{ column } as "group", SUM(tokens.count) AS "count"

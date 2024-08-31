@@ -1,5 +1,6 @@
 import boto3
 from boto3.s3.transfer import TransferConfig
+from botocore.exceptions import ClientError
 import datetime as dt
 import hashlib
 import humanize
@@ -33,7 +34,8 @@ def get_creds(token: str | None = None) -> dict[str, str]:
 def hash_query(query: str):
     return hashlib.md5(query.encode()).hexdigest()
 
-def submit_athena_query(athena_client, query: str,  distributed: dict[str, str]) -> str:
+def submit_athena_query(athena_client, query: str) -> str:
+    print(query)
     response = athena_client.start_query_execution(
         QueryString = query,
         QueryExecutionContext = {
@@ -81,6 +83,34 @@ def rename_file(old_file: str, new_file: str, token: str | None):
     
     # Delete the original file
     s3_client.delete_object(Bucket=distributed["bucket"], Key=old_file)
+    
+def check_file_exists(path: str, token: str | None):
+    distributed = get_creds(token)
+    
+    if "key_" in distributed.keys() and "secret" in distributed.keys():
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id = distributed["key_"],
+            aws_secret_access_key = distributed["secret"],
+            region_name = distributed["region"]
+        )
+    else:
+        s3_client = boto3.client(
+            "s3",
+            region_name = distributed["region"]
+        )
+        
+    try:
+        s3_client.head_object(Bucket=distributed["bucket"], Key=path)
+    except ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            # The key does not exist.
+            return False
+        else:
+            # Something else has gone wrong.
+            raise 
+        
+    return True
 
 def upload(df: pl.DataFrame, folder: str, name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
@@ -152,22 +182,23 @@ def download(query: str, token: str | None = None) -> pl.LazyFrame:
     local_path = "{}/athena/{}.csv".format(BASE_PATH, query_filename)
     
     if not os.path.exists(local_path):
-        athena_client = boto3.client(
-            "athena",
-            aws_access_key_id = distributed["key_"],
-            aws_secret_access_key = distributed["secret"],
-            region_name = distributed["region"]
-        )
+        if not check_file_exists(local_path, token):
+            athena_client = boto3.client(
+                "athena",
+                aws_access_key_id = distributed["key_"],
+                aws_secret_access_key = distributed["secret"],
+                region_name = distributed["region"]
+            )
+            
+            start_time = time()
+            query_id = submit_athena_query(athena_client, query)
+            status = wait_athena_query(athena_client, query_id)
+            print("Athena query time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
+            
+            if status.lower() != "succeeded":
+                raise Exception("Query failed with status {}".format(status))
         
-        start_time = time()
-        query_id = submit_athena_query(athena_client, query, distributed)
-        status = wait_athena_query(athena_client, query_id)
-        print("Athena query time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
-        
-        if status.lower() != "succeeded":
-            raise Exception("Query failed with status {}".format(status))
-        
-        rename_file("athena/{}.csv".format(query_id), "athena/{}.csv".format(query_filename), token)
+            rename_file("athena/{}.csv".format(query_id), "athena/{}.csv".format(query_filename), token)
         download_file(local_path, "athena", "{}.csv".format(query_filename), token)
         
     df = pl.scan_csv(local_path)

@@ -36,6 +36,7 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
         
     # Rank words in each group
     df = df.collect()
+    print(df)
     df2 = (
         df
             .clone()
@@ -194,9 +195,10 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
     if total_groups == 0:
         total_groups = data.group_count(table_name, column, token)
     # Get group count for each word
-    group_counts = data.group_count_by_words(table_name, word_list, column, values, token)
+    group_counts = data.group_count_by_words(table_name, column, values, word_list, pos_list, token)
     # Get records by words and groups
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
+    print(df.head().collect())
     
     # Compute smoothed idf
     idf = {}

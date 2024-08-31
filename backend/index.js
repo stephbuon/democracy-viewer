@@ -5,7 +5,7 @@ require("dotenv").config();
 
 // Delete old files to prevent clutter
 const cleanup = require("./cleanup");
-// setInterval(cleanup, 3600000);
+setInterval(cleanup, 3600000);
 
 // Import middleware
 const requestLog = require("./middleware/logging");
