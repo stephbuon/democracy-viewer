@@ -1,40 +1,16 @@
+import os
 import polars as pl
-from sqlalchemy import Engine
 import util.s3 as s3
-import util.sql_queries as sql
-
-# Retrieve data from s3 and keep required data
-def get_text(engine: Engine, table_name: str, token: str | None = None) -> pl.LazyFrame:
-    # Get all text columns
-    text_cols = sql.get_text_cols(engine, table_name)
-    
-    # Download raw data from s3
-    df_raw = s3.download("datasets", table_name, token)
-    # Reformat data to prep for preprocessing
-    df = []
-    for col in text_cols:
-        df.append((
-            df_raw.select([col, "record_id"])
-                .rename({ f"{col}": "text" })
-                .with_columns(col=col)
-        ))
-    df = pl.concat(df)
-    
-    return df
-
-# Get the values of a subset of columns for each record
-def get_columns(table_name: str, columns: list[str], token: str | None = None) -> pl.LazyFrame:
-    df = s3.download("datasets", table_name, token)
-    
-    return df.select(columns)
 
 # Get the unique values in a given column
-def get_column_values(table_name: str, column: str, token: str | None) -> list:
-    df = s3.download("datasets", table_name, token)
+def get_column_values(table_name: str, column: str, token: str | None):
+    query = f'''
+        SELECT DISTINCT { column }
+        FROM datasets_{ table_name }
+    '''
     
     values = (
-        df.select(column)
-            .unique()
+        s3.download(query, token)
             .collect()
             .get_column(column)
             .to_list()
@@ -43,213 +19,281 @@ def get_column_values(table_name: str, column: str, token: str | None) -> list:
     return values
 
 # Select records by group and word lists
-def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.LazyFrame:
-    # Download raw and tokenized data
-    df_raw = s3.download("datasets", table_name, token)
-    df_split = s3.download("tokens", table_name, token)
-    df_tokens = df_split.clone()
+def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+    dataset_table = f"datasets_{ table_name }"
+    tokens_table = f"tokens_{ table_name }"
+    dataset_query = None
+    token_filter = []
+    adj_noun_query = None
+    subj_verb_query = None
     
-    # Subset of columns to keep at the end
-    cols = ["record_id", "word", "count"]
-    
-    # If grouping values are defined, filter by them
     if column is not None and column != "":
-        df_raw = df_raw.rename({ column: "group" })
-        cols.append("group")
+        val_filter = None
         if len(values) > 0:
-            df_raw = df_raw.filter(pl.col("group").cast(pl.Utf8).is_in(values))
+            val_filter = f"WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})"
             
-    # If a word list is defined, filter by it
+        dataset_query = f'''
+            JOIN (
+                SELECT record_id, { column } as "group"
+                FROM { dataset_table }
+                { val_filter if val_filter is not None else "" }
+            ) AS dataset
+            ON tokens.record_id = dataset.record_id
+        '''
+
     if len(word_list) > 0:
-        df_split = df_split.filter(pl.col("word").is_in(word_list))
+        token_filter.append(f'''
+            word IN ({ ", ".join([ f"'{ word }'" for word in word_list ]) })
+        ''')
     
-    # Filter words by POS if list given
     if len(pos_list) > 0:
-        df_split = df_split.filter(pl.col("pos").is_in(pos_list))
-        # Collocates
-        if "adj-noun" in pos_list:
-            pairs = adj_noun_pairs(df_tokens, word_list)
-            df_split = pl.concat([df_split, pairs])
-        if "subj-verb" in pos_list:
-            pairs = subj_verb_pairs(df_tokens, word_list)
-            df_split = pl.concat([df_split, pairs])
+        token_filter.append(f'''
+            pos IN ({ ", ".join([ f"'{ pos }'" for pos in pos_list if pos not in ["adj-noun", "subj-verb"] ]) })
+        ''')
     
-    # Merge datasets
-    df_raw = df_raw
-    df = df_raw.join(df_split, on = "record_id")
+    if "adj-noun" in pos_list:
+        adj_noun_query = adj_noun_pairs(tokens_table, word_list)
+        
+    if "subj-verb" in pos_list:
+        subj_verb_query = subj_verb_pairs(tokens_table, word_list)
+        
+    query = f'''
+        SELECT tokens.record_id AS record_id, "group", word, "count"
+        FROM (
+            SELECT record_id, word, "count"
+            FROM { tokens_table }
+            { f"WHERE { " AND ".join(token_filter) }" if len(token_filter) > 0 else "" }
+            { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
+            { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
+        ) AS tokens
+        { dataset_query if dataset_query is not None else "" }
+    '''
+    
+    df = s3.download(query, token)
     
     return df
 
 # POS collocates
 ### Adjective/Noun
-def adj_noun_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
-    nouns = tokens.filter(pl.col("pos") == "noun")
-    adjs = tokens.filter(pl.col("pos") == "adj")
-    pairs = adjs.join(nouns, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
+def adj_noun_pairs(tokens_table: str, word_list: list[str]):
+    word_query = None
     
     if len(word_list) > 0:
-        pairs = pairs.filter((pl.col("word").is_in(word_list)) | (pl.col("head").is_in(word_list)))
+        word_filter = ", ".join([ f"'{ word }'" for word in word_list ])
+        word_query = f'''
+            WHERE adjs.word IN ({ word_filter }) OR nouns.head IN ({ word_filter })
+        '''
     
-    pairs = pairs.with_columns(
-        count = pl.max_horizontal("count", "count_right"),
-        word = pl.concat_str(["word", "head"], separator=" ")
-    )
-    pairs = pairs.drop([ col for col in pairs.collect_schema().names() if "_" in col and col != "record_id" ])
+    query = f'''
+        SELECT
+            record_id,
+            CONCAT(adjs.word, ' ', nouns.head) AS word,
+            GREATEST(adjs.count, nouns.count) AS count
+        FROM (
+            SELECT *
+            FROM { tokens_table }
+            WHERE pos = 'adj'
+        ) AS adjs
+        JOIN (
+            SELECT *
+            FROM { tokens_table }
+            WHERE pos = 'noun'
+        ) AS nouns
+        ON adjs.record_id = nouns.record_id
+            AND adjs.col = nouns.col
+            AND adjs.head = nouns.word
+        { word_query if word_query is not None else "" }
+    '''
     
-    return pairs
+    return query
        
 ### Subject/Verb
-def subj_verb_pairs(tokens: pl.LazyFrame, word_list: list[str]) -> pl.LazyFrame:
-    subjects = tokens.filter(pl.col("dep").is_in(["nsubj", "nsubjpass"]))
-    verbs = tokens.filter(pl.col("pos") == "verb")
+def subj_verb_pairs(tokens_table: str, word_list: list[str]):
+    word_query = None
     
     if len(word_list) > 0:
-        subjects = subjects.filter((pl.col('pos').is_in(['noun', 'propn', 'pron'])) & (pl.col("word").is_in(word_list)))
-        verbs = verbs.filter(pl.col("word").is_in(word_list))
+        word_filter = ", ".join([ f"'{ word }'" for word in word_list ])
+        word_query = f'''
+            WHERE subjs.word IN ({ word_filter }) OR verbs.head IN ({ word_filter })
+        '''
     
-    verb_first = verbs.join(subjects, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
-    verb_second = subjects.join(verbs, left_on = ["record_id", "col", "head"], right_on = ["record_id", "col", "word"])
-    pairs = pl.concat([verb_first, verb_second])
+    query = f'''
+        SELECT
+            record_id,
+            CONCAT(subjs.word, ' ', verbs.head) AS word,
+            GREATEST(subjs.count, verbs.count) AS count
+        FROM (
+            SELECT *
+            FROM { tokens_table }
+            WHERE dep = IN ('nsubj', 'nsubjpass')
+            AND pos IN ('noun', 'propn', 'pron')
+        ) AS subjs
+        JOIN (
+            SELECT *
+            FROM { tokens_table }
+            WHERE pos = 'verb'
+        ) AS verbs
+        ON subjs.record_id = verbs.record_id
+            AND subjs.col = verbs.col
+            AND (subjs.head = verbs.word OR subjs.word = verbs.head)
+        { word_query if word_query is not None else "" }
+    '''
     
-    # with pl.Config(tbl_cols=-1):
-    #     print((
-    #         pairs
-    #             .filter((pl.col("word") == "say") & (pl.col("head") == "say"))
-    #             .collect()
-    #     ))
-    # raise Exception()
-    
-    if len(word_list) > 0:
-        pairs = pairs.filter((pl.col("word").is_in(word_list)) | (pl.col("head").is_in(word_list)))
-    
-    pairs = pairs.with_columns(
-        count = pl.max_horizontal("count", "count_right"),
-        word = pl.concat_str(["word", "head"], separator=" ")
-    )
-    pairs = pairs.drop([ col for col in pairs.collect_schema().names() if "_" in col and col != "record_id" ])
-    
-    return pairs
+    return query
 
 # Get number of group values that include words
-def group_count_by_words(table_name: str, word_list: list[str], column: str | None, values: list[str], token: str | None = None) -> dict[str, int]:
-    # Download raw and tokenized data
-    df_raw = s3.download("datasets", table_name, token)
-    df_split = s3.download("tokens", table_name, token)
+def group_count_by_words(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str], token: str | None = None) -> dict[str, int]:
+    dataset_table = f"datasets_{ table_name }"
+    tokens_table = f"tokens_{ table_name }"
+    token_filter = []
+    adj_noun_query = None
+    subj_verb_query = None
+    val_filter = None
     
-    # Filter by word list
+    if len(values) > 0:
+        val_filter = f"WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})"
+
     if len(word_list) > 0:
-        df_split = df_split.filter(pl.col("word").is_in(word_list))
+        token_filter.append(f'''
+            word IN ({ ", ".join([ f"'{ word }'" for word in word_list ]) })
+        ''')
     
-    # Merge datasets
-    df = df_raw.join(df_split, on = "record_id")
+    if len(pos_list) > 0:
+        token_filter.append(f'''
+            pos IN ({ ", ".join([ f"'{ pos }'" for pos in pos_list if pos not in ["adj-noun", "subj-verb"] ]) })
+        ''')
     
-    if column is None or column == "":
-        df = (
-            df
-                .group_by("word")
-                .count()
-        )
-    elif len(values) > 0:
-        df = (
-            df
-                .filter(pl.col(column).cast(pl.Utf8).is_in(values))
-                .group_by("word")
-                .agg(count = pl.col(column).n_unique())
-        )
-    else:
-        df = (
-            df
-                .group_by("word")
-                .agg(count = pl.col(column).n_unique())
-        )
+    if "adj-noun" in pos_list:
+        adj_noun_query = adj_noun_pairs(tokens_table, word_list)
+        
+    if "subj-verb" in pos_list:
+        subj_verb_query = subj_verb_pairs(tokens_table, word_list)
+        
+    query = f'''
+        SELECT word, COUNT(DISTINCT dataset.group) AS "count"
+        FROM (
+            SELECT record_id, word
+            FROM { tokens_table }
+            { f"WHERE { " AND ".join(token_filter) }" if len(token_filter) > 0 else "" }
+            { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
+            { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
+        ) AS tokens
+        JOIN (
+            SELECT record_id, { column } as "group"
+            FROM { dataset_table }
+            { val_filter if val_filter is not None else "" }
+        ) AS dataset
+        ON tokens.record_id = dataset.record_id
+    '''
     
     # Get record/group count for each word
     records = {}
-    df = df.collect()
+    df = s3.download(query, token).collect()
     for row in df.iter_rows(named = True):
         records[row["word"]] = row["count"]
         
     return records
 
 # Get the total number of distinct group values
-def group_count(table_name: str, column: str, token: str | None = None) -> int:
-    # Download raw data
-    df_raw = s3.download("datasets", table_name, token)
+def group_count(table_name: str, column: str, token: str | None = None):
+    query = f'''
+        SELECT COUNT(DISTINCT { column }) AS "{ column }"
+        FROM datasets_{ table_name }
+    '''
     
     # Get distinct values in column
     n_unique = (
-        df_raw
-            .select(pl.col(column).n_unique())
+        s3.download(query, token)
             .collect()
             .get_column(column)
             .to_list()[0]
     )
         
-    return n_unique
+    return int(n_unique)
 
 # Get the total word count in a corpus
 def total_word_count(table_name: str, token: str | None = None) -> int:
-    # Download tokenized data
-    df_split = s3.download("tokens", table_name, token)
+    query = f'''
+        SELECT SUM(count) AS "count"
+        FROM tokens_{ table_name }
+    '''
     
-    # Return sum of count column
+    # Get distinct values in column
     cnt = (
-        df_split
-            .select(pl.col("count").sum())
+        s3.download(query, token)
             .collect()
             .get_column("count")
             .to_list()[0]
     )
-    
-    return cnt
+        
+    return int(cnt)
 
 # Get the count of the given words in a corpus
-def word_counts(table_name: str, word_list: list[str], token: str | None = None) -> dict[str, int]:
-    # Download tokenized data
-    df_split = s3.download("tokens", table_name, token)
+def word_counts(table_name: str, word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> dict[str, int]:
+    tokens_table = f"tokens_{ table_name }"
+    token_filter = []
+    adj_noun_query = None
+    subj_verb_query = None
+
+    if len(word_list) > 0:
+        token_filter.append(f'''
+            word IN ({ ", ".join([ f"'{ word }'" for word in word_list ]) })
+        ''')
     
+    if len(pos_list) > 0:
+        token_filter.append(f'''
+            pos IN ({ ", ".join([ f"'{ pos }'" for pos in pos_list if pos not in ["adj-noun", "subj-verb"] ]) })
+        ''')
     
-    df_split = (
-        df_split
-            # Filter for words in word_list
-            .filter(pl.col("word").is_in(word_list))
-            .select(["word", "count"])
-            # Sum the counts for each word
-            .group_by("word")
-            .agg(count = pl.col("count").sum())
-            .collect()
-    )
+    if "adj-noun" in pos_list:
+        adj_noun_query = adj_noun_pairs(tokens_table, word_list)
+        
+    if "subj-verb" in pos_list:
+        subj_verb_query = subj_verb_pairs(tokens_table, word_list)
+        
+    query = f'''
+        SELECT word, SUM(count) AS "count"
+        FROM { tokens_table }
+        { f"WHERE { " AND ".join(token_filter) }" if len(token_filter) > 0 else "" }
+        { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
+        { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
+        GROUP BY word
+    '''
     
     # Convert to dict for easy access
     records = {}
-    for row in df_split.iter_rows(named = True):
+    df = s3.download(query, token).collect()
+    for row in df.iter_rows(named = True):
         records[row["word"]] = row["count"]
         
     return records
 
 # Get the word count of group values
 def group_counts(table_name: str, column: str, values: list[str], token: str | None = None) -> dict[str, int]:
-    # Download raw and tokenized data
-    df_raw = s3.download("datasets", table_name, token)
-    df_split = s3.download("tokens", table_name, token)
-    
-    # Filter raw data for column values
+    dataset_table = f"datasets_{ table_name }"
+    tokens_table = f"tokens_{ table_name }"
+    val_filter = None
+        
     if len(values) > 0:
-        df_raw = df_raw.filter(pl.col(column).cast(pl.Utf8).is_in(values))
-    
-    # Merge datasets
-    df = df_raw.join(df_split, on = "record_id")
-    
-    df = (
-        df_raw
-            .select(["record_id", column])
-            .join(df_split, on = "record_id")
-            .group_by(column)
-            .agg(count = pl.col("count").sum())
-            .collect()
-    )
+        val_filter = f"WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})"
+        
+    query = f'''
+        SELECT dataset.{ column } as "group", SUM(tokens.count) AS "count"
+        FROM (
+            SELECT record_id, { column }
+            FROM { dataset_table }
+            { val_filter if val_filter is not None else "" }
+        ) AS dataset
+        JOIN (
+            SELECT record_id, "count"
+            FROM { tokens_table }
+        ) AS tokens
+        ON dataset.record_id = tokens.record_id
+        GROUP BY dataset.{ column }
+    '''
         
     records = {}
+    df = s3.download(query, token).collect()
     for row in df.iter_rows(named = True):
         records[row[column]] = row["count"]
         

@@ -132,6 +132,9 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
     # Get unique words and groups
     words = df.get_column("word").unique().to_list()
     groups = df.get_column("group").unique().to_list()
+    # Get counts of words and groups
+    word_counts = data.word_counts(table_name, word_list, pos_list, token)
+    group_counts = data.group_counts(table_name, column, values, token)
     # Goup by word and group (if defined)
     group_cols = [ "word", "group" ]
     # Sum counts
@@ -144,6 +147,7 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
         })
         for group in groups:
             # Compute LL terms
+            # Count of word in group
             a = (
                 df
                     .filter(
@@ -153,21 +157,13 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
                     .get_column("count")
                     .sum()
             )
-            # b = df.loc[word,:].sum() - a
-            b = (
-                df
-                    .filter(pl.col("word") == word)
-                    .get_column("count")
-                    .sum()
-            ) - a
-            # c = df.loc[:,group].sum() - a
-            c = (
-                df
-                    .filter(pl.col("group") == group)
-                    .get_column("count")
-                    .sum()
-            ) - a
+            # Count of word not in group
+            b = word_counts[word] - a
+            # Count of group not word
+            c = group_counts[group] - a
+            # Count not group not word
             d = total_corpus_words - a - b - c
+            
             e1 = (a + c) * (a + b) / total_corpus_words
             e2 = (b + d) * (a + b) / total_corpus_words
             if a > 0:
@@ -176,6 +172,7 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
                 ll = 0
             if b > 0:
                 ll += 2 * b * np.log(b / e2)
+                
             # Add ll for group to df
             df2 = df2.with_columns(
                 pl.lit(np.log(ll)).alias(group)
