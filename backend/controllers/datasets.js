@@ -2,10 +2,9 @@ const util = require("../util/file_management");
 const axios = require("axios").default;
 const runPython = require("../util/python_config");
 const datasets = require("../models/datasets");
-const FlexSearch = require("flexsearch");
 const { getName } = require("../util/user_name");
 const emails = require("../util/email_management");
-const s3 = require("../util/s3");
+const dataQueries = require("../util/data_queries");
 const pl = require("nodejs-polars");
 
 // Upload a new dataset from a csv file
@@ -333,9 +332,8 @@ const getColumnValues = async(knex, table, column, search = undefined, page = 1,
         data = util.readJSON(path, false);
     } else {
         // Else, download dataset from S3
-        const scan = await s3.scanDataset("datasets", metadata);
+        const scan = await dataQueries.uniqueColValues(metadata.table_name, column);
         data = scan
-            .select(column)
             .collectSync()
             .getColumn(column)
             .unique()
@@ -426,88 +424,24 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     if (!metadata.is_public && (!user || metadata.email !== user.email)) {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
-
-    // Pagination indices
-    const start = pageLength * (page - 1);
-    const end = pageLength + start;
     
-    if (!query || !query.simpleSearch) {
-        // If no query, slice from full dataset
-        const scan = await s3.scanDataset("datasets", metadata);
-        const columns = scan.columns;
-        const count = scan
-            .select(pl.col("record_id").count())
-            .collectSync()
-            .getColumn("record_id")
-            .toArray()[0];
-        const data = scan
-            .slice(start, pageLength)
-            .collectSync()
-            .toRecords();
+    const cols = await model.getColumnNames(metadata.table_name);
+    const columns = cols.map(x => x.col);
+    const dataScan = await dataQueries.subsetSearch(metadata.table_name, query, columns, false, page, pageLength);
+    const countScan = await dataQueries.subsetSearch(metadata.table_name, query, columns, true);
+    const count = countScan
+        .collectSync()
+        .getColumn("count")
+        .toArray()[0];
+    const data = dataScan
+        .drop("rn")
+        .collectSync()
+        .toRecords();
 
-        return {
-            columns,
-            data,
-            count
-        }
-    } else {
-        // Check if subset has already been saved
-        const filename = `files/subsets/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
-        let count = 0;
-        let data = [];
-        let columns = []
-
-        // If output file exists, read from file
-        if (util.fileExists(filename)) {
-            fullOutput = util.readJSON(filename, false);
-            columns = Object.keys(fullOutput[0]);
-            count = fullOutput.length;
-            data = fullOutput.slice(start, end);
-        } else {
-            // Convert search to lowercase for filtering
-            const search = query.simpleSearch.toLowerCase();
-
-            // If subset has not already been saved, create subset
-            // Download data from s3
-            const scan = await s3.scanDataset("datasets", metadata);
-
-            columns = scan.columns;
-
-            let colFilter;
-            columns.forEach(col => {
-                const filter = pl.col(col).cast(pl.Utf8).str.toLowerCase().str.contains(search);
-                if (colFilter) {
-                    colFilter = colFilter.or(filter);
-                } else {
-                    colFilter = filter;
-                }
-            });
-
-            // Get the length of full filtered data
-            count = scan
-                .filter(colFilter)
-                .select(pl.count("record_id").alias("count"))
-                .collectSync()
-                .getColumn("count")
-                .toArray()[0];
-        
-            // Filter and collect data
-            data = scan
-                .filter(colFilter)
-                .slice(start, pageLength)
-                .collectSync()
-                .toRecords();
-            
-            // Output results to local file
-            // util.generateJSON(filename, fullOutput);
-        }
-        
-        // Return requested page
-        return {
-            columns,
-            data,
-            count
-        };
+    return {
+        columns,
+        data,
+        count
     }
 }
 
@@ -553,9 +487,8 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    const scan = await s3.scanDataset("datasets", metadata);
+    const scan = await dataQueries.getRecordsByIds(metadata.table_name, ids);
     const data = scan
-        .filter(pl.col("record_id").cast(pl.Int32).isIn(ids.map(x => parseInt(x))))
         .collectSync()
         .toRecords();
 

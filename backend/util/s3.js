@@ -1,47 +1,144 @@
 const pl = require("nodejs-polars");
-const { getCredentials } = require("../controllers/databases");
+// const { getCredentials } = require("../controllers/databases");
+const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand } = require("@aws-sdk/client-athena");
+const crypto = require('crypto');
+const humanize = require('humanize-duration');
+const util = require("./file_management");
+const setTimeoutAsync = require("timers/promises").setTimeout;
 
-const scanDataset = async(folder, dataset) => {
-    let storageOptions = {};
-    let dir;
-    let bucket;
-
-    if (dataset.distributed) {
-        const creds = await getCredentials(require("knex")(defaultConfig()), dataset.distributed);
-        storageOptions.accessKeyId = creds.key_;
-        storageOptions.secretAccessKey = creds.secret;
-        storageOptions.region = creds.region;
-        storageOptions.sslEnabled = false;
-        dir = creds.dir;
-        bucket = creds.bucket;
-    } else {
-        storageOptions.accessKeyId = process.env.S3_KEY;
-        storageOptions.secretAccessKey = process.env.S3_SECRET;
-        storageOptions.region = process.env.S3_REGION;
-        storageOptions.sslEnabled = false;
-        dir = process.env.DB_VERSION;
-        bucket = process.env.S3_BUCKET;
+const BASE_PATH = "files/s3";
+const s3Client = new S3Client({
+    region: process.env.S3_REGION,
+    credentials: {
+        accessKeyId: process.env.S3_KEY,
+        secretAccessKey: process.env.S3_SECRET
     }
-    let path;
-    if (dir) {
-        path = `${ dir }/${ folder }/${ dataset.table_name }.parquet`;
-    } else {
-        path = `${ folder }/${ dataset.table_name }.parquet`;
+});
+const athenaClient = new AthenaClient({
+    region: process.env.S3_REGION,
+    credentials: {
+        accessKeyId: process.env.S3_KEY,
+        secretAccessKey: process.env.S3_SECRET
+    }
+})
+
+const hashQuery = (query) => {
+    return crypto.createHash('md5').update(query).digest('hex');
+}
+
+const submitAthenaQuery = async(query) => {
+    console.log(query);
+    const command = new StartQueryExecutionCommand({
+        QueryString: query,
+        QueryExecutionContext: {
+            Database: process.env.ATHENA_DB
+        },
+        ResultConfiguration: {
+            OutputLocation: process.env.ATHENA_OUTPUT
+        }
+    });
+    const response = await athenaClient.send(command);
+
+    return response.QueryExecutionId;
+}
+
+const waitAthenaQuery = async(queryId) => {
+    const command = new GetQueryExecutionCommand({
+        QueryExecutionId: queryId
+    });
+
+    while (true) {
+        const response = await athenaClient.send(command);
+        const status = response.QueryExecution.Status.State.toString();
+
+        if (["SUCCEEDED", "FAILED", "CANCELLED"].includes(status)) {
+            return status;
+        } else {
+            await setTimeoutAsync(100)
+        }
+    }
+}
+
+const renameFile = async(oldFile, newFile) => {
+    const copyCommand = new CopyObjectCommand({
+        CopySource: `${ process.env.S3_BUCKET }/${ oldFile }`,
+        Bucket: process.env.S3_BUCKET,
+        Key: newFile
+    });
+    await s3Client.send(copyCommand);
+
+    const deleteCommand = new DeleteObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: oldFile
+    });
+    await s3Client.send(deleteCommand);
+}
+
+const checkFileExists = async(filePath) => {
+    const command = new HeadObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: filePath
+    });
+
+    try {
+        await s3Client.send(command);
+        
+        return true;
+    } catch (err) {
+        if (err.$metadata && err.$metadata.httpStatusCode === 404) {
+            return false;
+        } else {
+            throw new Error(err);
+        }
+    }
+}
+
+const download = async(query) => {
+    const queryFilename = hashQuery(query);
+    const localPath = `${ BASE_PATH }/athena/${ queryFilename }.csv`;
+
+    if (!util.fileExists(localPath)) {
+        if (!(await checkFileExists(localPath))) {
+            const startTime = Date.now();
+            const queryId = await submitAthenaQuery(query);
+            const status = await waitAthenaQuery(queryId);
+            console.log(`Athena query time: ${humanize(Date.now() - startTime)}`);
+
+            if (status.toLowerCase() !== "succeeded") {
+                throw new Error(`Query failed with status ${ status }`);
+            }
+
+            await renameFile(`athena/${ queryId }.csv`, `athena/${ queryFilename }.csv`);
+        }
+
+        await downloadFile(localPath, "athena", `${ queryFilename }.csv`);
     }
 
-    const s3Path = `s3://${ bucket }/${ path }`;
-
-    let df = pl.scanParquet(s3Path, { storageOptions });
-
-    if (folder === 'tokens') {
-        df = df.withColumns(
-            pl.col('record_id').cast(pl.UInt32, false)
-        );
-    }
-      
+    const df = pl.scanCSV(localPath, { quoteChar: '"'});
     return df;
 }
 
+const downloadFile = async(localFile, folder, name) => {
+    if (util.fileExists(localFile)) {
+        console.log(`${localFile} already exists`);
+    } else {
+        const command = new GetObjectCommand({
+            Bucket: process.env.S3_BUCKET,
+            Key: `${folder}/${name}`
+        })
+    
+        const startTime = Date.now();
+
+        const response = await s3Client.send(command);
+        const data = await response.Body.transformToString();
+        util.generateFile(localFile, data);
+    
+        console.log(`Download time: ${ humanize(Date.now() - startTime) }`);
+    }
+}
+
 module.exports = {
-    scanDataset
+    download,
+    downloadFile
 }

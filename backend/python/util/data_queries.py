@@ -34,7 +34,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
             
         dataset_query = f'''
             JOIN (
-                SELECT record_id, { column } as "group"
+                SELECT record_id, { column }
                 FROM { dataset_table }
                 { val_filter if val_filter is not None else "" }
             ) AS dataset
@@ -58,7 +58,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT { "dataset.group," if dataset_query is not None else "" } tokens.word AS word, tokens.count AS "count"
+        SELECT { f'dataset.{ column } AS "group",' if dataset_query is not None else "" } tokens.word AS word, tokens.count AS "count"
         FROM (
             SELECT record_id, word, "count"
             FROM { tokens_table }

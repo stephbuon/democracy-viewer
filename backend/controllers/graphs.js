@@ -1,7 +1,7 @@
 const files = require("../util/file_management");
 const runPython = require("../util/python_config");
 require('dotenv').config();
-const s3 = require("../util/s3");
+const dataQueries = require("../util/data_queries");
 const pl = require("nodejs-polars");
 
 const datasets = require("../models/datasets");
@@ -53,38 +53,17 @@ const getIds = async(knex, table, params, user = undefined) => {
     if (!metadata.is_public && (!user || metadata.email !== user.email)) {
         throw new Error(`User ${ user.email } is not the owner of this dataset`);
     }
-
-    // Download tokens from s3
-    let dataScan = await s3.scanDataset("datasets", metadata);
-    let tokenScan = await s3.scanDataset("tokens", metadata);
     
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
 
-    let rawIds = [];
-    if (params.group_name && params.group_list.length > 0) {
-        dataScan = dataScan
-            .filter(pl.col(params.group_name).isIn(params.group_list));
-    }
-    rawIds = dataScan
-        .select("record_id")
+    const scan = await dataQueries.getZoomIds(table, params);
+    const ids = scan
         .collectSync()
         .getColumn("record_id")
         .toArray();
 
-    let splitIds = [];
-    if (params.word_list.length > 0) {
-        tokenScan = tokenScan
-            .filter(pl.col("word").isIn(params.word_list))
-    }
-    splitIds = tokenScan
-        .select("record_id")
-        .collectSync()
-        .getColumn("record_id")
-        .unique()
-        .toArray();
-
-    return rawIds.filter(x => splitIds.includes(x));
+    return ids;
 }
 
 module.exports = {
