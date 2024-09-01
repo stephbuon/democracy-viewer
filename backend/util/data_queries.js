@@ -38,19 +38,26 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
     
     let query;
     if (count) {
-        query = `
-            SELECT COUNT(DISTINCT dataset.record_id) AS "count"
-            FROM (
-                SELECT record_id, word
-                FROM tokens_${ table_name }
-                WHERE word IN (${ terms.map(x => `'${ x }'`).join(", ") })
-            ) AS tokens
-            JOIN (
-                SELECT *
+        if (terms.length === 0) {
+            query = `
+                SELECT COUNT(*) AS "count"
                 FROM datasets_${ table_name }
-            ) as dataset
-            ON tokens.record_id = dataset.record_id
-        `;
+            `;
+        } else {
+            query = `
+                SELECT COUNT(DISTINCT dataset.record_id) AS "count"
+                FROM (
+                    SELECT record_id, word
+                    FROM tokens_${ table_name }
+                    WHERE word IN (${ terms.map(x => `'${ x }'`).join(", ") })
+                ) AS tokens
+                JOIN (
+                    SELECT *
+                    FROM datasets_${ table_name }
+                ) as dataset
+                ON tokens.record_id = dataset.record_id
+            `;
+        }
 
         // query = `
         //     SELECT COUNT(*) AS "count"
@@ -58,22 +65,32 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
         //     ${ colFilter }
         // `;
     } else {
-        query = `
-            SELECT dataset.*
-            FROM (
-                SELECT record_id, word
-                FROM tokens_${ table_name }
-                WHERE word IN (${ terms.map(x => `'${ x }'`).join(", ") })
-            ) AS tokens
-            JOIN (
+        if (terms.length === 0) {
+            query = `
                 SELECT *
                 FROM datasets_${ table_name }
-            ) as dataset
-            ON tokens.record_id = dataset.record_id
-            ORDER BY record_id
-            OFFSET ${ (page - 1) * pageLength }
-            LIMIT ${ pageLength}
-        `;
+                ORDER BY record_id
+                OFFSET ${ (page - 1) * pageLength }
+                LIMIT ${ pageLength }
+            `
+        } else {
+            query = `
+                SELECT dataset.*
+                FROM (
+                    SELECT record_id, word
+                    FROM tokens_${ table_name }
+                    WHERE word IN ('${ terms.join(", ") }')
+                ) AS tokens
+                JOIN (
+                    SELECT *
+                    FROM datasets_${ table_name }
+                ) as dataset
+                ON tokens.record_id = dataset.record_id
+                ORDER BY record_id
+                OFFSET ${ (page - 1) * pageLength }
+                LIMIT ${ pageLength }
+            `;
+        }
 
         // query = `
         //     SELECT *
