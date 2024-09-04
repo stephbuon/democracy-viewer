@@ -5,7 +5,7 @@ const datasets = require("../models/datasets");
 const { getName } = require("../util/user_name");
 const emails = require("../util/email_management");
 const dataQueries = require("../util/data_queries");
-const pl = require("nodejs-polars");
+const aws = require("../util/aws");
 
 // Upload a new dataset from a csv file
 const createDataset = async(path, email) => {
@@ -112,9 +112,8 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Set dataset as uploaded
     await model.updateMetadata(name, { uploaded: true });
 
-    // DELETE THIS ONCE PREPROCESSING IS RUNNING ON A REMOTE SERVER
-    // Begin preprocessing
-    // await runPython("preprocessing", [ name ], metadata.distributed);
+    // Start batch preprocessing
+    await aws.submitBatchJob(name);
 }
 
 // Add a tag for a dataset

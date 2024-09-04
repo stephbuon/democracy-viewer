@@ -1,4 +1,4 @@
-const s3 = require("./s3");
+const aws = require("./aws");
 
 const uniqueColValues = async(table_name, col) => {
     const query = `
@@ -6,7 +6,7 @@ const uniqueColValues = async(table_name, col) => {
         FROM datasets_${ table_name }
     `;
 
-    return await s3.download(query);
+    return await aws.download(query);
 }
 
 const subsetSearch = async(table_name, input, cols = [], count = false, page = 1, pageLength = 10) => {
@@ -106,7 +106,7 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
         // `;
     }
 
-    return await s3.download(query);
+    return await aws.download(query);
 }
 
 const getRecordsByIds = async(table_name, ids = []) => {
@@ -116,7 +116,7 @@ const getRecordsByIds = async(table_name, ids = []) => {
         WHERE record_id IN (${ ids.join(", ") })
     `;
 
-    return await s3.download(query);
+    return await aws.download(query);
 }
 
 const getZoomIds = async(table_name, params) => {
@@ -162,7 +162,7 @@ const getZoomIds = async(table_name, params) => {
         `;
     }
 
-    return s3.download(query);
+    return aws.download(query);
 }
 
 module.exports = {

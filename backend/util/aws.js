@@ -1,13 +1,29 @@
 const pl = require("nodejs-polars");
 // const { getCredentials } = require("../controllers/databases");
-const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
 const { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand } = require("@aws-sdk/client-athena");
+const { BatchClient, SubmitJobCommand } = require("@aws-sdk/client-batch");
+const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
 const crypto = require('crypto');
 const humanize = require('humanize-duration');
 const util = require("./file_management");
 const setTimeoutAsync = require("timers/promises").setTimeout;
 
 const BASE_PATH = "files/s3";
+
+const athenaClient = new AthenaClient({
+    region: process.env.S3_REGION,
+    credentials: {
+        accessKeyId: process.env.S3_KEY,
+        secretAccessKey: process.env.S3_SECRET
+    }
+});
+const batchClient = new BatchClient({
+    region: process.env.S3_REGION,
+    credentials: {
+        accessKeyId: process.env.S3_KEY,
+        secretAccessKey: process.env.S3_SECRET
+    }
+})
 const s3Client = new S3Client({
     region: process.env.S3_REGION,
     credentials: {
@@ -15,13 +31,7 @@ const s3Client = new S3Client({
         secretAccessKey: process.env.S3_SECRET
     }
 });
-const athenaClient = new AthenaClient({
-    region: process.env.S3_REGION,
-    credentials: {
-        accessKeyId: process.env.S3_KEY,
-        secretAccessKey: process.env.S3_SECRET
-    }
-})
+
 
 const hashQuery = (query) => {
     return crypto.createHash('md5').update(query).digest('hex');
@@ -139,7 +149,24 @@ const downloadFile = async(localFile, folder, name) => {
     }
 }
 
+const submitBatchJob = async(table_name, num_threads = 1) => {
+    const command = new SubmitJobCommand({
+        jobName: table_name,
+        jobQueue: process.env.BATCH_QUEUE,
+        jobDefinition: process.env.BATCH_DEF,
+        parameters: {
+           table_name,
+           num_threads
+        }
+    });
+
+    const response = await batchClient.send(command);
+    console.log("Batch job submitted:");
+    console.log(response);
+}
+
 module.exports = {
     download,
-    downloadFile
+    downloadFile,
+    submitBatchJob
 }
