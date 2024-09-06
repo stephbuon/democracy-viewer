@@ -135,7 +135,7 @@ def upload(df: pl.DataFrame, folder: str, name: str, token: str | None = None) -
             region_name = distributed["region"]
         )
         
-    path = "{}/{}.parquet".format(folder, name)
+    path = "tables/{}_{}/{}.parquet".format(folder, name, name)
         
     start_time = time()
     s3_client.upload_file(

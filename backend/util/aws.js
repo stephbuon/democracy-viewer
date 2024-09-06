@@ -149,7 +149,7 @@ const downloadFile = async(localFile, folder, name) => {
     }
 }
 
-const submitBatchJob = async(table_name, num_threads = 1) => {
+const submitBatchJob = async(table_name, num_threads = 4) => {
     const command = new SubmitJobCommand({
         jobName: table_name,
         jobQueue: process.env.BATCH_QUEUE,
