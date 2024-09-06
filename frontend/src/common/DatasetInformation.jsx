@@ -41,7 +41,7 @@ export const DatasetInformation = (props) => {
                     sx={{ background: 'rgb(255, 255, 255)' }}
                     defaultValue={props.title}
                     setValue={props.setTitle}
-                    maxChars={50}
+                    maxChars={100}
                     required
                     setValid={setValid}
                 />
@@ -75,7 +75,7 @@ export const DatasetInformation = (props) => {
                     sx={{ background: 'rgb(255, 255, 255)' }}
                     defaultValue={props.description}
                     setValue={props.setDescription}
-                    maxChars={200}
+                    maxChars={500}
                     required
                     setValid={setValid}
                 />
