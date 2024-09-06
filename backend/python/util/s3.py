@@ -266,14 +266,6 @@ def download_file(local_file: str, folder: str, name: str, token: str | None = N
 def delete(name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
     
-    folders = [
-        "datasets", "embeddings", "tokens"
-    ]
-    
-    extensions = [
-        "parquet", "pkl", "parquet"
-    ]
-    
     if "key_" in distributed.keys() and "secret" in distributed.keys():
         s3_client = boto3.client(
             "s3",
@@ -287,11 +279,22 @@ def delete(name: str, token: str | None = None) -> None:
             region_name = distributed["region"]
         )
     
-    for i in range(len(folders)):
-        path = "{}/{}.{}".format(folders[i], name, extensions[i])
-            
-        s3_client.delete_object(
+    for dir in ["tables/", "embeddings/"]:
+        # List all objects in the bucket
+        response = s3_client.list_objects_v2(
             Bucket = distributed["bucket"],
-            Key = path
+            Prefix = dir
         )
+
+        # Check if the bucket contains any objects
+        if 'Contents' not in response:
+            print("No objects found in bucket '{}/{}'".format(distributed["bucket"], dir))
+            continue
+
+        # Filter objects containing the substring and delete them
+        for obj in response['Contents']:
+            key = obj['Key']
+            if name in key:
+                print("Deleting {}".format(key))
+                s3_client.delete_object(Bucket = distributed["bucket"], Key = key)
             

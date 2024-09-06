@@ -594,12 +594,12 @@ const deleteDataset = async(knex, user, table) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (metadata.email !== user) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
-    }
+    // if (metadata.email !== user) {
+    //     throw new Error(`User ${ user } is not the owner of this dataset`);
+    // }
 
     // Delete datasets from s3
-    await runPython("delete_dataset", [table], metadata.distributed);
+    await runPython("delete_dataset", [table]);
 
     // Delete metadata
     // This will delete tags and columns via cascade
