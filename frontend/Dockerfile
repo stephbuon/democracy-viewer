@@ -9,7 +9,7 @@ COPY package.json .
 RUN npm install
 
 # Compile production build
-RUN npm run start
+RUN npm run build
 
 # Expose port 3000
 EXPOSE 3000
