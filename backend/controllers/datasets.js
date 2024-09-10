@@ -480,11 +480,17 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
 
 // Get dataset records by ids
 const downloadIds = async(knex, table, ids, user = undefined) => {
-    const data = await getRecordsByIds(knex, table, ids, user);
+    const model = new datasets(knex);
 
-    const newFilename = `files/downloads/${ table }_${ Date.now() }.csv`;
-    await util.generateCSV(newFilename, data);
-    return newFilename;
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    return await dataQueries.downloadRecordsByIds(table, ids);
 }
 
 // Get text suggestions from a given user

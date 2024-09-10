@@ -17,11 +17,11 @@ export const DownloadStarted = () => {
             } else if (params.type === "subset") {
                 const data = JSON.parse(localStorage.getItem("democracy-viewer"));
 
-                DownloadSubset(data.dataset.table_name, data.downloadData.simpleSearch);
+                DownloadSubset(data.dataset.table_name, data.downloadData).then(res => window.open(res.url));
             } else if (params.type === "ids") {
                 const data = JSON.parse(localStorage.getItem("selected"));
 
-                DownloadIds(data.dataset, data.ids);
+                DownloadIds(data.dataset, data.ids).then(res => window.open(res.url));;
             } else {
                 setMessage(`Unrecognized download type: ${ params.type }.`);
             }

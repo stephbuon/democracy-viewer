@@ -96,7 +96,7 @@ const downloadSubset = async(table_name, input) => {
         query = `
             SELECT dataset.*
             FROM (
-                SELECT record_id, word
+                SELECT DISTINCT record_id
                 FROM tokens_${ table_name }
                 WHERE word IN ('${ terms.join(", ") }')
             ) AS tokens
@@ -117,9 +117,21 @@ const getRecordsByIds = async(table_name, ids = []) => {
         SELECT *
         FROM datasets_${ table_name }
         WHERE record_id IN (${ ids.join(", ") })
+        ORDER BY record_id
     `;
 
     return await aws.download(query);
+}
+
+const downloadRecordsByIds = async(table_name, ids = []) => {
+    const query = `
+        SELECT *
+        FROM datasets_${ table_name }
+        WHERE record_id IN (${ ids.join(", ") })
+        ORDER BY record_id
+    `;
+
+    return await aws.downloadFileDirect(query);
 }
 
 const getZoomIds = async(table_name, params) => {
@@ -136,7 +148,7 @@ const getZoomIds = async(table_name, params) => {
 
     if (params.word_list.length > 0) {
         tokenQuery = `
-            SELECT record_id
+            SELECT DISTINCT record_id
             FROM tokens_${ table_name }
             WHERE word IN (${ params.word_list.map(x => `'${ x }'`).join(", ") })
         `;
@@ -145,7 +157,7 @@ const getZoomIds = async(table_name, params) => {
     let query;
     if (datasetQuery && tokenQuery) {
         query = `
-            SELECT dataset.record_id AS record_id
+            SELECT DISTINCT dataset.record_id AS record_id
             FROM (
                 ${ datasetQuery }
             ) AS dataset
@@ -173,5 +185,6 @@ module.exports = {
     subsetSearch,
     downloadSubset,
     getRecordsByIds,
+    downloadRecordsByIds,
     getZoomIds
 }
