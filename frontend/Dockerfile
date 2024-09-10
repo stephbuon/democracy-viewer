@@ -2,13 +2,14 @@
 FROM node:18
 
 # Set the working directory within docker image
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/frontend
 
 # Install dependencies
-COPY package.json .
+COPY . .
 RUN npm install
 
 # Compile production build
+RUN npm install -g serve
 RUN npm run build
 
 # Expose port 3000
