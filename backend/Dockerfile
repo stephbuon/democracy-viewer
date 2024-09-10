@@ -1,7 +1,7 @@
 FROM python:3.11
 
 # Set the working directory within docker image
-WORKDIR /usr/src/app/backend
+WORKDIR /usr/src/app
 
 # Other installs
 RUN apt-get update
