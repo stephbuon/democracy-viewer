@@ -426,8 +426,8 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     
     const cols = await model.getColumnNames(metadata.table_name);
     const columns = cols.map(x => x.col);
-    const dataScan = await dataQueries.subsetSearch(metadata.table_name, query, ["text"], false, page, pageLength);
-    const countScan = await dataQueries.subsetSearch(metadata.table_name, query, ["text"], true);
+    const dataScan = await dataQueries.subsetSearch(metadata.table_name, query, false, page, pageLength);
+    const countScan = await dataQueries.subsetSearch(metadata.table_name, query, true);
     const count = countScan
         .collectSync()
         .getColumn("count")
@@ -455,22 +455,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    let page = 1;
-    const pageLength = 1000;
-    let total = null;
-    const data = []
-    while (total === null || pageLength + pageLength * (page - 1) <= total) {
-        const curr = await getSubset(knex, table, query, user, page, pageLength);
-        data.push(...curr.data);
-        page += 1;
-        if (total === null) {
-            total = curr.count;
-        }
-    }
-
-    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
-    await util.generateCSV(newFilename, data);
-    return newFilename;
+    return await dataQueries.downloadSubset(table, query);
 }
 
 // Get dataset records by ids

@@ -7,10 +7,9 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 import { useEffect, useState } from 'react';
 import { AlertDialog } from '../AlertDialog';
-import { DownloadSubset } from '../../apiFolder/SubsetSearchAPI';
 import { addSuggestion } from '../../api/api';
 
-export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadSubset, table_name, totalNumResults, columns }) => {
+export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadType, table_name, totalNumResults, columns }) => {
     const [clickRow, setClickRow] = useState(-1);
     const [clickCol, setClickCol] = useState("");
     const [editOpen, setEditOpen] = useState(false);
@@ -139,7 +138,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                     marginTop: '50px',
                     background: 'black'
                 }}
-                onClick={() => DownloadSubset(table_name, {})}
+                onClick={() => window.open(`${ window.location.origin }/download/full`)}
             >Download full dataset</Button>
             <Button
                 variant="contained"
@@ -152,7 +151,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                     background: 'black'
                     
                 }}
-                onClick={() => downloadSubset()}
+                onClick={() => window.open(`${ window.location.origin }/download/${ downloadType }`)}
             >Download these {totalNumResults} results</Button>
         </Box>
 

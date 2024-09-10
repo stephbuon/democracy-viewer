@@ -38,7 +38,7 @@ export const DownloadSubset = async (table, query) =>  {
         console.error(`Couldn't download data. ${res.status}`)
         return null;
     }
-    download(res.data, `download_${ Date.now() }.csv`);
+    return res.data;
 };
 
 export const DownloadIds = async (table, id) =>  {

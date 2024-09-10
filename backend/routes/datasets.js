@@ -244,16 +244,9 @@ router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
 router.get('/download/subset/:table', async(req, res, next) => {
     try {
         // Generate file
-        const result = await control.downloadSubset(req.knex, req.params.table, req.query, req.user ? req.user.email : undefined);
+        const url = await control.downloadSubset(req.knex, req.params.table, req.query, req.user ? req.user.email : undefined);
         // Download file
-        res.status(200).download(result, (err) => {
-            // Error handling
-            if (err) {
-                console.log("Failed to download dataset subset:", err);
-                res.status(500).json({ message: err.toString() });
-                next();
-            }
-        });
+        res.status(200).json({ url });
     } catch (err) {
         console.error('Failed to download dataset subset:', err);
         res.status(500).json({ message: err.toString() });
@@ -264,7 +257,7 @@ router.get('/download/subset/:table', async(req, res, next) => {
 // Route to get dataset records by ids
 router.get('/ids/:table', async(req, res, next) => {
     try {
-        const result = await control.getRecordsByIds(req.knex, req.params.table, Array.isArray(req.query.id) ? req.query.id : [ req.query.id ]);
+        const result = await control.getRecordsByIds(req.knex, req.params.table, Array.isArray(req.query.id) ? req.query.id : [ req.query.id ], req.user);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset ids:', err);

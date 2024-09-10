@@ -116,7 +116,7 @@ export const Zoom = (props) => {
             totalNumOfPages = {totalPages}
             GetNewPage = {getPage}
             table_name={graphData.dataset}
-            downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
+            downloadType="ids"
             totalNumResults={graphData.ids.length}
             columns = {searchResults.length > 0 ? Object.keys(searchResults[0]) : []}
             pageLength = {pageLength}

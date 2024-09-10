@@ -2,6 +2,7 @@ import { React, useState, useEffect } from "react";
 import { Graph } from "./pages/graph.jsx";
 import { Layout } from "./pages/layout.jsx";
 import { Zoom } from "./pages/zoom.jsx";
+import { DownloadStarted } from "./pages/DownloadStarted.jsx";
 import Homepage from "./pages/Homepage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -71,6 +72,7 @@ export const App = () => {
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/register" element={<Register currUser={user} login={login}/>} />
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout}/>} />
+            <Route path="/download/:type" element={<DownloadStarted/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
             <Route path='/datasets/subsets/search' element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
