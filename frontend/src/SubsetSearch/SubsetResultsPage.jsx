@@ -184,7 +184,7 @@ export const SubsetResultsPage = (props) => {
             page={page}
             GetNewPage={GetNewPage}
             table_name={props.dataset.table_name}
-            downloadSubset={() => DownloadSubset(props.dataset.table_name, query)}
+            downloadType="subset"
             totalNumResults={totalNumResults}
             pageLength={pageLength}
             columns={columns}

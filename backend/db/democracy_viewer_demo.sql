@@ -44,7 +44,7 @@ CREATE TABLE dataset_metadata (
 --     private_group BIGINT,
     title VARCHAR(100),
     description VARCHAR(500),
-    author VARCHAR(50),
+    author VARCHAR(200),
     date_collected DATE,
     is_public BOOLEAN DEFAULT FALSE NOT NULL,
     clicks INT DEFAULT 0 NOT NULL,

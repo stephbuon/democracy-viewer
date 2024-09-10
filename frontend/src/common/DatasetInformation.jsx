@@ -53,7 +53,7 @@ export const DatasetInformation = (props) => {
                     sx={{ background: 'rgb(255, 255, 255)' }}
                     defaultValue={props.author}
                     setValue={props.setAuthor}
-                    maxChars={50}
+                    maxChars={200}
                     setValid={setValid}
                 />
                 <TextField

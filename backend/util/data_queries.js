@@ -9,7 +9,7 @@ const uniqueColValues = async(table_name, col) => {
     return await aws.download(query);
 }
 
-const subsetSearch = async(table_name, input, cols = [], count = false, page = 1, pageLength = 10) => {
+const subsetSearch = async(table_name, input, count = false, page = 1, pageLength = 10) => {
     let search;
     if (!input || !input.simpleSearch) {
         search = "";
@@ -19,22 +19,6 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
     
     let terms = search.toLowerCase().split(" ").map(x => x.trim());
     terms = terms.filter(x => x.length > 0);
-    
-    // let colFilter = "";
-    // if (terms.length > 0 && cols.length > 0) {
-    //     const filters = [];
-    //     terms.forEach(term => {
-    //         const colFilters = [];
-    //         cols.forEach(col => {
-    //             colFilters.push(`LOWER(${ col }) LIKE '%${ term }%'`);
-    //         });
-    //         filters.push(`(
-    //             ${ colFilters.join(" OR \n") }
-    //         )`);
-    //     });
-
-    //     colFilter = `WHERE ${ filters.join(" AND \n") }`;
-    // }
     
     let query;
     if (count) {
@@ -58,12 +42,6 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
                 ON tokens.record_id = dataset.record_id
             `;
         }
-
-        // query = `
-        //     SELECT COUNT(*) AS "count"
-        //     FROM datasets_${ table_name }
-        //     ${ colFilter }
-        // `;
     } else {
         if (terms.length === 0) {
             query = `
@@ -91,22 +69,47 @@ const subsetSearch = async(table_name, input, cols = [], count = false, page = 1
                 LIMIT ${ pageLength }
             `;
         }
-
-        // query = `
-        //     SELECT *
-        //     FROM (
-        //         SELECT *
-        //         FROM datasets_${ table_name }
-        //         ${ colFilter }
-        //         ORDER BY record_id
-        //     ) AS filtered_data
-        //     ORDER BY record_id
-        //     OFFSET ${ (page - 1) * pageLength }
-        //     LIMIT ${ pageLength}
-        // `;
     }
 
     return await aws.download(query);
+}
+
+const downloadSubset = async(table_name, input) => {
+    let search;
+    if (!input || !input.simpleSearch) {
+        search = "";
+    } else {
+        search = String(input.simpleSearch);
+    }
+    
+    let terms = search.toLowerCase().split(" ").map(x => x.trim());
+    terms = terms.filter(x => x.length > 0);
+
+    let query;
+    if (terms.length === 0) {
+        query = `
+            SELECT *
+            FROM datasets_${ table_name }
+            ORDER BY record_id
+        `
+    } else {
+        query = `
+            SELECT dataset.*
+            FROM (
+                SELECT DISTINCT record_id
+                FROM tokens_${ table_name }
+                WHERE word IN ('${ terms.join(", ") }')
+            ) AS tokens
+            JOIN (
+                SELECT *
+                FROM datasets_${ table_name }
+            ) as dataset
+            ON tokens.record_id = dataset.record_id
+            ORDER BY record_id
+        `;
+    }
+
+    return await aws.downloadFileDirect(query);
 }
 
 const getRecordsByIds = async(table_name, ids = []) => {
@@ -114,9 +117,21 @@ const getRecordsByIds = async(table_name, ids = []) => {
         SELECT *
         FROM datasets_${ table_name }
         WHERE record_id IN (${ ids.join(", ") })
+        ORDER BY record_id
     `;
 
     return await aws.download(query);
+}
+
+const downloadRecordsByIds = async(table_name, ids = []) => {
+    const query = `
+        SELECT *
+        FROM datasets_${ table_name }
+        WHERE record_id IN (${ ids.join(", ") })
+        ORDER BY record_id
+    `;
+
+    return await aws.downloadFileDirect(query);
 }
 
 const getZoomIds = async(table_name, params) => {
@@ -133,7 +148,7 @@ const getZoomIds = async(table_name, params) => {
 
     if (params.word_list.length > 0) {
         tokenQuery = `
-            SELECT record_id
+            SELECT DISTINCT record_id
             FROM tokens_${ table_name }
             WHERE word IN (${ params.word_list.map(x => `'${ x }'`).join(", ") })
         `;
@@ -142,7 +157,7 @@ const getZoomIds = async(table_name, params) => {
     let query;
     if (datasetQuery && tokenQuery) {
         query = `
-            SELECT dataset.record_id AS record_id
+            SELECT DISTINCT dataset.record_id AS record_id
             FROM (
                 ${ datasetQuery }
             ) AS dataset
@@ -168,6 +183,8 @@ const getZoomIds = async(table_name, params) => {
 module.exports = {
     uniqueColValues,
     subsetSearch,
+    downloadSubset,
     getRecordsByIds,
+    downloadRecordsByIds,
     getZoomIds
 }

@@ -18,7 +18,7 @@ import {
 import { UploadModal } from "./UploadModal";
 import { Table, TableBody, TableRow, TableCell, TextField } from "@mui/material";
 import { GetCSVFromAPI, CreateDataset } from "../apiFolder/DatasetUploadAPI.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export const Upload = (props) => {
   const navigate = useNavigate();
@@ -54,6 +54,7 @@ export const Upload = (props) => {
   };
 
   useEffect(() => {
+    setAlert(0);
     if (file && file.name) {
       const validExtensions = [".csv"];
       if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
@@ -67,6 +68,7 @@ export const Upload = (props) => {
   }, [file]);
 
   const uploadCsv = () => {
+    setAlert(0);
     setUploadProgress(0);
     setDisableButtons(true);
     CreateDataset(file, setUploadProgress).then(res => {
@@ -74,14 +76,20 @@ export const Upload = (props) => {
       setheaders(res.headers)
       setFileUploaded(true);
       setAlert(3);
-    }).catch(() => {
-      setAlert(2);
+    }).catch(res => {
+      if (res.response.data.message === "MulterError: File too large") {
+        setAlert(4);
+      } else {
+        setAlert(2);
+      }
+      
       setFile(undefined);
       setUploadProgress(0);
     }).finally(() => setDisableButtons(false));
   };
 
   const APIcsv = () => {
+    setAlert(0);
     setDisableButtons(true);
     GetCSVFromAPI(APIEndpoint, Token)
       .then((res) => {
@@ -157,6 +165,7 @@ export const Upload = (props) => {
           {alert === 1 && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
           {alert === 2 && <div>An error occurred uploading the dataset</div>}
           {alert === 3 && <div>Dataset successfully uploaded</div>}
+          {alert === 4 && <div>Maximum upload size is 150 MB. Reach out to us at <Link to="mailto:democracyviewerlab@gmail.com">democracyviewerlab@gmail.com</Link> to upload a larger dataset</div>}
         </Alert>
       </Snackbar>
       <Modal open={fileLoaded} onClose={() => handleDataSetInfo()}>
