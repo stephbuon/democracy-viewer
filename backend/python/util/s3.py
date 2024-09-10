@@ -266,6 +266,20 @@ def download_file(local_file: str, folder: str, name: str, token: str | None = N
 def delete(name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
     
+    # Drop athena tables
+    athena_client = boto3.client(
+        "athena",
+        aws_access_key_id = distributed["key_"],
+        aws_secret_access_key = distributed["secret"],
+        region_name = distributed["region"]
+    )
+    query = f'''
+        DROP TABLE IF EXSISTS datasets_{ name }
+        ;
+        DROP TABLE IF EXSISTS datasets_{ name }
+    '''
+    submit_athena_query(athena_client, query)
+    
     if "key_" in distributed.keys() and "secret" in distributed.keys():
         s3_client = boto3.client(
             "s3",
