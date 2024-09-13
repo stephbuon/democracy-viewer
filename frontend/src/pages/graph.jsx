@@ -440,7 +440,22 @@ export const Graph = (props) => {
                   mt: "50px"
                 }}
               >
-                <Loop sx={{ fontSize: 80 }} />
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh"
+        }}>
+          <div class="spinner-border" style={{
+              width: "5rem",
+              height: "5rem"
+            }} role="status">
+            <span class="sr-only"></span>
+              </div>
+        </div>
+
+  
+                {/* <Loop sx={{ fontSize: 8 }} /> */}
               </Box>
             )}
             {graph === true && <GraphComponent border data={graphData} setData={setData} />}
