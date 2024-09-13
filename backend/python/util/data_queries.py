@@ -301,6 +301,6 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
     records = {}
     df = s3.download(query, token).collect()
     for row in df.iter_rows(named = True):
-        records[row[column]] = row["count"]
+        records[row["group"]] = row["count"]
         
     return records
