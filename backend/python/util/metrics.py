@@ -6,15 +6,8 @@ import util.data_queries as data
 def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
-    # Goup by word and group (if defined)
-    group_cols = [ "word" ]
+    # Rename columns based on if there is a grouping variable or not
     if column != None and column != "":
-        group_cols.append("group")
-
-    # # Sum counts and rename columns
-    df = df.group_by(group_cols).sum()
-    
-    if "group" in group_cols:
         df = df.rename({ "group": "x", "count": "y", "word": "group" })
     else:
         df = (
@@ -36,7 +29,6 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
         
     # Rank words in each group
     df = df.collect()
-    print(df)
     df2 = (
         df
             .clone()
