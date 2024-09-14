@@ -6,15 +6,8 @@ import util.data_queries as data
 def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
-    # Goup by word and group (if defined)
-    group_cols = [ "word" ]
+    # Rename columns based on if there is a grouping variable or not
     if column != None and column != "":
-        group_cols.append("group")
-
-    # # Sum counts and rename columns
-    df = df.group_by(group_cols).sum()
-    
-    if "group" in group_cols:
         df = df.rename({ "group": "x", "count": "y", "word": "group" })
     else:
         df = (
@@ -36,7 +29,6 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
         
     # Rank words in each group
     df = df.collect()
-    print(df)
     df2 = (
         df
             .clone()
@@ -55,44 +47,24 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
 
 def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     df = data.basic_selection(table_name, column, values, [], pos_list, token)
-    
-    group_cols = ["word"]
-    if column is not None and column != "":
-        group_cols.append("group")
 
-    # Get word and group counts
-    df = df.group_by(group_cols).sum()
-    # Get group total counts
-    if "group" in group_cols:
-        df2 = (
-            df
-                .clone()
-                .group_by("group")
-                .agg(total = pl.col("count").sum())
-        )
-        df = df.join(df2, on = "group")
-    else:
-        df = df.with_columns(
-            total = pl.col("count").sum()
-        )
-    
     # Compute proportions
-    df = (
-        df
-            .with_columns(
-                proportion = pl.col("count") / pl.col("total")
-            )
-            # Drop redundant columns
-            .drop(["count", "total"])
-    )
-    
-    if "group" in group_cols:
-        df = df.rename({ "group": "x", "proportion": "y", "word": "group" })
+    if column is not None and column != "":
+        df = (
+            df
+                .with_columns(
+                    proportion = pl.col("count") / pl.col("count").sum().over("group")
+                )
+                .rename({ "group": "x", "proportion": "y", "word": "group" })
+        )
     else:
         df = (
             df
+                .with_columns(
+                    proportion = pl.col("count") / pl.col("count").sum(),
+                    x = pl.lit("")
+                )
                 .rename({ "proportion": "y", "word": "group" })
-                .with_columns(x = pl.lit(""))
         )
     
     if len(word_list) == 0:
@@ -136,10 +108,7 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
     # Get counts of words and groups
     word_counts = data.word_counts(table_name, word_list, pos_list, token)
     group_counts = data.group_counts(table_name, column, values, token)
-    # Goup by word and group (if defined)
-    group_cols = [ "word", "group" ]
-    # Sum counts
-    df = df.group_by(group_cols).sum()
+    
     output = []
     for word in words:
         # Initialize df for word
@@ -212,12 +181,8 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
         "idf": idf.values()
     })
     
-    group_cols = [ "word", "group" ]
     df = (
         df
-            # Group by word and group
-            .group_by(group_cols)
-            .agg(count = pl.col("count").sum())
             # Join with IDF
             .join(idf_df.lazy(), on = "word")
             .with_columns(
@@ -315,8 +280,6 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     # Get word and group counts
     df = (
         df
-            .group_by(["word", "group"])
-            .agg(count = pl.col("count").sum())
             .with_columns(
                 prob = pl.col("count") / pl.col("count").sum().over("group")
             )

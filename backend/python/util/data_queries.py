@@ -58,7 +58,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT { f'dataset.{ column } AS "group",' if dataset_query is not None else "" } tokens.word AS word, tokens.count AS "count"
+        SELECT { f'dataset.{ column } AS "group",' if dataset_query is not None else "" } tokens.word AS word, SUM(tokens.count) AS "count"
         FROM (
             SELECT record_id, word, "count"
             FROM { tokens_table }
@@ -67,6 +67,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
             { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
         ) AS tokens
         { dataset_query if dataset_query is not None else "" }
+        GROUP BY tokens.word{ f", dataset.{ column }" if dataset_query is not None else "" }
     '''
     
     df = s3.download(query, token)
@@ -300,6 +301,6 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
     records = {}
     df = s3.download(query, token).collect()
     for row in df.iter_rows(named = True):
-        records[row[column]] = row["count"]
+        records[row["group"]] = row["count"]
         
     return records
