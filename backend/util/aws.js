@@ -33,7 +33,6 @@ const s3Client = new S3Client({
     }
 });
 
-
 const hashQuery = (query) => {
     return crypto.createHash('md5').update(query).digest('hex');
 }

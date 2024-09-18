@@ -2,8 +2,7 @@ const files = require("../util/file_management");
 const runPython = require("../util/python_config");
 require('dotenv').config();
 const dataQueries = require("../util/data_queries");
-const pl = require("nodejs-polars");
-
+const crypto = require('crypto');
 const datasets = require("../models/datasets");
 
 // Generate the data for a graph based on user input
@@ -11,9 +10,8 @@ const createGraph = async(knex, dataset, params, user = null) => {
     const model = new datasets(knex);
 
     // If file for graph already exists, skip calculations
-    const paramsString = JSON.stringify(params);
-    const fileName = paramsString.substring(0, 150);
-    const file1 = `files/python/input/${dataset}_${fileName}.json`;
+    const paramsString = crypto.createHash('md5').update(JSON.stringify(params)).digest('hex');
+    const file1 = `files/python/input/${ paramsString }.json`;
     const file2 = file1.replace("/input/", "/output/");
     if (files.fileExists(file2)) {
         return files.readJSON(file2, false)
