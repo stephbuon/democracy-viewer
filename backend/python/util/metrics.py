@@ -157,48 +157,58 @@ def log_likelihood(table_name: str, column: str, values: list[str], word_list: l
         return output_df
     else:
         return pl.DataFrame()
-    
-def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
-    # Get total group count
-    total_groups = len(values)
-    if total_groups == 0:
+
+def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], scatter = True, token: str | None = None) -> pl.DataFrame:
+    # Get the number of groups
+    if scatter:
         total_groups = data.group_count(table_name, column, token)
-    # Get group count for each word
-    group_counts = data.group_count_by_words(table_name, column, values, word_list, pos_list, token)
+    else:
+        total_groups = len(values)
+        if total_groups == 0:
+            total_groups = data.group_count(table_name, column, token)
+    # Get counts of words and groups
+    word_groups = data.group_count_by_words(table_name, column, values, word_list, pos_list, token)
+    group_counts = data.group_counts(table_name, column, values, token)
     # Get records by words and groups
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
-    print(df.head().collect())
+    df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
     
-    # Compute smoothed idf
-    idf = {}
-    for word in group_counts.keys():
-        if group_counts.get(word, 0) > 0:
-            idf[word] = np.log2(total_groups / group_counts.get(word))
-        else:
-            idf[word] = 0
-    idf_df = pl.DataFrame({
-        "word": idf.keys(),
-        "idf": idf.values()
-    })
-    
+    # Compute tf
     df = (
         df
-            # Join with IDF
-            .join(idf_df.lazy(), on = "word")
-            .with_columns(
-                # Log normalize grouped counts
-                count = 1 + pl.col("count").log(2)
+            .join(
+                pl.DataFrame({
+                    "group": group_counts.keys(),
+                    "group_count": group_counts.values()
+                }),
+                "group"
             )
             .with_columns(
-                # Compute tf-idf
-                tf_idf = pl.col("count") * pl.col("idf")
+                tf = pl.col("count") / pl.col("group_count")
             )
     )
-    print(df)
+    
+    # Compute idf
+    df = (
+        df
+            .join(
+                pl.DataFrame({
+                    "word": word_groups.keys(),
+                    "num_groups": word_groups.values()
+                }),
+                "word"
+            )
+            .with_columns(
+                idf = (total_groups / pl.col("num_groups")).log(2)
+            )
+    )
+    
+    # Compute tf-idf
+    df = df.with_columns(
+        tf_idf = (pl.col("tf") * pl.col("idf"))
+    )
     
     df = (
         df
-            .collect()
             .pivot(
                 on = "group",
                 index = "word",
@@ -206,7 +216,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
             )
             .fill_null(0)
     )
-    print(df)
+
     try:
         # Rename columns
         df = df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" })
@@ -214,11 +224,12 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
         pass
     
     return df
+    
 
 def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     bar = []
     # Compute TF-IDF in scatter plot format
-    scatter = tf_idf(table_name, column, values, word_list, pos_list, token)
+    scatter = tf_idf(table_name, column, values, word_list, pos_list, False, token)
     # Translate scatter plot format into bar plot format
     for row in scatter.iter_rows(named = True):
         for col in scatter.columns:
