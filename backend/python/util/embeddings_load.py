@@ -6,9 +6,14 @@ import util.s3 as s3
 
 # move top similar words with keywords requested here
 def load_data_from_pkl(table_name: str, pkl_name: str, token: str | None = None) -> Word2Vec:
-    data = s3.download_data("embeddings/{}".format(table_name), pkl_name, "pkl", token)
+    local_file = "{}/embeddings/{}_{}.pkl".format(s3.BASE_PATH, table_name, pkl_name.replace("/", "_"))
+    
+    s3.download_file(local_file, "embeddings/{}".format(table_name), "{}.pkl".format(pkl_name), token)
 
-    return pkl.loads(data)
+    with open(local_file, 'rb') as f:
+        return pkl.load(f)
+    
+    raise Exception("Failed to load embedding")
     
 def take_similar_words_over_group(table_name: str, keyword: str, group_col: str, vals: list[str] = [], topn: int = 5, token: str | None = None) -> list[dict]:
     results = []
@@ -61,8 +66,9 @@ def take_similar_words(table_name: str, keyword: str, topn: int = 5, token: str 
                 "y": similarity_scores[i],
                 "group": keyword
             })
-    except Exception:
+    except Exception as err:
         print('Sorry, no similar words found.')
+        print(err)
         
     return results
 

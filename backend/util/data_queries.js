@@ -2,7 +2,7 @@ const aws = require("./aws");
 
 const uniqueColValues = async(table_name, col) => {
     const query = `
-        SELECT DISTINCT ${ col }
+        SELECT DISTINCT "${ col }"
         FROM datasets_${ table_name }
     `;
 
