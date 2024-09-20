@@ -1,0 +1,16 @@
+Dear [[name]],
+
+A new suggestion has been made by <a href="[[url]]/profile/[[email2]]">[[name2]]</a> to update the text in your dataset "[[title]]."
+
+They suggest the following change:
+
+Old: "[[old_text]]"
+New: "[[new_text]]"
+
+<a href="[[url]]/datasets/subsets/suggestion/[[id]]">Click here to view the record that would be affected by this change.</a>
+
+To confirm or reject this change, scroll to the bottom of <a href="[[url]]/profile/[[email]]">your profile</a> and find this change under "Received Suggestions."
+
+If the change is confirmed, it will update the text in subset search, but visualizations will not be updated unless you reprocess the dataset.
+
+- Democracy Viewer Team
