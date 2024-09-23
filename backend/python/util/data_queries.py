@@ -4,7 +4,7 @@ import util.s3 as s3
 def get_column_values(table_name: str, column: str, token: str | None):
     query = f'''
         SELECT DISTINCT "{ column }"
-        FROM datasets_{ table_name }
+        FROM democracy_viewer_athena.datasets_{ table_name }
     '''
     
     values = (
@@ -35,7 +35,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         dataset_query = f'''
             JOIN (
                 SELECT record_id, "{ column }"
-                FROM { dataset_table }
+                FROM democracy_viewer_athena.{ dataset_table }
                 { val_filter if val_filter is not None else "" }
             ) AS dataset
             ON tokens.record_id = dataset.record_id
@@ -61,7 +61,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         SELECT { f'dataset."{ column }" AS "group",' if dataset_query is not None else "" } tokens.word AS word, SUM(tokens.count) AS "count"
         FROM (
             SELECT record_id, word, "count"
-            FROM { tokens_table }
+            FROM democracy_viewer_athena.{ tokens_table }
             { "WHERE {}".format(" AND ".join(token_filter)) if len(token_filter) > 0 else "" }
             { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
             { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
@@ -92,12 +92,12 @@ def adj_noun_pairs(tokens_table: str, word_list: list[str]):
             GREATEST(adjs.count, nouns.count) AS count
         FROM (
             SELECT *
-            FROM { tokens_table }
+            FROM democracy_viewer_athena.{ tokens_table }
             WHERE pos = 'adj'
         ) AS adjs
         JOIN (
             SELECT *
-            FROM { tokens_table }
+            FROM democracy_viewer_athena.{ tokens_table }
             WHERE pos = 'noun'
         ) AS nouns
         ON adjs.record_id = nouns.record_id
@@ -125,13 +125,13 @@ def subj_verb_pairs(tokens_table: str, word_list: list[str]):
             GREATEST(subjs.count, verbs.count) AS count
         FROM (
             SELECT *
-            FROM { tokens_table }
+            FROM democracy_viewer_athena.{ tokens_table }
             WHERE dep = IN ('nsubj', 'nsubjpass')
             AND pos IN ('noun', 'propn', 'pron')
         ) AS subjs
         JOIN (
             SELECT *
-            FROM { tokens_table }
+            FROM democracy_viewer_athena.{ tokens_table }
             WHERE pos = 'verb'
         ) AS verbs
         ON subjs.record_id = verbs.record_id
@@ -176,14 +176,14 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
         SELECT word, COUNT(DISTINCT dataset."{ column }") AS "count"
         FROM (
             SELECT record_id, word
-            FROM { tokens_table }
+            FROM democracy_viewer_athena.{ tokens_table }
             { "WHERE {}".format(" AND ".join(token_filter)) if len(token_filter) > 0 else "" }
             { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
             { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
         ) AS tokens
         JOIN (
             SELECT record_id, "{ column }"
-            FROM { dataset_table }
+            FROM democracy_viewer_athena.{ dataset_table }
             { val_filter if val_filter is not None else "" }
         ) AS dataset
         ON tokens.record_id = dataset.record_id
@@ -202,7 +202,7 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
 def group_count(table_name: str, column: str, token: str | None = None):
     query = f'''
         SELECT COUNT(DISTINCT "{ column }") AS "{ column }"
-        FROM datasets_{ table_name }
+        FROM democracy_viewer_athena.datasets_{ table_name }
     '''
     
     # Get distinct values in column
@@ -219,7 +219,7 @@ def group_count(table_name: str, column: str, token: str | None = None):
 def total_word_count(table_name: str, token: str | None = None) -> int:
     query = f'''
         SELECT SUM(count) AS "count"
-        FROM tokens_{ table_name }
+        FROM democracy_viewer_athena.tokens_{ table_name }
     '''
     
     # Get distinct values in column
@@ -257,7 +257,7 @@ def word_counts(table_name: str, word_list: list[str], pos_list: list[str] = [],
         
     query = f'''
         SELECT word, SUM(count) AS "count"
-        FROM { tokens_table }
+        FROM democracy_viewer_athena.{ tokens_table }
         { "WHERE {}".format(" AND ".join(token_filter)) if len(token_filter) > 0 else "" }
         { f"UNION { adj_noun_query }" if adj_noun_query is not None else "" }
         { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
@@ -287,12 +287,12 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
         SELECT dataset."{ column }" as "group", SUM(tokens.count) AS "count"
         FROM (
             SELECT record_id, "{ column }"
-            FROM { dataset_table }
+            FROM democracy_viewer_athena.{ dataset_table }
             { val_filter if val_filter is not None else "" }
         ) AS dataset
         JOIN (
             SELECT record_id, "count"
-            FROM { tokens_table }
+            FROM democracy_viewer_athena.{ tokens_table }
         ) AS tokens
         ON dataset.record_id = tokens.record_id
         GROUP BY dataset."{ column }"
