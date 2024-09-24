@@ -9,6 +9,7 @@ export const FormattedMultiSelectField = (props) => {
 
   const fetchOptions = async (search = '') => {
     setIsLoading(true);
+    setOptions([]);
     try {
       const data = await props.getData({ search });
       const fetchedOptions = data.map(item => {
@@ -37,7 +38,7 @@ export const FormattedMultiSelectField = (props) => {
         fetchOptions();
       }
     }
-  }, [inputValue, props.isDisabled]);
+  }, [inputValue, props.isDisabled, props.refresh]);
 
   return (
     <div style={{ margin: '20px 0' }}>

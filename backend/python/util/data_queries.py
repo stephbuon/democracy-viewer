@@ -3,7 +3,7 @@ import util.s3 as s3
 # Get the unique values in a given column
 def get_column_values(table_name: str, column: str, token: str | None):
     query = f'''
-        SELECT DISTINCT { column }
+        SELECT DISTINCT "{ column }"
         FROM datasets_{ table_name }
     '''
     
@@ -29,12 +29,12 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         val_filter = None
         if len(values) > 0:
             val_filter = f'''
-                WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})
+                WHERE "{ column }" IN ({ ", ".join([ f"'{ val }'" for val in values ])})
             '''
             
         dataset_query = f'''
             JOIN (
-                SELECT record_id, { column }
+                SELECT record_id, "{ column }"
                 FROM { dataset_table }
                 { val_filter if val_filter is not None else "" }
             ) AS dataset
@@ -58,7 +58,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT { f'dataset.{ column } AS "group",' if dataset_query is not None else "" } tokens.word AS word, tokens.count AS "count"
+        SELECT { f'dataset."{ column }" AS "group",' if dataset_query is not None else "" } tokens.word AS word, SUM(tokens.count) AS "count"
         FROM (
             SELECT record_id, word, "count"
             FROM { tokens_table }
@@ -67,6 +67,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
             { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
         ) AS tokens
         { dataset_query if dataset_query is not None else "" }
+        GROUP BY tokens.word{ f', dataset."{ column }"' if dataset_query is not None else "" }
     '''
     
     df = s3.download(query, token)
@@ -152,7 +153,7 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
     
     if len(values) > 0:
         val_filter = f'''
-            WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})
+            WHERE "{ column }" IN ({ ", ".join([ f"'{ val }'" for val in values ])})
         '''
 
     if len(word_list) > 0:
@@ -172,7 +173,7 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT word, COUNT(DISTINCT dataset.{ column }) AS "count"
+        SELECT word, COUNT(DISTINCT dataset."{ column }") AS "count"
         FROM (
             SELECT record_id, word
             FROM { tokens_table }
@@ -181,7 +182,7 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
             { f"UNION { subj_verb_query }" if subj_verb_query is not None else "" }
         ) AS tokens
         JOIN (
-            SELECT record_id, { column }
+            SELECT record_id, "{ column }"
             FROM { dataset_table }
             { val_filter if val_filter is not None else "" }
         ) AS dataset
@@ -200,7 +201,7 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
 # Get the total number of distinct group values
 def group_count(table_name: str, column: str, token: str | None = None):
     query = f'''
-        SELECT COUNT(DISTINCT { column }) AS "{ column }"
+        SELECT COUNT(DISTINCT "{ column }") AS "{ column }"
         FROM datasets_{ table_name }
     '''
     
@@ -279,13 +280,13 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
         
     if len(values) > 0:
         val_filter = f'''
-            WHERE { column } IN ({ ", ".join([ f"'{ val }'" for val in values ])})
+            WHERE "{ column }" IN ({ ", ".join([ f"'{ val }'" for val in values ])})
         '''
         
     query = f'''
-        SELECT dataset.{ column } as "group", SUM(tokens.count) AS "count"
+        SELECT dataset."{ column }" as "group", SUM(tokens.count) AS "count"
         FROM (
-            SELECT record_id, { column }
+            SELECT record_id, "{ column }"
             FROM { dataset_table }
             { val_filter if val_filter is not None else "" }
         ) AS dataset
@@ -294,12 +295,12 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
             FROM { tokens_table }
         ) AS tokens
         ON dataset.record_id = tokens.record_id
-        GROUP BY dataset.{ column }
+        GROUP BY dataset."{ column }"
     '''
         
     records = {}
     df = s3.download(query, token).collect()
     for row in df.iter_rows(named = True):
-        records[row[column]] = row["count"]
+        records[row["group"]] = row["count"]
         
     return records

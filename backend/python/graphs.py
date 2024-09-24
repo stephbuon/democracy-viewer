@@ -57,7 +57,7 @@ if params["metric"] == "counts":
 elif params["metric"] == "proportions":
     output = metrics.proportions(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), params.get("topn", 5), TOKEN)
 elif params["metric"] == "tf-idf-scatter":
-    output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), TOKEN)
+    output = metrics.tf_idf(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), True, TOKEN)
 elif params["metric"] == "tf-idf-bar":
     output = metrics.tf_idf_bar(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), params.get("topn", 5), TOKEN)
 elif params["metric"] == "ll":
@@ -80,4 +80,4 @@ if type(output) == dict or type(output) == list:
 else:
     output.to_pandas(use_pyarrow_extension_array=True).to_json(output_file, orient = "records", indent = 4)
 
-print("Total time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
+print("Total time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - total_start_time))))

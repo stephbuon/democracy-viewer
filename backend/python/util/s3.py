@@ -221,7 +221,8 @@ def download_data(folder: str, name: str, ext: str, token: str | None = None) ->
             region_name = distributed["region"]
         )
     path = "{}/{}.{}".format(folder, name, ext)
-        
+    print(path)
+    
     start_time = time()
     response = s3_client.get_object(
         Bucket = distributed["bucket"],
@@ -253,7 +254,8 @@ def download_file(local_file: str, folder: str, name: str, token: str | None = N
                 region_name = distributed["region"]
             )
         path = "{}/{}".format(folder, name)
-            
+        print(path)
+        
         start_time = time()
         s3_client.download_file(
             distributed["bucket"],
@@ -265,6 +267,18 @@ def download_file(local_file: str, folder: str, name: str, token: str | None = N
 
 def delete(name: str, token: str | None = None) -> None:
     distributed = get_creds(token)
+    
+    # Drop athena tables
+    athena_client = boto3.client(
+        "athena",
+        aws_access_key_id = distributed["key_"],
+        aws_secret_access_key = distributed["secret"],
+        region_name = distributed["region"]
+    )
+    query = f"DROP TABLE datasets_{ name }"
+    submit_athena_query(athena_client, query)
+    query = f"DROP TABLE tokens_{ name }"
+    submit_athena_query(athena_client, query)
     
     if "key_" in distributed.keys() and "secret" in distributed.keys():
         s3_client = boto3.client(
@@ -280,15 +294,19 @@ def delete(name: str, token: str | None = None) -> None:
         )
     
     for dir in ["tables/", "embeddings/"]:
+        if dir == "tables/":
+            prefix = dir
+        else:
+            prefix = f"{ dir }{ name }"
         # List all objects in the bucket
         response = s3_client.list_objects_v2(
             Bucket = distributed["bucket"],
-            Prefix = dir
+            Prefix = prefix
         )
 
         # Check if the bucket contains any objects
         if 'Contents' not in response:
-            print("No objects found in bucket '{}/{}'".format(distributed["bucket"], dir))
+            print("No objects found in bucket '{}/{}'".format(distributed["bucket"], prefix))
             continue
 
         # Filter objects containing the substring and delete them
