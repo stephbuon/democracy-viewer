@@ -128,7 +128,6 @@ export const Upload = (props) => {
   }, []);
 
   useEffect(() => {
-    debugger;
     if (alert !== 0) {
       setSnackBarOpen(true);
     } else {
