@@ -15,7 +15,7 @@ export const SubsetResultsPage = (props) => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [totalNumResults, setTotalNumResults] = useState(0);
+    const [totalNumResults, setTotalNumResults] = useState(-1);
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState({});
     const [columns, setColumns] = useState([]);

@@ -22,13 +22,10 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     const [first, setFirst] = useState(0);
     const [loggedIn, setLoggedIn] = useState(false);
     const [alert, setAlert] = useState(0);
-    const [loading, setLoading] = useState(true);
 
-    const onPage = async(event) => {
-        setLoading(true);
-        await GetNewPage(event.page + 1);
+    const onPage = (event) => {
+        GetNewPage(event.page + 1);
         setFirst(pageLength * event.page);
-        setLoading(false);
     }
 
     const getCellClick = (event) => {
@@ -65,15 +62,6 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
             table_name
         }).then(x => setAlert(1));
     }
-
-    useEffect(() => {
-        if (searchResults.length === 0 && totalNumResults !== 0) {
-            setLoading(true);
-        }
-        else {
-            setLoading(false);
-        }
-    }, [searchResults, totalNumResults])
 
     useEffect(() => {
         const cells = document.querySelectorAll(".p-datatable-wrapper td");
@@ -122,7 +110,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
         >
             <Alert onClose={() => setAlert(0)} severity="success" sx={{ width: '100%' }}>
                 Your suggestion has been submitted to the owner of this dataset for review.
-                <br />
+                <br/>
                 You will be sent an email when it has been confirmed.
             </Alert>
         </Snackbar>
@@ -139,17 +127,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                     justifyContent: 'center',
                     marginTop: '50px',
                 }}
-            > 
-                {
-                    totalNumResults === -1 &&
-                    <>Waiting for results</>
-                }
-
-                {
-                    totalNumResults !== -1 &&
-                    <>{totalNumResults} results returned</>
-                }
-            </Box>
+            > {totalNumResults} results returned</Box>
             <Button
                 variant="contained"
                 color="primary"
@@ -160,7 +138,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                     marginTop: '50px',
                     background: 'black'
                 }}
-                onClick={() => window.open(`${window.location.origin}/download/full`)}
+                onClick={() => window.open(`${ window.location.origin }/download/full`)}
             >Download full dataset</Button>
             <Button
                 variant="contained"
@@ -171,37 +149,12 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                     marginLeft: '2em',
                     marginTop: '50px',
                     background: 'black'
-
+                    
                 }}
-                onClick={() => window.open(`${window.location.origin}/download/${downloadType}`)}
+                onClick={() => window.open(`${ window.location.origin }/download/${ downloadType }`)}
             >Download these {totalNumResults} results</Button>
         </Box>
 
-        {(loading === true) && (
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    mt: "50px"
-                }}
-            >
-                <div style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "60vh"
-                }}>
-                    <div class="spinner-border" style={{
-                        width: "5rem",
-                        height: "5rem"
-                    }}
-                        role="status">
-                        <span class="sr-only"></span>
-                    </div>
-                </div>
-            </Box>
-        )}
         {
             loggedIn === true &&
             <Tooltip arrow title="Highlight text to suggest changes to the dataset">
@@ -224,52 +177,50 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
                 />
             </Tooltip>
         }
+        
+        <DataTable 
+            value={searchResults} 
+            scrollable 
+            scrollHeight="80vh" 
+            showGridlines 
+            stripedRows 
+            style={{ marginLeft: "100px" }}
+            lazy
+            paginator
+            rows={pageLength}
+            totalRecords={totalNumResults}
+            onPage={onPage}
+            first={first}
+            emptyMessage="No Records Found"
+        >
+            {
+                columns.map((col, i) => {
+                    if (col === "record_id") {
+                        return <></>
+                    }
+                    else {
+                        return <Column
+                            key={i}
+                            field={col}
+                            header={col}
+                            style={{ minWidth: `${col.length * 15}px` }}
+                            body={(rowData) => (
+                                <div style={{ 
+                                    height: '125px', 
+                                    overflowY: 'auto', 
+                                    verticalAlign: 'top', 
+                                    paddingTop: '5px' 
+                                }}>
+                                    {rowData[col]}
+                                </div>
+                            )}
+                            headerStyle={{verticalAlign: 'top'}}
+                        />
 
-        {(loading === false) && (
-            <DataTable
-                value={searchResults}
-                scrollable
-                scrollHeight="80vh"
-                showGridlines
-                stripedRows
-                style={{ marginLeft: "100px" }}
-                lazy
-                paginator
-                rows={pageLength}
-                totalRecords={totalNumResults}
-                onPage={onPage}
-                first={first}
-                emptyMessage="No Records Found"
-            >
-                {
-                    columns.map((col, i) => {
-                        if (col === "record_id") {
-                            return <></>
-                        }
-                        else {
-                            return <Column
-                                key={i}
-                                field={col}
-                                header={col}
-                                style={{ minWidth: `${col.length * 15}px` }}
-                                body={(rowData) => (
-                                    <div style={{
-                                        height: '125px',
-                                        overflowY: 'auto',
-                                        verticalAlign: 'top',
-                                        paddingTop: '5px'
-                                    }}>
-                                        {rowData[col.toLowerCase()]}
-                                    </div>
-                                )}
-                                headerStyle={{ verticalAlign: 'top' }}
-                            />
-
-                        }
-                    })
-                }
-            </DataTable>
-        )}
+                    }
+                })
+            }
+        </DataTable>
 
         <AlertDialog
             open={editOpen}
