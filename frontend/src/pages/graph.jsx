@@ -214,7 +214,6 @@ export const Graph = (props) => {
           const fraction = 0.1;
           const yThreshold = rangeY * fraction;
           const yDistance = Math.abs(y1 - y2);
-          debugger;
           return yDistance < yThreshold;
         };
 
