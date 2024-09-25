@@ -120,9 +120,9 @@ export const UploadModal = (props) => {
         <Box
             sx={{
                 position: 'absolute',
-                top: '10%',
+                top: '2.5%',
                 left: '10%',
-                height: "80%",
+                height: "95%",
                 overflowY: "auto",
                 width: "80%",
                 bgcolor: 'background.paper',
