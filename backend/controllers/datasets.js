@@ -108,7 +108,7 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     await runPython("upload_dataset", [ name, path ], metadata.distributed);
 
     // Set dataset as uploaded
-    await model.updateMetadata(name, { uploaded: true });
+    // await model.updateMetadata(name, { uploaded: true });
 
     // Start batch preprocessing
     await aws.submitBatchJob(name);

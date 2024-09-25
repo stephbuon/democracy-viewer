@@ -17,6 +17,7 @@ export const Graph = (props) => {
   const [settings, setSettings] = useState(true);
   const [graph, setGraph] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [zoomLoading, setZoomLoading] = useState(false);
   const [alert, setAlert] = useState(1);
   const [snackBarOpen1, setSnackBarOpen1] = useState(false);
 
@@ -405,6 +406,7 @@ export const Graph = (props) => {
                   onClick={handleOpen}
                   className="mt-2"
                   sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  disabled={loading || zoomLoading}
                 ><Settings sx={{ mr: "10px" }} />Settings</Button>
               </Grid>
 
@@ -414,6 +416,7 @@ export const Graph = (props) => {
                   onClick={resetGraph}
                   className="mt-2"
                   sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  disabled={loading || zoomLoading}
                 ><RotateLeft sx={{ mr: "10px" }} />Reset</Button>
               </Grid>
 
@@ -423,6 +426,7 @@ export const Graph = (props) => {
                   onClick={() => downloadGraph()}
                   className="mt-2"
                   sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  disabled={loading || zoomLoading}
                 ><Download sx={{ mr: "10px" }} />Download</Button>
               </Grid>
             </Grid>
@@ -430,7 +434,7 @@ export const Graph = (props) => {
 
           {/* {"Graph component if graph exists"} */}
           <Grid item xs="auto">
-            {loading && (
+            {(loading === true || zoomLoading === true) && (
               <Box
                 sx={{
                   display: 'flex',
@@ -439,10 +443,22 @@ export const Graph = (props) => {
                   mt: "50px"
                 }}
               >
-                <Loop sx={{ fontSize: 80 }} />
+        <div style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh"
+        }}>
+          <div class="spinner-border" style={{
+              width: "5rem",
+              height: "5rem"
+            }} role="status">
+            <span class="sr-only"></span>
+              </div>
+        </div>
               </Box>
             )}
-            {graph === true && <GraphComponent border data={graphData} setData={setData} />}
+            {graph === true && zoomLoading === false && <GraphComponent border data={graphData} setData={setData} setZoomLoading={setZoomLoading} />}
             {graph === false && settings === false && loading === false && <div id="test" style={{ textAlign: "center" }}>No Results Found</div>}
           </Grid>
         </Grid>

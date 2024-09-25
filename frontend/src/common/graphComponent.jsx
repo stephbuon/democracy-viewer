@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { metricTypes } from "./metrics";
 import { graphIds } from "../api/api";
 
-export const GraphComponent = ({ data, setData }) => {
+export const GraphComponent = ({ data, setData, setZoomLoading }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
@@ -97,6 +97,7 @@ export const GraphComponent = ({ data, setData }) => {
         if (foundData) {
             Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" });
             graph.current.on('plotly_click', function (event) { // Click event for zoom page
+                setZoomLoading(true);
                 const dataPoint = event.points[0];
                 let idx;
                 if (typeof dataPoint.pointIndex === "number") {
@@ -131,6 +132,7 @@ export const GraphComponent = ({ data, setData }) => {
                         words: params.word_list
                     };
                     localStorage.setItem('selected', JSON.stringify(tempData))
+                    setZoomLoading(false);
                     navigate("/zoom");
                 });
             });
