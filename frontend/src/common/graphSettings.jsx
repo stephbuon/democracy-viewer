@@ -172,7 +172,7 @@ export const GraphSettings = ( props ) => {
                         <FormattedMultiSelectField
                             selectedOptions={posList}
                             setSelectedOptions={setPosList}
-                            getData={() => posOptions}
+                            getData={posOptions}
                             id="posSelect"
                             className="mb-3"
                             closeMenuOnSelect={false}

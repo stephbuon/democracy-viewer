@@ -211,7 +211,7 @@ export const UploadModal = (props) => {
                                 <FormattedMultiSelectField
                                     selectedOptions={textCols}
                                     setSelectedOptions={setTextCols}
-                                    getData={() => textColOptions}
+                                    getData={textColOptions}
                                     id="textColSelect"
                                     closeMenuOnSelect={false}
                                 />

@@ -12,24 +12,40 @@ export const FormattedMultiSelectField = (props) => {
   const fetchOptions = async (search = '', page = 1) => {
     setIsLoading(true);
     try {
-      const data = await props.getData({ search, page });
-      const fetchedOptions = data.map(item => {
-        if (typeof item === "object") {
-          return item;
-        } else {
-          return {
-            value: item,
-            label: item
+      if (typeof props.getData === "function") {
+        const data = await props.getData({ search, page });
+        const fetchedOptions = data.map(item => {
+          if (typeof item === "object") {
+            return item;
+          } else {
+            return {
+              value: item,
+              label: item
+            }
           }
+        });
+  
+        if (fetchedOptions.length === 0) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
         }
-      });
 
-      if (fetchedOptions.length === 0) {
-        setHasMore(false);
+        setOptions(prevOptions => [...prevOptions, ...fetchedOptions]);
       } else {
-        setHasMore(true);
-      }
-      setOptions(prevOptions => [...prevOptions, ...fetchedOptions]);
+        const data = props.getData.map(item => {
+          if (typeof item === "object") {
+            return item;
+          } else {
+            return {
+              value: item,
+              label: item
+            }
+          }
+        });
+        setOptions(data);
+        setHasMore(false);
+      }      
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -37,8 +53,8 @@ export const FormattedMultiSelectField = (props) => {
     }
   }
 
-  const fetchMoreData = async() => {
-    await fetchOptions(inputValue, page + 1);
+  const fetchMoreData = () => {
+    fetchOptions(inputValue, page + 1);
     setPage(page + 1);
   }
 
@@ -85,14 +101,14 @@ const MenuList = ({ children, fetchMoreData, hasMore, isLoading, page }) => {
   const height = 50;
   const listRef = useRef(null);
 
-  const onScroll = async({ scrollDirection, scrollOffset }) => {
-    const totalHeight = children.length * height;
-    const clientHeight = Math.min(children.length, 3) * height;
-
-    // Check if the user has scrolled near the bottom
-    if (scrollDirection === 'forward' && totalHeight - scrollOffset <= clientHeight + 10 && hasMore && !isLoading) {
-      // console.log(children.length)
-      await fetchMoreData();  // Trigger loading more options when near the bottom
+  const onScroll = ({ scrollDirection, scrollOffset }) => {
+    if (hasMore && !isLoading) {
+      const totalHeight = children.length * height;
+      const clientHeight = Math.min(children.length, 3) * height;
+      // Check if the user has scrolled near the bottom
+      if (scrollDirection === 'forward' && totalHeight - scrollOffset <= clientHeight + 10) {
+        fetchMoreData();  // Trigger loading more options when near the bottom
+      }
     }
   };
 
