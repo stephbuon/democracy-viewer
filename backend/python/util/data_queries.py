@@ -48,7 +48,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
     
     if len(pos_list) > 0:
         token_filter.append(f'''
-            pos IN ({ ", ".join([ f"'{ pos }'" for pos in pos_list if pos not in ["adj-noun", "subj-verb"] ]) })
+            pos IN ({ ", ".join([ f"'{ pos }'" for pos in pos_list ]) })
         ''')
     
     if "adj-noun" in pos_list:
@@ -87,9 +87,9 @@ def adj_noun_pairs(tokens_table: str, word_list: list[str]):
     
     query = f'''
         SELECT
-            record_id,
+            adjs.record_id AS record_id,
             CONCAT(adjs.word, ' ', nouns.head) AS word,
-            GREATEST(adjs.count, nouns.count) AS count
+            GREATEST(adjs.count, nouns.count) AS "count"
         FROM (
             SELECT *
             FROM democracy_viewer_athena.{ tokens_table }
@@ -120,13 +120,13 @@ def subj_verb_pairs(tokens_table: str, word_list: list[str]):
     
     query = f'''
         SELECT
-            record_id,
+            subjs.record_id AS record_id,
             CONCAT(subjs.word, ' ', verbs.head) AS word,
-            GREATEST(subjs.count, verbs.count) AS count
+            GREATEST(subjs.count, verbs.count) AS "count"
         FROM (
             SELECT *
             FROM democracy_viewer_athena.{ tokens_table }
-            WHERE dep = IN ('nsubj', 'nsubjpass')
+            WHERE dep IN ('nsubj', 'nsubjpass')
             AND pos IN ('noun', 'propn', 'pron')
         ) AS subjs
         JOIN (
