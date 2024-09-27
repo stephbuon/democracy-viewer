@@ -96,7 +96,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
     useEffect(() => {
         if (foundData) {
             Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" });
-            graph.current.on('plotly_click', function (event) { // Click event for zoom page
+            graph.current.on('plotly_click', (event) => { // Click event for zoom page
                 setZoomLoading(true);
                 const dataPoint = event.points[0];
                 let idx;
@@ -115,7 +115,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
                     params.group_list = [dataPoint.x, dataPoint.y];
                 } else if (metricTypes.dotplot.includes(data.metric)) {
                     params.group_list = dataPoint.x;
-                    params.word_list = [dataPoint.data.name, data.titleList[0]];
+                    params.word_list = [dataPoint.text, data.titleList[0]];
                 } else if (metricTypes.multibar.includes(data.metric)) {
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.text];
