@@ -60,6 +60,7 @@ CREATE TABLE dataset_metadata (
     unprocessed_updates INT UNSIGNED NOT NULL DEFAULT 0,
     uploaded BOOLEAN DEFAULT FALSE NOT NULL,
     num_records INT UNSIGNED NOT NULL DEFAULT 0,
+    license VARCHAR(200),
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE

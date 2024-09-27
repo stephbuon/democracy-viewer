@@ -46,6 +46,18 @@ export const DatasetInformation = (props) => {
                     setValid={setValid}
                 />
                 <FormattedTextField
+                    id="Description"
+                    label="Description"
+                    variant="filled"
+                    fullWidth
+                    sx={{ background: 'rgb(255, 255, 255)' }}
+                    defaultValue={props.description}
+                    setValue={props.setDescription}
+                    maxChars={500}
+                    required
+                    setValid={setValid}
+                />
+                <FormattedTextField
                     id="Source"
                     label="Source"
                     variant="filled"
@@ -68,15 +80,14 @@ export const DatasetInformation = (props) => {
                     onChange={event => { props.setDate(event.target.value); }}
                 />
                 <FormattedTextField
-                    id="Description"
-                    label="Description"
+                    id="License"
+                    label="License"
                     variant="filled"
                     fullWidth
                     sx={{ background: 'rgb(255, 255, 255)' }}
-                    defaultValue={props.description}
-                    setValue={props.setDescription}
-                    maxChars={500}
-                    required
+                    defaultValue={props.license}
+                    setValue={props.setLicense}
+                    maxChars={200}
                     setValid={setValid}
                 />
                 <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>

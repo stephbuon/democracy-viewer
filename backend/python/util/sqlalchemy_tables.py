@@ -37,6 +37,7 @@ class DatasetMetadata(SQL_BASE):
     unprocessed_updates = Column("unprocessed_updates", Integer)
     uploaded = Column("uploaded", Boolean)
     num_records = Column("num_records", Integer)
+    license = Column("license", String(200))
     
 class Tags(SQL_BASE):
     __tablename__ = "tags"
