@@ -133,7 +133,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
                     };
                     localStorage.setItem('selected', JSON.stringify(tempData))
                     setZoomLoading(false);
-                    navigate("/zoom");
+                    navigate("/graph/zoom");
                 });
             });
         }
