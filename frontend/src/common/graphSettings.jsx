@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { getGroupNames, getColumnValues } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
-import ReactSelect from 'react-select';
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "./forms";
 import "./list.css";
@@ -23,6 +22,7 @@ export const GraphSettings = ( props ) => {
     const [searchTerms, setSearchTerms] = useState([]);
     const [groupOptions, setGroupOptions] = useState(undefined);
     const [groupList, setGroupList] = useState([]);
+    const [refreshGroupOptions, setRefreshGroupOptions] = useState(true);
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
     const [selectToggle, setSelectToggle] = useState(true);
@@ -124,9 +124,8 @@ export const GraphSettings = ( props ) => {
     // updates array for column value dropdown
     useEffect(() => {
         setSelectToggle(group === "");
-        if (group === "") {
-            setGroupList([]);
-        }
+        setGroupList([]);
+        setRefreshGroupOptions(!refreshGroupOptions);
     }, [group]);
 
     useEffect(() => {
@@ -173,7 +172,7 @@ export const GraphSettings = ( props ) => {
                         <FormattedMultiSelectField
                             selectedOptions={posList}
                             setSelectedOptions={setPosList}
-                            getData={() => posOptions}
+                            getData={posOptions}
                             id="posSelect"
                             className="mb-3"
                             closeMenuOnSelect={false}
@@ -199,6 +198,7 @@ export const GraphSettings = ( props ) => {
                     isDisabled={selectToggle}
                     className="mb-3"
                     closeMenuOnSelect={false}
+                    refresh={refreshGroupOptions}
                 />
 
                 {/* Custom search + terms list */}

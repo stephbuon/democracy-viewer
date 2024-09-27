@@ -91,7 +91,7 @@ const getCsvHeaders = async(path) => new Promise((resolve, reject) => {
     let headers = [];
 
     parser.on("headers", (h) => {
-        headers = h;
+        headers = h.map(x => x.replace(/[^\x00-\x7F]/g, ""));
         // Close the stream after reading the headers
         stream.destroy();
         resolve(headers);

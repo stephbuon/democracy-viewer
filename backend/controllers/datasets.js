@@ -11,11 +11,9 @@ const aws = require("../util/aws");
 const createDataset = async(path, email) => {
     // Get the file name from the file path
     let filepath = path.split("/");
-    const comps = filepath.pop().split(".");
+    const extension = filepath.pop().split(".").pop();
     filepath = filepath.join("/");
-    const extension = comps.pop();
-    const name = comps[comps.length - 1].replace(extension, "");
-    const table_name = `${ name }_${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
+    const table_name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
     const newName = `${ filepath }/${ table_name }.${ extension }`;
     // Rename file
     util.renameFile(path, newName);
@@ -110,7 +108,7 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     await runPython("upload_dataset", [ name, path ], metadata.distributed);
 
     // Set dataset as uploaded
-    await model.updateMetadata(name, { uploaded: true });
+    // await model.updateMetadata(name, { uploaded: true });
 
     // Start batch preprocessing
     await aws.submitBatchJob(name);
