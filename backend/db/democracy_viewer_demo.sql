@@ -8,8 +8,8 @@ CREATE TABLE users (
     last_name VARCHAR(20) NOT NULL,
     suffix VARCHAR(10),
     orcid VARCHAR(16),
-    linkedin_link VARCHAR(50),
-    website VARCHAR(50)
+    linkedin_link VARCHAR(200),
+    website VARCHAR(200)
 );
 
 CREATE TABLE password_reset_codes (
@@ -60,6 +60,7 @@ CREATE TABLE dataset_metadata (
     unprocessed_updates INT UNSIGNED NOT NULL DEFAULT 0,
     uploaded BOOLEAN DEFAULT FALSE NOT NULL,
     num_records INT UNSIGNED NOT NULL DEFAULT 0,
+    license VARCHAR(200),
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE

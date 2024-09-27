@@ -39,7 +39,7 @@ export const Layout = (props) => {
         return "Acknowledgements";
       case "/distributed":
         return "Distributed Connection";
-      case "/zoom":
+      case "/graph/zoom":
         return "Graph Zoom";
       default:
         if (location.pathname.includes("/profile/")) {

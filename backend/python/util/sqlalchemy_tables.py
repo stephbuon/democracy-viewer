@@ -12,8 +12,8 @@ class Users(SQL_BASE):
     last_name = Column("last_name", String(20))
     suffix = Column("suffix", String(10))
     orcid = Column("orcid", String(16))
-    linkedin_link = Column("linkedin_link", String(50))
-    website = Column("website", String(50))
+    linkedin_link = Column("linkedin_link", String(200))
+    website = Column("website", String(200))
 
 class DatasetMetadata(SQL_BASE):
     __tablename__ = "dataset_metadata"
@@ -37,6 +37,7 @@ class DatasetMetadata(SQL_BASE):
     unprocessed_updates = Column("unprocessed_updates", Integer)
     uploaded = Column("uploaded", Boolean)
     num_records = Column("num_records", Integer)
+    license = Column("license", String(200))
     
 class Tags(SQL_BASE):
     __tablename__ = "tags"

@@ -150,7 +150,7 @@ const getZoomIds = async(table_name, params) => {
         tokenQuery = `
             SELECT DISTINCT record_id
             FROM democracy_viewer_athena.tokens_${ table_name }
-            WHERE word IN (${ params.word_list.map(x => `'${ x }'`).join(", ") })
+            WHERE word IN (${ params.word_list.map(x => `'${ x.toLowerCase() }'`).join(", ") })
         `;
     }
 

@@ -202,7 +202,7 @@ export default function Register(props) {
                 <FormattedTextField
                     id = "linkedin_link"
                     label = "LinkedIn Link"
-                    maxChars = {50}
+                    maxChars = {200}
                     setValid={setValid}
                     website
                     autoComplete="LinkedIn"
@@ -214,7 +214,7 @@ export default function Register(props) {
                 <FormattedTextField
                     id = "website"
                     label = "Website Link"
-                    maxChars = {50}
+                    maxChars = {200}
                     setValid={setValid}
                     website
                     fullWidth

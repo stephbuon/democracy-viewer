@@ -144,7 +144,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 id="linkedin_link"
                                 label="LinkedIn Link"
                                 defaultValue={user.linkedin_link}
-                                maxChars={50}
+                                maxChars={200}
                                 setValid={setValid}
                                 website
                                 autoComplete="LinkedIn"
@@ -156,7 +156,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 id="website"
                                 label="Website Link"
                                 defaultValue={user.website}
-                                maxChars={50}
+                                maxChars={200}
                                 setValid={setValid}
                                 website
                                 setValue={setWebsite}
