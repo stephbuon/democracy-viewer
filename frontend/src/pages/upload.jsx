@@ -17,94 +17,27 @@ import {
 
 import { UploadModal } from "./UploadModal";
 import { Table, TableBody, TableRow, TableCell, TextField } from "@mui/material";
-import { GetCSVFromAPI, CreateDataset } from "../apiFolder/DatasetUploadAPI.js";
 import { useNavigate, Link } from "react-router-dom";
+import { SelectField } from "../common/selectField";
 
 export const Upload = (props) => {
   const navigate = useNavigate();
 
-  const [file, setFile] = useState(undefined);
-  const [fileLoaded, setFileLoaded] = useState(false);
-  const [headers, setheaders] = useState([]);
-  const [tableName, settableName] = useState(undefined);
-  const [APIEndpoint, setAPIEndpoint] = useState("");
-  const [Token, setToken] = useState("");
-  const [clicked, setClicked] = useState(undefined);
-  const [alert, setAlert] = useState(0);
-  const [fileUploaded, setFileUploaded] = useState(false);
-  const [snackBarOpen, setSnackBarOpen] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [disableButtons, setDisableButtons] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [uploadModeOptions, setUploadModeOptions] = useState([
+    {
+      "value": "csv",
+      "label": "CSV"
+    },
+    {
+      "value": "api",
+      "label": "API"
+    }
+  ]);
+  const [uploadModeSelected, setUploadModeSelected] = useState("csv");
 
-  const openDataSetInfo = () => {
-    setFileLoaded(true);
-  };
-  const handleDataSetInfo = () => {
-    setFileLoaded(false);
-  };
   const CancelUpload = () => {
-    setFileLoaded(false);
-  };
-
-  const handleSnackBarClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackBarOpen(false);
-  };
-
-  useEffect(() => {
-    if (file && file.name) {
-      setAlert(0);
-      const validExtensions = [".csv"];
-      if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
-        setAlert(1);
-      } else {
-        uploadCsv();
-      }
-    } else {
-      setFileLoaded(false);
-    }
-  }, [file]);
-
-  const uploadCsv = () => {
-    setAlert(0);
-    setUploadProgress(0);
-    setDisableButtons(true);
-    CreateDataset(file, setUploadProgress).then(res => {
-      settableName(res.table_name)
-      setheaders(res.headers)
-      setFileUploaded(true);
-      setAlert(3);
-    }).catch(res => {
-      if (res.response && res.response.data.message === "MulterError: File too large") {
-        setAlert(4);
-      } else {
-        setAlert(2);
-      }
-      
-      setFile(undefined);
-      setUploadProgress(0);
-    }).finally(() => setDisableButtons(false));
-  };
-
-  const APIcsv = () => {
-    setAlert(0);
-    setDisableButtons(true);
-    GetCSVFromAPI(APIEndpoint, Token)
-      .then((res) => {
-        settableName(res.table_name);
-        setheaders(res.headers);
-        setFileUploaded(true);
-        setAlert(3);
-      })
-      .catch(() => {
-        setAlert(2);
-      }).finally(() => setDisableButtons(false));
-  };
-
-  const click = (a) => {
-    setClicked(a);
+    setOpenModal(false);
   };
 
   const loggedIn = () => {
@@ -127,14 +60,6 @@ export const Upload = (props) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (alert !== 0) {
-      setSnackBarOpen(true);
-    } else {
-      setSnackBarOpen(false);
-    }
-  }, [alert]);
-
   return (
     <>
       <Container maxWidth="sm">
@@ -148,35 +73,38 @@ export const Upload = (props) => {
         >
           Upload
         </Typography>
+        {/* if (file == ".csv") {
+          handleDataSetInfo.display(); 
+        }
+        else if (file == "API") {
+
+        } */}
 
         <Stack sx={{ pt: 4 }} direction="row" spacing={2} justifyContent="center"></Stack>
       </Container>
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        open={snackBarOpen}
-        autoHideDuration={6000}
-        onClose={() => handleSnackBarClose()}
-      >
-        <Alert
-          onClose={handleSnackBarClose}
-          severity={alert === 3 ? "success" : "error"}
-          sx={{ width: "100%" }}
-        >
-          {alert === 1 && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
-          {alert === 2 && <div>An error occurred uploading the dataset</div>}
-          {alert === 3 && <div>Dataset successfully uploaded</div>}
-          {alert === 4 && <div>Maximum upload size is 150 MB. Reach out to us at <Link to="mailto:democracyviewerlab@gmail.com">democracyviewerlab@gmail.com</Link> to upload a larger dataset</div>}
-        </Alert>
-      </Snackbar>
-      <Modal open={fileLoaded} onClose={() => handleDataSetInfo()}>
+      <Modal open={openModal} onClose={() => CancelUpload()}>
         <div>
-          {(clicked == 1 || clicked === 2) && (
-            <UploadModal CancelUpload={() => CancelUpload()} name={tableName} headers={headers} />
-          )}
+            <UploadModal CancelUpload={() => CancelUpload()} uploadType={uploadModeSelected} />
         </div>
       </Modal>
       <Container maxWidth="md">
-        <Grid container spacing={4} justifyContent="space-between">
+        <SelectField
+          label="Upload Mode"
+          value={uploadModeSelected}
+          setValue={setUploadModeSelected}
+          options={uploadModeOptions}
+          hideBlankOption={1}
+        />
+        <Button
+          variant="contained"
+          sx={{ bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+          onClick={() => {
+            setOpenModal(true);
+          }}
+        >
+          Continue
+        </Button>
+        {/* <Grid container spacing={4} justifyContent="space-between">
           <Grid item xs={13} sm={7} md={5}>
             <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
               <CardContent
@@ -210,7 +138,7 @@ export const Upload = (props) => {
                   Select
                   <input
                     type="file"
-                    accept="*/*"
+                    
                     hidden
                     onChange={(x) => {
                       setFile(x.target.files[0]);
@@ -283,7 +211,7 @@ export const Upload = (props) => {
               </Button>
             </Box>
           </Grid>
-        </Grid>
+        </Grid> */}
       </Container>
     </>
   );
