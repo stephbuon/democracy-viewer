@@ -29,7 +29,8 @@ export const Zoom = (props) => {
                 // Highlighting
                 if (textCols.length > 0) {
                     res.map(row => {
-                        textCols.forEach(col => {
+                        textCols.forEach(x => {
+                            const col = x.toLowerCase();
                             row[col] = (
                                 <Highlighter
                                     searchWords={graphData.words}
