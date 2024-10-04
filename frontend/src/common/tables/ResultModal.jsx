@@ -128,9 +128,9 @@ export const ResultModal = (props) => {
             <Box
                 sx={{
                     position: 'absolute',
-                    top: '20%',
+                    top: '7.5%',
                     left: '15%',
-                    height: "60%",
+                    height: "85%",
                     overflow: "scroll",
                     width: "70%",
                     bgcolor: 'background.paper',
