@@ -20,6 +20,7 @@ export const SubsetResultsPage = (props) => {
     const [query, setQuery] = useState({});
     const [columns, setColumns] = useState([]);
     const [selected, setSelected] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const highlight = (results) => {
         const terms = searchTerm.split(" ");
@@ -53,6 +54,7 @@ export const SubsetResultsPage = (props) => {
         demoV.downloadData = _query;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
 
+        setLoading(true);
         GetSubsetOfDataByPage(demoV.dataset.table_name, _query, 1, pageLength).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
@@ -62,7 +64,7 @@ export const SubsetResultsPage = (props) => {
                 setColumns(res.columns);
             }
             setPage(1);
-        })
+        }).finally(() => setLoading(false));
 
         setQuery(_query);
     }
@@ -172,6 +174,7 @@ export const SubsetResultsPage = (props) => {
             totalNumResults={totalNumResults}
             pageLength={pageLength}
             columns={columns}
+            extLoading={loading}
         />
     </>
 }

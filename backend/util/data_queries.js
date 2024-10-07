@@ -4,6 +4,7 @@ const uniqueColValues = async(table_name, col) => {
     const query = `
         SELECT DISTINCT "${ col }"
         FROM democracy_viewer_athena.datasets_${ table_name }
+        ORDER BY "${ col }"
     `;
 
     return await aws.download(query);

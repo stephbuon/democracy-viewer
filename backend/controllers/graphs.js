@@ -9,14 +9,6 @@ const datasets = require("../models/datasets");
 const createGraph = async(knex, dataset, params, user = null) => {
     const model = new datasets(knex);
 
-    // If file for graph already exists, skip calculations
-    const paramsString = crypto.createHash('md5').update(JSON.stringify(params)).digest('hex');
-    const file1 = `files/python/input/${ paramsString }.json`;
-    const file2 = file1.replace("/input/", "/output/");
-    if (files.fileExists(file2)) {
-        return files.readJSON(file2, false)
-    }
-
     // Check dataset metadata to make sure user has access to this dataset
     const metadata = await model.getMetadata(dataset);
     if (!metadata.is_public && (!user || metadata.email !== user.email)) {
@@ -30,6 +22,14 @@ const createGraph = async(knex, dataset, params, user = null) => {
     params.word_list = params.word_list.map(x => x.toLowerCase());
     // Convert pos attribute to boolean
     params.pos = !params.pos || params.pos === "false" ? false : true;
+
+    // If file for graph already exists, skip calculations
+    const paramsString = crypto.createHash('md5').update(JSON.stringify(params)).digest('hex');
+    const file1 = `files/python/input/${ paramsString }.json`;
+    const file2 = file1.replace("/input/", "/output/");
+    if (files.fileExists(file2)) {
+        return files.readJSON(file2, false)
+    }
 
     // Create input file with data for python program
     files.generateJSON(file1, params);

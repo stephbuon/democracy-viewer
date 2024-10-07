@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { AlertDialog } from '../AlertDialog';
 import { addSuggestion } from '../../api/api';
 
-export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadType, table_name, totalNumResults, columns }) => {
+export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadType, table_name, totalNumResults, columns, extLoading }) => {
     const [clickRow, setClickRow] = useState(-1);
     const [clickCol, setClickCol] = useState("");
     const [editOpen, setEditOpen] = useState(false);
@@ -67,13 +67,12 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     }
 
     useEffect(() => {
-        if (searchResults.length === 0 && totalNumResults !== 0) {
+        if (extLoading === true || (searchResults.length === 0 && totalNumResults !== 0)) {
             setLoading(true);
-        }
-        else {
+        } else {
             setLoading(false);
         }
-    }, [searchResults, totalNumResults])
+    }, [searchResults, totalNumResults, extLoading]);
 
     useEffect(() => {
         const cells = document.querySelectorAll(".p-datatable-wrapper td");
