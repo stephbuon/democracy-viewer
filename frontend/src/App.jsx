@@ -80,7 +80,7 @@ export const App = () => {
             <Route path='/datasets/search' element={<DatasetResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/upload" element={<Upload currUser={user} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/upload/complete" element={<UploadComplete/>}></Route>
-            <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
+            {/* <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/> */}
             <Route path="/acknowledgements" element={<Acknowledgements/>}/>
           </Routes>
       </BrowserRouter>
