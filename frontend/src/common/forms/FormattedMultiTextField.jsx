@@ -54,7 +54,7 @@ export const FormattedMultiTextField = (props) => {
 
     const handleBlur = () => {
         // Hide the dropdown after a slight delay to allow for option clicks
-        setTimeout(() => setIsFocused(false), 200);
+        setTimeout(() => setIsFocused(false), 150);
     }
 
     return <>
