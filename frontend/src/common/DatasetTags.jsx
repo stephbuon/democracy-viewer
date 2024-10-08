@@ -1,11 +1,8 @@
 import { useState } from "react";
-
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { Box, Typography, IconButton, Tooltip } from "@mui/material";
+import { HelpOutline as HelpOutlineIcon } from "@mui/icons-material";
 import { FormattedMultiTextField } from "./forms";
+import { GetAllTags } from "../apiFolder/DatasetSearchAPI";
 
 export const DatasetTags = (props) => {
     const [disabled, setDisabled] = useState(false);
@@ -43,6 +40,7 @@ export const DatasetTags = (props) => {
                 setWords={props.setTags}
                 setValid={setValid}
                 maxChars={25}
+                getOptions={GetAllTags}
             />
         </Box>
     </>
