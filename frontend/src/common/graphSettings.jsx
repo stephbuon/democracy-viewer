@@ -1,6 +1,6 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues } from "../api/api.js"
+import { getGroupNames, getColumnValues, getTopWords } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
@@ -31,6 +31,7 @@ export const GraphSettings = ( props ) => {
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
     const [topn, setTopn] = useState("5");
+    const [suggestionLockout, setSuggestionLockout] = useState(false);
 
     const navigate = useNavigate();
 
@@ -120,6 +121,22 @@ export const GraphSettings = ( props ) => {
         });
     }
 
+    // Dynamically get word suggestions as user types
+    const getWordSuggestions = async(params) => {
+        if (!suggestionLockout && params.search) {
+            setSuggestionLockout(true);
+            const results = await getTopWords(props.dataset.dataset.table_name, {
+                ...params,
+                column: group,
+                values: groupList.map(x => x.value)
+            });
+            setSuggestionLockout(false);
+            return results;
+        } else {
+            return [];
+        }
+    }
+
     // Called when a column is selected
     // updates array for column value dropdown
     useEffect(() => {
@@ -146,7 +163,7 @@ export const GraphSettings = ( props ) => {
     }, [metric, group, searchTerms, groupList]);
 
     return <>
-        < Modal open={props.show}
+        <Modal open={props.show}
             onClose={handleClose}
             aria-labelledby="contained-modal-title-vcenter"
             className="mx-auto"
@@ -210,6 +227,7 @@ export const GraphSettings = ( props ) => {
                     sx={{ background: 'rgb(255, 255, 255)', zIndex: 0 }}
                     words={searchTerms}
                     setWords={setSearchTerms}
+                    getOptions={getWordSuggestions}
                 />
 
                 {

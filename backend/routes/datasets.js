@@ -240,6 +240,22 @@ router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
     next();
 });
 
+// Route to get the top words matching a search
+router.get('/words/top/:table_name', async(req, res, next) => {
+    try {
+        const results = await control.getTopWords(
+            req.params.table_name, req.query.search,
+            req.query.column, req.query.values,
+            req.query.page, req.query.pageLength
+        );
+        res.status(200).json(results);
+    } catch (err) {
+        console.error('Failed to get top words:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to download a subset of a dataset
 router.post('/download/subset/:table', async(req, res, next) => {
     try {
