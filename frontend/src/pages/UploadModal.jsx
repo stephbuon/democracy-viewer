@@ -179,7 +179,7 @@ export const UploadModal = (props) => {
                         </Tooltip>
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        <FormGroup>
+                        {/* <FormGroup>
                             <Tooltip arrow title = {(
                                 <p>Store your dataset and preprocessing data in your own AWS S3 bucket.</p>
                             )}>
@@ -203,7 +203,7 @@ export const UploadModal = (props) => {
                                     </FormControl>
                                 </Tooltip>
                             }
-                        </FormGroup>
+                        </FormGroup> */}
 
                         <Tooltip arrow title = "Select which column(s) contain text that needs to be processed. You must select at least 1 text column.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
