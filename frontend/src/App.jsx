@@ -80,6 +80,7 @@ export const App = () => {
             <Route path="/upload/complete" element={<UploadComplete/>}></Route>
             <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/>
             <Route path="/acknowledgements" element={<Acknowledgements/>}/>
+            <Route path="/groups" element={<Groups/>}/>
           </Routes>
       </BrowserRouter>
     </div>
