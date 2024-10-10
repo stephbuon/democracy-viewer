@@ -383,33 +383,6 @@ const getFilteredDatasetsCount = async(knex, query, email) => {
     return result;
 }
 
-// Get the 2 letter language code for a given language
-const getLanguage = (language) => {
-    if (language === "Chinese") {
-        return "zh";
-    } else if (language === "English") {
-        return "en";
-    } else if (language === "French") {
-        return "fr";
-    } else if (language === "German") {
-        return "de";
-    } else if (language === "Greek") {
-        return "el";
-    } else if (language === "Italian") {
-        return "it";
-    } else if (language === "Latin") {
-        return "la";
-    } else if (language === "Portuguese") {
-        return "pt";
-    } else if (language === "Russian") {
-        return "ru";
-    } else if (language === "Spanish") {
-        return "es";
-    } else {
-        throw new Error(`Unknown language: ${ language }`);
-    }
-}
-
 // Get a subset of a table
 const getSubset = async(knex, table, query, user = undefined, page = 1, pageLength = 50) => {
     const model = new datasets(knex);
@@ -575,6 +548,18 @@ const getSuggestion = async(knex, user, id) => {
     return record;
 }
 
+const getTopWords = async(table_name, search, column, values, page, pageLength) => {
+    const lf = await dataQueries.getTopWords(
+        table_name, 
+        search ? search : "", column, values, 
+        page ? page : 1, 
+        pageLength ? pageLength : 5
+    );
+    const df = lf.collectSync();
+
+    return df.getColumn("word").toArray();
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -676,6 +661,7 @@ module.exports = {
     getSuggestionsFor,
     getSuggestionsFrom,
     getSuggestion,
+    getTopWords,
     deleteDataset,
     deleteTag,
     deleteLike,

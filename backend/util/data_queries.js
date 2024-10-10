@@ -181,11 +181,48 @@ const getZoomIds = async(table_name, params) => {
     return aws.download(query);
 }
 
+const getTopWords = async(table_name, search, column, values, page, pageLength) => {
+    let datasetQuery = "";
+    let tokenQuery;
+
+    if (column && values && values.length > 0) {
+        datasetQuery = `
+            JOIN (
+                SELECT record_id
+                FROM datasets_${ table_name }
+                WHERE "${ column }" IN (${ values.map(x => `'${ x }'`).join(", ") })
+            ) AS datasets
+            ON tokens.record_id = datasets.record_id
+        `;
+    }
+
+    tokenQuery = `
+        SELECT record_id, word, "count"
+        FROM tokens_${ table_name }
+        WHERE word LIKE '%${ search }%'
+    `;
+
+    const query = `
+        SELECT tokens.word AS word, SUM(tokens.count) AS "count"
+        FROM (
+            ${ tokenQuery }
+        ) AS tokens
+        ${ datasetQuery }
+        GROUP BY tokens.word
+        ORDER BY "count" DESC, tokens.word
+        OFFSET ${ (page - 1) * pageLength }
+        LIMIT ${ pageLength }
+    `;
+
+    return aws.download(query);
+}
+
 module.exports = {
     uniqueColValues,
     subsetSearch,
     downloadSubset,
     getRecordsByIds,
     downloadRecordsByIds,
-    getZoomIds
+    getZoomIds,
+    getTopWords
 }

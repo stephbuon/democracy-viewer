@@ -119,12 +119,13 @@ class datasets {
             .groupBy("tag_name")
             .having(q => {
                 if (search) {
-                    q.whereILike("tag_name", `%${ query.search }%`)
+                    q.whereILike("tag_name", `%${ search }%`)
                 }
             })
             .orderBy("total", "desc")
+            .orderBy("tag_name")
             .paginate({ currentPage, perPage })
-        //.select("tag_name").distinct();
+
         return results.data;
     }
 

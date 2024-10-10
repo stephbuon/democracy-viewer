@@ -310,8 +310,8 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     output = []
     for i in range(len(groups)):
         for j in range(i+1, len(groups)):
-            group1 = groups[i]
-            group2 = groups[j]
+            group1 = str(groups[i])
+            group2 = str(groups[j])
             # Subset data by current groups
             probs = df.select(["word", group1, group2])
             
