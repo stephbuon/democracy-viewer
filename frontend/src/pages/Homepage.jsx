@@ -129,7 +129,7 @@ export default function Homepage() {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4}>
+            {/* <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
@@ -145,7 +145,7 @@ export default function Homepage() {
                   <Button onClick={() => navigate("/distributed")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
-            </Grid>
+            </Grid> */}
           </Grid>
         </Container>
       </main>
