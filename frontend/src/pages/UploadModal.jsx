@@ -45,6 +45,7 @@ export const UploadModal = (props) => {
     const [embedCol, setEmbedCol] = useState(null);
     const [textCols, setTextCols] = useState([]);
     const [textColOptions, setTextColOptions] = useState([]);
+    const [file, setFile] = useState(undefined);
 
     const [disabled, setDisabled] = useState(true);
 
@@ -240,6 +241,36 @@ export const UploadModal = (props) => {
                                 </Select>
                             </FormControl>
                         </Tooltip>
+
+                        <Typography>Custom Stopwords TXT</Typography>
+                        {
+                            file === undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                >
+                                Upload Stopwords List
+                                <input
+                                    type="file"
+                                    accept=".txt"
+                                    hidden
+                                    onChange={(x) => setFile(x.target.files[0])}
+                                />
+                            </Button>
+                        }
+                        
+                        {
+                            file !== undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                onClick={() => setFile(undefined)}
+                            >
+                                Remove Stopwords List
+                            </Button>
+                        }
 
                         <Tooltip arrow title = {(
                             <div>

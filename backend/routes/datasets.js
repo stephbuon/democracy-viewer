@@ -18,7 +18,6 @@ router.post('/', authenticateJWT, async(req, res, next) => {
             const result = await control.createDataset(req.file.path, req.user.email);
             res.status(201).json(result);
         }
-        
     } catch (err) {
         console.error('Failed to create dataset:', err);
         res.status(500).json({ message: err.toString() });
@@ -93,6 +92,27 @@ router.post('/suggest', authenticateJWT, async(req, res, next) => {
         res.status(201).end();
     } catch (err) {
         console.error('Failed to create text suggestion:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to upload a stopwords list
+router.post('/upload/stopwords/:table', authenticateJWT, async(req, res, next) => {
+    try {
+        // Upload file to server
+        await util.uploadFile(req, res);
+
+        if (!req.file) {
+            // If file failed to upload, throw error
+            res.status(400).json({ message: "No uploaded file" });
+        } else {
+            // Create dataset in database from file
+            await control.uploadStopwords(req.file.path, req.params.table, req.user.email);
+            res.status(201).end();
+        }
+    } catch (err) {
+        console.error('Failed to upload stopwords:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

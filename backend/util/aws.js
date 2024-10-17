@@ -1,5 +1,6 @@
 const pl = require("nodejs-polars");
 // const { getCredentials } = require("../controllers/databases");
+const { Upload } = require("@aws-sdk/lib-storage");
 const { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand } = require("@aws-sdk/client-athena");
 const { BatchClient, SubmitJobCommand } = require("@aws-sdk/client-batch");
 const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
@@ -8,6 +9,7 @@ const crypto = require('crypto');
 const humanize = require('humanize-duration');
 const util = require("./file_management");
 const setTimeoutAsync = require("timers/promises").setTimeout;
+const fs = require("fs");
 
 const BASE_PATH = "files/s3";
 
@@ -190,9 +192,22 @@ const downloadFileDirect = async(query) => {
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
+const uploadFile = async(localFile, s3File, token = null) => {
+    await new Upload({
+        client: s3Client,
+        params: {
+            Bucket: process.env.S3_BUCKET,
+            Key: s3File,
+            Body: fs.createReadStream(localFile)
+        }
+    })
+        .done();
+}
+
 module.exports = {
     download,
     downloadFile,
     submitBatchJob,
-    downloadFileDirect
+    downloadFileDirect,
+    uploadFile
 }
