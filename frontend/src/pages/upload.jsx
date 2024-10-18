@@ -24,21 +24,16 @@ export const Upload = (props) => {
   const navigate = useNavigate();
 
   const [openModal, setOpenModal] = useState(false);
-  const [uploadModeOptions, setUploadModeOptions] = useState([
-    {
-      "value": "csv",
-      "label": "CSV"
-    },
-    {
-      "value": "api",
-      "label": "API"
-    }
-  ]);
-  const [uploadModeSelected, setUploadModeSelected] = useState("csv");
+  const [uploadModeSelected, setUploadModeSelected] = useState(undefined);
 
   const CancelUpload = () => {
     setOpenModal(false);
   };
+
+  const OpenModal = (mode) => {
+    setUploadModeSelected(mode);
+    setOpenModal(true);
+  }
 
   const loggedIn = () => {
     if (props.currUser) {
@@ -62,9 +57,14 @@ export const Upload = (props) => {
 
   return (
     <>
-      <Container maxWidth="sm">
+      <Modal open={openModal} onClose={() => CancelUpload()}>
+        <div>
+            <UploadModal CancelUpload={() => CancelUpload()} uploadType={uploadModeSelected} />
+        </div>
+      </Modal>
+      <Container maxWidth="md">
         <Typography
-          paddingTop={5}
+          paddingTop={7}
           component="h1"
           variant="h2"
           align="center"
@@ -73,37 +73,40 @@ export const Upload = (props) => {
         >
           Upload
         </Typography>
-        {/* if (file == ".csv") {
-          handleDataSetInfo.display(); 
-        }
-        else if (file == "API") {
-
-        } */}
-
-        <Stack sx={{ pt: 4 }} direction="row" spacing={2} justifyContent="center"></Stack>
       </Container>
-      <Modal open={openModal} onClose={() => CancelUpload()}>
-        <div>
-            <UploadModal CancelUpload={() => CancelUpload()} uploadType={uploadModeSelected} />
-        </div>
-      </Modal>
+
       <Container maxWidth="md">
-        <SelectField
-          label="Upload Mode"
-          value={uploadModeSelected}
-          setValue={setUploadModeSelected}
-          options={uploadModeOptions}
-          hideBlankOption={1}
-        />
-        <Button
-          variant="contained"
-          sx={{ bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
-          onClick={() => {
-            setOpenModal(true);
-          }}
+        <Typography
+          paddingTop={3}
+          component="p"
+          variant="p"
+          align="center"
+          color="text.primary"
+          gutterBottom
         >
-          Continue
-        </Button>
+          Upload either a CSV file or an API of your text-based dataset to use it on Democracy Viewer. 
+        </Typography>
+      </Container>
+      
+      <Container maxWidth="md" sx={{
+        display: "flex",
+        justifyContent: "space-evenly",
+        marginTop: "30px"
+      }}>
+          <Button
+              variant="contained"
+              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }}
+              onClick={() => OpenModal("csv")}
+          >
+              CSV File
+          </Button>
+          <Button
+              variant="contained"
+              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }} 
+              onClick={() => OpenModal("api")}
+          >
+              API
+          </Button>
         {/* <Grid container spacing={4} justifyContent="space-between">
           <Grid item xs={13} sm={7} md={5}>
             <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>

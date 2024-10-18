@@ -6,7 +6,8 @@ import Flag from "react-flagkit";
 import { 
     Box, Button, Checkbox,FormControl, FormControlLabel, FormGroup, IconButton, 
     InputLabel, LinearProgress, MenuItem, Select, Tooltip, Typography,
-    Card, CardActions, CardContent, Alert, Snackbar
+    Card, CardActions, CardContent, Alert, Snackbar,
+    Table, TableBody, TableRow, TableCell, TextField
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
@@ -194,10 +195,10 @@ export const UploadModal = (props) => {
             sx={{
                 position: 'absolute',
                 top: '2.5%',
-                left: '10%',
+                left: '15%',
                 height: "95%",
                 overflowY: "auto",
-                width: "80%",
+                width: "70%",
                 bgcolor: 'background.paper',
                 border: '1px solid #000',
                 borderRadius: ".5em .5em",
@@ -214,7 +215,7 @@ export const UploadModal = (props) => {
                     borderRadius: '5px'
                 }
             }}>
-                <LinearProgress variant="determinate" value={(loadedPage / 3) * 100} />
+                <LinearProgress variant="determinate" value={(loadedPage / 4) * 100} />
             </Box>
             <Snackbar
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
@@ -235,7 +236,12 @@ export const UploadModal = (props) => {
             </Snackbar>
 
             {loadedPage === 1 && (
-                <>
+                <div style={{
+                    height:"80%",
+                    width: "80%",
+                    position: "relative",
+                    left: "10%"
+                }}>
                     {props.uploadType === "csv" && (
                         <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
                             <CardContent
@@ -281,10 +287,53 @@ export const UploadModal = (props) => {
                     )}
 
                     {props.uploadType === "api" && (
-                        <>
-                        </>
+                        <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
+                        <CardContent sx={{ flexGrow: 1 }}>
+                            <Typography gutterBottom variant="h5" component="h2" align="center">
+                            API
+                            </Typography>
+                            <Typography align="center">Upload From an API Endpoint</Typography>
+                        </CardContent>
+                        <Table>
+                            <TableBody>
+                            <TableRow>
+                                <TableCell className="col-6">
+                                <TextField
+                                    margin="normal"
+                                    fullWidth
+                                    label="API Endpoint"
+                                    value={APIEndpoint}
+                                    onChange={(event) => {
+                                    setAPIEndpoint(event.target.value);
+                                    }}
+                                />
+                                <TextField
+                                    margin="normal"
+                                    fullWidth
+                                    label="Token"
+                                    value={Token}
+                                    onChange={(event) => {
+                                    setToken(event.target.value);
+                                    }}
+                                />
+                                </TableCell>
+                            </TableRow>
+                            </TableBody>
+                        </Table>
+                        <CardActions style={{ justifyContent: "center" }}>
+                            <Button
+                            variant="contained"
+                            component="label"
+                            sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                            onClick={() => APIcsv()}
+                            disabled={disableButtons}
+                            >
+                            Call API
+                            </Button>
+                        </CardActions>
+                        </Card>
                     )}
-                </>
+                </div>
             )}
 
             {loadedPage === 2 && (
