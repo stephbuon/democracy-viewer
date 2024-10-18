@@ -97,3 +97,20 @@ export const GetCSVFromAPI = (endpoint, token) => new Promise((resolve, reject) 
         }
     );
 });
+
+export const UploadStopwords = (file, table_name) => new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    let headers = apiConfig();
+    headers.headers = {
+        ...headers.headers,
+        "Content-Type": "multipart/form-data"
+    }
+    axios.post(`${baseURL}/datasets/upload/stopwords/${ table_name }`, formData, headers)
+        .then(x => resolve(x.data))
+        .catch(x => {
+            // alert(x);
+            reject(x);
+        }
+    );
+});

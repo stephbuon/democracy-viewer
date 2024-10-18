@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
-import { UploadDataset } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset, UploadStopwords } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
 import { getDistributedConnections } from "../api/api";
@@ -45,13 +45,17 @@ export const UploadModal = (props) => {
     const [embedCol, setEmbedCol] = useState(null);
     const [textCols, setTextCols] = useState([]);
     const [textColOptions, setTextColOptions] = useState([]);
-    const [file, setFile] = useState(undefined);
+    const [stopwordsFile, setStopwordsFile] = useState(undefined);
 
     const [disabled, setDisabled] = useState(true);
 
     const navigate = useNavigate();
 
     const SendDataset = () => {
+        if (stopwordsFile !== undefined) {
+            UploadStopwords(stopwordsFile, datasetName)
+        }
+
         const textCols_ = textCols.map(x => x.value);
         const metadata = {
             title, description, is_public: publicPrivate,
@@ -244,7 +248,7 @@ export const UploadModal = (props) => {
 
                         <Typography>Custom Stopwords TXT</Typography>
                         {
-                            file === undefined &&
+                            stopwordsFile === undefined &&
                             <Button
                                 variant="contained"
                                 component="label"
@@ -255,18 +259,18 @@ export const UploadModal = (props) => {
                                     type="file"
                                     accept=".txt"
                                     hidden
-                                    onChange={(x) => setFile(x.target.files[0])}
+                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
                                 />
                             </Button>
                         }
                         
                         {
-                            file !== undefined &&
+                            stopwordsFile !== undefined &&
                             <Button
                                 variant="contained"
                                 component="label"
                                 sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
-                                onClick={() => setFile(undefined)}
+                                onClick={() => setStopwordsFile(undefined)}
                             >
                                 Remove Stopwords List
                             </Button>
