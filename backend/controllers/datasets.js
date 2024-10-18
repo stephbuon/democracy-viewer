@@ -186,6 +186,16 @@ const addSuggestion = async(knex, user, params) => {
     );
 }
 
+// Upload a stopwords list to s3
+const uploadStopwords = async(localPath, table_name = "", email = "") => {
+    if (!table_name.includes(email.replace(/\W+/g, "_"))) {
+        throw new Error(`User ${ email } did not create dataset ${ table_name }`);
+    }
+
+    const s3Path = `stopwords/${ table_name }.txt`
+    await aws.uploadFile(localPath, s3Path);
+}
+
 // Update a dataset's metadata
 const updateMetadata = async(knex, user, table, params) => {
     const model = new datasets(knex);
@@ -645,6 +655,7 @@ module.exports = {
     incClicks,
     updateText,
     addLike,
+    uploadStopwords,
     getMetadata,
     getFullMetadata,
     getSubset,
