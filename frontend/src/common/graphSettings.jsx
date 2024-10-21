@@ -31,7 +31,6 @@ export const GraphSettings = ( props ) => {
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
     const [topn, setTopn] = useState("5");
-    const [suggestionLockout, setSuggestionLockout] = useState(false);
 
     const navigate = useNavigate();
 
@@ -123,14 +122,12 @@ export const GraphSettings = ( props ) => {
 
     // Dynamically get word suggestions as user types
     const getWordSuggestions = async(params) => {
-        if (!suggestionLockout && params.search) {
-            setSuggestionLockout(true);
+        if (params.search) {
             const results = await getTopWords(props.dataset.dataset.table_name, {
                 ...params,
                 column: group,
                 values: groupList.map(x => x.value)
             });
-            setSuggestionLockout(false);
             return results;
         } else {
             return [];

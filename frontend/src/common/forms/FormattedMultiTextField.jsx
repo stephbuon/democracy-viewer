@@ -1,10 +1,12 @@
 import { Box, IconButton, Chip, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
 import { Add as AddIcon } from '@mui/icons-material';
 import { FormattedTextField } from "./FormattedTextField";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const FormattedMultiTextField = (props) => {
     const [word, setWord] = useState("");
+    const [lastWord, setLastWord] = useState("");
+    const [suggestionLockout, setSuggestionLockout] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState([]);
     const [isFocused, setIsFocused] = useState(false);
 
@@ -41,10 +43,13 @@ export const FormattedMultiTextField = (props) => {
 
     const onInputChange = async(value) => {
         setWord(value);
-        if (props.getOptions) {
+        if (!suggestionLockout && props.getOptions) {
             // Filter options from the props list that match the input
+            setSuggestionLockout(true);
+            setLastWord(value);
             const options = await props.getOptions({ search: value, page: 1 });
             setFilteredOptions(options.filter(x => !props.words.includes(x)));
+            setSuggestionLockout(false);
         }
     }
 
@@ -56,6 +61,12 @@ export const FormattedMultiTextField = (props) => {
         // Hide the dropdown after a slight delay to allow for option clicks
         setTimeout(() => setIsFocused(false), 150);
     }
+
+    useEffect(() => {
+        if (!suggestionLockout && word !== lastWord) {
+            onInputChange(word);
+        }
+    }, [suggestionLockout])
 
     return <>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
