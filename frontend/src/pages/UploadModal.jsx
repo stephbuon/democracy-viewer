@@ -162,7 +162,11 @@ export const UploadModal = (props) => {
 
     useEffect(() => {
         if (loadedPage === 1) {
-            setDisabled(false);
+            if (props.uploadType === "csv" || props.uploadType === "api") {
+                setDisabled(!fileUploaded);
+            } else {
+                setDisabled(true);
+            }
         } else if (loadedPage === 2) {
             setDisabled(true);
         } else if (loadedPage === 3) {
@@ -170,7 +174,7 @@ export const UploadModal = (props) => {
         } else if (loadedPage === 4) {
             setDisabled(textCols.length === 0);
         } 
-    }, [loadedPage, textCols])
+    }, [loadedPage, textCols, fileUploaded, props.uploadType])
 
     useEffect(() => {
         if (stemLanguages.filter(x => x === language).length === 0 && tokenization === "stem") {
@@ -194,9 +198,9 @@ export const UploadModal = (props) => {
         <Box
             sx={{
                 position: 'absolute',
-                top: '2.5%',
+                top: '5%',
                 left: '15%',
-                height: "95%",
+                height: "90%",
                 overflowY: "auto",
                 width: "70%",
                 bgcolor: 'background.paper',
@@ -238,9 +242,10 @@ export const UploadModal = (props) => {
             {loadedPage === 1 && (
                 <div style={{
                     height:"80%",
-                    width: "80%",
+                    // width: "90%",
                     position: "relative",
-                    left: "10%"
+                    // left: "5%",
+                    top: "7%"
                 }}>
                     {props.uploadType === "csv" && (
                         <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
