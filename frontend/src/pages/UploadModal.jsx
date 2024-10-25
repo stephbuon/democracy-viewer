@@ -10,7 +10,7 @@ import {
     Table, TableBody, TableRow, TableCell, TextField
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { UploadDataset, UploadStopword, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset, UploadStopwords, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
 import { getDistributedConnections } from "../api/api";
@@ -37,6 +37,7 @@ export const UploadModal = (props) => {
     const [fileUploaded, setFileUploaded] = useState(false);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
 
+    const [license, setLicense] = useState("");
     const [title, setTitle] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(false);
     const [description, setDescription] = useState('');
@@ -46,9 +47,9 @@ export const UploadModal = (props) => {
     const [author, setAuthor] = useState('');
     const [date, setDate] = useState('');
     // Preprocessing
-    const [useDistributed, setUseDistributed] = useState(false);
-    const [distributed, setDistributed] = useState(null);
-    const [distributedOptions, setDistributedOptions] = useState([]);
+    // const [useDistributed, setUseDistributed] = useState(false);
+    // const [distributed, setDistributed] = useState(null);
+    // const [distributedOptions, setDistributedOptions] = useState([]);
     const [language, setLanguage] = useState("English");
     const [tokenization, setTokenization] = useState("none");
     const [embeddings, setEmbeddings] = useState(false);
@@ -63,7 +64,7 @@ export const UploadModal = (props) => {
 
     const SendDataset = () => {
         if (stopwordsFile !== undefined) {
-            UploadStopwords(stopwordsFile, datasetName)
+            UploadStopwords(stopwordsFile, tableName)
         }
 
         const textCols_ = textCols.map(x => x.value);
@@ -71,11 +72,11 @@ export const UploadModal = (props) => {
             title, description, is_public: publicPrivate,
             preprocessing_type: tokenization, embeddings,
             embed_col: embedCol, language,
-            date_collected: date, author
+            date_collected: date, author, license
         };
-        if (useDistributed && distributed) {
-            metadata.distributed = distributed;
-        }
+        // if (useDistributed && distributed) {
+        //     metadata.distributed = distributed;
+        // }
         // Delete undefined values
         Object.keys(metadata).forEach(x => {
             if (!metadata[x]) {
@@ -192,11 +193,11 @@ export const UploadModal = (props) => {
         }
     }, [embeddings]);
 
-    useEffect(() => {
-        if (useDistributed && distributedOptions.length === 0) {
-            getDistributedConnections().then(x => setDistributedOptions(x));
-        }
-    }, [useDistributed]);
+    // useEffect(() => {
+    //     if (useDistributed && distributedOptions.length === 0) {
+    //         getDistributedConnections().then(x => setDistributedOptions(x));
+    //     }
+    // }, [useDistributed]);
 
     return (
         <Box
@@ -355,6 +356,8 @@ export const UploadModal = (props) => {
                     setDate={setDate}
                     description={description}
                     setDescription={setDescription}
+                    license={license}
+                    setLicense={setLicense}
                     publicPrivate={publicPrivate}
                     setPublicPrivate={setPublicPrivate}
                     disabled={disabled}
