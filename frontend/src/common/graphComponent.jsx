@@ -54,7 +54,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
             // Hide legend
             if (
                 metricTypes.dotplot.includes(data.metric) ||
-                metricTypes.scatter.includes(data.metric) ||
+                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1) ||
                 (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
             ) {
                 layout_ = {
