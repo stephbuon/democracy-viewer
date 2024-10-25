@@ -32,47 +32,56 @@ export const metricSettings = {
     "counts": {
         column: false,
         values: false,
-        words: false
+        words: false,
+        wordsOptional: true
     },
     "proportions": {
         column: false,
         values: false,
-        words: false
+        words: false,
+        wordsOptional: true
     },
     "tf-idf-scatter": {
         column: true,
         values: 2,
-        words: false
+        words: false,
+        wordsOptional: true
     },
     "tf-idf-bar": {
         column: true,
         values: false,
-        words: false
+        words: false,
+        wordsOptional: true
     },
     "ll": {
         column: true,
         values: 2,
-        words: false
+        words: false,
+        wordsOptional: true
     },
     "jsd": {
         column: true,
         values: false,
-        words: false
+        words: false,
+        wordsOptional: true
     },
     "embeddings-similar": {
         column: false,
         values: false,
-        words: 1
+        words: 1,
+        wordsOptional: false
     },
     "embeddings-different": {
         column: false,
         values: false,
-        words: 2
+        words: 2,
+        wordsOptional: false
     },
     "embeddings-raw": {
         column: false,
         values: false,
-        words: false
+        words: 2,
+        wordsOptional: true
     }
 };
 

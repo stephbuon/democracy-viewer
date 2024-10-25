@@ -150,7 +150,10 @@ export const GraphSettings = ( props ) => {
         } else if (settings.values !== false && groupList.length !== settings.values) {
             setDisabled(true);
             setDisabledMessage(`You must select ${ settings.values } column value(s) for this metric`);
-        } else if (settings.words !== false && searchTerms.length !== settings.words) {
+        } else if (
+            (settings.wordsOptional === false && settings.words !== false && searchTerms.length !== settings.words) ||
+            (settings.wordsOptional === true && searchTerms.length > 0 && searchTerms.length < settings.words)
+        ) {
             setDisabled(true);
             setDisabledMessage(`You must enter ${ settings.words } custom search word(s) for this metric`);
         } else {

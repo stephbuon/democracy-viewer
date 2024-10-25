@@ -130,9 +130,9 @@ export const ResultModal = (props) => {
             <Box
                 sx={{
                     position: 'absolute',
-                    top: '20%',
+                    top: '7.5%',
                     left: '15%',
-                    height: "60%",
+                    height: "75%",
                     overflow: "scroll",
                     width: "70%",
                     bgcolor: 'background.paper',
@@ -243,7 +243,7 @@ export const ResultModal = (props) => {
                             sx={{
                                 borderRadius: 0,
                                 width: "100%",
-                                bgcolor: '#B3B3B3',
+                                bgcolor: 'black',
                                 color: 'white'
                             }}
                             endIcon={<BookmarkBorderIcon />}
@@ -270,13 +270,108 @@ export const ResultModal = (props) => {
                         </Button>
                     }
                 </ButtonGroup>
+                <Box
+                    sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: '2em'
+                    }}>
+                    {
+                        props.dataset.uploaded == true &&
+                        <div>
+                            <Button
+                                variant="contained"
+                                primary
+                                sx={{
+                                    marginX: '1em',
+                                    borderRadius: 50,
+                                    bgcolor: 'black',
+                                    color: 'white'
+                                }}
+                                onClick={() => {
+                                    chooseDataset()
+                                    navigate('/datasets/subsets/search');
+                                }}
+                            >
+                                Subset Search
+                            </Button>
+                        </div>
+
+                    }
+
+                    {
+                        props.dataset.uploaded == false &&
+                        <Tooltip arrow title="Subset search for this dataset has been disabled until the dataset is fully uploaded">
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    primary
+                                    sx={{
+                                        marginX: '1em',
+                                        borderRadius: 50,
+                                        bgcolor: 'black',
+                                        color: 'white'
+                                    }}
+                                    disabled
+                                >
+                                    Subset Search
+                                </Button>
+                            </div>
+                        </Tooltip>
+                    }
+
+                    {
+                        props.dataset.tokens_done == true &&
+                        <div>
+                            <Button
+                                variant="contained"
+                                primary
+                                sx={{
+                                    marginX: '1em',
+                                    borderRadius: 50,
+                                    bgcolor: 'black',
+                                    color: 'white'
+                                }}
+                                onClick={() => {
+                                    chooseDataset()
+                                    navigate('/graph');
+                                }}
+                            >
+                                Visualize
+                            </Button>
+                        </div>
+
+                    }
+
+                    {
+                        props.dataset.tokens_done == false &&
+                        <Tooltip arrow title="Graphing for this dataset has been disabled until processing is complete">
+                            <div>
+                                <Button
+                                    variant="contained"
+                                    primary
+                                    sx={{
+                                        marginX: '1em',
+                                        borderRadius: 50,
+                                        bgcolor: 'black',
+                                        color: 'white'
+                                    }}
+                                    disabled
+                                >
+                                    Visualize
+                                </Button>
+                            </div>
+                        </Tooltip>
+                    }
+                </Box>
 
                 <Table sx={{ border: 'none' }}>
                     <TableHead>
                         <TableRow>
                             <TableCell
                                 sx={{
-                                    paddingTop: "20px",
+                                    paddingTop: "40px",
                                     align: 'center'
 
                                 }}>
@@ -285,7 +380,7 @@ export const ResultModal = (props) => {
                             <TableCell
                                 sx={{
                                     textAlign: "left",
-                                    paddingTop: "20px"
+                                    paddingTop: "40px"
                                 }}>
                                 {props.dataset.is_public == 1 && <span>Public</span>}
                                 {props.dataset.is_public == 0 && <span>Private</span>}
@@ -412,101 +507,6 @@ export const ResultModal = (props) => {
                         marginTop: '2em'
                     }}>
 
-                </Box>
-                <Box
-                    sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        marginTop: '.5em'
-                    }}>
-                    {
-                        props.dataset.uploaded == true &&
-                        <div>
-                            <Button
-                                variant="contained"
-                                primary
-                                sx={{
-                                    marginX: '1em',
-                                    borderRadius: 50,
-                                    bgcolor: 'black',
-                                    color: 'white'
-                                }}
-                                onClick={() => {
-                                    chooseDataset()
-                                    navigate('/datasets/subsets/search');
-                                }}
-                            >
-                                Subset Search
-                            </Button>
-                        </div>
-
-                    }
-
-                    {
-                        props.dataset.uploaded == false &&
-                        <Tooltip arrow title="Subset search for this dataset has been disabled until the dataset is fully uploaded">
-                            <div>
-                                <Button
-                                    variant="contained"
-                                    primary
-                                    sx={{
-                                        marginX: '1em',
-                                        borderRadius: 50,
-                                        bgcolor: 'black',
-                                        color: 'white'
-                                    }}
-                                    disabled
-                                >
-                                    Subset Search
-                                </Button>
-                            </div>
-                        </Tooltip>
-                    }
-
-                    {
-                        props.dataset.tokens_done == true &&
-                        <div>
-                            <Button
-                                variant="contained"
-                                primary
-                                sx={{
-                                    marginX: '1em',
-                                    borderRadius: 50,
-                                    bgcolor: 'black',
-                                    color: 'white'
-                                }}
-                                onClick={() => {
-                                    chooseDataset()
-                                    navigate('/graph');
-                                }}
-                            >
-                                Visualize
-                            </Button>
-                        </div>
-
-                    }
-
-                    {
-                        props.dataset.tokens_done == false &&
-                        <Tooltip arrow title="Graphing for this dataset has been disabled until processing is complete">
-                            <div>
-                                <Button
-                                    variant="contained"
-                                    primary
-                                    sx={{
-                                        marginX: '1em',
-                                        borderRadius: 50,
-                                        bgcolor: 'black',
-                                        color: 'white'
-                                    }}
-                                    disabled
-                                >
-                                    Visualize
-                                </Button>
-                            </div>
-                        </Tooltip>
-                    }
                 </Box>
             </Box>
         </Modal>
