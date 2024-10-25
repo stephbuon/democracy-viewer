@@ -61,6 +61,7 @@ export const FormattedTextField = (props) => {
                 onChange = {event => setValueInternal(event.target.value)}
                 error = {message.length > 0}
                 type = {type}
+                autoComplete={type === "text" ? "off" : "on"}
             />
             {
                 message.length > 0 && <FormHelperText id = {props.id}>{ message }</FormHelperText>

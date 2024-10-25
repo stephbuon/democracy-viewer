@@ -29,9 +29,14 @@ export const FormattedMultiSelectField = (props) => {
           setHasMore(false);
         } else {
           setHasMore(true);
+          
+          // Ensure no duplicates in options by filtering them out
+          setOptions(prevOptions => {
+            const uniqueOptions = new Set(prevOptions.map(option => option.value));
+            const newOptions = fetchedOptions.filter(option => !uniqueOptions.has(option.value));
+            return [...prevOptions, ...newOptions];
+          });
         }
-
-        setOptions(prevOptions => [...prevOptions, ...fetchedOptions]);
       } else {
         const data = props.getData.map(item => {
           if (typeof item === "object") {

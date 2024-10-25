@@ -10,8 +10,7 @@ import {
     Table, TableBody, TableRow, TableCell, TextField
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-
-import { GetCSVFromAPI, CreateDataset, UploadDataset } from "../apiFolder/DatasetUploadAPI.js";
+import { UploadDataset, UploadStopword, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
 import { getDistributedConnections } from "../api/api";
@@ -56,12 +55,17 @@ export const UploadModal = (props) => {
     const [embedCol, setEmbedCol] = useState(null);
     const [textCols, setTextCols] = useState([]);
     const [textColOptions, setTextColOptions] = useState([]);
+    const [stopwordsFile, setStopwordsFile] = useState(undefined);
 
     const [disabled, setDisabled] = useState(true);
 
     const navigate = useNavigate();
 
     const SendDataset = () => {
+        if (stopwordsFile !== undefined) {
+            UploadStopwords(stopwordsFile, datasetName)
+        }
+
         const textCols_ = textCols.map(x => x.value);
         const metadata = {
             title, description, is_public: publicPrivate,
@@ -376,7 +380,7 @@ export const UploadModal = (props) => {
                         </Tooltip>
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        <FormGroup>
+                        {/* <FormGroup>
                             <Tooltip arrow title = {(
                                 <p>Store your dataset and preprocessing data in your own AWS S3 bucket.</p>
                             )}>
@@ -400,7 +404,7 @@ export const UploadModal = (props) => {
                                     </FormControl>
                                 </Tooltip>
                             }
-                        </FormGroup>
+                        </FormGroup> */}
 
                         <Tooltip arrow title = "Select which column(s) contain text that needs to be processed. You must select at least 1 text column.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
@@ -434,9 +438,40 @@ export const UploadModal = (props) => {
                                     <MenuItem value = "Portuguese"><Flag country = "PT"/>&nbsp;Portuguese</MenuItem>
                                     <MenuItem value = "Russian"><Flag country = "RU"/>&nbsp;Russian</MenuItem>
                                     <MenuItem value = "Spanish"><Flag country = "ES"/>&nbsp;Spanish</MenuItem>
+                                    <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem>
                                 </Select>
                             </FormControl>
                         </Tooltip>
+
+                        <Typography>Custom Stopwords TXT</Typography>
+                        {
+                            stopwordsFile === undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                >
+                                Upload Stopwords List
+                                <input
+                                    type="file"
+                                    accept=".txt"
+                                    hidden
+                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
+                                />
+                            </Button>
+                        }
+                        
+                        {
+                            stopwordsFile !== undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                onClick={() => setStopwordsFile(undefined)}
+                            >
+                                Remove Stopwords List
+                            </Button>
+                        }
 
                         <Tooltip arrow title = {(
                             <div>
@@ -470,7 +505,7 @@ export const UploadModal = (props) => {
 
                         <FormGroup>
                             <Tooltip arrow title = {(
-                                <p>Word embeddings are a machine learning algorithm that can be used to find similar/different words in the text. This requires a long computation time for large datasets, so it is disabled by default. <Link color = "inherit" to = "https://en.wikipedia.org/wiki/Word_embedding">Learn more about word embeddings here.</Link></p>
+                                <p>Word embeddings use cosine similarity to identify the most similar or dissimilar words in a dataset. They are disabled by default due to their slow processing time on large datasets.</p>
                             )}>
                                 <FormControlLabel control={<Checkbox defaultChecked = {embeddings}/>} label="Compute Word Embeddings" onChange={event => setEmbeddings(!embeddings)}/>
                             </Tooltip>
@@ -479,7 +514,7 @@ export const UploadModal = (props) => {
                                 embeddings &&
                                 <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
                                     <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                        <InputLabel>Word Embedding Grouping Column</InputLabel>
+                                        <InputLabel>Group By</InputLabel>
                                         <Select
                                             value={embedCol}
                                             onChange={event => setEmbedCol(event.target.value)}

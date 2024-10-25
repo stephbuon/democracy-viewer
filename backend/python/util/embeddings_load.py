@@ -169,32 +169,36 @@ def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str,
     results = []
 
     if len(vals) > 0:
-        time_value = sorted(set(vals))[0]
+        time_values = sorted(set(vals))
     else:
-        time_value = data.get_column_values(table_name, group_col, token)[0]
+        time_values = data.get_column_values(table_name, group_col, token)
         
     pca = PCA(2)
     vectors = []
     used_words = []
-    pkl_name = "model_{}_{}".format(group_col, time_value)
-    model = load_data_from_pkl(table_name, pkl_name, token)
-    if len(keywords) > 0:
-        for word in keywords:
-            try:
+    all_values = []
+    for time_value in time_values:
+        pkl_name = "model_{}_{}".format(group_col, time_value)
+        model = load_data_from_pkl(table_name, pkl_name, token)
+        if len(keywords) > 0:
+            for word in keywords:
+                try:
+                    vectors.append(model.wv.get_vector(word))
+                    used_words.append(word)
+                    all_values.append(time_value)
+                except Exception:
+                    pass
+        else:
+            for word in model.wv.index_to_key:
                 vectors.append(model.wv.get_vector(word))
                 used_words.append(word)
-            except Exception:
-                pass
-    else:
-        for word in model.wv.index_to_key:
-            vectors.append(model.wv.get_vector(word))
-            used_words.append(word)
+                all_values.append(time_value)
         
     vectors_2d = pca.fit_transform(vectors)
     for i, word in enumerate(used_words):
         results.append({
             "word": word,
-            "group": time_value,
+            "group": all_values[i],
             "x": vectors_2d[i, 0],
             "y": vectors_2d[i, 1]
         })

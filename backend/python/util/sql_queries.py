@@ -19,7 +19,8 @@ def get_metadata(engine: Engine, meta: MetaData, table_name: str) -> dict:
     # Give column names as keys
     record = {}
     for i, col in enumerate(meta.tables[DatasetMetadata.__tablename__].columns.keys()):
-        record[col] = output[i]
+        if i < len(output):
+            record[col] = output[i]
         
     return record
 

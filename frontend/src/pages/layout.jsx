@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItemIcon,ListItemText,Box,} from '@mui/material';
+import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItemIcon,ListItemText,Box,Tooltip} from '@mui/material';
 import {Menu as MenuIcon, Person, Home, Search, MilitaryTech, ScreenSearchDesktop, Cable} from '@mui/icons-material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import UploadIcon from '@mui/icons-material/Upload';
@@ -37,9 +37,9 @@ export const Layout = (props) => {
         return 'Subset Search';
       case '/acknowledgements':
         return "Acknowledgements";
-      case "/distributed":
-        return "Distributed Connection";
-      case "/zoom":
+      // case "/distributed":
+      //   return "Distributed Connection";
+      case "/graph/zoom":
         return "Graph Zoom";
       default:
         if (location.pathname.includes("/profile/")) {
@@ -134,12 +134,17 @@ export const Layout = (props) => {
               <ListItemText primary="Dataset Upload" />
             </ListItemButton>
 
-            <ListItemButton component={Link} to='/distributed' sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <Cable />
-              </ListItemIcon>
-              <ListItemText primary="Create Distributed Connection" />
-            </ListItemButton>
+            <Tooltip title = "This page has been temporarily disabled" arrow>
+              <div>
+                <ListItemButton component={Link} to='/distributed' sx = {{ height: "50px" }} disabled>
+                  <ListItemIcon>
+                    <Cable />
+                  </ListItemIcon>
+                  <ListItemText primary="Create Distributed Connection" />
+                </ListItemButton>
+              </div>
+            </Tooltip>
+            
 
             {
               props.user !== undefined && 

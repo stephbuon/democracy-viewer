@@ -1,6 +1,6 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues } from "../api/api.js"
+import { getGroupNames, getColumnValues, getTopWords } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
@@ -120,6 +120,20 @@ export const GraphSettings = ( props ) => {
         });
     }
 
+    // Dynamically get word suggestions as user types
+    const getWordSuggestions = async(params) => {
+        if (params.search) {
+            const results = await getTopWords(props.dataset.dataset.table_name, {
+                ...params,
+                column: group,
+                values: groupList.map(x => x.value)
+            });
+            return results;
+        } else {
+            return [];
+        }
+    }
+
     // Called when a column is selected
     // updates array for column value dropdown
     useEffect(() => {
@@ -136,7 +150,10 @@ export const GraphSettings = ( props ) => {
         } else if (settings.values !== false && groupList.length !== settings.values) {
             setDisabled(true);
             setDisabledMessage(`You must select ${ settings.values } column value(s) for this metric`);
-        } else if (settings.words !== false && searchTerms.length !== settings.words) {
+        } else if (
+            (settings.wordsOptional === false && settings.words !== false && searchTerms.length !== settings.words) ||
+            (settings.wordsOptional === true && searchTerms.length > 0 && searchTerms.length < settings.words)
+        ) {
             setDisabled(true);
             setDisabledMessage(`You must enter ${ settings.words } custom search word(s) for this metric`);
         } else {
@@ -146,7 +163,7 @@ export const GraphSettings = ( props ) => {
     }, [metric, group, searchTerms, groupList]);
 
     return <>
-        < Modal open={props.show}
+        <Modal open={props.show}
             onClose={handleClose}
             aria-labelledby="contained-modal-title-vcenter"
             className="mx-auto"
@@ -210,6 +227,7 @@ export const GraphSettings = ( props ) => {
                     sx={{ background: 'rgb(255, 255, 255)', zIndex: 0 }}
                     words={searchTerms}
                     setWords={setSearchTerms}
+                    getOptions={getWordSuggestions}
                 />
 
                 {
