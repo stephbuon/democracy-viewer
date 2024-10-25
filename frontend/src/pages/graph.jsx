@@ -91,22 +91,6 @@ export const Graph = (props) => {
           tempData.titleList.push(keys[0], keys[1]);
         }
 
-        tempData.graph.push({
-          x: [],
-          y: [],
-          text: [],
-          hovertext: [],
-          mode: "markers+text",
-          type: "scatter",
-          textposition: "top center",
-          textfont: {
-            color: 'rgba(0, 0, 0, 0.5)'
-          },
-          marker: {
-            color: 'rgba(0, 0, 255, 0.5)'
-          }
-        });
-
         // Get the range of x and y axes
         const allX = [];
         const allY = [];
@@ -137,17 +121,38 @@ export const Graph = (props) => {
           );
 
           // Add point to the graph regardless of overlap
-          tempData.graph[0].x.push(dataPoint.x);
-          tempData.graph[0].y.push(dataPoint.y);
-          tempData.graph[0].hovertext.push(dataPoint.word); // Show on hover
+          let index = tempData.graph.findIndex(x => x.name === dataPoint.group);
+          if (index === -1) {
+            index = tempData.graph.length;
+            tempData.graph.push({
+              x: [dataPoint.x],
+              y: [dataPoint.y],
+              text: [],
+              hovertext: [dataPoint.word],
+              name: dataPoint.group,
+              mode: "markers+text",
+              type: "scatter",
+              textposition: "top center",
+              textfont: {
+                color: 'rgba(0, 0, 0, 0.5)'
+              },
+              marker: {
+                opacity: 0.5
+              }
+            });
+          } else {
+            tempData.graph[index].x.push(dataPoint.x);
+            tempData.graph[index].y.push(dataPoint.y);
+            tempData.graph[index].hovertext.push(dataPoint.word); // Show on hover
+          }  
 
           if (!overlap) {
             // If no overlap, display the text on the graph
             nonOverlappingLabels.push(dataPoint);
-            tempData.graph[0].text.push(dataPoint.word);
+            tempData.graph[index].text.push(dataPoint.word);
           } else {
             // If overlapping, hide the text on the graph
-            tempData.graph[0].text.push(''); // Empty string for hidden text
+            tempData.graph[index].text.push(''); // Empty string for hidden text
           }
         });
 
