@@ -5,11 +5,12 @@ import Flag from "react-flagkit";
 // MUI Imports
 import { 
     Box, Button, Checkbox,FormControl, FormControlLabel, FormGroup, IconButton, 
-    InputLabel, LinearProgress, MenuItem, Select, Tooltip, Typography
+    InputLabel, LinearProgress, MenuItem, Select, Tooltip, Typography,
+    Card, CardActions, CardContent, Alert, Snackbar,
+    Table, TableBody, TableRow, TableCell, TextField
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-
-import { UploadDataset, UploadStopwords } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset, UploadStopword, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
 import { getDistributedConnections } from "../api/api";
@@ -25,14 +26,23 @@ const stemLanguages = [
 ]
 
 export const UploadModal = (props) => {
+    const [file, setFile] = useState(undefined);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [disableButtons, setDisableButtons] = useState(false);
+    const [headers, setHeaders] = useState([]);
+    const [tableName, settableName] = useState(undefined);
+    const [APIEndpoint, setAPIEndpoint] = useState("");
+    const [Token, setToken] = useState("");
+    const [alert, setAlert] = useState(0);
+    const [fileUploaded, setFileUploaded] = useState(false);
+    const [snackBarOpen, setSnackBarOpen] = useState(false);
+
     const [title, setTitle] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(false);
     const [description, setDescription] = useState('');
-    const [headers, setHeaders] = useState([]);
     const [tags, setTags] = useState([]);
    
     const [loadedPage, setLoadedPage] = useState(1);
-    const [datasetName, setDatasetName] = useState("");
     const [author, setAuthor] = useState('');
     const [date, setDate] = useState('');
     // Preprocessing
@@ -74,34 +84,101 @@ export const UploadModal = (props) => {
         });
         
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-        demoV.uploadData = datasetName;
+        demoV.uploadData = tableName;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-        UploadDataset(datasetName, metadata, textCols_, tags);
+        UploadDataset(tableName, metadata, textCols_, tags);
         
         props.CancelUpload();
         navigate("/upload/complete");
     }
 
+    const uploadCsv = () => {
+        setAlert(0);
+        setUploadProgress(0);
+        setDisableButtons(true);
+        CreateDataset(file, setUploadProgress).then(res => {
+          settableName(res.table_name)
+          setHeaders(res.headers)
+          setFileUploaded(true);
+          setAlert(3);
+        }).catch(res => {
+          if (res.response && res.response.data.message === "MulterError: File too large") {
+            setAlert(4);
+          } else {
+            setAlert(2);
+          }
+          
+          setFile(undefined);
+          setUploadProgress(0);
+        }).finally(() => setDisableButtons(false));
+      };
+
+      const APIcsv = () => {
+        setAlert(0);
+        setDisableButtons(true);
+        GetCSVFromAPI(APIEndpoint, Token)
+          .then((res) => {
+            settableName(res.table_name);
+            setHeaders(res.headers);
+            setFileUploaded(true);
+            setAlert(3);
+          })
+          .catch(() => {
+            setAlert(2);
+          }).finally(() => setDisableButtons(false));
+      };
+    
+      const handleSnackBarClose = (event, reason) => {
+        if (reason === "clickaway") {
+          return;
+        }
+        setSnackBarOpen(false);
+      };
+
     useEffect(() => {
-        setDatasetName(props.name);
-        setHeaders(props.headers);
         setTextColOptions(
-            props.headers.map(x => {return {
+            headers.map(x => {return {
                 label: x,
                 value: x
             }})
         )
-    }, [props]);
+    }, [headers]);
+
+    useEffect(() => {
+        if (alert !== 0) {
+          setSnackBarOpen(true);
+        } else {
+          setSnackBarOpen(false);
+        }
+      }, [alert]);
+
+    useEffect(() => {
+        if (file && file.name) {
+          setAlert(0);
+          const validExtensions = [".csv"];
+          if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
+            setAlert(1);
+          } else {
+            uploadCsv();
+          }
+        }
+      }, [file]);
 
     useEffect(() => {
         if (loadedPage === 1) {
-            setDisabled(true);
+            if (props.uploadType === "csv" || props.uploadType === "api") {
+                setDisabled(!fileUploaded);
+            } else {
+                setDisabled(true);
+            }
         } else if (loadedPage === 2) {
-            setDisabled(false);
+            setDisabled(true);
         } else if (loadedPage === 3) {
+            setDisabled(false);
+        } else if (loadedPage === 4) {
             setDisabled(textCols.length === 0);
         } 
-    }, [loadedPage, textCols])
+    }, [loadedPage, textCols, fileUploaded, props.uploadType])
 
     useEffect(() => {
         if (stemLanguages.filter(x => x === language).length === 0 && tokenization === "stem") {
@@ -125,11 +202,11 @@ export const UploadModal = (props) => {
         <Box
             sx={{
                 position: 'absolute',
-                top: '2.5%',
-                left: '10%',
-                height: "95%",
+                top: '5%',
+                left: '15%',
+                height: "90%",
                 overflowY: "auto",
-                width: "80%",
+                width: "70%",
                 bgcolor: 'background.paper',
                 border: '1px solid #000',
                 borderRadius: ".5em .5em",
@@ -146,10 +223,129 @@ export const UploadModal = (props) => {
                     borderRadius: '5px'
                 }
             }}>
-                <LinearProgress variant="determinate" value={(loadedPage / 3) * 100} />
+                <LinearProgress variant="determinate" value={(loadedPage / 4) * 100} />
             </Box>
+            <Snackbar
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                open={snackBarOpen}
+                autoHideDuration={6000}
+                onClose={() => handleSnackBarClose()}
+            >
+                <Alert
+                onClose={handleSnackBarClose}
+                severity={alert === 3 ? "success" : "error"}
+                sx={{ width: "100%" }}
+                >
+                {alert === 1 && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
+                {alert === 2 && <div>An error occurred uploading the dataset</div>}
+                {alert === 3 && <div>Dataset successfully uploaded</div>}
+                {alert === 4 && <div>Maximum upload size is 150 MB. Reach out to us at <Link to="mailto:democracyviewerlab@gmail.com">democracyviewerlab@gmail.com</Link> to upload a larger dataset</div>}
+                </Alert>
+            </Snackbar>
 
             {loadedPage === 1 && (
+                <div style={{
+                    height:"80%",
+                    // width: "90%",
+                    position: "relative",
+                    // left: "5%",
+                    top: "7%"
+                }}>
+                    {props.uploadType === "csv" && (
+                        <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
+                            <CardContent
+                                sx={{
+                                flexGrow: 1,
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                }}
+                            >
+                                <Typography gutterBottom variant="h5" component="h2" align="center">
+                                Upload File
+                                </Typography>
+                                <Typography align="center">Upload a CSV File</Typography>
+                                {uploadProgress > 0 && (
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={uploadProgress}
+                                    sx={{ width: "100%", mt: 2 }}
+                                />
+                                )}
+                            </CardContent>
+                            <CardActions style={{ justifyContent: "center" }}>
+                                <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                disabled={disableButtons}
+                                >
+                                Select
+                                <input
+                                    type="file"
+                                    
+                                    hidden
+                                    onChange={(x) => {
+                                    setFile(x.target.files[0]);
+                                    }}
+                                />
+                                </Button>
+                            </CardActions>
+                        </Card>
+                    )}
+
+                    {props.uploadType === "api" && (
+                        <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
+                        <CardContent sx={{ flexGrow: 1 }}>
+                            <Typography gutterBottom variant="h5" component="h2" align="center">
+                            API
+                            </Typography>
+                            <Typography align="center">Upload From an API Endpoint</Typography>
+                        </CardContent>
+                        <Table>
+                            <TableBody>
+                            <TableRow>
+                                <TableCell className="col-6">
+                                <TextField
+                                    margin="normal"
+                                    fullWidth
+                                    label="API Endpoint"
+                                    value={APIEndpoint}
+                                    onChange={(event) => {
+                                    setAPIEndpoint(event.target.value);
+                                    }}
+                                />
+                                <TextField
+                                    margin="normal"
+                                    fullWidth
+                                    label="Token"
+                                    value={Token}
+                                    onChange={(event) => {
+                                    setToken(event.target.value);
+                                    }}
+                                />
+                                </TableCell>
+                            </TableRow>
+                            </TableBody>
+                        </Table>
+                        <CardActions style={{ justifyContent: "center" }}>
+                            <Button
+                            variant="contained"
+                            component="label"
+                            sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                            onClick={() => APIcsv()}
+                            disabled={disableButtons}
+                            >
+                            Call API
+                            </Button>
+                        </CardActions>
+                        </Card>
+                    )}
+                </div>
+            )}
+
+            {loadedPage === 2 && (
                 <DatasetInformation
                     title={title}
                     setTitle={setTitle}
@@ -166,14 +362,14 @@ export const UploadModal = (props) => {
                 />
             )}
 
-            {loadedPage === 2 && (
+            {loadedPage === 3 && (
                 <DatasetTags
                     tags={tags}
                     setTags={setTags}
                 />
             )}
 
-            {loadedPage === 3 && (
+            {loadedPage === 4 && (
                 <Box sx={{ padding: 2 }}>
                     <Typography variant="h5" align="center" gutterBottom>
                         Preprocessing Settings
@@ -355,7 +551,7 @@ export const UploadModal = (props) => {
                         Back
                     </Button>
                 )}
-                {loadedPage < 3 && (
+                {loadedPage < 4 && (
                     <Button
                         variant="contained"
                         sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
@@ -365,7 +561,7 @@ export const UploadModal = (props) => {
                         Next
                     </Button>
                 )}
-                {loadedPage === 3 && (
+                {loadedPage === 4 && (
                     <Button
                         variant="contained"
                         sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      

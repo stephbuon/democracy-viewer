@@ -219,15 +219,15 @@ export const GraphSettings = ( props ) => {
                 />
 
                 {/* Custom search + terms list */}
-                <FormattedMultiTextField
-                    id="customsearch"
-                    label="Custom Search"
-                    // variant="filled"
-                    fullWidth
-                    sx={{ background: 'rgb(255, 255, 255)', zIndex: 0 }}
-                    words={searchTerms}
-                    setWords={setSearchTerms}
-                    getOptions={getWordSuggestions}
+                <Typography>Custom Search</Typography>
+                <FormattedMultiSelectField
+                    selectedOptions={searchTerms}
+                    setSelectedOptions={setSearchTerms}
+                    // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
+                    getData={getWordSuggestions}
+                    id="customSearchSelect"
+                    className="mb-3"
+                    closeMenuOnSelect={false}
                 />
 
                 {
