@@ -71,7 +71,6 @@ export const Graph = (props) => {
             tempData.graph.push({
               x: [dataPoint.x],
               y: [dataPoint.y],
-              name: dataPoint.group,
               type: "bar"
             })
           }

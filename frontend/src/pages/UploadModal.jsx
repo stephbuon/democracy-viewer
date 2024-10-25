@@ -250,6 +250,7 @@ export const UploadModal = (props) => {
                                     <MenuItem value = "Portuguese"><Flag country = "PT"/>&nbsp;Portuguese</MenuItem>
                                     <MenuItem value = "Russian"><Flag country = "RU"/>&nbsp;Russian</MenuItem>
                                     <MenuItem value = "Spanish"><Flag country = "ES"/>&nbsp;Spanish</MenuItem>
+                                    <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem>
                                 </Select>
                             </FormControl>
                         </Tooltip>
@@ -286,7 +287,7 @@ export const UploadModal = (props) => {
 
                         <FormGroup>
                             <Tooltip arrow title = {(
-                                <p>Word embeddings are a machine learning algorithm that can be used to find similar/different words in the text. This requires a long computation time for large datasets, so it is disabled by default. <Link color = "inherit" to = "https://en.wikipedia.org/wiki/Word_embedding">Learn more about word embeddings here.</Link></p>
+                                <p>Word embeddings use cosine similarity to identify the most similar or dissimilar words in a dataset. They are disabled by default due to their slow processing time on large datasets.</p>
                             )}>
                                 <FormControlLabel control={<Checkbox defaultChecked = {embeddings}/>} label="Compute Word Embeddings" onChange={event => setEmbeddings(!embeddings)}/>
                             </Tooltip>
@@ -295,7 +296,7 @@ export const UploadModal = (props) => {
                                 embeddings &&
                                 <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
                                     <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                        <InputLabel>Word Embedding Grouping Column</InputLabel>
+                                        <InputLabel>Group By</InputLabel>
                                         <Select
                                             value={embedCol}
                                             onChange={event => setEmbedCol(event.target.value)}
