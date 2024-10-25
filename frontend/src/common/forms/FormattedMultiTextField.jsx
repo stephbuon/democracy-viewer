@@ -1,17 +1,29 @@
-import { Box, IconButton, Chip } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add';
+import { Box, IconButton, Chip, List, ListItem, ListItemButton, ListItemText } from "@mui/material";
+import { Add as AddIcon } from '@mui/icons-material';
 import { FormattedTextField } from "./FormattedTextField";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const FormattedMultiTextField = (props) => {
     const [word, setWord] = useState("");
+    const [lastWord, setLastWord] = useState("");
+    const [suggestionLockout, setSuggestionLockout] = useState(false);
+    const [filteredOptions, setFilteredOptions] = useState([]);
+    const [isFocused, setIsFocused] = useState(false);
 
-    const addWord = () => {
-        if (word.trim() === "") return;
+    const addWord = (selectedWord = null) => {
+        let currWord;
+        if (typeof selectedWord === "string") {
+            currWord = selectedWord;
+        } else {
+            currWord = word;
+        }
+
+        if (currWord.trim() === "") return;
         let _words = [...props.words];
-        _words.push(word);
+        _words.push(currWord);
         props.setWords(_words);
         setWord('');
+        setFilteredOptions(filteredOptions.filter(x => x.toLowerCase() !== currWord.toLowerCase()));
     }
 
     const deleteWord = (_word) => {
@@ -29,19 +41,75 @@ export const FormattedMultiTextField = (props) => {
         }
     }
 
+    const onInputChange = async(value) => {
+        setWord(value);
+        if (!suggestionLockout && props.getOptions) {
+            // Filter options from the props list that match the input
+            setSuggestionLockout(true);
+            setLastWord(value);
+            const options = await props.getOptions({ search: value, page: 1 });
+            setFilteredOptions(options.filter(x => !props.words.includes(x)));
+            setSuggestionLockout(false);
+        }
+    }
+
+    const handleFocus = () => {
+        setIsFocused(true);
+    }
+
+    const handleBlur = () => {
+        // Hide the dropdown after a slight delay to allow for option clicks
+        setTimeout(() => setIsFocused(false), 150);
+    }
+
+    useEffect(() => {
+        if (!suggestionLockout && word !== lastWord) {
+            onInputChange(word);
+        }
+    }, [suggestionLockout])
+
     return <>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, position: "relative" }}>
                 <FormattedTextField
                     { ...props }
                     value={word}
-                    setValue={setWord}
+                    setValue={onInputChange}
                     onKeyDown = {onEnter}
+                    onFocus={handleFocus}      // Show options when focused
+                    onBlur={handleBlur}        // Hide options when not focused
                 />
                 <IconButton onClick={() => addWord()} disabled={props.disabled}>
                     <AddIcon />
                 </IconButton>
+
+                {/* List of filtered options shown when typing and field is focused */}
+                {filteredOptions.length > 0 && isFocused && (
+                    <List 
+                        sx={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            width: '100%',
+                            maxHeight: 150,
+                            overflowY: 'auto',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            backgroundColor: 'white',
+                            zIndex: 100,  // Ensure it appears above other content
+                        }}
+                    >
+                        {filteredOptions.map((option, index) => (
+                            <ListItem key={index} disablePadding>
+                                <ListItemButton onClick={() => addWord(option)}>
+                                    <ListItemText primary={option} />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                )}
             </Box>
+
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {props.words.map((word, index) => (
                     <Chip

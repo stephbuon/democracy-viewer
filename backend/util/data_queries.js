@@ -3,7 +3,8 @@ const aws = require("./aws");
 const uniqueColValues = async(table_name, col) => {
     const query = `
         SELECT DISTINCT "${ col }"
-        FROM datasets_${ table_name }
+        FROM democracy_viewer_athena.datasets_${ table_name }
+        ORDER BY "${ col }"
     `;
 
     return await aws.download(query);
@@ -25,19 +26,19 @@ const subsetSearch = async(table_name, input, count = false, page = 1, pageLengt
         if (terms.length === 0) {
             query = `
                 SELECT COUNT(*) AS "count"
-                FROM datasets_${ table_name }
+                FROM democracy_viewer_athena.datasets_${ table_name }
             `;
         } else {
             query = `
                 SELECT COUNT(DISTINCT dataset.record_id) AS "count"
                 FROM (
                     SELECT record_id, word
-                    FROM tokens_${ table_name }
+                    FROM democracy_viewer_athena.tokens_${ table_name }
                     WHERE word IN (${ terms.map(x => `'${ x }'`).join(", ") })
                 ) AS tokens
                 JOIN (
                     SELECT *
-                    FROM datasets_${ table_name }
+                    FROM democracy_viewer_athena.datasets_${ table_name }
                 ) as dataset
                 ON tokens.record_id = dataset.record_id
             `;
@@ -46,7 +47,7 @@ const subsetSearch = async(table_name, input, count = false, page = 1, pageLengt
         if (terms.length === 0) {
             query = `
                 SELECT *
-                FROM datasets_${ table_name }
+                FROM democracy_viewer_athena.datasets_${ table_name }
                 ORDER BY record_id
                 OFFSET ${ (page - 1) * pageLength }
                 LIMIT ${ pageLength }
@@ -56,12 +57,12 @@ const subsetSearch = async(table_name, input, count = false, page = 1, pageLengt
                 SELECT dataset.*
                 FROM (
                     SELECT record_id, word
-                    FROM tokens_${ table_name }
+                    FROM democracy_viewer_athena.tokens_${ table_name }
                     WHERE word IN ('${ terms.join(", ") }')
                 ) AS tokens
                 JOIN (
                     SELECT *
-                    FROM datasets_${ table_name }
+                    FROM democracy_viewer_athena.datasets_${ table_name }
                 ) as dataset
                 ON tokens.record_id = dataset.record_id
                 ORDER BY record_id
@@ -89,7 +90,7 @@ const downloadSubset = async(table_name, input) => {
     if (terms.length === 0) {
         query = `
             SELECT *
-            FROM datasets_${ table_name }
+            FROM democracy_viewer_athena.datasets_${ table_name }
             ORDER BY record_id
         `
     } else {
@@ -97,12 +98,12 @@ const downloadSubset = async(table_name, input) => {
             SELECT dataset.*
             FROM (
                 SELECT DISTINCT record_id
-                FROM tokens_${ table_name }
+                FROM democracy_viewer_athena.tokens_${ table_name }
                 WHERE word IN ('${ terms.join(", ") }')
             ) AS tokens
             JOIN (
                 SELECT *
-                FROM datasets_${ table_name }
+                FROM democracy_viewer_athena.datasets_${ table_name }
             ) as dataset
             ON tokens.record_id = dataset.record_id
             ORDER BY record_id
@@ -115,7 +116,7 @@ const downloadSubset = async(table_name, input) => {
 const getRecordsByIds = async(table_name, ids = []) => {
     const query = `
         SELECT *
-        FROM datasets_${ table_name }
+        FROM democracy_viewer_athena.datasets_${ table_name }
         WHERE record_id IN (${ ids.join(", ") })
         ORDER BY record_id
     `;
@@ -126,7 +127,7 @@ const getRecordsByIds = async(table_name, ids = []) => {
 const downloadRecordsByIds = async(table_name, ids = []) => {
     const query = `
         SELECT *
-        FROM datasets_${ table_name }
+        FROM democracy_viewer_athena.datasets_${ table_name }
         WHERE record_id IN (${ ids.join(", ") })
         ORDER BY record_id
     `;
@@ -141,7 +142,7 @@ const getZoomIds = async(table_name, params) => {
     if (params.group_name && params.group_list.length > 0) {
         datasetQuery = `
             SELECT record_id
-            FROM datasets_${ table_name }
+            FROM democracy_viewer_athena.datasets_${ table_name }
             WHERE ${ params.group_name } IN (${ params.group_list.map(x => `'${ x }'`).join(", ") })
         `;
     }
@@ -149,8 +150,8 @@ const getZoomIds = async(table_name, params) => {
     if (params.word_list.length > 0) {
         tokenQuery = `
             SELECT DISTINCT record_id
-            FROM tokens_${ table_name }
-            WHERE word IN (${ params.word_list.map(x => `'${ x }'`).join(", ") })
+            FROM democracy_viewer_athena.tokens_${ table_name }
+            WHERE word IN (${ params.word_list.map(x => `'${ x.toLowerCase() }'`).join(", ") })
         `;
     }
 
@@ -173,9 +174,45 @@ const getZoomIds = async(table_name, params) => {
     } else {
         query = `
             SELECT record_id
-            FROM datasets_${ table_name }
+            FROM democracy_viewer_athena.datasets_${ table_name }
         `;
     }
+
+    return aws.download(query);
+}
+
+const getTopWords = async(table_name, search, column, values, page, pageLength) => {
+    let datasetQuery = "";
+    let tokenQuery;
+
+    if (column && values && values.length > 0) {
+        datasetQuery = `
+            JOIN (
+                SELECT record_id
+                FROM datasets_${ table_name }
+                WHERE "${ column }" IN (${ values.map(x => `'${ x }'`).join(", ") })
+            ) AS datasets
+            ON tokens.record_id = datasets.record_id
+        `;
+    }
+
+    tokenQuery = `
+        SELECT record_id, word, "count"
+        FROM tokens_${ table_name }
+        WHERE word LIKE '%${ search }%'
+    `;
+
+    const query = `
+        SELECT tokens.word AS word, SUM(tokens.count) AS "count"
+        FROM (
+            ${ tokenQuery }
+        ) AS tokens
+        ${ datasetQuery }
+        GROUP BY tokens.word
+        ORDER BY "count" DESC, tokens.word
+        OFFSET ${ (page - 1) * pageLength }
+        LIMIT ${ pageLength }
+    `;
 
     return aws.download(query);
 }
@@ -186,5 +223,6 @@ module.exports = {
     downloadSubset,
     getRecordsByIds,
     downloadRecordsByIds,
-    getZoomIds
+    getZoomIds,
+    getTopWords
 }

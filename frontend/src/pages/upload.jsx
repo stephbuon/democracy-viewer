@@ -54,8 +54,8 @@ export const Upload = (props) => {
   };
 
   useEffect(() => {
-    setAlert(0);
     if (file && file.name) {
+      setAlert(0);
       const validExtensions = [".csv"];
       if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
         setAlert(1);
@@ -77,7 +77,7 @@ export const Upload = (props) => {
       setFileUploaded(true);
       setAlert(3);
     }).catch(res => {
-      if (res.response.data.message === "MulterError: File too large") {
+      if (res.response && res.response.data.message === "MulterError: File too large") {
         setAlert(4);
       } else {
         setAlert(2);

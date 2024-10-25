@@ -27,6 +27,7 @@ export const ResultModal = (props) => {
     const [author, setAuthor] = useState(props.dataset.author);
     const [date, setDate] = useState(props.dataset.date);
     const [tags, setTags] = useState(props.dataset.tags);
+    const [license, setLicense] = useState(props.dataset.license)
 
     // Open edit dialogs
     const [infoOpen, setInfoOpen] = useState(false);
@@ -48,7 +49,8 @@ export const ResultModal = (props) => {
             is_public: publicPrivate !== props.dataset.is_public ? publicPrivate : null,
             description: description !== props.dataset.description ? description : null,
             author: author !== props.dataset.author ? author : null,
-            date: date !== props.dataset.date ? date : null
+            date: date !== props.dataset.date ? date : null,
+            license: license !== props.dataset.license ? license : null
         };
 
         const keys = Object.keys(params).filter(x => params[x] === null);
@@ -174,6 +176,8 @@ export const ResultModal = (props) => {
                                         setDescription={setDescription}
                                         publicPrivate={publicPrivate}
                                         setPublicPrivate={setPublicPrivate}
+                                        license={license}
+                                        setLicense={setLicense}
                                         disabled={disabled}
                                         setDisabled={setDisabled}
                                     />
@@ -430,6 +434,18 @@ export const ResultModal = (props) => {
                                 </TableCell>
                                 <TableCell sx={{ textAlign: "left" }}>
                                     {new Date(props.dataset.date_collected).toLocaleDateString()}
+                                </TableCell>
+                            </TableRow>
+                        }
+
+                        {
+                            props.dataset.license &&
+                            <TableRow>
+                                <TableCell>
+                                    <b> License: </b>
+                                </TableCell>
+                                <TableCell sx={{ textAlign: "left" }}>
+                                    {props.dataset.license}
                                 </TableCell>
                             </TableRow>
                         }

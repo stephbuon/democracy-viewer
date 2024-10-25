@@ -9,10 +9,11 @@ import {
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
-import { UploadDataset } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset, UploadStopwords } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
 import { getDistributedConnections } from "../api/api";
+import { FormattedMultiSelectField } from "../common/forms";
 
 // Languages that allow stemming
 // Some of these languages are not yet available in democracy viewer
@@ -27,7 +28,6 @@ export const UploadModal = (props) => {
     const [title, setTitle] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(false);
     const [description, setDescription] = useState('');
-    const [columnTypes, setColumnTypes] = useState({});
     const [headers, setHeaders] = useState([]);
     const [tags, setTags] = useState([]);
    
@@ -43,18 +43,20 @@ export const UploadModal = (props) => {
     const [tokenization, setTokenization] = useState("none");
     const [embeddings, setEmbeddings] = useState(false);
     const [embedCol, setEmbedCol] = useState(null);
+    const [textCols, setTextCols] = useState([]);
+    const [textColOptions, setTextColOptions] = useState([]);
+    const [stopwordsFile, setStopwordsFile] = useState(undefined);
 
     const [disabled, setDisabled] = useState(true);
 
     const navigate = useNavigate();
 
     const SendDataset = () => {
-        let _texts = [];
-        for (let i = 0; i < headers.length; i++) {
-            if (columnTypes[headers[i]] === "TEXT") {
-                _texts.push(headers[i]);
-            }
+        if (stopwordsFile !== undefined) {
+            UploadStopwords(stopwordsFile, datasetName)
         }
+
+        const textCols_ = textCols.map(x => x.value);
         const metadata = {
             title, description, is_public: publicPrivate,
             preprocessing_type: tokenization, embeddings,
@@ -74,7 +76,7 @@ export const UploadModal = (props) => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.uploadData = datasetName;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-        UploadDataset(datasetName, metadata, _texts, tags);
+        UploadDataset(datasetName, metadata, textCols_, tags);
         
         props.CancelUpload();
         navigate("/upload/complete");
@@ -83,6 +85,12 @@ export const UploadModal = (props) => {
     useEffect(() => {
         setDatasetName(props.name);
         setHeaders(props.headers);
+        setTextColOptions(
+            props.headers.map(x => {return {
+                label: x,
+                value: x
+            }})
+        )
     }, [props]);
 
     useEffect(() => {
@@ -91,9 +99,9 @@ export const UploadModal = (props) => {
         } else if (loadedPage === 2) {
             setDisabled(false);
         } else if (loadedPage === 3) {
-            setDisabled(Object.values(columnTypes).filter(x => x === "TEXT").length === 0);
+            setDisabled(textCols.length === 0);
         } 
-    }, [loadedPage, columnTypes])
+    }, [loadedPage, textCols])
 
     useEffect(() => {
         if (stemLanguages.filter(x => x === language).length === 0 && tokenization === "stem") {
@@ -117,9 +125,9 @@ export const UploadModal = (props) => {
         <Box
             sx={{
                 position: 'absolute',
-                top: '10%',
+                top: '2.5%',
                 left: '10%',
-                height: "80%",
+                height: "95%",
                 overflowY: "auto",
                 width: "80%",
                 bgcolor: 'background.paper',
@@ -138,7 +146,7 @@ export const UploadModal = (props) => {
                     borderRadius: '5px'
                 }
             }}>
-                <LinearProgress variant="determinate" value={(loadedPage / 4) * 100} />
+                <LinearProgress variant="determinate" value={(loadedPage / 3) * 100} />
             </Box>
 
             {loadedPage === 1 && (
@@ -168,35 +176,6 @@ export const UploadModal = (props) => {
             {loadedPage === 3 && (
                 <Box sx={{ padding: 2 }}>
                     <Typography variant="h5" align="center" gutterBottom>
-                        Column Information
-                        <Tooltip title="Our system will auto detect data types if you leave the column as AUTO. However if you would like individual words to be parsed and preprocessed please signify that as a TEXT column. At least one TEXT column must be selected.">
-                            <IconButton size="small">
-                                <HelpOutlineIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        {headers.map((header, index) => (
-                            <Box key={index} sx={{ display: 'flex', gap: 2 }}>
-                                <Typography sx={{ flex: 1 }}>{header}</Typography>
-                                <FormControl fullWidth variant="filled" sx={{ flex: 2, background: 'rgb(255, 255, 255)' }}>
-                                    <Select
-                                        value={columnTypes[header] || 'AUTO'}
-                                        onChange={(event) => setColumnTypes({ ...columnTypes, [header]: event.target.value })}
-                                    >
-                                        <MenuItem value="AUTO">AUTO</MenuItem>
-                                        <MenuItem value="TEXT">TEXT</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Box>
-                        ))}
-                    </Box>
-                </Box>
-            )}
-
-            {loadedPage === 4 && (
-                <Box sx={{ padding: 2 }}>
-                    <Typography variant="h5" align="center" gutterBottom>
                         Preprocessing Settings
                         <Tooltip title="Provide details on how you would like your dataset to be preprocessed.">
                             <IconButton size="small">
@@ -205,7 +184,7 @@ export const UploadModal = (props) => {
                         </Tooltip>
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        <FormGroup>
+                        {/* <FormGroup>
                             <Tooltip arrow title = {(
                                 <p>Store your dataset and preprocessing data in your own AWS S3 bucket.</p>
                             )}>
@@ -229,7 +208,20 @@ export const UploadModal = (props) => {
                                     </FormControl>
                                 </Tooltip>
                             }
-                        </FormGroup>
+                        </FormGroup> */}
+
+                        <Tooltip arrow title = "Select which column(s) contain text that needs to be processed. You must select at least 1 text column.">
+                            <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
+                                <Typography>Text Columns</Typography>
+                                <FormattedMultiSelectField
+                                    selectedOptions={textCols}
+                                    setSelectedOptions={setTextCols}
+                                    getData={textColOptions}
+                                    id="textColSelect"
+                                    closeMenuOnSelect={false}
+                                />
+                            </FormControl>
+                        </Tooltip>
 
                         <Tooltip arrow title = "The language the text column(s) are written in. If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
@@ -254,6 +246,36 @@ export const UploadModal = (props) => {
                                 </Select>
                             </FormControl>
                         </Tooltip>
+
+                        <Typography>Custom Stopwords TXT</Typography>
+                        {
+                            stopwordsFile === undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                >
+                                Upload Stopwords List
+                                <input
+                                    type="file"
+                                    accept=".txt"
+                                    hidden
+                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
+                                />
+                            </Button>
+                        }
+                        
+                        {
+                            stopwordsFile !== undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                onClick={() => setStopwordsFile(undefined)}
+                            >
+                                Remove Stopwords List
+                            </Button>
+                        }
 
                         <Tooltip arrow title = {(
                             <div>
@@ -302,8 +324,8 @@ export const UploadModal = (props) => {
                                             onChange={event => setEmbedCol(event.target.value)}
                                         >
                                             <MenuItem value = {null}>&nbsp;</MenuItem>
-                                            {headers.map((header, index) => (
-                                                <MenuItem value = {header} key = {index}>{ header }</MenuItem>
+                                            {textColOptions.filter(x => !textCols.includes(x)).map((header, index) => (
+                                                <MenuItem value = {header.value} key = {index}>{ header.label }</MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
@@ -333,7 +355,7 @@ export const UploadModal = (props) => {
                         Back
                     </Button>
                 )}
-                {loadedPage < 4 && (
+                {loadedPage < 3 && (
                     <Button
                         variant="contained"
                         sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      
@@ -343,7 +365,7 @@ export const UploadModal = (props) => {
                         Next
                     </Button>
                 )}
-                {loadedPage === 4 && (
+                {loadedPage === 3 && (
                     <Button
                         variant="contained"
                         sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}      

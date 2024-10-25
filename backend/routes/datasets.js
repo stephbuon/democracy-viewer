@@ -18,7 +18,6 @@ router.post('/', authenticateJWT, async(req, res, next) => {
             const result = await control.createDataset(req.file.path, req.user.email);
             res.status(201).json(result);
         }
-        
     } catch (err) {
         console.error('Failed to create dataset:', err);
         res.status(500).json({ message: err.toString() });
@@ -93,6 +92,27 @@ router.post('/suggest', authenticateJWT, async(req, res, next) => {
         res.status(201).end();
     } catch (err) {
         console.error('Failed to create text suggestion:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to upload a stopwords list
+router.post('/upload/stopwords/:table', authenticateJWT, async(req, res, next) => {
+    try {
+        // Upload file to server
+        await util.uploadFile(req, res);
+
+        if (!req.file) {
+            // If file failed to upload, throw error
+            res.status(400).json({ message: "No uploaded file" });
+        } else {
+            // Create dataset in database from file
+            await control.uploadStopwords(req.file.path, req.params.table, req.user.email);
+            res.status(201).end();
+        }
+    } catch (err) {
+        console.error('Failed to upload stopwords:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -240,6 +260,22 @@ router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
     next();
 });
 
+// Route to get the top words matching a search
+router.get('/words/top/:table_name', async(req, res, next) => {
+    try {
+        const results = await control.getTopWords(
+            req.params.table_name, req.query.search,
+            req.query.column, req.query.values,
+            req.query.page, req.query.pageLength
+        );
+        res.status(200).json(results);
+    } catch (err) {
+        console.error('Failed to get top words:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to download a subset of a dataset
 router.post('/download/subset/:table', async(req, res, next) => {
     try {
@@ -295,7 +331,13 @@ router.get('/columns/:table', async(req, res, next) => {
 // Route to get dataset column names
 router.get('/columns/:table/values/:column', async(req, res, next) => {
     try {
-        const result = await control.getColumnValues(req.knex, req.params.table, req.params.column, req.query.search);
+        let result;
+        if (req.query.page) {
+            result = await control.getColumnValues(req.knex, req.params.table, req.params.column, req.query.search, req.query.page);
+        } else {
+            result = await control.getColumnValues(req.knex, req.params.table, req.params.column, req.query.search);
+        }
+        
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset column names:', err);
