@@ -12,14 +12,14 @@ class groups {
 
     // Create a new group
     async addGroup(params) {
-        const insert = await this.knex(group_table).insert({ ...params });
+        await this.knex(group_table).insert({ ...params, date_created: new Date() });
         const records = await this.knex(group_table).where({ name: params.name });
         return records[records.length - 1];
     }
 
     // Add a member to a group
     async addMember(params) {
-        const insert = await this.knex(member_table).insert({ ...params });
+        await this.knex(member_table).insert({ ...params, date_joined: new Date() });
         const records = await this.knex(member_table).where({ private_group: params.private_group, member: params.member });
         return records[0];
     }
@@ -27,7 +27,7 @@ class groups {
     // Invite a user to a group
     async addInvite(params) {
         const insert = await this.knex(invite_table).insert({ ...params });
-        const records = await this.knex(invite_table).where({ private_group: params.private_group, username: params.username });
+        const records = await this.knex(invite_table).where({ private_group: params.private_group, email: params.email });
         return records[0];
     }
 
@@ -111,8 +111,8 @@ class groups {
     }
 
     // Delete a group invite
-    async deleteInvite(username, private_group) {
-        const del = await this.knex(invite_table).delete().where({ username, private_group });
+    async deleteInvite(email, private_group) {
+        const del = await this.knex(invite_table).delete().where({ email, private_group });
         return null;
     }
 }

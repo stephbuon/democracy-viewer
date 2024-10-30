@@ -32,12 +32,6 @@ CREATE TABLE distributed_connections (
     FOREIGN KEY(owner) REFERENCES users(email) ON DELETE CASCADE
 );
 
-# CREATE TABLE private_groups (
-#     id SERIAL PRIMARY KEY,
-#     name VARCHAR(50),
-#     description NVARCHAR(255)
-# );
-
 CREATE TABLE dataset_metadata (
     table_name VARCHAR(100) PRIMARY KEY NOT NULL,
     email VARCHAR(30) NOT NULL,
@@ -66,22 +60,42 @@ CREATE TABLE dataset_metadata (
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
-# CREATE TABLE group_invites (
-#     private_group BIGINT,
-#     username VARCHAR(20),
-#     PRIMARY KEY(private_group, username),
-#     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
-#     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
-# );
+CREATE TABLE private_groups (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description NVARCHAR(255) NOT NULL,
+    date_created DATE NOT NULL
+);
 
-# CREATE TABLE group_members (
-#     private_group BIGINT,
-#     member VARCHAR(20),
-#     member_rank INT,
-#     PRIMARY KEY(private_group, member),
-#     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
-#     FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
-# );
+CREATE TABLE group_invites (
+    private_group BIGINT UNSIGNED NOT NULL,
+    email VARCHAR(30) NOT NULL,
+    message VARCHAR(250),
+    code VARCHAR(60) NOT NULL,
+    expires DATETIME NOT NULL,
+    used BOOLEAN DEFAULT FALSE NOT NULL,
+    PRIMARY KEY(private_group, email),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
+);
+
+CREATE TABLE group_members (
+    private_group BIGINT UNSIGNED NOT NULL,
+    member VARCHAR(30) NOT NULL,
+    member_rank INT NOT NULL DEFAULT 4,
+    date_joined DATE NOT NULL,
+    PRIMARY KEY(private_group, member),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(member) REFERENCES users(email) ON DELETE CASCADE
+);
+
+CREATE TABLE group_datasets (
+    private_group BIGINT UNSIGNED NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    PRIMARY KEY(private_group, table_name),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);
 
 CREATE TABLE tags (
     tag_name VARCHAR(25) NOT NULL,
