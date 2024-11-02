@@ -143,7 +143,7 @@ const getZoomIds = async(table_name, params) => {
         datasetQuery = `
             SELECT record_id
             FROM democracy_viewer_athena.datasets_${ table_name }
-            WHERE ${ params.group_name } IN (${ params.group_list.map(x => `'${ x }'`).join(", ") })
+            WHERE "${ params.group_name }" IN (${ params.group_list.map(x => `'${ x }'`).join(", ") })
         `;
     }
 
