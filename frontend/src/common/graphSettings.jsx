@@ -87,7 +87,7 @@ export const GraphSettings = ( props ) => {
                 group_name: group,
                 group_list: groupList.map(x => x.value),
                 metric: metric,
-                word_list: searchTerms,
+                word_list: searchTerms.map(x => x.value),
                 pos_list: posList.map(x => x.value),
                 topn: parseInt(topn)
             };

@@ -19,7 +19,6 @@ const createGraph = async(knex, dataset, params, user = null) => {
     // Convert params.group_list and params.word_list to arrays if they aren't already
     params.group_list = Array.isArray(params.group_list) ? params.group_list : params.group_list ? [ params.group_list ] : [];
     params.word_list = Array.isArray(params.word_list) ? params.word_list : params.word_list ? [ params.word_list ] : [];
-    params.word_list = params.word_list.map(x => x.toLowerCase());
     // Convert pos attribute to boolean
     params.pos = !params.pos || params.pos === "false" ? false : true;
 
