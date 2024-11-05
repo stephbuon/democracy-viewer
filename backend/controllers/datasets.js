@@ -50,7 +50,7 @@ const createDatasetAPI = async(endpoint, email, token = null) => {
 
     // Create table name and file name using user's email
     const name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
-    const filename = `files/uploads/${ email.replace(/\W+/g, "_") }.csv`;
+    const filename = `files/uploads/${ name }.csv`;
     
     let output = {};
     if (typeof data === "string") {
@@ -58,18 +58,26 @@ const createDatasetAPI = async(endpoint, email, token = null) => {
         util.generateFile(filename, data);
         // Parse file to read first 5 records and return
         const records = await util.readCSV(filename, false);
+        // Throw error if no records found
+        if (records.length === 0) {
+            throw new Error("No records retrieved from API");
+        }
         // Slice first 5 records to return
         output = {
             table_name: name,
-            data: records.slice(0, 5)
+            headers: Object.keys(records[0])
         }
     } else if (typeof data === "object") {
         // Export data to csv file using an object
         await util.generateCSV(filename, data);
+        // Throw error if no records found
+        if (data.length === 0) {
+            throw new Error("No records retrieved from API");
+        }
         // Slice first 5 records to return
         output = {
             table_name: name,
-            data: data.slice(0, 5)
+            headers: Object.keys(data[0])
         }
     } else {
         // If the request data is not in the correct format, throw an error
@@ -109,6 +117,21 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
 
     // Start batch preprocessing
     await aws.submitBatchJob(name);
+}
+
+// Trigger reprocessing for a dataset
+const reprocessDataset = async(knex, table, email) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const curr = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (curr.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    
 }
 
 // Add a tag for a dataset
