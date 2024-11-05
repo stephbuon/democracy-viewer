@@ -20,9 +20,7 @@ except:
 start_time = time()
 
 # Read file and add record id columns
-df = pl.read_csv(FILE_NAME)
-# Convert all columns to strings
-df = df.cast(pl.Utf8)
+df = pl.read_csv(FILE_NAME, infer_schema=False)
 # Add record id column
 df = df.with_row_index("record_id")
 # Update metadata with record count
