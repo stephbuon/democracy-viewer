@@ -296,7 +296,6 @@ export const Graph = (props) => {
 
       tempData.title = metricNames[tempData.metric].replace(/ \([^()]*\)/g, '') + listToString(tempData.titleList);
       if (tempData.graph.length > 0) {
-        localStorage.setItem('graph-data', JSON.stringify(tempData))
         setGraphData(tempData);
         setGraph(true);
       }
@@ -312,7 +311,6 @@ export const Graph = (props) => {
   // Resets to blank graph
   const resetGraph = (event) => {
     setGraph(false);
-    localStorage.removeItem("graph-data");
     localStorage.removeItem('selected');
     setSettings(true);
   }

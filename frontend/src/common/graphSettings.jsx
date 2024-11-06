@@ -31,22 +31,42 @@ export const GraphSettings = ( props ) => {
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
     const [topn, setTopn] = useState("5");
+    const [savedSettings, setSavedSettings] = useState(undefined);
+    const [firstUpdate, setFirstUpdate] = useState(true);
 
     const navigate = useNavigate();
 
     // UseEffect: Updates graph settings from local storage and group names from api
     useEffect(() => {
-        let graphData = JSON.parse(localStorage.getItem('graph-data'));
-        if(graphData && graphData.dataset !== undefined && graphData.dataset.table === props.dataset.dataset.table_name){
-            setMetric(graphData.graphData.settings.metric);
-            setGroup(graphData.graphData.settings.group);
+        const settings = JSON.parse(localStorage.getItem("graph-settings"));
+        setSavedSettings(settings);
+        if(settings && settings.table_name === props.dataset.dataset.table_name){
+            setMetric(settings.metric);
+            setGroup(settings.group_name);
+            setTopn(String(settings.topn));
 
             let searchList = []
-            graphData.settings.groupList.forEach((element) => {
-                let object = {label:element, value:element};
+            settings.group_list.forEach(x => {
+                let object = { label: x, value: x };
                 searchList.push(object)
             })
             setGroupList(searchList);
+
+            let wordList = []
+            settings.word_list.forEach(x => {
+                let object = { label: x, value: x };
+                wordList.push(object)
+            })
+            setSearchTerms(wordList);
+
+            let pos_list = []
+            settings.pos_list.forEach(x => {
+                const record = posOptions.filter(y => y.value === x);
+                if (record.length > 0) {
+                    pos_list.push(record[0]);
+                }
+            })
+            setPosList(pos_list);
         }
 
         updateGroupNames();
@@ -84,6 +104,7 @@ export const GraphSettings = ( props ) => {
     const handleClose = (event, reason) => {
         if(reason == undefined){
             const params = {
+                table_name: props.dataset.dataset.table_name,
                 group_name: group,
                 group_list: groupList.map(x => x.value),
                 metric: metric,
@@ -93,6 +114,7 @@ export const GraphSettings = ( props ) => {
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
+            setSavedSettings(params);
             // setGroupList([]);
             // setPosList([]);
             props.setSettings(false);
@@ -138,8 +160,12 @@ export const GraphSettings = ( props ) => {
     // updates array for column value dropdown
     useEffect(() => {
         setSelectToggle(group === "");
-        setGroupList([]);
         setRefreshGroupOptions(!refreshGroupOptions);
+        if (!firstUpdate) {
+            setGroupList([]);
+        } else if (savedSettings) {
+            setFirstUpdate(false);
+        }
     }, [group]);
 
     useEffect(() => {
