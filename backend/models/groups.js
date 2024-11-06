@@ -1,6 +1,9 @@
+const { DateTime } = require("luxon");
+
 const group_table = "private_groups";
 const member_table = "group_members";
 const invite_table = "group_invites";
+const datasets_table = "group_datasets";
 
 class groups {
     constructor(knex) {
@@ -26,21 +29,22 @@ class groups {
 
     // Invite a user to a group
     async addInvite(params) {
-        const insert = await this.knex(invite_table).insert({ ...params });
+        const expires = DateTime.fromJSDate(new Date()).plus({ hours: 24 }).toJSDate();
+        await this.knex(invite_table).insert({ ...params, expires });
         const records = await this.knex(invite_table).where({ private_group: params.private_group, email: params.email });
         return records[0];
     }
 
     // Edit a group's information
     async editGroup(id, params) {
-        const update = await this.knex(group_table).where({ id }).update({ ...params });
+        await this.knex(group_table).where({ id }).update({ ...params });
         const record = await this.knex(group_table).where({ id });
         return record[0];
     }
 
     // Edit a group member
     async editMember(private_group, member, params) {
-        const update = await this.knex(member_table).where({ private_group, member }).update({ ...params });
+        await this.knex(member_table).where({ private_group, member }).update({ ...params });
         const record = await this.knex(member_table).where({ private_group, member });
         return record[0];
     }
@@ -49,12 +53,6 @@ class groups {
     async getGroupById(id) {
         const record = await this.knex(group_table).where({ id });
         return record[0];
-    }
-
-    // Get groups with a name like the given search
-    async getGroupsByName(search) {
-        const record = await this.knex(group_table).whereILike("name", `%${ search }%`);
-        return record;
     }
 
     // Get groups that a user is in
@@ -100,19 +98,19 @@ class groups {
 
     // Delete a private group
     async deleteGroup(id) {
-        const del = await this.knex(group_table).delete().where({ id });
+        await this.knex(group_table).delete().where({ id });
         return null;
     }
 
     // Delete a member from a group
     async deleteMember(member, private_group) {
-        const del = await this.knex(member_table).delete().where({ member, private_group });
+        await this.knex(member_table).delete().where({ member, private_group });
         return null;
     }
 
     // Delete a group invite
     async deleteInvite(email, private_group) {
-        const del = await this.knex(invite_table).delete().where({ email, private_group });
+        await this.knex(invite_table).delete().where({ email, private_group });
         return null;
     }
 }

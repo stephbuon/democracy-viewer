@@ -1,7 +1,9 @@
 const emailUtil = require("../util/email_management");
+const bcrypt = require("bcryptjs");
+const chance = require("chance").Chance();
+const { getName } = require("../util/user_name");
 
 const groups = require("../models/groups");
-const users = require("../models/users");
 
 // Create a private group and add the creator as the admin
 const addGroup = async(knex, email, params) => {
@@ -22,39 +24,34 @@ const addGroup = async(knex, email, params) => {
 
 // Send an invite to a private group
 const sendInvite = async(knex, user_from, user_to, private_group) => {
-    const model_groups = new groups(knex);
-    const model_users = new users(knex);
+    const model = new groups(knex);
 
     // Get user_from info
     const from_record = await model.getMember(user_from, private_group);
-    console.log(from_record)
 
     // If user_from is not the admin of the group, throw error
-    if (!from_record || from_record.member_rank !== 1) {
+    if (!from_record || from_record.member_rank <= 2) {
         throw new Error(`User ${ user_from } does not have permission to invite users to private group ${ private_group }`);
     }
 
-    // Get user_to info
-    const user_record = await model_users.findUserByemail(user_to);
     // Get private group info
-    const group_record = await model_users.getGroupById(private_group);
+    const group_record = await model.getGroupById(private_group);
 
-    // Invite email subject
-    const subject = `You have been invited to join ${ group_record.name }!`;
-    // Invite email body
-    const body = `
-        Hello ${ user_to },
-
-        You have been invited to join the private group ${ group_record.name } by ${ user_from }. Click this link to respond to the invite:
-    `;
-    // Send the email
-    emailUtil.sendEmail(user_record.email, subject, body);
-
+    // Generate code
+    const code = chance.string({ length: 8, casing: 'upper', alpha: true, numeric: true });
+    // Hash generated code
+    const hashedCode = bcrypt.hashSync(code, 10);
+    // Delete old code
+    await model.deleteInvite(user_to, private_group);
     // Add invite to database
-    const record = await model_groups.addInvite({
+    const record = await model.addInvite({
         private_group,
-        email: user_to
+        email: user_to,
+        code: hashedCode
     });
+
+    // Send invite email
+    await emailUtil.invitePrivateGroup(knex, user_to, group_record.name, user_from, code)
 
     return record;
 }
@@ -90,7 +87,7 @@ const editGroup = async(knex, email, id, params) => {
     // Get user's group member record
     const member_record = await model.getMember(email, id);
     // If record not found or user not an admin, throw error
-    if (!member_record || member_record.member_rank !== 1) {
+    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
         throw new Error(`User ${ email } is not an admin in private group ${ id }`);
     }
 
@@ -107,7 +104,7 @@ const editMember = async(knex, email, id, member, params) => {
     // Get user's group member record
     const member_record = await model.getMember(email, id);
     // If record not found or user not an admin, throw error
-    if (!member_record || member_record.member_rank !== 1) {
+    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
         throw new Error(`User ${ email } is not an admin in private group ${ id }`);
     }
 
@@ -122,14 +119,6 @@ const getGroupById = async(knex, id) => {
     const model = new groups(knex);
 
     const result = await model.getGroupById(id);
-    return result;
-}
-
-// Get all groups by name
-const getGroupsByName = async(knex, search) => {
-    const model = new groups(knex);
-
-    const result = await model.getGroupsByName(search);
     return result;
 }
 
@@ -153,8 +142,16 @@ const getGroupMembers = async(knex, email, private_group) => {
     if (record.length === 0) {
         throw new Error(`User ${ email } not a member of private group ${ private_group }`);
     }
+    // Replace email with name
+    const finalRecords = [];
+    for (let i = 0; i < records.length; i++) {
+        finalRecords.push({
+            ...records[i],
+            name: await getName(knex, records[i].member)
+        });
+    }
 
-    return records;
+    return finalRecords;
 }
 
 // Get the group member record by group and user
@@ -172,14 +169,12 @@ const deleteGroup = async(knex, email, private_group) => {
     // Get user's group member record
     const member_record = await model.getMember(email, private_group);
     // If record not found or user not an admin, throw error
-    if (!member_record || member_record.member_rank !== 1) {
+    if (!member_record || member_record.member_rank === 1) {
         throw new Error(`User ${ email } is not an admin in private group ${ private_group }`);
     }
 
     // Delete group
     await model.deleteGroup(private_group);
-
-    return null;
 }
 
 // Delete a private group
@@ -189,14 +184,12 @@ const deleteGroupMember = async(knex, admin, email, private_group) => {
     // Get user's group member record
     const member_record = await model.getMember(admin, private_group);
     // If record not found or user not an admin, throw error
-    if (admin !== email && !member_record || member_record.member_rank !== 1) {
+    if (admin !== email && !member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
         throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
     }
 
     // Delete group member
     await model.deleteMember(email, private_group);
-    
-    return null;
 }
 
 // Delete a private group invite
@@ -206,14 +199,12 @@ const deleteGroupInvite = async(knex, admin, email, private_group) => {
     // Get user's group member record
     const member_record = await model.getMember(admin, private_group);
     // If record not found or user not an admin, throw error
-    if (admin !== email && !member_record || member_record.member_rank !== 1) {
+    if (admin !== email && !member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
         throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
     }
 
     // Delete group invite
     await model.deleteInvite(email, private_group);
-    
-    return null;
 }
 
 module.exports = {
@@ -223,7 +214,6 @@ module.exports = {
     editGroup,
     editMember,
     getGroupById,
-    getGroupsByName,
     getGroupsByUser,
     getGroupMembers,
     getMember,

@@ -70,7 +70,6 @@ CREATE TABLE private_groups (
 CREATE TABLE group_invites (
     private_group BIGINT UNSIGNED NOT NULL,
     email VARCHAR(30) NOT NULL,
-    message VARCHAR(250),
     code VARCHAR(60) NOT NULL,
     expires DATETIME NOT NULL,
     used BOOLEAN DEFAULT FALSE NOT NULL,
