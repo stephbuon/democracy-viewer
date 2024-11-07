@@ -144,6 +144,7 @@ const getZoomIds = async(table_name, params) => {
             SELECT record_id
             FROM democracy_viewer_athena.datasets_${ table_name }
             WHERE "${ params.group_name }" IN (${ params.group_list.map(x => `'${ x }'`).join(", ") })
+            ORDER BY record_id
         `;
     }
 
@@ -152,6 +153,7 @@ const getZoomIds = async(table_name, params) => {
             SELECT DISTINCT record_id
             FROM democracy_viewer_athena.tokens_${ table_name }
             WHERE word IN (${ params.word_list.map(x => `'${ x.toLowerCase() }'`).join(", ") })
+            ORDER BY record_id
         `;
     }
 
@@ -166,6 +168,7 @@ const getZoomIds = async(table_name, params) => {
                 ${ tokenQuery}
             ) AS tokens
             ON dataset.record_id = tokens.record_id
+            ORDER BY dataset.record_id
         `
     } else if (datasetQuery) {
         query = datasetQuery;
@@ -175,6 +178,7 @@ const getZoomIds = async(table_name, params) => {
         query = `
             SELECT record_id
             FROM democracy_viewer_athena.datasets_${ table_name }
+            ORDER BY record_id
         `;
     }
 

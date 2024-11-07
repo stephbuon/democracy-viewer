@@ -179,8 +179,8 @@ export const getMetadata = (name) => new Promise((resolve, reject) => {
   });
 });
 
-export const graphIds = (table, params) => new Promise((resolve, reject) => {
-  axios.get(`${ baseURL }/graphs/ids/${ table }`, {
+export const getZoomIds = (table, params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/graphs/zoom/ids/${ table }`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -188,6 +188,19 @@ export const graphIds = (table, params) => new Promise((resolve, reject) => {
     params
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
+    reject(x);
+  });
+});
+
+export const getZoomRecords = (table, params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/graphs/zoom/records/${ table }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    },
+    params
+  }).then(x => resolve(x.data)).catch(x => {
+    // alert(x);
     reject(x);
   });
 });

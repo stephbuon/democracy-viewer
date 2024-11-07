@@ -4,7 +4,7 @@ import Plotly from "plotly.js-dist";
 import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { metricTypes } from "./metrics";
-import { graphIds } from "../api/api";
+import { getZoomIds } from "../api/api";
 
 export const GraphComponent = ({ data, setData, setZoomLoading }) => {
     // UseState definitions
@@ -105,6 +105,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
                 } else {
                     idx = (dataPoint.pointIndex[0] + 1) * (dataPoint.pointIndex[1] + 1) - 1;
                 }
+
                 const params = JSON.parse(localStorage.getItem("graph-settings"));
                 if (metricTypes.bar.includes(data.metric)) {
                     params.group_list = dataPoint.data.name;
@@ -122,14 +123,18 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
                 } else {
                     throw new Error("Graph type not supported")
                 }
-                graphIds(data.table_name, params).then(ids => {
+
+                getZoomIds(data.table_name, params).then(res => {
                     const tempData = {
                         x: dataPoint.x,
                         y: dataPoint.y,
-                        ids,
+                        name: res.name,
+                        count: res.count,
                         dataset: data.table_name,
                         metric: data.metric,
-                        words: params.word_list
+                        word_list: params.word_list,
+                        group_name: params.group_name,
+                        group_list: params.group_list
                     };
                     localStorage.setItem('selected', JSON.stringify(tempData))
                     setZoomLoading(false);

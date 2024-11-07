@@ -312,6 +312,7 @@ export const Graph = (props) => {
   const resetGraph = (event) => {
     setGraph(false);
     localStorage.removeItem('selected');
+    localStorage.removeItem('graph-settings');
     setSettings(true);
   }
 
