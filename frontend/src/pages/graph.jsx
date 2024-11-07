@@ -370,16 +370,16 @@ export const Graph = (props) => {
         openSnackbar1()
       }
 
-      let graph = JSON.parse(localStorage.getItem('graph-data'));
-      if (graph) {
-        if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
-          setGraphData(graph);
-          setGraph(true);
-          setSettings(false);
-        } else {
-          localStorage.removeItem("graph-data")
-        }
-      }
+      // let graph = JSON.parse(localStorage.getItem('graph-data'));
+      // if (graph) {
+      //   if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
+      //     setGraphData(graph);
+      //     setGraph(true);
+      //     setSettings(false);
+      //   } else {
+      //     localStorage.removeItem("graph-data")
+      //   }
+      // }
     }
   }, []);
 
