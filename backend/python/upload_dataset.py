@@ -21,6 +21,13 @@ start_time = time()
 
 # Read file and add record id columns
 df = pl.read_csv(FILE_NAME, infer_schema=False)
+# Rename any column called "record_id"
+if "record_id" in df.columns:
+    df = df.rename({ "record_id": "record_id_" })
+# Drop columns with no name
+for col in df.columns:
+    if len(col.strip()) == 0:
+        df = df.drop(col)
 # Add record id column
 df = df.with_row_index("record_id")
 # Update metadata with record count
