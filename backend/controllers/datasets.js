@@ -139,6 +139,9 @@ const reprocessDataset = async(knex, table, email) => {
 
     // Start batch job to reprocess the dataset
     await aws.submitBatchJob(table);
+
+    // Update metadata to indicate reprocessing has begun
+    await model.updateMetadata(table, { reprocess_start: true });
 }
 
 // Add a tag for a dataset

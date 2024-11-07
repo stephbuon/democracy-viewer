@@ -52,6 +52,8 @@ export const Zoom = (props) => {
                         group_list: graphData.group_list,
                         word_list: graphData.word_list
                     }).then(x => getPage(page, false));
+                } else {
+                    throw new Error(err.response.data.message);
                 }
             });
     }

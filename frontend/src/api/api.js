@@ -276,3 +276,10 @@ export const getTopWords = (table_name, params) => new Promise((resolve, reject)
     reject(x);
   });
 });
+
+export const reprocessDataset = (table_name) => new Promise((resolve, reject) => {
+  axios.put(`${ baseURL }/datasets/reprocess/${ table_name }`).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
