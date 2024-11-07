@@ -341,11 +341,10 @@ export const ResultModal = (props) => {
                                 Visualize
                             </Button>
                         </div>
-
                     }
 
                     {
-                        props.dataset.tokens_done == false &&
+                        (props.dataset.uploaded === false || props.dataset.tokens_done == false) &&
                         <Tooltip arrow title="Graphing for this dataset has been disabled until processing is complete">
                             <div>
                                 <Button
