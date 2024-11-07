@@ -124,14 +124,21 @@ const reprocessDataset = async(knex, table, email) => {
     const model = new datasets(knex);
 
     // Get the current metadata for this table
-    const curr = await model.getMetadata(table);
+    const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (curr.email !== email) {
+    if (metadata.email !== email) {
         throw new Error(`User ${ email } is not the owner of this dataset`);
     }
 
-    
+    // Check if enough changes have been made to allow reprocessing
+    const threshold = Math.ceil(metadata.num_records / 10);
+    if (metadata.unprocessed_changes < threshold) {
+        throw new Error(`This dataset requires ${ threshold } changes to enable reprocessing. Only ${ metadata.unprocessed_changes } have been made.`);
+    }
+
+    // Start batch job to reprocess the dataset
+    await aws.submitBatchJob(table);
 }
 
 // Add a tag for a dataset
@@ -668,6 +675,7 @@ module.exports = {
     createDataset,
     createDatasetAPI,
     uploadDataset,
+    reprocessDataset,
     addTag,
     addTextCols,
     addSuggestion,
