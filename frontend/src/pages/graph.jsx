@@ -91,14 +91,12 @@ export const Graph = (props) => {
         }
 
         // Get the range of x and y axes
-        const allX = [];
-        const allY = [];
-        res.forEach(dataPoint => {
-          allX.push(dataPoint.x);
-          allY.push(dataPoint.y);
-        });
-        const rangeX = Math.max(...allX) - Math.min(...allX);
-        const rangeY = Math.max(...allY) - Math.min(...allY);
+        const maxX = res.reduce((max, dataPoint) => Math.max(max, dataPoint.x), -Infinity);
+        const minX = res.reduce((min, dataPoint) => Math.min(min, dataPoint.x), Infinity);
+        const rangeX = maxX - minX;
+        const maxY = res.reduce((max, dataPoint) => Math.max(max, dataPoint.y), -Infinity);
+        const minY = res.reduce((min, dataPoint) => Math.min(min, dataPoint.y), Infinity);
+        const rangeY = maxY - minY;
         // Function to determine if two labels overlap
         const isOverlapping = (x1, y1, x2, y2) => {
           // Adjust fraction to change how many labels to hide
@@ -203,12 +201,10 @@ export const Graph = (props) => {
         tempData.yLabel = metricNames[params.metric];
         tempData.titleList = [params.word_list[0]];
 
-        // Get the range of x and y axes
-        const allY = [];
-        res.forEach(dataPoint => {
-          allY.push(dataPoint.y);
-        });
-        const rangeY = Math.max(...allY) - Math.min(...allY);
+        // Get the range of y axis
+        const maxY = res.reduce((max, dataPoint) => Math.max(max, dataPoint.y), -Infinity);
+        const minY = res.reduce((min, dataPoint) => Math.min(min, dataPoint.y), Infinity);
+        const rangeY = maxY - minY;
         // Function to determine if two labels overlap
         const isOverlapping = (x1, y1, x2, y2) => {
           if (x1 !== x2) {
