@@ -11,11 +11,9 @@ const aws = require("../util/aws");
 const createDataset = async(path, email) => {
     // Get the file name from the file path
     let filepath = path.split("/");
-    const comps = filepath.pop().split(".");
+    const extension = filepath.pop().split(".").pop();
     filepath = filepath.join("/");
-    const extension = comps.pop();
-    const name = comps[comps.length - 1].replace(extension, "");
-    const table_name = `${ name }_${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
+    const table_name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
     const newName = `${ filepath }/${ table_name }.${ extension }`;
     // Rename file
     util.renameFile(path, newName);
@@ -109,9 +107,6 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     // Upload raw data to s3
     await runPython("upload_dataset", [ name, path ], metadata.distributed);
 
-    // Set dataset as uploaded
-    await model.updateMetadata(name, { uploaded: true });
-
     // Start batch preprocessing
     await aws.submitBatchJob(name);
 }
@@ -186,6 +181,16 @@ const addSuggestion = async(knex, user, params) => {
         knex, curr.email, suggestion.email, curr.title,
         suggestion.old_text, suggestion.new_text, suggestion.id, "add"
     );
+}
+
+// Upload a stopwords list to s3
+const uploadStopwords = async(localPath, table_name = "", email = "") => {
+    if (!table_name.includes(email.replace(/\W+/g, "_"))) {
+        throw new Error(`User ${ email } did not create dataset ${ table_name }`);
+    }
+
+    const s3Path = `stopwords/${ table_name }.txt`
+    await aws.uploadFile(localPath, s3Path);
 }
 
 // Update a dataset's metadata
@@ -385,33 +390,6 @@ const getFilteredDatasetsCount = async(knex, query, email) => {
     return result;
 }
 
-// Get the 2 letter language code for a given language
-const getLanguage = (language) => {
-    if (language === "Chinese") {
-        return "zh";
-    } else if (language === "English") {
-        return "en";
-    } else if (language === "French") {
-        return "fr";
-    } else if (language === "German") {
-        return "de";
-    } else if (language === "Greek") {
-        return "el";
-    } else if (language === "Italian") {
-        return "it";
-    } else if (language === "Latin") {
-        return "la";
-    } else if (language === "Portuguese") {
-        return "pt";
-    } else if (language === "Russian") {
-        return "ru";
-    } else if (language === "Spanish") {
-        return "es";
-    } else {
-        throw new Error(`Unknown language: ${ language }`);
-    }
-}
-
 // Get a subset of a table
 const getSubset = async(knex, table, query, user = undefined, page = 1, pageLength = 50) => {
     const model = new datasets(knex);
@@ -426,8 +404,8 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     
     const cols = await model.getColumnNames(metadata.table_name);
     const columns = cols.map(x => x.col);
-    const dataScan = await dataQueries.subsetSearch(metadata.table_name, query, ["text"], false, page, pageLength);
-    const countScan = await dataQueries.subsetSearch(metadata.table_name, query, ["text"], true);
+    const dataScan = await dataQueries.subsetSearch(metadata.table_name, query, false, page, pageLength);
+    const countScan = await dataQueries.subsetSearch(metadata.table_name, query, true);
     const count = countScan
         .collectSync()
         .getColumn("count")
@@ -455,22 +433,7 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    let page = 1;
-    const pageLength = 1000;
-    let total = null;
-    const data = []
-    while (total === null || pageLength + pageLength * (page - 1) <= total) {
-        const curr = await getSubset(knex, table, query, user, page, pageLength);
-        data.push(...curr.data);
-        page += 1;
-        if (total === null) {
-            total = curr.count;
-        }
-    }
-
-    const newFilename = `files/downloads/${ table }_${ JSON.stringify(query).substring(0, 245) }.json`;
-    await util.generateCSV(newFilename, data);
-    return newFilename;
+    return await dataQueries.downloadSubset(table, query);
 }
 
 // Get dataset records by ids
@@ -495,11 +458,17 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
 
 // Get dataset records by ids
 const downloadIds = async(knex, table, ids, user = undefined) => {
-    const data = await getRecordsByIds(knex, table, ids, user);
+    const model = new datasets(knex);
 
-    const newFilename = `files/downloads/${ table }_${ Date.now() }.csv`;
-    await util.generateCSV(newFilename, data);
-    return newFilename;
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    return await dataQueries.downloadRecordsByIds(table, ids);
 }
 
 // Get text suggestions from a given user
@@ -586,6 +555,18 @@ const getSuggestion = async(knex, user, id) => {
     return record;
 }
 
+const getTopWords = async(table_name, search, column, values, page, pageLength) => {
+    const lf = await dataQueries.getTopWords(
+        table_name, 
+        search ? search : "", column, values, 
+        page ? page : 1, 
+        pageLength ? pageLength : 5
+    );
+    const df = lf.collectSync();
+
+    return df.getColumn("word").toArray();
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -594,9 +575,9 @@ const deleteDataset = async(knex, user, table) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    // if (metadata.email !== user) {
-    //     throw new Error(`User ${ user } is not the owner of this dataset`);
-    // }
+    if (metadata.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
 
     // Delete datasets from s3
     await runPython("delete_dataset", [table]);
@@ -671,6 +652,7 @@ module.exports = {
     incClicks,
     updateText,
     addLike,
+    uploadStopwords,
     getMetadata,
     getFullMetadata,
     getSubset,
@@ -687,6 +669,7 @@ module.exports = {
     getSuggestionsFor,
     getSuggestionsFrom,
     getSuggestion,
+    getTopWords,
     deleteDataset,
     deleteTag,
     deleteLike,

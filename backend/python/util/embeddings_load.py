@@ -6,9 +6,14 @@ import util.s3 as s3
 
 # move top similar words with keywords requested here
 def load_data_from_pkl(table_name: str, pkl_name: str, token: str | None = None) -> Word2Vec:
-    data = s3.download_data("embeddings/{}".format(table_name), pkl_name, "pkl", token)
+    local_file = "{}/embeddings/{}_{}.pkl".format(s3.BASE_PATH, table_name, pkl_name.replace("/", "_"))
+    
+    s3.download_file(local_file, "embeddings/{}".format(table_name), "{}.pkl".format(pkl_name), token)
 
-    return pkl.loads(data)
+    with open(local_file, 'rb') as f:
+        return pkl.load(f)
+    
+    raise Exception("Failed to load embedding")
     
 def take_similar_words_over_group(table_name: str, keyword: str, group_col: str, vals: list[str] = [], topn: int = 5, token: str | None = None) -> list[dict]:
     results = []
@@ -61,8 +66,9 @@ def take_similar_words(table_name: str, keyword: str, topn: int = 5, token: str 
                 "y": similarity_scores[i],
                 "group": keyword
             })
-    except Exception:
+    except Exception as err:
         print('Sorry, no similar words found.')
+        print(err)
         
     return results
 
@@ -163,32 +169,36 @@ def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str,
     results = []
 
     if len(vals) > 0:
-        time_value = sorted(set(vals))[0]
+        time_values = sorted(set(vals))
     else:
-        time_value = data.get_column_values(table_name, group_col, token)[0]
+        time_values = data.get_column_values(table_name, group_col, token)
         
     pca = PCA(2)
     vectors = []
     used_words = []
-    pkl_name = "model_{}_{}".format(group_col, time_value)
-    model = load_data_from_pkl(table_name, pkl_name, token)
-    if len(keywords) > 0:
-        for word in keywords:
-            try:
+    all_values = []
+    for time_value in time_values:
+        pkl_name = "model_{}_{}".format(group_col, time_value)
+        model = load_data_from_pkl(table_name, pkl_name, token)
+        if len(keywords) > 0:
+            for word in keywords:
+                try:
+                    vectors.append(model.wv.get_vector(word))
+                    used_words.append(word)
+                    all_values.append(time_value)
+                except Exception:
+                    pass
+        else:
+            for word in model.wv.index_to_key:
                 vectors.append(model.wv.get_vector(word))
                 used_words.append(word)
-            except Exception:
-                pass
-    else:
-        for word in model.wv.index_to_key:
-            vectors.append(model.wv.get_vector(word))
-            used_words.append(word)
+                all_values.append(time_value)
         
     vectors_2d = pca.fit_transform(vectors)
     for i, word in enumerate(used_words):
         results.append({
             "word": word,
-            "group": time_value,
+            "group": all_values[i],
             "x": vectors_2d[i, 0],
             "y": vectors_2d[i, 1]
         })

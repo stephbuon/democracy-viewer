@@ -17,87 +17,23 @@ import {
 
 import { UploadModal } from "./UploadModal";
 import { Table, TableBody, TableRow, TableCell, TextField } from "@mui/material";
-import { GetCSVFromAPI, CreateDataset } from "../apiFolder/DatasetUploadAPI.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { SelectField } from "../common/selectField";
 
 export const Upload = (props) => {
   const navigate = useNavigate();
 
-  const [file, setFile] = useState(undefined);
-  const [fileLoaded, setFileLoaded] = useState(false);
-  const [headers, setheaders] = useState([]);
-  const [tableName, settableName] = useState(undefined);
-  const [APIEndpoint, setAPIEndpoint] = useState("");
-  const [Token, setToken] = useState("");
-  const [clicked, setClicked] = useState(undefined);
-  const [alert, setAlert] = useState(0);
-  const [fileUploaded, setFileUploaded] = useState(false);
-  const [snackBarOpen, setSnackBarOpen] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [disableButtons, setDisableButtons] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [uploadModeSelected, setUploadModeSelected] = useState(undefined);
 
-  const openDataSetInfo = () => {
-    setFileLoaded(true);
-  };
-  const handleDataSetInfo = () => {
-    setFileLoaded(false);
-  };
   const CancelUpload = () => {
-    setFileLoaded(false);
+    setOpenModal(false);
   };
 
-  const handleSnackBarClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackBarOpen(false);
-  };
-
-  useEffect(() => {
-    if (file && file.name) {
-      const validExtensions = [".csv"];
-      if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
-        setAlert(1);
-      } else {
-        uploadCsv();
-      }
-    } else {
-      setFileLoaded(false);
-    }
-  }, [file]);
-
-  const uploadCsv = () => {
-    setUploadProgress(0);
-    setDisableButtons(true);
-    CreateDataset(file, setUploadProgress).then(res => {
-      settableName(res.table_name)
-      setheaders(res.headers)
-      setFileUploaded(true);
-      setAlert(3);
-    }).catch(() => {
-      setAlert(2);
-      setFile(undefined);
-      setUploadProgress(0);
-    }).finally(() => setDisableButtons(false));
-  };
-
-  const APIcsv = () => {
-    setDisableButtons(true);
-    GetCSVFromAPI(APIEndpoint, Token)
-      .then((res) => {
-        settableName(res.table_name);
-        setheaders(res.headers);
-        setFileUploaded(true);
-        setAlert(3);
-      })
-      .catch(() => {
-        setAlert(2);
-      }).finally(() => setDisableButtons(false));
-  };
-
-  const click = (a) => {
-    setClicked(a);
-  };
+  const OpenModal = (mode) => {
+    setUploadModeSelected(mode);
+    setOpenModal(true);
+  }
 
   const loggedIn = () => {
     if (props.currUser) {
@@ -119,19 +55,16 @@ export const Upload = (props) => {
     }
   }, []);
 
-  useEffect(() => {
-    if (alert !== 0) {
-      setSnackBarOpen(true);
-    } else {
-      setSnackBarOpen(false);
-    }
-  }, [alert]);
-
   return (
     <>
-      <Container maxWidth="sm">
+      <Modal open={openModal} onClose={() => CancelUpload()}>
+        <div>
+            <UploadModal CancelUpload={() => CancelUpload()} uploadType={uploadModeSelected} />
+        </div>
+      </Modal>
+      <Container maxWidth="md">
         <Typography
-          paddingTop={5}
+          paddingTop={7}
           component="h1"
           variant="h2"
           align="center"
@@ -140,34 +73,41 @@ export const Upload = (props) => {
         >
           Upload
         </Typography>
-
-        <Stack sx={{ pt: 4 }} direction="row" spacing={2} justifyContent="center"></Stack>
       </Container>
-      <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        open={snackBarOpen}
-        autoHideDuration={6000}
-        onClose={() => handleSnackBarClose()}
-      >
-        <Alert
-          onClose={handleSnackBarClose}
-          severity={alert === 3 ? "success" : "error"}
-          sx={{ width: "100%" }}
-        >
-          {alert === 1 && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
-          {alert === 2 && <div>An error occurred uploading the dataset</div>}
-          {alert === 3 && <div>Dataset successfully uploaded</div>}
-        </Alert>
-      </Snackbar>
-      <Modal open={fileLoaded} onClose={() => handleDataSetInfo()}>
-        <div>
-          {(clicked == 1 || clicked === 2) && (
-            <UploadModal CancelUpload={() => CancelUpload()} name={tableName} headers={headers} />
-          )}
-        </div>
-      </Modal>
+
       <Container maxWidth="md">
-        <Grid container spacing={4} justifyContent="space-between">
+        <Typography
+          paddingTop={3}
+          component="p"
+          variant="p"
+          align="center"
+          color="text.primary"
+          gutterBottom
+        >
+          Upload either a CSV file or an API of your text-based dataset to use it on Democracy Viewer. 
+        </Typography>
+      </Container>
+      
+      <Container maxWidth="md" sx={{
+        display: "flex",
+        justifyContent: "space-evenly",
+        marginTop: "30px"
+      }}>
+          <Button
+              variant="contained"
+              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }}
+              onClick={() => OpenModal("csv")}
+          >
+              CSV File
+          </Button>
+          <Button
+              variant="contained"
+              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }} 
+              onClick={() => OpenModal("api")}
+          >
+              API
+          </Button>
+        {/* <Grid container spacing={4} justifyContent="space-between">
           <Grid item xs={13} sm={7} md={5}>
             <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
               <CardContent
@@ -201,7 +141,7 @@ export const Upload = (props) => {
                   Select
                   <input
                     type="file"
-                    accept="*/*"
+                    
                     hidden
                     onChange={(x) => {
                       setFile(x.target.files[0]);
@@ -274,7 +214,7 @@ export const Upload = (props) => {
               </Button>
             </Box>
           </Grid>
-        </Grid>
+        </Grid> */}
       </Container>
     </>
   );

@@ -256,3 +256,10 @@ export const deleteSuggestion = (id) => new Promise((resolve, reject) => {
     reject(x);
   });
 });
+
+export const getTopWords = (table_name, params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/datasets/words/top/${ table_name }`, { ...apiConfig(), params }).then(x => resolve(x.data)).catch(x => {
+    // alert(x);
+    reject(x);
+  });
+});

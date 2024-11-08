@@ -90,7 +90,21 @@ const resetPasswordEmail = async(knex, email, code) => {
     await sendEmail(knex, template, params, subject, email);
 }
 
+const invitePrivateGroup = async(knex, email, group_name, from_email, code) => {
+    const params = {
+        code,
+        group_name,
+        from_name: await getName(knex, from_email)
+    };
+
+    const subject = "Private Group Invite";
+    const template = "invite_group";
+
+    await sendEmail(knex, template, params, subject, email);
+}
+
 module.exports = {
     suggestionEmail,
-    resetPasswordEmail
+    resetPasswordEmail,
+    invitePrivateGroup
 };

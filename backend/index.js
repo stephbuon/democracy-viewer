@@ -13,10 +13,10 @@ const { createDatabaseConnection, deleteDatabaseConnection } = require("./middle
 const { optAuthenticateJWT } = require("./middleware/authentication");
 
 // Import routes
-const databases = require("./routes/databases");
+// const databases = require("./routes/databases");
 const datasets = require("./routes/datasets");
 const graphs = require("./routes/graphs");
-// const groups = require("./routes/groups");
+const groups = require("./routes/groups");
 const session = require("./routes/session");
 const users = require('./routes/users');
 
@@ -43,11 +43,10 @@ app.get("/health", async(req, res, next) => {
 });
 
 // Use routes
-app.use("/distributed", databases);
+// app.use("/distributed", databases);
 app.use("/datasets", datasets);
 app.use("/graphs", graphs);
-// app.use("/groups", groups);
-// app.use("/preprocessing", preprocessing);
+app.use("/groups", groups);
 app.use("/session", session);
 app.use("/users", users);
 

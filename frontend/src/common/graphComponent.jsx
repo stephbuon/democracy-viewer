@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { metricTypes } from "./metrics";
 import { graphIds } from "../api/api";
 
-export const GraphComponent = ({ data, setData }) => {
+export const GraphComponent = ({ data, setData, setZoomLoading }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
@@ -54,7 +54,7 @@ export const GraphComponent = ({ data, setData }) => {
             // Hide legend
             if (
                 metricTypes.dotplot.includes(data.metric) ||
-                metricTypes.scatter.includes(data.metric) ||
+                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1) ||
                 (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
             ) {
                 layout_ = {
@@ -96,7 +96,8 @@ export const GraphComponent = ({ data, setData }) => {
     useEffect(() => {
         if (foundData) {
             Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" });
-            graph.current.on('plotly_click', function (event) { // Click event for zoom page
+            graph.current.on('plotly_click', (event) => { // Click event for zoom page
+                setZoomLoading(true);
                 const dataPoint = event.points[0];
                 let idx;
                 if (typeof dataPoint.pointIndex === "number") {
@@ -114,7 +115,7 @@ export const GraphComponent = ({ data, setData }) => {
                     params.group_list = [dataPoint.x, dataPoint.y];
                 } else if (metricTypes.dotplot.includes(data.metric)) {
                     params.group_list = dataPoint.x;
-                    params.word_list = [dataPoint.data.name, data.titleList[0]];
+                    params.word_list = [dataPoint.text, data.titleList[0]];
                 } else if (metricTypes.multibar.includes(data.metric)) {
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.text];
@@ -131,7 +132,8 @@ export const GraphComponent = ({ data, setData }) => {
                         words: params.word_list
                     };
                     localStorage.setItem('selected', JSON.stringify(tempData))
-                    navigate("/zoom");
+                    setZoomLoading(false);
+                    navigate("/graph/zoom");
                 });
             });
         }

@@ -29,7 +29,8 @@ export const Zoom = (props) => {
                 // Highlighting
                 if (textCols.length > 0) {
                     res.map(row => {
-                        textCols.forEach(col => {
+                        textCols.forEach(x => {
+                            const col = x.toLowerCase();
                             row[col] = (
                                 <Highlighter
                                     searchWords={graphData.words}
@@ -116,7 +117,7 @@ export const Zoom = (props) => {
             totalNumOfPages = {totalPages}
             GetNewPage = {getPage}
             table_name={graphData.dataset}
-            downloadSubset={() => DownloadIds(graphData.dataset, graphData.ids)}
+            downloadType="ids"
             totalNumResults={graphData.ids.length}
             columns = {searchResults.length > 0 ? Object.keys(searchResults[0]) : []}
             pageLength = {pageLength}

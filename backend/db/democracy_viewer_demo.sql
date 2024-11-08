@@ -8,8 +8,8 @@ CREATE TABLE users (
     last_name VARCHAR(20) NOT NULL,
     suffix VARCHAR(10),
     orcid VARCHAR(16),
-    linkedin_link VARCHAR(50),
-    website VARCHAR(50)
+    linkedin_link VARCHAR(200),
+    website VARCHAR(200)
 );
 
 CREATE TABLE password_reset_codes (
@@ -32,19 +32,13 @@ CREATE TABLE distributed_connections (
     FOREIGN KEY(owner) REFERENCES users(email) ON DELETE CASCADE
 );
 
-# CREATE TABLE private_groups (
-#     id SERIAL PRIMARY KEY,
-#     name VARCHAR(50),
-#     description NVARCHAR(255)
-# );
-
 CREATE TABLE dataset_metadata (
     table_name VARCHAR(100) PRIMARY KEY NOT NULL,
     email VARCHAR(30) NOT NULL,
 --     private_group BIGINT,
-    title VARCHAR(50),
-    description VARCHAR(200),
-    author VARCHAR(50),
+    title VARCHAR(100),
+    description VARCHAR(500),
+    author VARCHAR(200),
     date_collected DATE,
     is_public BOOLEAN DEFAULT FALSE NOT NULL,
     clicks INT DEFAULT 0 NOT NULL,
@@ -60,27 +54,46 @@ CREATE TABLE dataset_metadata (
     unprocessed_updates INT UNSIGNED NOT NULL DEFAULT 0,
     uploaded BOOLEAN DEFAULT FALSE NOT NULL,
     num_records INT UNSIGNED NOT NULL DEFAULT 0,
+    license VARCHAR(200),
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
 );
 
-# CREATE TABLE group_invites (
-#     private_group BIGINT,
-#     username VARCHAR(20),
-#     PRIMARY KEY(private_group, username),
-#     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
-#     FOREIGN KEY(username) REFERENCES users(username) ON DELETE CASCADE
-# );
+CREATE TABLE private_groups (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description NVARCHAR(255) NOT NULL,
+    date_created DATE NOT NULL
+);
 
-# CREATE TABLE group_members (
-#     private_group BIGINT,
-#     member VARCHAR(20),
-#     member_rank INT,
-#     PRIMARY KEY(private_group, member),
-#     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
-#     FOREIGN KEY(member) REFERENCES users(username) ON DELETE CASCADE
-# );
+CREATE TABLE group_invites (
+    private_group BIGINT UNSIGNED NOT NULL,
+    email VARCHAR(30) NOT NULL,
+    code VARCHAR(60) NOT NULL,
+    expires DATETIME NOT NULL,
+    PRIMARY KEY(private_group, email),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE
+);
+
+CREATE TABLE group_members (
+    private_group BIGINT UNSIGNED NOT NULL,
+    member VARCHAR(30) NOT NULL,
+    member_rank INT NOT NULL DEFAULT 4,
+    date_joined DATE NOT NULL,
+    PRIMARY KEY(private_group, member),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(member) REFERENCES users(email) ON DELETE CASCADE
+);
+
+CREATE TABLE group_datasets (
+    private_group BIGINT UNSIGNED NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    PRIMARY KEY(private_group, table_name),
+    FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);
 
 CREATE TABLE tags (
     tag_name VARCHAR(25) NOT NULL,

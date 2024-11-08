@@ -27,6 +27,7 @@ export const DatasetResultModal = (props) => {
     const [author, setAuthor] = useState(props.dataset.author);
     const [date, setDate] = useState(props.dataset.date);
     const [tags, setTags] = useState(props.dataset.tags);
+    const [license, setLicense] = useState(props.dataset.license)
 
     // Open edit dialogs
     const [infoOpen, setInfoOpen] = useState(false);
@@ -48,7 +49,8 @@ export const DatasetResultModal = (props) => {
             is_public: publicPrivate !== props.dataset.is_public ? publicPrivate : null,
             description: description !== props.dataset.description ? description : null,
             author: author !== props.dataset.author ? author : null,
-            date: date !== props.dataset.date ? date : null
+            date: date !== props.dataset.date ? date : null,
+            license: license !== props.dataset.license ? license : null
         };
 
         const keys = Object.keys(params).filter(x => params[x] === null);
@@ -128,9 +130,9 @@ export const DatasetResultModal = (props) => {
             <Box
                 sx={{
                     position: 'absolute',
-                    top: '20%',
+                    top: '7.5%',
                     left: '15%',
-                    height: "60%",
+                    height: "75%",
                     overflow: "scroll",
                     width: "70%",
                     bgcolor: 'background.paper',
@@ -174,6 +176,8 @@ export const DatasetResultModal = (props) => {
                                         setDescription={setDescription}
                                         publicPrivate={publicPrivate}
                                         setPublicPrivate={setPublicPrivate}
+                                        license={license}
+                                        setLicense={setLicense}
                                         disabled={disabled}
                                         setDisabled={setDisabled}
                                     />
@@ -239,7 +243,7 @@ export const DatasetResultModal = (props) => {
                             sx={{
                                 borderRadius: 0,
                                 width: "100%",
-                                bgcolor: '#B3B3B3',
+                                bgcolor: 'black',
                                 color: 'white'
                             }}
                             endIcon={<BookmarkBorderIcon />}
@@ -266,143 +270,12 @@ export const DatasetResultModal = (props) => {
                         </Button>
                     }
                 </ButtonGroup>
-
-                <Table sx={{ border: 'none' }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell
-                                sx={{
-                                    paddingTop: "20px",
-                                    align: 'center'
-
-                                }}>
-                                <b>{props.dataset.title}</b>
-                            </TableCell>
-                            <TableCell
-                                sx={{
-                                    textAlign: "left",
-                                    paddingTop: "20px"
-                                }}>
-                                {props.dataset.is_public == 1 && <span>Public</span>}
-                                {props.dataset.is_public == 0 && <span>Private</span>}
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell>
-                                <b> Author </b>
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "left" }}>
-                                <Link to={`/profile/${props.dataset.email}`}>
-                                    {
-                                        userName !== undefined && userName
-                                    }
-
-                                    {
-                                        userName === undefined && props.dataset.email
-                                    }
-                                </Link>
-                            </TableCell>
-
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>
-                                <b> Description </b>
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "left" }}>
-                                {props.dataset.description}
-                            </TableCell>
-                        </TableRow>
-
-                        {
-                            props.dataset.author &&
-                            <TableRow>
-                                <TableCell>
-                                    <b> Source </b>
-                                </TableCell>
-                                <TableCell sx={{ textAlign: "left" }}>
-                                    {props.dataset.author}
-                                </TableCell>
-                            </TableRow>
-                        }
-
-                        {
-                            props.dataset.date_collected &&
-                            <TableRow>
-                                <TableCell>
-                                    <b> Date Collected: </b>
-                                </TableCell>
-                                <TableCell sx={{ textAlign: "left" }}>
-                                    {new Date(props.dataset.date_collected).toLocaleDateString()}
-                                </TableCell>
-                            </TableRow>
-                        }
-
-                        <TableRow>
-                            <TableCell>
-                                <b> Views </b>
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "left" }}>
-                                {props.dataset.clicks}
-                            </TableCell>
-
-                        </TableRow>
-
-                        <TableRow>
-                            <TableCell>
-                                <b> Bookmarks </b>
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "left" }}>
-                                {props.dataset.likes}
-                            </TableCell>
-
-                        </TableRow>
-
-                        <TableRow>
-                            <TableCell>
-                                <b> Unprocessed Updates </b>
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "left" }}>
-                                {props.dataset.unprocessed_updates}
-                            </TableCell>
-
-                        </TableRow>
-
-                        <TableRow>
-                            <TableCell>
-                                <b> Tags </b>
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "left" }}>
-                                <div class="row">
-                                    {props.dataset.tags.map((tag, index) => {
-                                        if (index < 5) {
-                                            return <span class="col"
-                                                key={index} >
-                                                {tag}
-                                            </span>
-                                        }
-                                    })}
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
                 <Box
                     sx={{
                         width: '100%',
                         display: 'flex',
                         justifyContent: 'center',
                         marginTop: '2em'
-                    }}>
-
-                </Box>
-                <Box
-                    sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        marginTop: '.5em'
                     }}>
                     {
                         props.dataset.uploaded == true &&
@@ -491,6 +364,149 @@ export const DatasetResultModal = (props) => {
                             </div>
                         </Tooltip>
                     }
+                </Box>
+
+                <Table sx={{ border: 'none' }}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell
+                                sx={{
+                                    paddingTop: "40px",
+                                    align: 'center'
+
+                                }}>
+                                <b>{props.dataset.title}</b>
+                            </TableCell>
+                            <TableCell
+                                sx={{
+                                    textAlign: "left",
+                                    paddingTop: "40px"
+                                }}>
+                                {props.dataset.is_public == 1 && <span>Public</span>}
+                                {props.dataset.is_public == 0 && <span>Private</span>}
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell>
+                                <b> Author </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                <Link to={`/profile/${props.dataset.email}`}>
+                                    {
+                                        userName !== undefined && userName
+                                    }
+
+                                    {
+                                        userName === undefined && props.dataset.email
+                                    }
+                                </Link>
+                            </TableCell>
+
+                        </TableRow>
+                        <TableRow>
+                            <TableCell>
+                                <b> Description </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.description}
+                            </TableCell>
+                        </TableRow>
+
+                        {
+                            props.dataset.author &&
+                            <TableRow>
+                                <TableCell>
+                                    <b> Source </b>
+                                </TableCell>
+                                <TableCell sx={{ textAlign: "left" }}>
+                                    {props.dataset.author}
+                                </TableCell>
+                            </TableRow>
+                        }
+
+                        {
+                            props.dataset.date_collected &&
+                            <TableRow>
+                                <TableCell>
+                                    <b> Date Collected: </b>
+                                </TableCell>
+                                <TableCell sx={{ textAlign: "left" }}>
+                                    {new Date(props.dataset.date_collected).toLocaleDateString()}
+                                </TableCell>
+                            </TableRow>
+                        }
+
+                        {
+                            props.dataset.license &&
+                            <TableRow>
+                                <TableCell>
+                                    <b> License: </b>
+                                </TableCell>
+                                <TableCell sx={{ textAlign: "left" }}>
+                                    {props.dataset.license}
+                                </TableCell>
+                            </TableRow>
+                        }
+
+                        <TableRow>
+                            <TableCell>
+                                <b> Views </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.clicks}
+                            </TableCell>
+
+                        </TableRow>
+
+                        <TableRow>
+                            <TableCell>
+                                <b> Bookmarks </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.likes}
+                            </TableCell>
+
+                        </TableRow>
+
+                        <TableRow>
+                            <TableCell>
+                                <b> Unprocessed Updates </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {props.dataset.unprocessed_updates}
+                            </TableCell>
+
+                        </TableRow>
+
+                        <TableRow>
+                            <TableCell>
+                                <b> Tags </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                <div class="row">
+                                    {props.dataset.tags.map((tag, index) => {
+                                        if (index < 5) {
+                                            return <span class="col"
+                                                key={index} >
+                                                {tag}
+                                            </span>
+                                        }
+                                    })}
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+                <Box
+                    sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: '2em'
+                    }}>
+
                 </Box>
             </Box>
         </Modal>

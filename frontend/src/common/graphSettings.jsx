@@ -1,9 +1,8 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues } from "../api/api.js"
+import { getGroupNames, getColumnValues, getTopWords } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
-import ReactSelect from 'react-select';
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "./forms";
 import "./list.css";
@@ -23,6 +22,7 @@ export const GraphSettings = ( props ) => {
     const [searchTerms, setSearchTerms] = useState([]);
     const [groupOptions, setGroupOptions] = useState(undefined);
     const [groupList, setGroupList] = useState([]);
+    const [refreshGroupOptions, setRefreshGroupOptions] = useState(true);
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
     const [selectToggle, setSelectToggle] = useState(true);
@@ -120,13 +120,26 @@ export const GraphSettings = ( props ) => {
         });
     }
 
+    // Dynamically get word suggestions as user types
+    const getWordSuggestions = async(params) => {
+        if (params.search) {
+            const results = await getTopWords(props.dataset.dataset.table_name, {
+                ...params,
+                column: group,
+                values: groupList.map(x => x.value)
+            });
+            return results;
+        } else {
+            return [];
+        }
+    }
+
     // Called when a column is selected
     // updates array for column value dropdown
     useEffect(() => {
         setSelectToggle(group === "");
-        if (group === "") {
-            setGroupList([]);
-        }
+        setGroupList([]);
+        setRefreshGroupOptions(!refreshGroupOptions);
     }, [group]);
 
     useEffect(() => {
@@ -137,7 +150,10 @@ export const GraphSettings = ( props ) => {
         } else if (settings.values !== false && groupList.length !== settings.values) {
             setDisabled(true);
             setDisabledMessage(`You must select ${ settings.values } column value(s) for this metric`);
-        } else if (settings.words !== false && searchTerms.length !== settings.words) {
+        } else if (
+            (settings.wordsOptional === false && settings.words !== false && searchTerms.length !== settings.words) ||
+            (settings.wordsOptional === true && searchTerms.length > 0 && searchTerms.length < settings.words)
+        ) {
             setDisabled(true);
             setDisabledMessage(`You must enter ${ settings.words } custom search word(s) for this metric`);
         } else {
@@ -147,7 +163,7 @@ export const GraphSettings = ( props ) => {
     }, [metric, group, searchTerms, groupList]);
 
     return <>
-        < Modal open={props.show}
+        <Modal open={props.show}
             onClose={handleClose}
             aria-labelledby="contained-modal-title-vcenter"
             className="mx-auto"
@@ -173,7 +189,7 @@ export const GraphSettings = ( props ) => {
                         <FormattedMultiSelectField
                             selectedOptions={posList}
                             setSelectedOptions={setPosList}
-                            getData={() => posOptions}
+                            getData={posOptions}
                             id="posSelect"
                             className="mb-3"
                             closeMenuOnSelect={false}
@@ -199,17 +215,19 @@ export const GraphSettings = ( props ) => {
                     isDisabled={selectToggle}
                     className="mb-3"
                     closeMenuOnSelect={false}
+                    refresh={refreshGroupOptions}
                 />
 
                 {/* Custom search + terms list */}
-                <FormattedMultiTextField
-                    id="customsearch"
-                    label="Custom Search"
-                    // variant="filled"
-                    fullWidth
-                    sx={{ background: 'rgb(255, 255, 255)', zIndex: 0 }}
-                    words={searchTerms}
-                    setWords={setSearchTerms}
+                <Typography>Custom Search</Typography>
+                <FormattedMultiSelectField
+                    selectedOptions={searchTerms}
+                    setSelectedOptions={setSearchTerms}
+                    // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
+                    getData={getWordSuggestions}
+                    id="customSearchSelect"
+                    className="mb-3"
+                    closeMenuOnSelect={false}
                 />
 
                 {

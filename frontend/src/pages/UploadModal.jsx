@@ -5,14 +5,16 @@ import Flag from "react-flagkit";
 // MUI Imports
 import { 
     Box, Button, Checkbox,FormControl, FormControlLabel, FormGroup, IconButton, 
-    InputLabel, LinearProgress, MenuItem, Select, Tooltip, Typography
+    InputLabel, LinearProgress, MenuItem, Select, Tooltip, Typography,
+    Card, CardActions, CardContent, Alert, Snackbar,
+    Table, TableBody, TableRow, TableCell, TextField
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-
-import { UploadDataset } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset, UploadStopwords, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
 import { getDistributedConnections } from "../api/api";
+import { FormattedMultiSelectField } from "../common/forms";
 
 // Languages that allow stemming
 // Some of these languages are not yet available in democracy viewer
@@ -24,46 +26,57 @@ const stemLanguages = [
 ]
 
 export const UploadModal = (props) => {
+    const [file, setFile] = useState(undefined);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [disableButtons, setDisableButtons] = useState(false);
+    const [headers, setHeaders] = useState([]);
+    const [tableName, settableName] = useState(undefined);
+    const [APIEndpoint, setAPIEndpoint] = useState("");
+    const [Token, setToken] = useState("");
+    const [alert, setAlert] = useState(0);
+    const [fileUploaded, setFileUploaded] = useState(false);
+    const [snackBarOpen, setSnackBarOpen] = useState(false);
+
+    const [license, setLicense] = useState("");
     const [title, setTitle] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(false);
     const [description, setDescription] = useState('');
-    const [columnTypes, setColumnTypes] = useState({});
-    const [headers, setHeaders] = useState([]);
     const [tags, setTags] = useState([]);
    
     const [loadedPage, setLoadedPage] = useState(1);
-    const [datasetName, setDatasetName] = useState("");
     const [author, setAuthor] = useState('');
     const [date, setDate] = useState('');
     // Preprocessing
-    const [useDistributed, setUseDistributed] = useState(false);
-    const [distributed, setDistributed] = useState(null);
-    const [distributedOptions, setDistributedOptions] = useState([]);
+    // const [useDistributed, setUseDistributed] = useState(false);
+    // const [distributed, setDistributed] = useState(null);
+    // const [distributedOptions, setDistributedOptions] = useState([]);
     const [language, setLanguage] = useState("English");
     const [tokenization, setTokenization] = useState("none");
     const [embeddings, setEmbeddings] = useState(false);
     const [embedCol, setEmbedCol] = useState(null);
+    const [textCols, setTextCols] = useState([]);
+    const [textColOptions, setTextColOptions] = useState([]);
+    const [stopwordsFile, setStopwordsFile] = useState(undefined);
 
     const [disabled, setDisabled] = useState(true);
 
     const navigate = useNavigate();
 
     const SendDataset = () => {
-        let _texts = [];
-        for (let i = 0; i < headers.length; i++) {
-            if (columnTypes[headers[i]] === "TEXT") {
-                _texts.push(headers[i]);
-            }
+        if (stopwordsFile !== undefined) {
+            UploadStopwords(stopwordsFile, tableName)
         }
+
+        const textCols_ = textCols.map(x => x.value);
         const metadata = {
             title, description, is_public: publicPrivate,
             preprocessing_type: tokenization, embeddings,
             embed_col: embedCol, language,
-            date_collected: date, author
+            date_collected: date, author, license
         };
-        if (useDistributed && distributed) {
-            metadata.distributed = distributed;
-        }
+        // if (useDistributed && distributed) {
+        //     metadata.distributed = distributed;
+        // }
         // Delete undefined values
         Object.keys(metadata).forEach(x => {
             if (!metadata[x]) {
@@ -72,28 +85,101 @@ export const UploadModal = (props) => {
         });
         
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-        demoV.uploadData = datasetName;
+        demoV.uploadData = tableName;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-        UploadDataset(datasetName, metadata, _texts, tags);
+        UploadDataset(tableName, metadata, textCols_, tags);
         
         props.CancelUpload();
         navigate("/upload/complete");
     }
 
+    const uploadCsv = () => {
+        setAlert(0);
+        setUploadProgress(0);
+        setDisableButtons(true);
+        CreateDataset(file, setUploadProgress).then(res => {
+          settableName(res.table_name)
+          setHeaders(res.headers)
+          setFileUploaded(true);
+          setAlert(3);
+        }).catch(res => {
+          if (res.response && res.response.data.message === "MulterError: File too large") {
+            setAlert(4);
+          } else {
+            setAlert(2);
+          }
+          
+          setFile(undefined);
+          setUploadProgress(0);
+        }).finally(() => setDisableButtons(false));
+      };
+
+      const APIcsv = () => {
+        setAlert(0);
+        setDisableButtons(true);
+        GetCSVFromAPI(APIEndpoint, Token)
+          .then((res) => {
+            settableName(res.table_name);
+            setHeaders(res.headers);
+            setFileUploaded(true);
+            setAlert(3);
+          })
+          .catch(() => {
+            setAlert(2);
+          }).finally(() => setDisableButtons(false));
+      };
+    
+      const handleSnackBarClose = (event, reason) => {
+        if (reason === "clickaway") {
+          return;
+        }
+        setSnackBarOpen(false);
+      };
+
     useEffect(() => {
-        setDatasetName(props.name);
-        setHeaders(props.headers);
-    }, [props]);
+        setTextColOptions(
+            headers.map(x => {return {
+                label: x,
+                value: x
+            }})
+        )
+    }, [headers]);
+
+    useEffect(() => {
+        if (alert !== 0) {
+          setSnackBarOpen(true);
+        } else {
+          setSnackBarOpen(false);
+        }
+      }, [alert]);
+
+    useEffect(() => {
+        if (file && file.name) {
+          setAlert(0);
+          const validExtensions = [".csv"];
+          if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
+            setAlert(1);
+          } else {
+            uploadCsv();
+          }
+        }
+      }, [file]);
 
     useEffect(() => {
         if (loadedPage === 1) {
-            setDisabled(true);
+            if (props.uploadType === "csv" || props.uploadType === "api") {
+                setDisabled(!fileUploaded);
+            } else {
+                setDisabled(true);
+            }
         } else if (loadedPage === 2) {
-            setDisabled(false);
+            setDisabled(true);
         } else if (loadedPage === 3) {
-            setDisabled(Object.values(columnTypes).filter(x => x === "TEXT").length === 0);
+            setDisabled(false);
+        } else if (loadedPage === 4) {
+            setDisabled(textCols.length === 0);
         } 
-    }, [loadedPage, columnTypes])
+    }, [loadedPage, textCols, fileUploaded, props.uploadType])
 
     useEffect(() => {
         if (stemLanguages.filter(x => x === language).length === 0 && tokenization === "stem") {
@@ -107,21 +193,21 @@ export const UploadModal = (props) => {
         }
     }, [embeddings]);
 
-    useEffect(() => {
-        if (useDistributed && distributedOptions.length === 0) {
-            getDistributedConnections().then(x => setDistributedOptions(x));
-        }
-    }, [useDistributed]);
+    // useEffect(() => {
+    //     if (useDistributed && distributedOptions.length === 0) {
+    //         getDistributedConnections().then(x => setDistributedOptions(x));
+    //     }
+    // }, [useDistributed]);
 
     return (
         <Box
             sx={{
                 position: 'absolute',
-                top: '10%',
-                left: '10%',
-                height: "80%",
+                top: '5%',
+                left: '15%',
+                height: "90%",
                 overflowY: "auto",
-                width: "80%",
+                width: "70%",
                 bgcolor: 'background.paper',
                 border: '1px solid #000',
                 borderRadius: ".5em .5em",
@@ -140,8 +226,127 @@ export const UploadModal = (props) => {
             }}>
                 <LinearProgress variant="determinate" value={(loadedPage / 4) * 100} />
             </Box>
+            <Snackbar
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                open={snackBarOpen}
+                autoHideDuration={6000}
+                onClose={() => handleSnackBarClose()}
+            >
+                <Alert
+                onClose={handleSnackBarClose}
+                severity={alert === 3 ? "success" : "error"}
+                sx={{ width: "100%" }}
+                >
+                {alert === 1 && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
+                {alert === 2 && <div>An error occurred uploading the dataset</div>}
+                {alert === 3 && <div>Dataset successfully uploaded</div>}
+                {alert === 4 && <div>Maximum upload size is 150 MB. Reach out to us at <Link to="mailto:democracyviewerlab@gmail.com">democracyviewerlab@gmail.com</Link> to upload a larger dataset</div>}
+                </Alert>
+            </Snackbar>
 
             {loadedPage === 1 && (
+                <div style={{
+                    height:"80%",
+                    // width: "90%",
+                    position: "relative",
+                    // left: "5%",
+                    top: "7%"
+                }}>
+                    {props.uploadType === "csv" && (
+                        <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
+                            <CardContent
+                                sx={{
+                                flexGrow: 1,
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                }}
+                            >
+                                <Typography gutterBottom variant="h5" component="h2" align="center">
+                                Upload File
+                                </Typography>
+                                <Typography align="center">Upload a CSV File</Typography>
+                                {uploadProgress > 0 && (
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={uploadProgress}
+                                    sx={{ width: "100%", mt: 2 }}
+                                />
+                                )}
+                            </CardContent>
+                            <CardActions style={{ justifyContent: "center" }}>
+                                <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                disabled={disableButtons}
+                                >
+                                Select
+                                <input
+                                    type="file"
+                                    
+                                    hidden
+                                    onChange={(x) => {
+                                    setFile(x.target.files[0]);
+                                    }}
+                                />
+                                </Button>
+                            </CardActions>
+                        </Card>
+                    )}
+
+                    {props.uploadType === "api" && (
+                        <Card sx={{ height: "90%", display: "flex", flexDirection: "column" }}>
+                        <CardContent sx={{ flexGrow: 1 }}>
+                            <Typography gutterBottom variant="h5" component="h2" align="center">
+                            API
+                            </Typography>
+                            <Typography align="center">Upload From an API Endpoint</Typography>
+                        </CardContent>
+                        <Table>
+                            <TableBody>
+                            <TableRow>
+                                <TableCell className="col-6">
+                                <TextField
+                                    margin="normal"
+                                    fullWidth
+                                    label="API Endpoint"
+                                    value={APIEndpoint}
+                                    onChange={(event) => {
+                                    setAPIEndpoint(event.target.value);
+                                    }}
+                                />
+                                <TextField
+                                    margin="normal"
+                                    fullWidth
+                                    label="Token"
+                                    value={Token}
+                                    onChange={(event) => {
+                                    setToken(event.target.value);
+                                    }}
+                                />
+                                </TableCell>
+                            </TableRow>
+                            </TableBody>
+                        </Table>
+                        <CardActions style={{ justifyContent: "center" }}>
+                            <Button
+                            variant="contained"
+                            component="label"
+                            sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                            onClick={() => APIcsv()}
+                            disabled={disableButtons}
+                            >
+                            Call API
+                            </Button>
+                        </CardActions>
+                        </Card>
+                    )}
+                </div>
+            )}
+
+            {loadedPage === 2 && (
                 <DatasetInformation
                     title={title}
                     setTitle={setTitle}
@@ -151,6 +356,8 @@ export const UploadModal = (props) => {
                     setDate={setDate}
                     description={description}
                     setDescription={setDescription}
+                    license={license}
+                    setLicense={setLicense}
                     publicPrivate={publicPrivate}
                     setPublicPrivate={setPublicPrivate}
                     disabled={disabled}
@@ -158,40 +365,11 @@ export const UploadModal = (props) => {
                 />
             )}
 
-            {loadedPage === 2 && (
+            {loadedPage === 3 && (
                 <DatasetTags
                     tags={tags}
                     setTags={setTags}
                 />
-            )}
-
-            {loadedPage === 3 && (
-                <Box sx={{ padding: 2 }}>
-                    <Typography variant="h5" align="center" gutterBottom>
-                        Column Information
-                        <Tooltip title="Our system will auto detect data types if you leave the column as AUTO. However if you would like individual words to be parsed and preprocessed please signify that as a TEXT column. At least one TEXT column must be selected.">
-                            <IconButton size="small">
-                                <HelpOutlineIcon fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        {headers.map((header, index) => (
-                            <Box key={index} sx={{ display: 'flex', gap: 2 }}>
-                                <Typography sx={{ flex: 1 }}>{header}</Typography>
-                                <FormControl fullWidth variant="filled" sx={{ flex: 2, background: 'rgb(255, 255, 255)' }}>
-                                    <Select
-                                        value={columnTypes[header] || 'AUTO'}
-                                        onChange={(event) => setColumnTypes({ ...columnTypes, [header]: event.target.value })}
-                                    >
-                                        <MenuItem value="AUTO">AUTO</MenuItem>
-                                        <MenuItem value="TEXT">TEXT</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Box>
-                        ))}
-                    </Box>
-                </Box>
             )}
 
             {loadedPage === 4 && (
@@ -205,7 +383,7 @@ export const UploadModal = (props) => {
                         </Tooltip>
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        <FormGroup>
+                        {/* <FormGroup>
                             <Tooltip arrow title = {(
                                 <p>Store your dataset and preprocessing data in your own AWS S3 bucket.</p>
                             )}>
@@ -229,7 +407,20 @@ export const UploadModal = (props) => {
                                     </FormControl>
                                 </Tooltip>
                             }
-                        </FormGroup>
+                        </FormGroup> */}
+
+                        <Tooltip arrow title = "Select which column(s) contain text that needs to be processed. You must select at least 1 text column.">
+                            <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
+                                <Typography>Text Columns</Typography>
+                                <FormattedMultiSelectField
+                                    selectedOptions={textCols}
+                                    setSelectedOptions={setTextCols}
+                                    getData={textColOptions}
+                                    id="textColSelect"
+                                    closeMenuOnSelect={false}
+                                />
+                            </FormControl>
+                        </Tooltip>
 
                         <Tooltip arrow title = "The language the text column(s) are written in. If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
@@ -250,9 +441,40 @@ export const UploadModal = (props) => {
                                     <MenuItem value = "Portuguese"><Flag country = "PT"/>&nbsp;Portuguese</MenuItem>
                                     <MenuItem value = "Russian"><Flag country = "RU"/>&nbsp;Russian</MenuItem>
                                     <MenuItem value = "Spanish"><Flag country = "ES"/>&nbsp;Spanish</MenuItem>
+                                    <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem>
                                 </Select>
                             </FormControl>
                         </Tooltip>
+
+                        <Typography>Custom Stopwords TXT</Typography>
+                        {
+                            stopwordsFile === undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                >
+                                Upload Stopwords List
+                                <input
+                                    type="file"
+                                    accept=".txt"
+                                    hidden
+                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
+                                />
+                            </Button>
+                        }
+                        
+                        {
+                            stopwordsFile !== undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                onClick={() => setStopwordsFile(undefined)}
+                            >
+                                Remove Stopwords List
+                            </Button>
+                        }
 
                         <Tooltip arrow title = {(
                             <div>
@@ -286,7 +508,7 @@ export const UploadModal = (props) => {
 
                         <FormGroup>
                             <Tooltip arrow title = {(
-                                <p>Word embeddings are a machine learning algorithm that can be used to find similar/different words in the text. This requires a long computation time for large datasets, so it is disabled by default. <Link color = "inherit" to = "https://en.wikipedia.org/wiki/Word_embedding">Learn more about word embeddings here.</Link></p>
+                                <p>Word embeddings use cosine similarity to identify the most similar or dissimilar words in a dataset. They are disabled by default due to their slow processing time on large datasets.</p>
                             )}>
                                 <FormControlLabel control={<Checkbox defaultChecked = {embeddings}/>} label="Compute Word Embeddings" onChange={event => setEmbeddings(!embeddings)}/>
                             </Tooltip>
@@ -295,14 +517,14 @@ export const UploadModal = (props) => {
                                 embeddings &&
                                 <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
                                     <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                        <InputLabel>Word Embedding Grouping Column</InputLabel>
+                                        <InputLabel>Group By</InputLabel>
                                         <Select
                                             value={embedCol}
                                             onChange={event => setEmbedCol(event.target.value)}
                                         >
                                             <MenuItem value = {null}>&nbsp;</MenuItem>
-                                            {headers.map((header, index) => (
-                                                <MenuItem value = {header} key = {index}>{ header }</MenuItem>
+                                            {textColOptions.filter(x => !textCols.includes(x)).map((header, index) => (
+                                                <MenuItem value = {header.value} key = {index}>{ header.label }</MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>

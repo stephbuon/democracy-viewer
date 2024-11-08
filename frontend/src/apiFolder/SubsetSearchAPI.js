@@ -29,27 +29,19 @@ export const GetSubsetOfDataByPage = async (table, query, page = 1, pageLength =
 };
 
 export const DownloadSubset = async (table, query) =>  {
-    const config = { ...apiConfig() };
-    if (query) {
-        config.params = query;
-    }
-    const res = await axios.get(`${baseURL}/datasets/download/subset/${table}`, config);//,{ keepAlive: true });
+    const res = await axios.post(`${baseURL}/datasets/download/subset/${table}`, query, apiConfig());//,{ keepAlive: true });
     if(res.status !== 200){
         console.error(`Couldn't download data. ${res.status}`)
         return null;
     }
-    download(res.data, `download_${ Date.now() }.csv`);
+    return res.data;
 };
 
 export const DownloadIds = async (table, id) =>  {
-    const config = { ...apiConfig() };
-    if (id) {
-        config.params = { id };
-    }
-    const res = await axios.get(`${baseURL}/datasets/download/ids/${table}`, config);//,{ keepAlive: true });
+    const res = await axios.post(`${baseURL}/datasets/download/ids/${table}`, { id }, apiConfig());//,{ keepAlive: true });
     if(res.status !== 200){
         console.error(`Couldn't download data. ${res.status}`)
         return null;
     }
-    download(res.data, `download_${ Date.now() }.csv`);
+    return res.data;
 };

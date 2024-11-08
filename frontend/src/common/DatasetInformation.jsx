@@ -41,7 +41,19 @@ export const DatasetInformation = (props) => {
                     sx={{ background: 'rgb(255, 255, 255)' }}
                     defaultValue={props.title}
                     setValue={props.setTitle}
-                    maxChars={50}
+                    maxChars={100}
+                    required
+                    setValid={setValid}
+                />
+                <FormattedTextField
+                    id="Description"
+                    label="Description"
+                    variant="filled"
+                    fullWidth
+                    sx={{ background: 'rgb(255, 255, 255)' }}
+                    defaultValue={props.description}
+                    setValue={props.setDescription}
+                    maxChars={500}
                     required
                     setValid={setValid}
                 />
@@ -53,7 +65,7 @@ export const DatasetInformation = (props) => {
                     sx={{ background: 'rgb(255, 255, 255)' }}
                     defaultValue={props.author}
                     setValue={props.setAuthor}
-                    maxChars={50}
+                    maxChars={200}
                     setValid={setValid}
                 />
                 <TextField
@@ -68,15 +80,14 @@ export const DatasetInformation = (props) => {
                     onChange={event => { props.setDate(event.target.value); }}
                 />
                 <FormattedTextField
-                    id="Description"
-                    label="Description"
+                    id="License"
+                    label="License"
                     variant="filled"
                     fullWidth
                     sx={{ background: 'rgb(255, 255, 255)' }}
-                    defaultValue={props.description}
-                    setValue={props.setDescription}
+                    defaultValue={props.license}
+                    setValue={props.setLicense}
                     maxChars={200}
-                    required
                     setValid={setValid}
                 />
                 <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>

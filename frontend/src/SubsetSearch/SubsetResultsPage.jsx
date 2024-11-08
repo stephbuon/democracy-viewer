@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
 // import 'react-resizable/css/styles.css';
 // MUI Imports
-import { Alert, Box, Button, TextField } from '@mui/material';
+import { Box, TextField } from '@mui/material';
 //Other Imports
-import { DownloadSubset, GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+import { GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
 import { PaginatedDataTable } from '../common/tables/PaginatedDataTable';
 import Highlighter from "react-highlight-words";
 
@@ -15,17 +15,17 @@ export const SubsetResultsPage = (props) => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [totalNumResults, setTotalNumResults] = useState(0);
+    const [totalNumResults, setTotalNumResults] = useState(-1);
     const [page, setPage] = useState(0);
     const [query, setQuery] = useState({});
     const [columns, setColumns] = useState([]);
     const [selected, setSelected] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const highlight = (results) => {
         const terms = searchTerm.split(" ");
         results.map(row => {
             Object.keys(row).forEach(col => {
-                // debugger;
                 if (col !== "record_id") {
                     if (!row[col]) {
                         row[col] = "";
@@ -53,8 +53,8 @@ export const SubsetResultsPage = (props) => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.downloadData = _query;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-        // debugger;
 
+        setLoading(true);
         GetSubsetOfDataByPage(demoV.dataset.table_name, _query, 1, pageLength).then(async (res) => {
             if (!res) {
                 setSearchResults([]);
@@ -64,7 +64,7 @@ export const SubsetResultsPage = (props) => {
                 setColumns(res.columns);
             }
             setPage(1);
-        })
+        }).finally(() => setLoading(false));
 
         setQuery(_query);
     }
@@ -160,20 +160,6 @@ export const SubsetResultsPage = (props) => {
                                 onKeyDown={event => handleKeyPress(event)}
                             />
                         </Box>
-                        {/* <Button
-                            variant="contained"
-                            sx={{
-                                background: 'rgb(255, 255, 255)',
-                                color: 'rgb(0, 0, 0)',
-                                marginLeft: '5em',
-                                '&:hover': {
-                                    background: 'rgb(200, 200, 200)'
-                                }
-                            }}
-                            onClick={() => fetchSubset()}
-                        >
-                            Search
-                        </Button> */}
                     </Box>
                 </Box>
             </Box>
@@ -184,10 +170,11 @@ export const SubsetResultsPage = (props) => {
             page={page}
             GetNewPage={GetNewPage}
             table_name={props.dataset.table_name}
-            downloadSubset={() => DownloadSubset(props.dataset.table_name, query)}
+            downloadType="subset"
             totalNumResults={totalNumResults}
             pageLength={pageLength}
             columns={columns}
+            extLoading={loading}
         />
     </>
 }

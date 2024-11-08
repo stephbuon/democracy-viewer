@@ -6,8 +6,6 @@ const csv_write =require("objects-to-csv");
 const runPython = require("./python_config");
 const findRemoveSync = require('find-remove');
 
-const maxUploadSize = 100 * 1024 * 1024;
-
 // Read a file into memory as a readable stream
 const readFile = (path) => {
     return fs.readFileSync(path, "utf8");
@@ -93,7 +91,7 @@ const getCsvHeaders = async(path) => new Promise((resolve, reject) => {
     let headers = [];
 
     parser.on("headers", (h) => {
-        headers = h;
+        headers = h.map(x => x.replace(/[^\x00-\x7F]/g, ""));
         // Close the stream after reading the headers
         stream.destroy();
         resolve(headers);
@@ -121,6 +119,7 @@ const readJSON = (path, del = true) => {
 
 // Upload a file to the server
 // Based on https://www.bezkoder.com/node-js-express-file-upload/
+const maxUploadSize = 150 * 1024 * 1024;
 const uploadFile = util.promisify(
     multer({
         storage: multer.diskStorage({
@@ -131,7 +130,7 @@ const uploadFile = util.promisify(
                 cb(null, file.originalname);
             }
         }),
-        // limits: { fileSize: maxUploadSize }
+        limits: { fileSize: maxUploadSize }
     }).single("file")
 );
 
