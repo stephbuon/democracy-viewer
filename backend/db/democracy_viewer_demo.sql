@@ -72,7 +72,6 @@ CREATE TABLE group_invites (
     email VARCHAR(30) NOT NULL,
     code VARCHAR(60) NOT NULL,
     expires DATETIME NOT NULL,
-    used BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY(private_group, email),
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE

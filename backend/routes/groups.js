@@ -30,7 +30,7 @@ router.post('/invite', authenticateJWT, async(req, res, next) => {
 // Route to accept a private group invite
 router.post('/invite/accept', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.addMember(req.knex, req.body.private_group, req.user.email, req.body.rank);
+        const result = await control.addMember(req.knex, req.body.private_group, req.user.email, req.body.code);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to accept private group invite:', err);

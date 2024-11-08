@@ -57,25 +57,27 @@ const sendInvite = async(knex, user_from, user_to, private_group) => {
 }
 
 // Add a user as a member to a group from an invite
-const addMember = async(knex, private_group, email, member_rank) => {
+const addMember = async(knex, private_group, email, code) => {
     const model = new groups(knex);
 
     // Get the invite record
-    const invite_record = await model.getInvites({ private_group, email });
+    const invite_records = await model.getInvites({ private_group, email });
     // If no record found, throw error
-    if (invite_record.length === 0) {
+    if (invite_records.length === 0) {
         throw new Error(`No private group invitation was found for user ${ email } for group ${ private_group }`);
     }
+
+    const invite_record = invite_records[0];
+    const result = await bcrypt.compare(code, invite_record.code);
+    if(!result){
+        throw new Error ("This invite code is not correct.");
+    }
+
     // Delete invite record
     await model.deleteInvite(email, private_group);
 
     // Add member record
-    let record;
-    if (member_rank !== undefined) {
-        record = await model.addMember({ private_group, member: email, member_rank });
-    } else {
-        record = await model.addMember({ private_group, member: email });
-    }
+    record = await model.addMember({ private_group, member: email });
 
     return record;
 }
