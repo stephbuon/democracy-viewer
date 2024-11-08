@@ -118,6 +118,18 @@ router.post('/upload/stopwords/:table', authenticateJWT, async(req, res, next) =
     next();
 });
 
+// Route to reprocess a dataset
+router.put('/reprocess/:table', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.reprocessDataset(req.knex, req.params.table, req.user.email);
+        res.status(200).end();
+    } catch (err) {
+        console.error('Failed to reprocess dataset:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to change dataset metadata
 router.put('/metadata/:table', authenticateJWT, async(req, res, next) => {
     try {

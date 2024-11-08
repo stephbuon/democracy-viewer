@@ -52,7 +52,6 @@ export const App = () => {
   }
   const logout = () => {
     localStorage.removeItem("democracy-viewer");
-    localStorage.removeItem("graph-data");
     localStorage.removeItem("graph-settings");
     localStorage.removeItem("selected");
     setData(undefined);

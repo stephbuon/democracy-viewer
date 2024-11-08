@@ -91,7 +91,8 @@ const getCsvHeaders = async(path) => new Promise((resolve, reject) => {
     let headers = [];
 
     parser.on("headers", (h) => {
-        headers = h.map(x => x.replace(/[^\x00-\x7F]/g, ""));
+        headers = h.map(x => x.replace(/[^\x00-\x7F]/g, "").trim()) // Remove non-ASCII characters
+            .filter(x => x !== ""); // Filter out whitespace-only column names
         // Close the stream after reading the headers
         stream.destroy();
         resolve(headers);
