@@ -76,6 +76,10 @@ export const FormattedMultiSelectField = (props) => {
     }
   }, [inputValue, props.isDisabled, props.refresh]);
 
+  useEffect(() => {
+    fetchOptions(inputValue, page);
+  }, [props.getData]);
+
   return (
     <div style={{ margin: '20px 0' }}>
       <ReactSelect
