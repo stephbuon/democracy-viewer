@@ -15,6 +15,7 @@ import {
   Modal
 } from "@mui/material";
 import { GroupTable } from '../common/tables/GroupTable';
+import { FilterGroups } from "../apiFolder/GroupAPI";
 
 const pageLength = 5;
 
@@ -58,8 +59,11 @@ export const Groups = (props) => {
         setLoadingResults(false);
     };
 
-    const onEnter = () => {
+    const onEnter = (event) => {
         //run a backend filter
+        if (event.key === "Enter") {
+            FilterGroups({ searchTerm }, 1);
+        }
     }
 
     return (
@@ -77,11 +81,11 @@ export const Groups = (props) => {
                                 mb: 4,
                             }}
                         >
-                            <Typography variant="h4" gutterBottom>
+                            <Typography variant="h6" sx={{ mb: 3 }} paddingTop={10} paddingInline={10}>
                                 Groups
                             </Typography>
-                            <Typography variant="h6" sx={{ mb: 3 }}>
-                                Focus in and Join Your Community
+                            <Typography variant="h6" sx={{ mb: 3 }} paddingTop={5}>
+                                Focus In and Join Your Community
                             </Typography>
                         </Box>
                         <Box>
@@ -105,16 +109,17 @@ export const Groups = (props) => {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                fullWidth
+                                width= '200px'
                                 onClick={() => handleOpen("create")}
                                 sx={{ mb: 2 }}
                             >
                                 Create Group
                             </Button>
+                            <br />
                             <Button
                                 variant="contained"
                                 color="primary"
-                                fullWidth
+                                width= '500px'
                                 onClick={() => handleOpen("join")}
                                 sx={{ mb: 2 }}
                             >
