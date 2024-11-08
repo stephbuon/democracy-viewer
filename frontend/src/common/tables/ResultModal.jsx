@@ -30,7 +30,7 @@ export const ResultModal = (props) => {
     const [tags, setTags] = useState(props.dataset.tags);
     const [license, setLicense] = useState(props.dataset.license);
     // Minimum number of required changes to reprocess a dataset
-    const [reprocessThreshold, setReprocessThreshold] = useState(Math.ceil(props.dataset.num_records / 10));
+    const [reprocessThreshold, setReprocessThreshold] = useState(5);
     const [reprocessConfirmOpen, setReprocessConfirmOpen] = useState(false);
 
     // Open edit dialogs

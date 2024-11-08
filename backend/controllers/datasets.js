@@ -132,7 +132,7 @@ const reprocessDataset = async(knex, table, email) => {
     }
 
     // Check if enough changes have been made to allow reprocessing
-    const threshold = Math.ceil(metadata.num_records / 10);
+    const threshold = 5;
     if (metadata.unprocessed_updates < threshold) {
         throw new Error(`This dataset requires ${ threshold } changes to enable reprocessing. Only ${ metadata.unprocessed_updates } have been made.`);
     }
