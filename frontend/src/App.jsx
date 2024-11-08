@@ -17,6 +17,8 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import CreateDistributedConnection from "./pages/CreateDistributedConnection.jsx";
 import {Acknowledgements} from "./pages/Acknowledgements.jsx";
 import { SubsetSuggestion } from "./pages/SubsetSuggestion.jsx";
+import { Groups } from "./Groups/Groups.jsx"
+import { GroupHome } from "./Groups/GroupHome.jsx";
   
 export const App = () => {
   // variable definitions
@@ -82,6 +84,8 @@ export const App = () => {
             <Route path="/upload/complete" element={<UploadComplete/>}></Route>
             {/* <Route path="/distributed" element={<CreateDistributedConnection currUser={user} setNavigated={(x) => setNavigated(x)}/>}/> */}
             <Route path="/acknowledgements" element={<Acknowledgements/>}/>
+            <Route path="/groups" element={<Groups/>}/>
+            <Route path="/groups/:groupId/home" element={<GroupHome/>}/>
           </Routes>
       </BrowserRouter>
     </div>

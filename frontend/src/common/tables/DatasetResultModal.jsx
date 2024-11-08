@@ -15,7 +15,7 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
 import { getUser } from '../../api/users';
 
-export const ResultModal = (props) => {
+export const DatasetResultModal = (props) => {
     const navigate = useNavigate();
 
     const handleClose = () => props.setOpen(false);

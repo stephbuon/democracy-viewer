@@ -33,6 +33,10 @@ const Profile = (props) => {
     const [likeSearchResults, setLikeSearchResults] = useState([]);
     const [totalNumOfLikeResults, setTotalNumOfLikeResults] = useState(0);
 
+    const [loadingGroupResults, setLoadingGroupResults] = useState(false);
+    const [groupResults, setGroupResults] = useState([]);
+    const [totalNumOfGroupResults, setTotalNumOfGroupResults] = useState(0);
+
     const [suggestionsFor, setSuggestionsFor] = useState([]);
     const [suggestionsFrom, setSuggestionsFrom] = useState([]);
     const [refreshSuggestions, setRefreshSuggestions] = useState(false);
@@ -70,6 +74,24 @@ const Profile = (props) => {
 
         FilterDatasetsCount(filter).then(async (res) => {
             setTotalNumOfLikeResults(res);
+        });
+    }
+    //get groups page
+    const getGroupsPage = (num) => {
+        const filter = {
+            invited: params.email,
+            pageLength
+        };
+        setLoadingGroupResults(false);
+        FilterDatasets(filter, num).then((res) => {
+            setLoadingGroupResults(false);
+
+            if (!res) { setGroupResults([]) }
+            else { setGroupResults(res) }
+        });
+
+        FilterDatasetsCount(filter).then(async (res) => {
+            setTotalNumOfGroupResults(res);
         });
     }
 
