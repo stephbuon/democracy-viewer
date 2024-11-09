@@ -57,14 +57,14 @@ class groups {
 
     // Get groups that a user is in
     async getGroupsByUser(member) {
-        const member_records = await this.knex(member_table).where({ member });
-        const group_ids = member_records.map(x => x.private_group);
-        const groups = await this.knex(group_table).where(q => {
-            for (let i = 0; i < group_ids.length; i++) {
-                q.orWhere({ id: group_ids[i] });
-            }
-        }); 
-        return groups;
+        // const member_records = await this.knex(member_table).where({ member });
+        // const group_ids = member_records.map(x => x.private_group);
+        // const groups = await this.knex(group_table).where(q => {
+        //     for (let i = 0; i < group_ids.length; i++) {
+        //         q.orWhere({ id: group_ids[i] });
+        //     }
+        // }); 
+        // return groups;
     }
 
     // Get members by group

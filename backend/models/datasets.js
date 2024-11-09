@@ -183,12 +183,6 @@ class datasets {
                     q.whereILike("dataset_metadata.email", `%${ user }%`);
                 }
 
-                // Filter by private group
-                const private_group = params.private_group;
-                if (private_group) {
-                    q.where({ private_group });
-                }
-
                 // Filter by title
                 const title = params.title;
                 if (title) {
