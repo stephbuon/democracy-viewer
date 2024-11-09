@@ -94,10 +94,6 @@ export const posOptionalMetrics = [
     "jsd"
 ];
 
-export const posMetrics = [
-    
-];
-
 export const embeddingMetrics = [
     "embeddings-similar",
     "embeddings-different",
