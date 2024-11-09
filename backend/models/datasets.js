@@ -2,7 +2,6 @@ const metadata_table = "dataset_metadata";
 const tag_table = "tags";
 const all_col_table = "dataset_all_cols";
 const text_col_table = "dataset_text_cols";
-const embed_col_table = "dataset_embed_cols";
 const likes_table = "liked_datasets";
 const suggestion_table = "text_updates";
 
@@ -60,15 +59,6 @@ class datasets {
         const data = cols.map(x => ({ table_name, col: x }));
         // Insert records
         const insert = await this.knex(text_col_table).insert([ ...data ]);
-        return insert;
-    }
-
-    // Add embeddings columns for a dataset
-    async addEmbedCols(table_name, cols) {
-        // Format table name and cols as an array of objects
-        const data = cols.map(x => ({ table_name, col: x }));
-        // Insert records
-        const insert = await this.knex(embed_col_table).insert([ ...data ]);
         return insert;
     }
 
@@ -148,12 +138,6 @@ class datasets {
     // Get text columns by dataset
     async getTextCols(table_name) {
         const results = await this.knex(text_col_table).where({ table_name }).select("col");
-        return results;
-    }
-
-    // Get embedding columns by dataset
-    async getEmbedCols(table_name) {
-        const results = await this.knex(embed_col_table).where({ table_name }).select("col");
         return results;
     }
 

@@ -53,10 +53,9 @@ export const UploadModal = (props) => {
     const [language, setLanguage] = useState("English");
     const [tokenization, setTokenization] = useState("none");
     const [embeddings, setEmbeddings] = useState(false);
+    const [embedCol, setEmbedCol] = useState(null);
     const [textCols, setTextCols] = useState([]);
     const [textColOptions, setTextColOptions] = useState([]);
-    const [embedCols, setEmbedCols] = useState([]);
-    const [embedColOptions, setEmbedColOptions] = useState([]);
     const [stopwordsFile, setStopwordsFile] = useState(undefined);
 
     const [disabled, setDisabled] = useState(true);
@@ -69,16 +68,15 @@ export const UploadModal = (props) => {
         }
 
         const textCols_ = textCols.map(x => x.value);
-        const embedCols_ = embedCols.map(x => x.value);
         const metadata = {
             title, description, is_public: publicPrivate,
             preprocessing_type: tokenization, embeddings,
-            language, date_collected: date, author, license
+            embed_col: embedCol, language,
+            date_collected: date, author, license
         };
         // if (useDistributed && distributed) {
         //     metadata.distributed = distributed;
         // }
-
         // Delete undefined values
         Object.keys(metadata).forEach(x => {
             if (!metadata[x]) {
@@ -89,7 +87,7 @@ export const UploadModal = (props) => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.uploadData = tableName;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-        UploadDataset(tableName, metadata, textCols_, embedCols_, tags);
+        UploadDataset(tableName, metadata, textCols_, tags);
         
         props.CancelUpload();
         navigate("/upload/complete");
@@ -145,13 +143,6 @@ export const UploadModal = (props) => {
                 value: x
             }})
         )
-
-        setEmbedColOptions(
-            headers.map(x => {return {
-                label: x,
-                value: x
-            }})
-        )
     }, [headers]);
 
     useEffect(() => {
@@ -198,31 +189,9 @@ export const UploadModal = (props) => {
 
     useEffect(() => {
         if (!embeddings) {
-            setEmbedCols([]);
+            setEmbedCol(null);
         }
     }, [embeddings]);
-
-    useEffect(() => {
-        setEmbedColOptions(
-            headers
-                .filter(x => !textCols.some(y => x === y.value))
-                .map(x => {return {
-                    label: x,
-                    value: x
-                }})
-        )
-    }, [textCols]);
-
-    useEffect(() => {
-        setTextColOptions(
-            headers
-                .filter(x => !embedCols.some(y => x === y.value))
-                .map(x => {return {
-                    label: x,
-                    value: x
-                }})
-        )
-    }, [embedCols]);
 
     // useEffect(() => {
     //     if (useDistributed && distributedOptions.length === 0) {
@@ -546,32 +515,20 @@ export const UploadModal = (props) => {
         
                             {
                                 embeddings &&
-                                <Tooltip arrow title = "Column(s) to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
-                                    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
-                                        <Typography>Word Embedding Grouping Column(s)</Typography>
-                                        <FormattedMultiSelectField
-                                            selectedOptions={embedCols}
-                                            setSelectedOptions={setEmbedCols}
-                                            getData={embedColOptions}
-                                            id="embedColSelect"
-                                            closeMenuOnSelect={false}
-                                        />
+                                <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
+                                    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                                        <InputLabel>Group By</InputLabel>
+                                        <Select
+                                            value={embedCol}
+                                            onChange={event => setEmbedCol(event.target.value)}
+                                        >
+                                            <MenuItem value = {null}>&nbsp;</MenuItem>
+                                            {textColOptions.filter(x => !textCols.includes(x)).map((header, index) => (
+                                                <MenuItem value = {header.value} key = {index}>{ header.label }</MenuItem>
+                                            ))}
+                                        </Select>
                                     </FormControl>
                                 </Tooltip>
-                                // <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
-                                //     <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                //         <InputLabel>Group By</InputLabel>
-                                //         <Select
-                                //             value={embedCol}
-                                //             onChange={event => setEmbedCol(event.target.value)}
-                                //         >
-                                //             <MenuItem value = {null}>&nbsp;</MenuItem>
-                                //             {textColOptions.filter(x => !textCols.includes(x)).map((header, index) => (
-                                //                 <MenuItem value = {header.value} key = {index}>{ header.label }</MenuItem>
-                                //             ))}
-                                //         </Select>
-                                //     </FormControl>
-                                // </Tooltip>
                             }
                         </FormGroup>
                     </Box>

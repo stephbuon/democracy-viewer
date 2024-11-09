@@ -88,7 +88,7 @@ const createDatasetAPI = async(endpoint, email, token = null) => {
 }
 
 // Upload dataset records using Python
-const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, user) => {
+const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     const model = new datasets(knex);
 
     // Extract email from user
@@ -107,8 +107,6 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     await model.addCols(name, headers);
     // Upload text columns
     await model.addTextCols(name, textCols);
-    // Upload embedding columns
-    await model.addEmbedCols(name, embedCols)
     // Upload tags
     if (tags && tags.length > 0) {
         await model.addTag(name, tags);
@@ -168,6 +166,31 @@ const addTag = async(knex, user, table, tags) => {
 
     // Return all tags for this dataset
     const records = await getTags(knex, table);
+    return records;
+}
+
+// Add text column(s) for a dataset
+const addTextCols = async(knex, user, table, cols) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const curr = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (curr.email !== user) {
+        throw new Error(`User ${ user } is not the owner of this dataset`);
+    }
+
+    // If cols is not an array, make it an array
+    if (!Array.isArray(cols)) {
+        cols = [ cols ];
+    }
+
+    // Add data to db
+    await model.addTextCols(table, cols);
+
+    // Return all text columns for this dataset
+    const records = await getTextCols(knex, table);
     return records;
 }
 
@@ -313,17 +336,6 @@ const getTextCols = async(knex, table) => {
 
     // Get col names from table
     const records = await model.getTextCols(table);
-    // Convert objects to strings with col names
-    const results = records.map(x => x.col);
-    return results;
-}
-
-// Get embedding columns by dataset
-const getEmbedCols = async(knex, table) => {
-    const model = new datasets(knex);
-
-    // Get col names from table
-    const records = await model.getEmbedCols(table);
     // Convert objects to strings with col names
     const results = records.map(x => x.col);
     return results;
@@ -668,6 +680,7 @@ module.exports = {
     uploadDataset,
     reprocessDataset,
     addTag,
+    addTextCols,
     addSuggestion,
     updateMetadata,
     incClicks,
@@ -681,7 +694,6 @@ module.exports = {
     getUniqueTags,
     getTags,
     getTextCols,
-    getEmbedCols,
     getColumnNames,
     getColumnValues,
     getFilteredDatasets,

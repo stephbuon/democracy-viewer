@@ -1,6 +1,6 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../api/api.js"
+import { getGroupNames, getColumnValues, getTopWords } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
@@ -33,8 +33,6 @@ export const GraphSettings = ( props ) => {
     const [topn, setTopn] = useState("5");
     const [savedSettings, setSavedSettings] = useState(undefined);
     const [firstUpdate, setFirstUpdate] = useState(true);
-    const [embedCols, setEmbedCols] = useState([]);
-    const [lastMetric, setLastMetric] = useState("counts");
 
     const navigate = useNavigate();
 
@@ -44,7 +42,6 @@ export const GraphSettings = ( props ) => {
         setSavedSettings(settings);
         if(settings && settings.table_name === props.dataset.dataset.table_name){
             setMetric(settings.metric);
-            setLastMetric(settings.metric);
             setGroup(settings.group_name);
             setTopn(String(settings.topn));
 
@@ -76,14 +73,10 @@ export const GraphSettings = ( props ) => {
 
         if (!props.dataset.dataset.embeddings || !props.dataset.dataset.embeddings_done) {
             setMetricOptions([ ...metricOptions ].filter(x => !embeddingMetrics.includes(x.value)));
-        } else {
-            getEmbedCols(props.dataset.dataset.table_name).then(cols => {
-                if (cols.length > 0) {
-                    setEmbedCols(cols);
-                } else if (props.dataset.dataset.embed_col) {
-                    setEmbedCols([ props.dataset.dataset.embed_col]);
-                }
-            })
+        }
+
+        if (props.dataset.dataset.preprocessing_type !== "lemma") {
+            setMetricOptions([ ...metricOptions ].filter(x => !posMetrics.includes(x.value)));
         }
     }, []);
 
@@ -95,28 +88,16 @@ export const GraphSettings = ( props ) => {
             setPosList([]);
         }
 
-        if (embeddingMetrics.includes(metric) && !embeddingMetrics.includes(lastMetric)) {
-            setGroupList([]);
-            setGroup("");
-
-            if (embedCols.length > 0) {
-                setGroupOptions(embedCols.map(col => {
-                    return {
-                        value: col, 
-                        label: col.replace(/_/g, ' ')
-                    }
-                }));
+        if (embeddingMetrics.includes(metric)) {
+            if (props.dataset.dataset.embed_col) {
+                setGroup(props.dataset.dataset.embed_col);
             } else {
-                setGroupOptions({
-                    value: "",
-                    label: ""
-                })
+                setGroup("");
             }
-        } else if (!embeddingMetrics.includes(metric) && embeddingMetrics.includes(lastMetric)) {
-            updateGroupNames();
+            setGroupLocked(true);
+        } else {
+            setGroupLocked(false);
         }
-
-        setLastMetric(metric);
     }, [metric]);
 
     // Closes modal and updates graph data
@@ -153,11 +134,11 @@ export const GraphSettings = ( props ) => {
     // Updates column name dropdown values
     const updateGroupNames = () => {
         getGroupNames(props.dataset.dataset.table_name).then(async (res) => {
-            let _groupOptions = []
-            for(let i = 0; i < res.length; i++){
-                _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
-            }
-            setGroupOptions([..._groupOptions])
+        let _groupOptions = []
+        for(let i = 0; i < res.length; i++){
+            _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+        }
+        setGroupOptions([..._groupOptions])
         });
     }
 
@@ -172,12 +153,6 @@ export const GraphSettings = ( props ) => {
             return results;
         } else {
             return [];
-        }
-    }
-
-    const getGroupSuggestions = (params) => {
-        if (group) {
-            getColumnValues(props.dataset.dataset.table_name, group, params);
         }
     }
 
@@ -253,7 +228,7 @@ export const GraphSettings = ( props ) => {
                     value={group}
                     setValue={(x)=>setGroup(x)}
                     options={groupOptions}
-                    hideBlankOption={embeddingMetrics.includes(metric)} 
+                    hideBlankOption={0} 
                     disabled={groupLocked}
                 />
 
@@ -261,7 +236,7 @@ export const GraphSettings = ( props ) => {
                 <FormattedMultiSelectField
                     selectedOptions={groupList}
                     setSelectedOptions={setGroupList}
-                    getData={params => getGroupSuggestions(params)}
+                    getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
                     id="valueSelect"
                     isDisabled={selectToggle}
                     className="mb-3"
