@@ -175,9 +175,11 @@ export const GraphSettings = ( props ) => {
         }
     }
 
-    const getGroupSuggestions = (params) => {
+    const getGroupSuggestions = async(params) => {
         if (group) {
-            getColumnValues(props.dataset.dataset.table_name, group, params);
+            return await getColumnValues(props.dataset.dataset.table_name, group, params);
+        } else {
+            return [];
         }
     }
 
