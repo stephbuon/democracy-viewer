@@ -35,6 +35,13 @@ class groups {
         return records[0];
     }
 
+    // Adding data to group
+    async addDataset(private_group, table_name) {
+        await this.knex(datasets_table).insert({private_group, table_name});
+        const records = await this.knex(datasets_table).where({private_group, table_name});
+        return records[0];
+    }
+
     // Edit a group's information
     async editGroup(id, params) {
         await this.knex(group_table).where({ id }).update({ ...params });
@@ -96,6 +103,52 @@ class groups {
         return records;
     }
 
+    // Filter groups
+    async getFilteredGroups(params, email, paginate = true, currentPage = 1) {
+        const query = this.knex(group_table).select(`${ group_table }.*`).distinct()
+            .leftJoin(member_table, `${ group_table }.id`, `${ member_table }.private_group`)
+            .where(q => {
+                // Filter by user 
+                q.where(`${ member_table }.member`, email);
+
+                // Search all text fields
+                const search = params.__search__;
+                if (search) {
+                    q.where(q => {
+                        const terms = search.split(" ");
+                        terms.forEach(term => {
+                            q.orWhereILike(`${ group_table }.name`, `%${ term }%`);
+                            q.orWhereILike(`${ group_table }.description`, `%${ term }%`);
+                        });
+                    })
+                }
+
+                // Search for liked datasets  NOT YET IMPLAMENTED
+                // const liked = params.liked;
+                // if (liked) {
+                //     q.where(`${ likes_table }.email`, liked);
+                // }
+            })
+            .orderBy(`${ group_table }.date_created`, "desc");
+
+        let results;
+        if (paginate) {
+            const perPage = params.pageLength ? params.pageLength : 10;
+            results = await query.paginate({ perPage, currentPage });
+            results = results.data;
+        } else {
+            results = await query;
+        }
+
+        return results;
+    }
+
+    // Get the number of datasets for a given set of filters
+    async getFilteredGroupCount(params, email) {
+        const results = await this.getFilteredGroups(params, email, false);
+        return results.length;
+    }
+
     // Delete a private group
     async deleteGroup(id) {
         await this.knex(group_table).delete().where({ id });
@@ -111,6 +164,12 @@ class groups {
     // Delete a group invite
     async deleteInvite(email, private_group) {
         await this.knex(invite_table).delete().where({ email, private_group });
+        return null;
+    }
+
+    // Delete datset from group
+    async deleteDataset(private_group, table_name) {
+        await this.knex(datasets_table).delete().where({ table_name, private_group });
         return null;
     }
 }

@@ -4,6 +4,7 @@ const chance = require("chance").Chance();
 const { getName } = require("../util/user_name");
 
 const groups = require("../models/groups");
+const datasets = require("../models/datasets");
 
 // Create a private group and add the creator as the admin
 const addGroup = async(knex, email, params) => {
@@ -82,6 +83,31 @@ const addMember = async(knex, private_group, email, code) => {
     return record;
 }
 
+// Add a dataset to a group
+const addDataset = async(knex, private_group, table_name, email) => {
+    const model_groups = new groups(knex);
+    const model_datasets = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model_datasets.getMetadata(table_name);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    // Get the member record for this user in this group
+    const member = await model_groups.getMember(email, private_group);
+
+    // If the user is not a high enough rank, throw error
+    if (typeof member.member_rank !== "number" || member.member_rank > 3) {
+        throw new Error(`User ${ email } is not a high enough rank to upload to this group`);
+    }
+
+    const result = await model_groups.addDataset(private_group, table_name, email);
+    return result;
+}
+
 // Edit a group if the user is an admin
 const editGroup = async(knex, email, id, params) => {
     const model = new groups(knex);
@@ -156,6 +182,22 @@ const getGroupMembers = async(knex, email, private_group) => {
     return finalRecords;
 }
 
+// Get filter groups for user
+const getFilteredGroups = async(knex, params, email, paginate = true, currentPage = 1) => {
+    const model = new groups(knex);
+
+    const result = await model.getFilteredGroups(params, email, paginate, currentPage);
+    return result;
+}
+
+// Get number of filter groups
+const getFilteredGroupCount = async(knex, params, email) => {
+    const model = new groups(knex);
+
+    const result = await model.getFilteredGroupCount(params, email);
+    return result;
+}
+
 // Get the group member record by group and user
 const getMember = async(knex, email, group) => {
     const model = new groups(knex);
@@ -201,7 +243,7 @@ const deleteGroupInvite = async(knex, admin, email, private_group) => {
     // Get user's group member record
     const member_record = await model.getMember(admin, private_group);
     // If record not found or user not an admin, throw error
-    if (admin !== email && !member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
+    if (admin !== email && !member_record || (typeof member_record.member_rank !== "number" || member_record.member_rank <= 2)) {
         throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
     }
 
@@ -209,17 +251,39 @@ const deleteGroupInvite = async(knex, admin, email, private_group) => {
     await model.deleteInvite(email, private_group);
 }
 
+const deleteDataset = async(knex, email, private_group, table_name) => {
+    const model_groups = new groups(knex);
+    const model_datasets = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model_datasets.getMetadata(table_name);
+
+    // Get the member record for this user in this group
+    const member = await model_groups.getMember(email, private_group);
+
+    // If the user is not a high enough rank, throw error
+    if (metadata.email !== email && (typeof member.member_rank !== "number" || member.member_rank > 2)) {
+        throw new Error(`User ${ email } is not a high enough rank to delete this dataset`);
+    }
+
+    await model_groups.deleteDataset(private_group, table_name);
+}
+
 module.exports = {
     addGroup,
     sendInvite,
     addMember,
+    addDataset,
     editGroup,
     editMember,
     getGroupById,
     getGroupsByUser,
     getGroupMembers,
+    getFilteredGroups,
+    getFilteredGroupCount,
     getMember,
     deleteGroup,
     deleteGroupMember,
-    deleteGroupInvite
+    deleteGroupInvite,
+    deleteDataset
 };
