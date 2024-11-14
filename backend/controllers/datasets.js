@@ -108,7 +108,9 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     // Upload text columns
     await model.addTextCols(name, textCols);
     // Upload embedding columns
-    await model.addEmbedCols(name, embedCols)
+    if (embedCols && embedCols.length > 0) {
+        await model.addEmbedCols(name, embedCols);
+    }
     // Upload tags
     if (tags && tags.length > 0) {
         await model.addTag(name, tags);
