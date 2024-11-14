@@ -40,7 +40,7 @@ router.post('/api', authenticateJWT, async(req, res, next) => {
 // Route to upload dataset records into database
 router.post('/upload', authenticateJWT, async(req, res, next) => {
     try {
-        await control.uploadDataset(req.knex, req.body.table_name, req.body.metadata, req.body.text, req.body.embed, req.body.tags, req.user);
+        await control.uploadDataset(req.knex, req.body.table_name, req.body.metadata, req.body.text, req.body.tags, req.user);
         res.status(201).end();
     } catch (err) {
         console.error('Failed to upload dataset:', err);
@@ -56,6 +56,18 @@ router.post('/tags', authenticateJWT, async(req, res, next) => {
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to add dataset tag:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to add one or more text columns to a dataset
+router.post('/text', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.addTextCols(req.knex, req.user.email, req.body.dataset, req.body.cols);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to add dataset text column(s):', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -209,18 +221,6 @@ router.get('/text/:table', async(req, res, next) => {
         res.status(200).json(results);
     } catch (err) {
         console.error('Failed to get dataset text columns:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
-// Route to get embedding columns for a dataset
-router.get('/embeddings/:table', async(req, res, next) => {
-    try {
-        const results = await control.getEmbedCols(req.knex, req.params.table);
-        res.status(200).json(results);
-    } catch (err) {
-        console.error('Failed to get dataset embedding columns:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

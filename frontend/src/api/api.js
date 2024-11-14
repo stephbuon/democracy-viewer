@@ -122,18 +122,6 @@ export const getTextCols = (dataset) => new Promise((resolve, reject) => {
   });
 });
 
-export const getEmbedCols = (dataset) => new Promise((resolve, reject) => {
-  axios.get(`${ baseURL }/datasets/embeddings/${ dataset }`, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${ getToken() }`
-    }
-  }).then(x => resolve(x.data)).catch(x => {
-    alert(x);
-    reject(x);
-  });
-});
-
 export const addLike = (table) => new Promise((resolve, reject) => {
   axios.post(`${ baseURL }/datasets/like/${ table }`, {}, {
     headers: {

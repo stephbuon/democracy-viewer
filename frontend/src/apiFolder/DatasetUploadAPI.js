@@ -38,13 +38,22 @@ export const CreateDataset = (dataset, setProgress) => new Promise((resolve, rej
     );
 });
 
-export const UploadDataset = async (table_name, metadata, text, embed, tags) =>  {
+export const UploadDataset = async (table_name, metadata, text, tags) =>  {
     const params = {
-        table_name, metadata, text, embed, tags
+        table_name, metadata, text, tags
     }
     const res = await axios.post(`${baseURL}/datasets/upload`, params, apiConfig());
     if(res.status !== 201){
         console.error(`Couldn't upload. ${res.status}`)
+        return null;
+    }
+    return res.data;
+};
+
+export const AddTextColumn = async (dataset,cols) =>  {
+    const res = await axios.post(`${baseURL}/datasets/text`,{dataset:dataset,cols:cols}, apiConfig());
+    if(res.status !== 201){
+        console.error(`Couldn't post columns. ${res.status}`)
         return null;
     }
     return res.data;
