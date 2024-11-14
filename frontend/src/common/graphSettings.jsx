@@ -156,6 +156,14 @@ export const GraphSettings = ( props ) => {
         }
     }
 
+    const getGroupSuggestions = async(params) => {
+        if (group) {
+            return await getColumnValues(props.dataset.dataset.table_name, group, params);
+        } else {
+            return [];
+        }
+    }
+
     // Called when a column is selected
     // updates array for column value dropdown
     useEffect(() => {
