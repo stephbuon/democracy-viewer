@@ -105,6 +105,13 @@ CREATE TABLE dataset_text_cols (
     PRIMARY KEY(table_name, col)
 );
 
+CREATE TABLE dataset_embed_cols (
+    table_name VARCHAR(100) NOT NULL,
+    col VARCHAR(50) NOT NULL,
+    FOREIGN KEY(table_name, col) REFERENCES dataset_all_cols(table_name, col) ON DELETE CASCADE,
+    PRIMARY KEY(table_name, col)
+);
+
 CREATE TABLE liked_datasets (
     email VARCHAR(30) NOT NULL,
     table_name VARCHAR(100) NOT NULL,
