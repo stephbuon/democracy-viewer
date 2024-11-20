@@ -64,12 +64,12 @@ router.put('/:group', authenticateJWT, async(req, res, next) => {
 });
 
 // Route to edit a private group member
-router.put('/:group/member/:member', authenticateJWT, async(req, res, next) => {
+router.put('/:group/rank/:member/:rank', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.editMember(req.knex, req.user.email, req.params.group, req.params.member, req.body);
+        const result = await control.editMember(req.knex, req.user.email, req.params.group, req.params.member, req.params.rank);
         res.status(200).json(result);
     } catch (err) {
-        console.error('Failed to edit private group member:', err);
+        console.error('Failed to edit private group member rank:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -82,18 +82,6 @@ router.get('/id/:group', authenticateJWT, async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get private group by id:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
-// Route to get the private groups a user is in
-router.get('/user', authenticateJWT, async(req, res, next) => {
-    try {
-        const result = await control.getGroupsByUser(req.knex, req.user.email);
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get private groups by user:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -142,6 +130,18 @@ router.get('/filter/count', authenticateJWT, async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get filtered groups count:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get group invites
+router.get('/invites', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.getInvites(req.knex, req.query);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get invites for group:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

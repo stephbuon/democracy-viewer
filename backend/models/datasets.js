@@ -152,6 +152,8 @@ class datasets {
         const query = this.knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .leftJoin(likes_table, `${ metadata_table }.table_name`, `${ likes_table }.table_name`)
+            .leftJoin('group_datasets', `${metadata_table}.table_name`, 'group_datasets.table_name')
+            .leftJoin('group_members', 'group_datasets.private_group', 'group_members.private_group')
             .where(q => {
                 // Filter by type (public/private)
                 const type = params.type;
@@ -230,6 +232,15 @@ class datasets {
                 const liked = params.liked;
                 if (liked) {
                     q.where(`${ likes_table }.email`, liked);
+                }
+
+                const group_id = params.group 
+                if(group_id){
+                    if (!email) {
+                        throw new Error("Not logged in to access group datasets");
+                    }
+                    q.where('group_datasets.private_group', group_id);
+                    q.where('group_members.member', email);
                 }
             });
 

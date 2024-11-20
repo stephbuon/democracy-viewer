@@ -31,7 +31,7 @@ const sendInvite = async(knex, user_from, user_to, private_group) => {
     const from_record = await model.getMember(user_from, private_group);
 
     // If user_from is not the admin of the group, throw error
-    if (!from_record || from_record.member_rank <= 2) {
+    if (!from_record || from_record.member_rank > 2) {
         throw new Error(`User ${ user_from } does not have permission to invite users to private group ${ private_group }`);
     }
 
@@ -115,7 +115,7 @@ const editGroup = async(knex, email, id, params) => {
     // Get user's group member record
     const member_record = await model.getMember(email, id);
     // If record not found or user not an admin, throw error
-    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
+    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank > 2)) {
         throw new Error(`User ${ email } is not an admin in private group ${ id }`);
     }
 
@@ -126,18 +126,23 @@ const editGroup = async(knex, email, id, params) => {
 }
 
 // Edit a group if the user is an admin
-const editMember = async(knex, email, id, member, params) => {
+const editMember = async(knex, email, id, member, rank) => {
     const model = new groups(knex);
 
     // Get user's group member record
     const member_record = await model.getMember(email, id);
     // If record not found or user not an admin, throw error
-    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
+    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank > 2) || !rank || rank < member_record.member_rank) {
         throw new Error(`User ${ email } is not an admin in private group ${ id }`);
     }
 
+    // Demote owner if they are replacing themself
+    if (member_record.member_rank === 1 && rank === 1) {
+        await model.editMember(id, email, 2);
+    }    
+
     // Edit the private group
-    const result = await model.editMember(id, member, params);
+    const result = await model.editMember(id, member, rank);
     
     return result;
 }
@@ -147,14 +152,6 @@ const getGroupById = async(knex, id) => {
     const model = new groups(knex);
 
     const result = await model.getGroupById(id);
-    return result;
-}
-
-// Get groups a user is in
-const getGroupsByUser = async(knex, email) => {
-    const model = new groups(knex);
-
-    const result = await model.getGroupsByUser(email);
     return result;
 }
 
@@ -206,6 +203,14 @@ const getMember = async(knex, email, group) => {
     return result;
 }
 
+// Get group information by id
+const getInvites = async(knex, params) => {
+    const model = new groups(knex);
+
+    const result = await model.getInvites(params);
+    return result;
+}
+
 // Delete a private group
 const deleteGroup = async(knex, email, private_group) => {
     const model = new groups(knex);
@@ -226,10 +231,27 @@ const deleteGroupMember = async(knex, admin, email, private_group) => {
     const model = new groups(knex);
 
     // Get user's group member record
-    const member_record = await model.getMember(admin, private_group);
+    const admin_record = await model.getMember(admin, private_group);
     // If record not found or user not an admin, throw error
-    if (admin !== email && !member_record || (typeof member_record.member_rank === "number" && member_record.member_rank <= 2)) {
+    if (admin !== email && (!admin_record || (typeof admin_record.member_rank === "number" && admin_record.member_rank > 2))) {
         throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
+    }
+
+    // If admin is not a higher rank than user, throw error
+    const member_record = await model.getMember(email, private_group);
+    if (admin !== email && (!member_record || (typeof member_record.member_rank === "number" && admin_record.member_rank > member_record.member_rank))) {
+        throw new Error(`User ${ admin } does not have permission to remove user ${ email } from private group ${ private_group }`);
+    }
+
+    // Replace owner or delete group if necessary
+    if(admin === email){
+        const members = await model.getMembersByGroup(private_group);
+        if(members.length === 1){
+            await model.deleteGroup(private_group);
+            return null;
+        } else if(admin_record.member_rank === 1) {
+            await model.editMember(private_group, members[1].member, { member_rank: 1 });
+        }
     }
 
     // Delete group member
@@ -243,7 +265,7 @@ const deleteGroupInvite = async(knex, admin, email, private_group) => {
     // Get user's group member record
     const member_record = await model.getMember(admin, private_group);
     // If record not found or user not an admin, throw error
-    if (admin !== email && !member_record || (typeof member_record.member_rank !== "number" || member_record.member_rank <= 2)) {
+    if (admin !== email && !member_record || (typeof member_record.member_rank !== "number" || member_record.member_rank > 2)) {
         throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
     }
 
@@ -277,11 +299,11 @@ module.exports = {
     editGroup,
     editMember,
     getGroupById,
-    getGroupsByUser,
     getGroupMembers,
     getFilteredGroups,
     getFilteredGroupCount,
     getMember,
+    getInvites,
     deleteGroup,
     deleteGroupMember,
     deleteGroupInvite,

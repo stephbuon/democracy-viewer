@@ -93,7 +93,7 @@ CREATE TABLE group_datasets (
     PRIMARY KEY(private_group, table_name),
     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE,
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
-);t
+);
 
 CREATE TABLE tags (
     tag_name VARCHAR(25) NOT NULL,

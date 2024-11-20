@@ -50,8 +50,8 @@ class groups {
     }
 
     // Edit a group member
-    async editMember(private_group, member, params) {
-        await this.knex(member_table).where({ private_group, member }).update({ ...params });
+    async editMember(private_group, member, member_rank) {
+        await this.knex(member_table).where({ private_group, member }).update({ member_rank });
         const record = await this.knex(member_table).where({ private_group, member });
         return record[0];
     }
@@ -62,21 +62,9 @@ class groups {
         return record[0];
     }
 
-    // Get groups that a user is in
-    async getGroupsByUser(member) {
-        // const member_records = await this.knex(member_table).where({ member });
-        // const group_ids = member_records.map(x => x.private_group);
-        // const groups = await this.knex(group_table).where(q => {
-        //     for (let i = 0; i < group_ids.length; i++) {
-        //         q.orWhere({ id: group_ids[i] });
-        //     }
-        // }); 
-        // return groups;
-    }
-
     // Get members by group
     async getMembersByGroup(private_group) {
-        const records = await this.knex(member_table).where({ private_group });
+        const records = await this.knex(member_table).where({ private_group }).orderBy("member_rank").orderBy("date_joined");
         return records;
     }
 
