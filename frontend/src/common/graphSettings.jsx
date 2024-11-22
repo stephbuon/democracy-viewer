@@ -20,14 +20,14 @@ export const GraphSettings = ( props ) => {
     const [disabled, setDisabled] = useState(true);
     const [disabledMessage, setDisabledMessage] = useState("");
     const [searchTerms, setSearchTerms] = useState([]);
+    const [checkGroupOptions, setCheckGroupOptions] = useState(false);
     const [groupOptions, setGroupOptions] = useState(undefined);
     const [groupList, setGroupList] = useState([]);
     const [refreshGroupOptions, setRefreshGroupOptions] = useState(true);
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
-    const [selectToggle, setSelectToggle] = useState(true);
+    const [selectToggle, setSelectToggle] = useState(false);
     const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
-    const [groupLocked, setGroupLocked] = useState(false);
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
     const [topn, setTopn] = useState("5");
@@ -43,6 +43,7 @@ export const GraphSettings = ( props ) => {
         const settings = JSON.parse(localStorage.getItem("graph-settings"));
         setSavedSettings(settings);
         if(settings && settings.table_name === props.dataset.dataset.table_name){
+            setCheckGroupOptions(false);
             setMetric(settings.metric);
             setLastMetric(settings.metric);
             setGroup(settings.group_name);
@@ -95,11 +96,13 @@ export const GraphSettings = ( props ) => {
             setPosList([]);
         }
 
-        if (embeddingMetrics.includes(metric) && !embeddingMetrics.includes(lastMetric)) {
-            setGroupList([]);
-            setGroup("");
+        if (embeddingMetrics.includes(metric) && (!embeddingMetrics.includes(lastMetric) || embedCols.length != groupOptions.length)) {
+            if (checkGroupOptions) {
+                setGroupList([]);
+            }
 
             if (embedCols.length > 0) {
+                setGroup(embedCols[0]);
                 setGroupOptions(embedCols.map(col => {
                     return {
                         value: col, 
@@ -107,17 +110,18 @@ export const GraphSettings = ( props ) => {
                     }
                 }));
             } else {
-                setGroupOptions({
+                setGroup("");
+                setGroupOptions([{
                     value: "",
                     label: ""
-                })
+                }]);
             }
         } else if (!embeddingMetrics.includes(metric) && embeddingMetrics.includes(lastMetric)) {
             updateGroupNames();
         }
 
         setLastMetric(metric);
-    }, [metric]);
+    }, [metric, embedCols]);
 
     // Closes modal and updates graph data
     const handleClose = (event, reason) => {
@@ -186,12 +190,14 @@ export const GraphSettings = ( props ) => {
     // Called when a column is selected
     // updates array for column value dropdown
     useEffect(() => {
-        setSelectToggle(group === "");
-        setRefreshGroupOptions(!refreshGroupOptions);
-        if (!firstUpdate) {
-            setGroupList([]);
-        } else if (savedSettings) {
-            setFirstUpdate(false);
+        if (checkGroupOptions) {
+            setSelectToggle(group === "");
+            setRefreshGroupOptions(!refreshGroupOptions);
+            if (!firstUpdate) {
+                setGroupList([]);
+            } else if (savedSettings) {
+                setFirstUpdate(false);
+            }
         }
     }, [group]);
 
@@ -253,10 +259,12 @@ export const GraphSettings = ( props ) => {
                 {/* Column select dropdown */}
                 <SelectField label="Column Name"
                     value={group}
-                    setValue={(x)=>setGroup(x)}
+                    setValue={(x)=>{
+                        setCheckGroupOptions(true); 
+                        setGroup(x);
+                    }}
                     options={groupOptions}
                     hideBlankOption={embeddingMetrics.includes(metric)} 
-                    disabled={groupLocked}
                 />
 
                 <Typography>Column Values</Typography>
