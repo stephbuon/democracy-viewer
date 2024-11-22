@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { metricTypes } from "./metrics";
 import { getZoomIds } from "../api/api";
 
-export const GraphComponent = ({ data, setData, setZoomLoading }) => {
+export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
@@ -39,6 +39,39 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
 
     const navigate = useNavigate();
     const graph = useRef(null);
+
+    // Function to choose which labels to show in a scatter plot
+    const chooseLabels = (data, xRange, yRange) => {
+        const rangeX = xRange[1] - xRange[0];
+        const rangeY = yRange[1] - yRange[0];
+        const nonOverlappingLabels = [];
+        const labels = [];
+
+        data.forEach(trace => {
+            const traceLabels = [];
+            for (let i = 0; i < trace.x.length; i++) {
+                const x = trace.x[i];
+                const y = trace.y[i];
+                if (x >= xRange[0] && x <= xRange[1] && y >= yRange[0] && y <= yRange[1]) {
+                    const overlap = nonOverlappingLabels.some((existingPoint) =>
+                        isOverlappingScatter(existingPoint.x, existingPoint.y, x, y, rangeX, rangeY)
+                    );
+
+                    if (overlap) {
+                        traceLabels.push("");
+                    } else {
+                        traceLabels.push(trace.hovertext[i]);
+                        nonOverlappingLabels.push({ x, y });
+                    }
+                } else {
+                    traceLabels.push("");
+                }
+            }
+            labels.push(traceLabels);
+        });
+
+        return labels;
+    }
 
     // UseEffect: Generates graph object with zoom click event definition
     useEffect(() => {
@@ -96,7 +129,68 @@ export const GraphComponent = ({ data, setData, setZoomLoading }) => {
     useEffect(() => {
         if (foundData) {
             Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" });
-            graph.current.on('plotly_click', (event) => { // Click event for zoom page
+
+            // Relayout event to handle labels on a scatter plot
+            graph.current.on("plotly_relayout", event => {
+                if (metricTypes.scatter.includes(data.metric)) {
+                    let xRange, yRange;
+                    if (event["xaxis.range[0]"] && event["xaxis.range[1]"]) {
+                        xRange = [event["xaxis.range[0]"], event["xaxis.range[1]"]];
+                    } else {
+                        let min = Infinity;
+                        let max = -Infinity;
+                        data.graph.forEach(trace => {
+                            if (Array.isArray(trace.x)) {
+                                trace.x.forEach(x => {
+                                    if (x < min) {
+                                        min = x;
+                                    }
+                                    if (x > max) {
+                                        max = x;
+                                    }
+                                });
+                            }
+                        });
+                        if (min == Infinity || max == Infinity) {
+                            xRange = [0, 1];
+                        } else {
+                            xRange = [min, max];
+                        }
+                    }
+
+                    if (event["yaxis.range[0]"] && event["yaxis.range[1]"]) {
+                        yRange = [event["yaxis.range[0]"], event["yaxis.range[1]"]];
+                    } else {
+                        let min = Infinity;
+                        let max = -Infinity;
+                        data.graph.forEach(trace => {
+                            if (Array.isArray(trace.y)) {
+                                trace.y.forEach(y => {
+                                    if (y < min) {
+                                        min = y;
+                                    }
+                                    if (y > max) {
+                                        max = y;
+                                    }
+                                });
+                            }
+                        });
+                        if (min == Infinity || max == Infinity) {
+                            yRange = [0, 1];
+                        } else {
+                            yRange = [min, max];
+                        }
+                    }
+
+                    const updatedLabels = chooseLabels(data.graph, xRange, yRange);
+                    updatedLabels.forEach((labels, index) => {
+                        Plotly.restyle("graph", { text: [labels] }, index);
+                    });
+                }
+            });
+
+            // Click event for zoom page
+            graph.current.on('plotly_click', (event) => { 
                 setZoomLoading(true);
                 const dataPoint = event.points[0];
                 let idx;
