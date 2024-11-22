@@ -233,7 +233,7 @@ def download_data(folder: str, name: str, ext: str, token: str | None = None) ->
     
     return data
 
-def download_file(local_file: str, folder: str, name: str, token: str | None = None) -> str:
+def download_file(local_file: str, folder: str, name: str, token: str | None = None):
     distributed = get_creds(token)
     
     if os.path.exists(local_file):
@@ -254,6 +254,7 @@ def download_file(local_file: str, folder: str, name: str, token: str | None = N
                 region_name = distributed["region"]
             )
         path = "{}/{}".format(folder, name)
+        print(path)
         
         start_time = time()
         s3_client.download_file(
