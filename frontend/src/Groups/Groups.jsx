@@ -70,7 +70,7 @@ export const Groups = (props) => {
         <div className = 'blue' style={{ marginTop: "-1in", overflow: 'hidden' }}>
             <Grid container sx={{ height: '100vh' }}>
                 {/* Left side: Title and Buttons */}
-                <Grid item xs={12} sm={5} component={Paper} elevation={6} square sx={{ p: 5 }}>
+                <Grid item xs={12} sm={5} component={Paper} elevation={6} square sx={{ backgroundColor:  'white', p: 5 }}>
                     <Stack spacing={2}>
                     <Box
                             sx={{
@@ -81,10 +81,10 @@ export const Groups = (props) => {
                                 mb: 4,
                             }}
                         >
-                            <Typography variant="h6" sx={{ mb: 3 }} paddingTop={10} paddingInline={10}>
+                            <Typography variant="h6" sx={{ mb: 1 }} paddingTop={20} paddingInline={5} fontSize={40}>
                                 Groups
                             </Typography>
-                            <Typography variant="h6" sx={{ mb: 3 }} paddingTop={5}>
+                            <Typography variant="h6" sx={{ mb: 3 }} paddingTop={10} paddingInLine={10}>
                                 Focus In and Join Your Community
                             </Typography>
                         </Box>
@@ -130,7 +130,7 @@ export const Groups = (props) => {
                 </Grid>
 
                 {/* Right side: Groups List */}
-                <Grid item xs={12} sm={7} sx={{ backgroundColor: '#f4f6f8', p: 5 }}>
+                <Grid item xs={12} sm={7} sx={{ backgroundColor: '#99ccff', p: 5 }}>
                     <Typography variant="h5" align="center" sx={{ mb: 3 }}>
                         Current Groups & Pending Invites
                     </Typography>
