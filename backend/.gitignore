@@ -53,3 +53,4 @@ datasets/*
 latifa_embeddings
 test.js
 test.py
+python/technical_evaluation/

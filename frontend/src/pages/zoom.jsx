@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import { getRecordsByIds } from '../api/api.js';
 import { PaginatedDataTable } from "../common/tables/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
-import { getTextCols } from "../api/api.js";
-import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
+import { getTextCols, getZoomIds, getZoomRecords } from "../api/api.js";
 import { metricNames } from "../common/metrics.js";
 import { useNavigate } from "react-router-dom";
 
@@ -19,31 +18,44 @@ export const Zoom = (props) => {
     const [totalPages, setTotalPages] = useState(1);
     const [textCols, setTextCols] = useState([]);
 
-    const getPage = (currPage) => {
-        const start = pageLength * (currPage - 1);
-        const end = start + pageLength * currPage;
-        const ids = graphData.ids.slice(start, end);
+    const highlightText = (records) => {
+        if (textCols.length > 0) {
+            records.map(row => {
+                textCols.forEach(x => {
+                    const col = x.toLowerCase();
+                    row[col] = (
+                        <Highlighter
+                            searchWords={graphData.word_list}
+                            textToHighlight={ row[col] }
+                        />
+                    )
+                });
+                return row;
+            });
 
-        getRecordsByIds(graphData.dataset, ids).then(async (res) => {
-            if (res) {
-                // Highlighting
-                if (textCols.length > 0) {
-                    res.map(row => {
-                        textCols.forEach(x => {
-                            const col = x.toLowerCase();
-                            row[col] = (
-                                <Highlighter
-                                    searchWords={graphData.words}
-                                    textToHighlight={ row[col] }
-                                />
-                            )
-                        });
-                        return row;
-                    })
+            setSearchResults(records);
+        }
+    }
+
+    const getPage = async(page, retry = true) => {
+        const params = {
+            name: graphData.name,
+            page,
+            pageLength
+        };
+        getZoomRecords(graphData.dataset, params)
+            .then(records => highlightText(records))
+            .catch(err => {
+                if (retry && err.response.data.message.includes("Zoom ids no longer loaded")) {
+                    getZoomIds(graphData.dataset, {
+                        group_name: graphData.group_name,
+                        group_list: graphData.group_list,
+                        word_list: graphData.word_list
+                    }).then(x => getPage(page, false));
+                } else {
+                    throw new Error(err.response.data.message);
                 }
-                setSearchResults(res)
-            }
-        })
+            });
     }
 
     // UseEffect: Gets record for all data.ids and populates searchResults
@@ -62,7 +74,7 @@ export const Zoom = (props) => {
         if (graphData && textCols.length > 0) {
             // Pagination
             getPage(1);
-            setTotalPages(Math.ceil(graphData.ids.length / pageLength));
+            setTotalPages(Math.ceil(graphData.count / pageLength));
         }
     }, [graphData, textCols]);
 
@@ -105,7 +117,7 @@ export const Zoom = (props) => {
                         {graphData.y}
                     </div>
                     <div className="col">
-                        {graphData.words.join(", ")}
+                        {graphData.word_list.join(", ")}
                     </div>
                 </div>
 
@@ -118,7 +130,7 @@ export const Zoom = (props) => {
             GetNewPage = {getPage}
             table_name={graphData.dataset}
             downloadType="ids"
-            totalNumResults={graphData.ids.length}
+            totalNumResults={graphData.count}
             columns = {searchResults.length > 0 ? Object.keys(searchResults[0]) : []}
             pageLength = {pageLength}
         />

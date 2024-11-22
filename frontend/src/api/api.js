@@ -122,6 +122,18 @@ export const getTextCols = (dataset) => new Promise((resolve, reject) => {
   });
 });
 
+export const getEmbedCols = (dataset) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/datasets/embeddings/${ dataset }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    }
+  }).then(x => resolve(x.data)).catch(x => {
+    alert(x);
+    reject(x);
+  });
+});
+
 export const addLike = (table) => new Promise((resolve, reject) => {
   axios.post(`${ baseURL }/datasets/like/${ table }`, {}, {
     headers: {
@@ -179,8 +191,8 @@ export const getMetadata = (name) => new Promise((resolve, reject) => {
   });
 });
 
-export const graphIds = (table, params) => new Promise((resolve, reject) => {
-  axios.get(`${ baseURL }/graphs/ids/${ table }`, {
+export const getZoomIds = (table, params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/graphs/zoom/ids/${ table }`, {
     headers: {
       "Content-Type": "multipart/form-data",
       Authorization: `Bearer ${ getToken() }`
@@ -188,6 +200,19 @@ export const graphIds = (table, params) => new Promise((resolve, reject) => {
     params
   }).then(x => resolve(x.data)).catch(x => {
     alert(x);
+    reject(x);
+  });
+});
+
+export const getZoomRecords = (table, params) => new Promise((resolve, reject) => {
+  axios.get(`${ baseURL }/graphs/zoom/records/${ table }`, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${ getToken() }`
+    },
+    params
+  }).then(x => resolve(x.data)).catch(x => {
+    // alert(x);
     reject(x);
   });
 });
@@ -260,6 +285,13 @@ export const deleteSuggestion = (id) => new Promise((resolve, reject) => {
 export const getTopWords = (table_name, params) => new Promise((resolve, reject) => {
   axios.get(`${ baseURL }/datasets/words/top/${ table_name }`, { ...apiConfig(), params }).then(x => resolve(x.data)).catch(x => {
     // alert(x);
+    reject(x);
+  });
+});
+
+export const reprocessDataset = (table_name) => new Promise((resolve, reject) => {
+  axios.put(`${ baseURL }/datasets/reprocess/${ table_name }`).then(x => resolve(x.data)).catch(x => {
+    alert(x);
     reject(x);
   });
 });

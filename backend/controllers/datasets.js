@@ -50,7 +50,7 @@ const createDatasetAPI = async(endpoint, email, token = null) => {
 
     // Create table name and file name using user's email
     const name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
-    const filename = `files/uploads/${ email.replace(/\W+/g, "_") }.csv`;
+    const filename = `files/uploads/${ name }.csv`;
     
     let output = {};
     if (typeof data === "string") {
@@ -58,18 +58,26 @@ const createDatasetAPI = async(endpoint, email, token = null) => {
         util.generateFile(filename, data);
         // Parse file to read first 5 records and return
         const records = await util.readCSV(filename, false);
+        // Throw error if no records found
+        if (records.length === 0) {
+            throw new Error("No records retrieved from API");
+        }
         // Slice first 5 records to return
         output = {
             table_name: name,
-            data: records.slice(0, 5)
+            headers: Object.keys(records[0])
         }
     } else if (typeof data === "object") {
         // Export data to csv file using an object
         await util.generateCSV(filename, data);
+        // Throw error if no records found
+        if (data.length === 0) {
+            throw new Error("No records retrieved from API");
+        }
         // Slice first 5 records to return
         output = {
             table_name: name,
-            data: data.slice(0, 5)
+            headers: Object.keys(data[0])
         }
     } else {
         // If the request data is not in the correct format, throw an error
@@ -80,7 +88,7 @@ const createDatasetAPI = async(endpoint, email, token = null) => {
 }
 
 // Upload dataset records using Python
-const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
+const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, user) => {
     const model = new datasets(knex);
 
     // Extract email from user
@@ -99,6 +107,10 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
     await model.addCols(name, headers);
     // Upload text columns
     await model.addTextCols(name, textCols);
+    // Upload embedding columns
+    if (embedCols && embedCols.length > 0) {
+        await model.addEmbedCols(name, embedCols);
+    }
     // Upload tags
     if (tags && tags.length > 0) {
         await model.addTag(name, tags);
@@ -109,6 +121,31 @@ const uploadDataset = async(knex, name, metadata, textCols, tags, user) => {
 
     // Start batch preprocessing
     await aws.submitBatchJob(name);
+}
+
+// Trigger reprocessing for a dataset
+const reprocessDataset = async(knex, table, email) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    // Check if enough changes have been made to allow reprocessing
+    const threshold = 5;
+    if (metadata.unprocessed_updates < threshold) {
+        throw new Error(`This dataset requires ${ threshold } changes to enable reprocessing. Only ${ metadata.unprocessed_updates } have been made.`);
+    }
+
+    // Start batch job to reprocess the dataset
+    await aws.submitBatchJob(table);
+
+    // Update metadata to indicate reprocessing has begun
+    await model.updateMetadata(table, { reprocess_start: true });
 }
 
 // Add a tag for a dataset
@@ -133,31 +170,6 @@ const addTag = async(knex, user, table, tags) => {
 
     // Return all tags for this dataset
     const records = await getTags(knex, table);
-    return records;
-}
-
-// Add text column(s) for a dataset
-const addTextCols = async(knex, user, table, cols) => {
-    const model = new datasets(knex);
-
-    // Get the current metadata for this table
-    const curr = await model.getMetadata(table);
-
-    // If the user of this table does not match the user, throw error
-    if (curr.email !== user) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
-    }
-
-    // If cols is not an array, make it an array
-    if (!Array.isArray(cols)) {
-        cols = [ cols ];
-    }
-
-    // Add data to db
-    await model.addTextCols(table, cols);
-
-    // Return all text columns for this dataset
-    const records = await getTextCols(knex, table);
     return records;
 }
 
@@ -303,6 +315,17 @@ const getTextCols = async(knex, table) => {
 
     // Get col names from table
     const records = await model.getTextCols(table);
+    // Convert objects to strings with col names
+    const results = records.map(x => x.col);
+    return results;
+}
+
+// Get embedding columns by dataset
+const getEmbedCols = async(knex, table) => {
+    const model = new datasets(knex);
+
+    // Get col names from table
+    const records = await model.getEmbedCols(table);
     // Convert objects to strings with col names
     const results = records.map(x => x.col);
     return results;
@@ -645,8 +668,8 @@ module.exports = {
     createDataset,
     createDatasetAPI,
     uploadDataset,
+    reprocessDataset,
     addTag,
-    addTextCols,
     addSuggestion,
     updateMetadata,
     incClicks,
@@ -660,6 +683,7 @@ module.exports = {
     getUniqueTags,
     getTags,
     getTextCols,
+    getEmbedCols,
     getColumnNames,
     getColumnValues,
     getFilteredDatasets,

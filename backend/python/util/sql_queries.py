@@ -99,3 +99,17 @@ def get_user(engine: Engine, meta: MetaData, email: str) -> dict:
         record[col] = output[i]
         
     return record
+
+# Set upload to not done while updating dataset
+def deactivate_upload(engine: Engine, table_name: str) -> None:
+    query = (
+        update(DatasetMetadata)
+            .where(DatasetMetadata.table_name == table_name)
+            .values({
+                "uploaded" : False
+            })
+    )
+    
+    with engine.connect() as conn:
+        conn.execute(query)
+        conn.commit()

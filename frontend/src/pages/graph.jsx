@@ -36,6 +36,17 @@ export const Graph = (props) => {
     setSnackBarOpen1(false);
   };
 
+  // Function to determine if two labels overlap in a scatter plot
+  const isOverlappingScatter = (x1, y1, x2, y2, rangeX, rangeY) => {
+    // Adjust fraction to change how many labels to hide
+    const fraction = 0.05;
+    const xThreshold = rangeX * fraction;
+    const yThreshold = rangeY * fraction;
+    const xDistance = Math.abs(x1 - x2);
+    const yDistance = Math.abs(y1 - y2);
+    return xDistance < xThreshold && yDistance < yThreshold;
+  };
+
   // Runs on graph settings submit
   // Generate a graph or update the existing graph
   const updateGraph = (params) => {
@@ -91,24 +102,13 @@ export const Graph = (props) => {
         }
 
         // Get the range of x and y axes
-        const allX = [];
-        const allY = [];
-        res.forEach(dataPoint => {
-          allX.push(dataPoint.x);
-          allY.push(dataPoint.y);
-        });
-        const rangeX = Math.max(...allX) - Math.min(...allX);
-        const rangeY = Math.max(...allY) - Math.min(...allY);
-        // Function to determine if two labels overlap
-        const isOverlapping = (x1, y1, x2, y2) => {
-          // Adjust fraction to change how many labels to hide
-          const fraction = 0.05;
-          const xThreshold = rangeX * fraction;
-          const yThreshold = rangeY * fraction;
-          const xDistance = Math.abs(x1 - x2);
-          const yDistance = Math.abs(y1 - y2);
-          return xDistance < xThreshold && yDistance < yThreshold;
-        };
+        const maxX = res.reduce((max, dataPoint) => Math.max(max, dataPoint.x), -Infinity);
+        const minX = res.reduce((min, dataPoint) => Math.min(min, dataPoint.x), Infinity);
+        const rangeX = maxX - minX;
+        const maxY = res.reduce((max, dataPoint) => Math.max(max, dataPoint.y), -Infinity);
+        const minY = res.reduce((min, dataPoint) => Math.min(min, dataPoint.y), Infinity);
+        const rangeY = maxY - minY;
+        
 
         // Array to store non-overlapping labels
         const nonOverlappingLabels = [];
@@ -116,7 +116,7 @@ export const Graph = (props) => {
         res.forEach(dataPoint => {
           // Check for overlap with previously added labels
           const overlap = nonOverlappingLabels.some((existingPoint) =>
-            isOverlapping(existingPoint.x, existingPoint.y, dataPoint.x, dataPoint.y)
+            isOverlappingScatter(existingPoint.x, existingPoint.y, dataPoint.x, dataPoint.y, rangeX, rangeY)
           );
 
           // Add point to the graph regardless of overlap
@@ -203,12 +203,10 @@ export const Graph = (props) => {
         tempData.yLabel = metricNames[params.metric];
         tempData.titleList = [params.word_list[0]];
 
-        // Get the range of x and y axes
-        const allY = [];
-        res.forEach(dataPoint => {
-          allY.push(dataPoint.y);
-        });
-        const rangeY = Math.max(...allY) - Math.min(...allY);
+        // Get the range of y axis
+        const maxY = res.reduce((max, dataPoint) => Math.max(max, dataPoint.y), -Infinity);
+        const minY = res.reduce((min, dataPoint) => Math.min(min, dataPoint.y), Infinity);
+        const rangeY = maxY - minY;
         // Function to determine if two labels overlap
         const isOverlapping = (x1, y1, x2, y2) => {
           if (x1 !== x2) {
@@ -296,7 +294,6 @@ export const Graph = (props) => {
 
       tempData.title = metricNames[tempData.metric].replace(/ \([^()]*\)/g, '') + listToString(tempData.titleList);
       if (tempData.graph.length > 0) {
-        localStorage.setItem('graph-data', JSON.stringify(tempData))
         setGraphData(tempData);
         setGraph(true);
       }
@@ -312,8 +309,8 @@ export const Graph = (props) => {
   // Resets to blank graph
   const resetGraph = (event) => {
     setGraph(false);
-    localStorage.removeItem("graph-data");
     localStorage.removeItem('selected');
+    localStorage.removeItem('graph-settings');
     setSettings(true);
   }
 
@@ -371,16 +368,16 @@ export const Graph = (props) => {
         openSnackbar1()
       }
 
-      let graph = JSON.parse(localStorage.getItem('graph-data'));
-      if (graph) {
-        if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
-          setGraphData(graph);
-          setGraph(true);
-          setSettings(false);
-        } else {
-          localStorage.removeItem("graph-data")
-        }
-      }
+      // let graph = JSON.parse(localStorage.getItem('graph-data'));
+      // if (graph) {
+      //   if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
+      //     setGraphData(graph);
+      //     setGraph(true);
+      //     setSettings(false);
+      //   } else {
+      //     localStorage.removeItem("graph-data")
+      //   }
+      // }
     }
   }, []);
 
@@ -447,23 +444,39 @@ export const Graph = (props) => {
                   mt: "50px"
                 }}
               >
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "60vh"
-        }}>
-          <div class="spinner-border" style={{
-              width: "5rem",
-              height: "5rem"
-            }} role="status">
-            <span class="sr-only"></span>
-              </div>
-        </div>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "60vh"
+                }}>
+                  <div class="spinner-border" style={{
+                      width: "5rem",
+                      height: "5rem"
+                    }} role="status">
+                    <span class="sr-only"></span>
+                  </div>
+                </div>
               </Box>
             )}
-            {graph === true && zoomLoading === false && <GraphComponent border data={graphData} setData={setData} setZoomLoading={setZoomLoading} />}
-            {graph === false && settings === false && loading === false && <div id="test" style={{ textAlign: "center" }}>No Results Found</div>}
+
+            {
+              graph === true && zoomLoading === false && 
+                <GraphComponent 
+                  border 
+                  data={graphData} 
+                  setData={setData} 
+                  setZoomLoading={setZoomLoading} 
+                  isOverlappingScatter={isOverlappingScatter}
+                />
+            }
+
+            {
+              graph === false && settings === false && loading === false && 
+                <div id="test" style={{ textAlign: "center" }}>
+                  No Results Found
+                </div>
+            }
           </Grid>
         </Grid>
       </Box>

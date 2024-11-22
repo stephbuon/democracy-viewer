@@ -14,6 +14,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
 import { getUser } from '../../api/users';
+import { reprocessDataset } from '../../api/api';
 
 export const ResultModal = (props) => {
     const navigate = useNavigate();
@@ -27,7 +28,10 @@ export const ResultModal = (props) => {
     const [author, setAuthor] = useState(props.dataset.author);
     const [date, setDate] = useState(props.dataset.date);
     const [tags, setTags] = useState(props.dataset.tags);
-    const [license, setLicense] = useState(props.dataset.license)
+    const [license, setLicense] = useState(props.dataset.license);
+    // Minimum number of required changes to reprocess a dataset
+    const [reprocessThreshold, setReprocessThreshold] = useState(5);
+    const [reprocessConfirmOpen, setReprocessConfirmOpen] = useState(false);
 
     // Open edit dialogs
     const [infoOpen, setInfoOpen] = useState(false);
@@ -146,7 +150,7 @@ export const ResultModal = (props) => {
                         width: "100%"
                     }}>
                     {
-                        props.editable && <>
+                        props.editable === true && <>
                             <Button
                                 variant="contained"
                                 disableElevation
@@ -341,11 +345,10 @@ export const ResultModal = (props) => {
                                 Visualize
                             </Button>
                         </div>
-
                     }
 
                     {
-                        props.dataset.tokens_done == false &&
+                        (props.dataset.uploaded === false || props.dataset.tokens_done == false) &&
                         <Tooltip arrow title="Graphing for this dataset has been disabled until processing is complete">
                             <div>
                                 <Button
@@ -363,6 +366,83 @@ export const ResultModal = (props) => {
                                 </Button>
                             </div>
                         </Tooltip>
+                    }
+
+                    {
+                        props.editable == true && 
+                        <>
+                            {
+                                props.dataset.reprocess_start === true &&
+                                <Tooltip arrow title="This dataset is currently reprocessing. You will be sent a confirmation email when reprocessing is complete.">
+                                    <div>
+                                        <Button
+                                            variant="contained"
+                                            primary
+                                            sx={{
+                                                marginX: '1em',
+                                                borderRadius: 50,
+                                                bgcolor: 'black',
+                                                color: 'white'
+                                            }}
+                                            disabled
+                                        >
+                                            Reprocess Dataset
+                                        </Button>
+                                    </div>
+                                </Tooltip>
+                            }
+
+                            {
+                                props.dataset.reprocess_start === false && props.dataset.unprocessed_updates < reprocessThreshold &&
+                                <Tooltip arrow title={`This dataset requires ${ reprocessThreshold } unprocessed changes to enable reprocessing.`}>
+                                    <div>
+                                        <Button
+                                            variant="contained"
+                                            primary
+                                            sx={{
+                                                marginX: '1em',
+                                                borderRadius: 50,
+                                                bgcolor: 'black',
+                                                color: 'white'
+                                            }}
+                                            disabled
+                                        >
+                                            Reprocess Dataset
+                                        </Button>
+                                    </div>
+                                </Tooltip>
+                            }
+
+                            {
+                                props.dataset.reprocess_start === false && props.dataset.unprocessed_updates >= reprocessThreshold &&
+                                <>
+                                    <AlertDialog
+                                        open={reprocessConfirmOpen}
+                                        setOpen={setReprocessConfirmOpen}
+                                        titleText={`Are you sure you want to reprocess the dataset "${props.dataset.title}"?`}
+                                        bodyText={"This may result in the dataset being temporarily disabled. You will be send a confirmation email when reprocessing is complete."}
+                                        action={() => {
+                                            reprocessDataset(props.dataset.table_name);
+                                            setReprocessConfirmOpen(false);
+                                        }}
+                                    />
+
+                                    <Button
+                                        variant="contained"
+                                        primary
+                                        sx={{
+                                            marginX: '1em',
+                                            borderRadius: 50,
+                                            bgcolor: 'black',
+                                            color: 'white'
+                                        }}
+                                        onClick={() => setReprocessConfirmOpen(true)}
+                                    >
+                                        Reprocess Dataset
+                                    </Button>
+                                </>
+                            }
+                        </>
                     }
                 </Box>
 

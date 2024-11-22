@@ -1,6 +1,6 @@
 // Imports
 import React, { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues, getTopWords } from "../api/api.js"
+import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../api/api.js"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../common/selectField.jsx";
 import { metricNames, metricSettings, posMetrics, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
@@ -20,43 +20,71 @@ export const GraphSettings = ( props ) => {
     const [disabled, setDisabled] = useState(true);
     const [disabledMessage, setDisabledMessage] = useState("");
     const [searchTerms, setSearchTerms] = useState([]);
+    const [checkGroupOptions, setCheckGroupOptions] = useState(false);
     const [groupOptions, setGroupOptions] = useState(undefined);
     const [groupList, setGroupList] = useState([]);
     const [refreshGroupOptions, setRefreshGroupOptions] = useState(true);
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
-    const [selectToggle, setSelectToggle] = useState(true);
+    const [selectToggle, setSelectToggle] = useState(false);
     const [metricOptions, setMetricOptions] = useState([ ...allMetricOptions ]);
-    const [groupLocked, setGroupLocked] = useState(false);
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
     const [topn, setTopn] = useState("5");
+    const [savedSettings, setSavedSettings] = useState(undefined);
+    const [firstUpdate, setFirstUpdate] = useState(true);
+    const [embedCols, setEmbedCols] = useState([]);
+    const [lastMetric, setLastMetric] = useState("counts");
 
     const navigate = useNavigate();
 
     // UseEffect: Updates graph settings from local storage and group names from api
     useEffect(() => {
-        let graphData = JSON.parse(localStorage.getItem('graph-data'));
-        if(graphData && graphData.dataset !== undefined && graphData.dataset.table === props.dataset.dataset.table_name){
-            setMetric(graphData.graphData.settings.metric);
-            setGroup(graphData.graphData.settings.group);
+        const settings = JSON.parse(localStorage.getItem("graph-settings"));
+        setSavedSettings(settings);
+        if(settings && settings.table_name === props.dataset.dataset.table_name){
+            setCheckGroupOptions(false);
+            setMetric(settings.metric);
+            setLastMetric(settings.metric);
+            setGroup(settings.group_name);
+            setTopn(String(settings.topn));
 
             let searchList = []
-            graphData.settings.groupList.forEach((element) => {
-                let object = {label:element, value:element};
+            settings.group_list.forEach(x => {
+                let object = { label: x, value: x };
                 searchList.push(object)
             })
             setGroupList(searchList);
+
+            let wordList = []
+            settings.word_list.forEach(x => {
+                let object = { label: x, value: x };
+                wordList.push(object)
+            })
+            setSearchTerms(wordList);
+
+            let pos_list = []
+            settings.pos_list.forEach(x => {
+                const record = posOptions.filter(y => y.value === x);
+                if (record.length > 0) {
+                    pos_list.push(record[0]);
+                }
+            })
+            setPosList(pos_list);
         }
 
         updateGroupNames();
 
         if (!props.dataset.dataset.embeddings || !props.dataset.dataset.embeddings_done) {
             setMetricOptions([ ...metricOptions ].filter(x => !embeddingMetrics.includes(x.value)));
-        }
-
-        if (props.dataset.dataset.preprocessing_type !== "lemma") {
-            setMetricOptions([ ...metricOptions ].filter(x => !posMetrics.includes(x.value)));
+        } else {
+            getEmbedCols(props.dataset.dataset.table_name).then(cols => {
+                if (cols.length > 0) {
+                    setEmbedCols(cols);
+                } else if (props.dataset.dataset.embed_col) {
+                    setEmbedCols([ props.dataset.dataset.embed_col]);
+                }
+            })
         }
     }, []);
 
@@ -68,31 +96,48 @@ export const GraphSettings = ( props ) => {
             setPosList([]);
         }
 
-        if (embeddingMetrics.includes(metric)) {
-            if (props.dataset.dataset.embed_col) {
-                setGroup(props.dataset.dataset.embed_col);
+        if (embeddingMetrics.includes(metric) && (!embeddingMetrics.includes(lastMetric) || embedCols.length != groupOptions.length)) {
+            if (checkGroupOptions) {
+                setGroupList([]);
+            }
+
+            if (embedCols.length > 0) {
+                setGroup(embedCols[0]);
+                setGroupOptions(embedCols.map(col => {
+                    return {
+                        value: col, 
+                        label: col.replace(/_/g, ' ')
+                    }
+                }));
             } else {
                 setGroup("");
+                setGroupOptions([{
+                    value: "",
+                    label: ""
+                }]);
             }
-            setGroupLocked(true);
-        } else {
-            setGroupLocked(false);
+        } else if (!embeddingMetrics.includes(metric) && embeddingMetrics.includes(lastMetric)) {
+            updateGroupNames();
         }
-    }, [metric]);
+
+        setLastMetric(metric);
+    }, [metric, embedCols]);
 
     // Closes modal and updates graph data
     const handleClose = (event, reason) => {
         if(reason == undefined){
             const params = {
+                table_name: props.dataset.dataset.table_name,
                 group_name: group,
                 group_list: groupList.map(x => x.value),
                 metric: metric,
-                word_list: searchTerms,
+                word_list: searchTerms.map(x => x.value),
                 pos_list: posList.map(x => x.value),
                 topn: parseInt(topn)
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
+            setSavedSettings(params);
             // setGroupList([]);
             // setPosList([]);
             props.setSettings(false);
@@ -112,11 +157,11 @@ export const GraphSettings = ( props ) => {
     // Updates column name dropdown values
     const updateGroupNames = () => {
         getGroupNames(props.dataset.dataset.table_name).then(async (res) => {
-        let _groupOptions = []
-        for(let i = 0; i < res.length; i++){
-            _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
-        }
-        setGroupOptions([..._groupOptions])
+            let _groupOptions = []
+            for(let i = 0; i < res.length; i++){
+                _groupOptions.push({value: res[i], label: res[i].replace(/_/g, ' ')})
+            }
+            setGroupOptions([..._groupOptions])
         });
     }
 
@@ -134,12 +179,26 @@ export const GraphSettings = ( props ) => {
         }
     }
 
+    const getGroupSuggestions = async(params) => {
+        if (group) {
+            return await getColumnValues(props.dataset.dataset.table_name, group, params);
+        } else {
+            return [];
+        }
+    }
+
     // Called when a column is selected
     // updates array for column value dropdown
     useEffect(() => {
-        setSelectToggle(group === "");
-        setGroupList([]);
-        setRefreshGroupOptions(!refreshGroupOptions);
+        if (checkGroupOptions) {
+            setSelectToggle(group === "");
+            setRefreshGroupOptions(!refreshGroupOptions);
+            if (!firstUpdate) {
+                setGroupList([]);
+            } else if (savedSettings) {
+                setFirstUpdate(false);
+            }
+        }
     }, [group]);
 
     useEffect(() => {
@@ -200,17 +259,19 @@ export const GraphSettings = ( props ) => {
                 {/* Column select dropdown */}
                 <SelectField label="Column Name"
                     value={group}
-                    setValue={(x)=>setGroup(x)}
+                    setValue={(x)=>{
+                        setCheckGroupOptions(true); 
+                        setGroup(x);
+                    }}
                     options={groupOptions}
-                    hideBlankOption={0} 
-                    disabled={groupLocked}
+                    hideBlankOption={embeddingMetrics.includes(metric)} 
                 />
 
                 <Typography>Column Values</Typography>
                 <FormattedMultiSelectField
                     selectedOptions={groupList}
                     setSelectedOptions={setGroupList}
-                    getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
+                    getData={params => getGroupSuggestions(params)}
                     id="valueSelect"
                     isDisabled={selectToggle}
                     className="mb-3"
@@ -219,15 +280,15 @@ export const GraphSettings = ( props ) => {
                 />
 
                 {/* Custom search + terms list */}
-                <FormattedMultiTextField
-                    id="customsearch"
-                    label="Custom Search"
-                    // variant="filled"
-                    fullWidth
-                    sx={{ background: 'rgb(255, 255, 255)', zIndex: 0 }}
-                    words={searchTerms}
-                    setWords={setSearchTerms}
-                    getOptions={getWordSuggestions}
+                <Typography>Custom Search</Typography>
+                <FormattedMultiSelectField
+                    selectedOptions={searchTerms}
+                    setSelectedOptions={setSearchTerms}
+                    // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
+                    getData={getWordSuggestions}
+                    id="customSearchSelect"
+                    className="mb-3"
+                    closeMenuOnSelect={false}
                 />
 
                 {

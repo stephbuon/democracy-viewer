@@ -61,6 +61,7 @@ CREATE TABLE dataset_metadata (
     uploaded BOOLEAN DEFAULT FALSE NOT NULL,
     num_records INT UNSIGNED NOT NULL DEFAULT 0,
     license VARCHAR(200),
+    reprocess_start BOOLEAN DEFAULT FALSE NOT NULL,
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE
@@ -98,6 +99,13 @@ CREATE TABLE dataset_all_cols (
 );
 
 CREATE TABLE dataset_text_cols (
+    table_name VARCHAR(100) NOT NULL,
+    col VARCHAR(50) NOT NULL,
+    FOREIGN KEY(table_name, col) REFERENCES dataset_all_cols(table_name, col) ON DELETE CASCADE,
+    PRIMARY KEY(table_name, col)
+);
+
+CREATE TABLE dataset_embed_cols (
     table_name VARCHAR(100) NOT NULL,
     col VARCHAR(50) NOT NULL,
     FOREIGN KEY(table_name, col) REFERENCES dataset_all_cols(table_name, col) ON DELETE CASCADE,

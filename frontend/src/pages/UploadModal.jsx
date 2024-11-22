@@ -10,7 +10,7 @@ import {
     Table, TableBody, TableRow, TableCell, TextField
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { UploadDataset, UploadStopword, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset, UploadStopwords, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
 import { DatasetInformation } from '../common/DatasetInformation';
 import { DatasetTags } from "../common/DatasetTags";
 import { getDistributedConnections } from "../api/api";
@@ -37,6 +37,7 @@ export const UploadModal = (props) => {
     const [fileUploaded, setFileUploaded] = useState(false);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
 
+    const [license, setLicense] = useState("");
     const [title, setTitle] = useState('');
     const [publicPrivate, setPublicPrivate] = useState(false);
     const [description, setDescription] = useState('');
@@ -46,15 +47,16 @@ export const UploadModal = (props) => {
     const [author, setAuthor] = useState('');
     const [date, setDate] = useState('');
     // Preprocessing
-    const [useDistributed, setUseDistributed] = useState(false);
-    const [distributed, setDistributed] = useState(null);
-    const [distributedOptions, setDistributedOptions] = useState([]);
+    // const [useDistributed, setUseDistributed] = useState(false);
+    // const [distributed, setDistributed] = useState(null);
+    // const [distributedOptions, setDistributedOptions] = useState([]);
     const [language, setLanguage] = useState("English");
     const [tokenization, setTokenization] = useState("none");
     const [embeddings, setEmbeddings] = useState(false);
-    const [embedCol, setEmbedCol] = useState(null);
     const [textCols, setTextCols] = useState([]);
     const [textColOptions, setTextColOptions] = useState([]);
+    const [embedCols, setEmbedCols] = useState([]);
+    const [embedColOptions, setEmbedColOptions] = useState([]);
     const [stopwordsFile, setStopwordsFile] = useState(undefined);
 
     const [disabled, setDisabled] = useState(true);
@@ -63,19 +65,20 @@ export const UploadModal = (props) => {
 
     const SendDataset = () => {
         if (stopwordsFile !== undefined) {
-            UploadStopwords(stopwordsFile, datasetName)
+            UploadStopwords(stopwordsFile, tableName)
         }
 
         const textCols_ = textCols.map(x => x.value);
+        const embedCols_ = embedCols.map(x => x.value);
         const metadata = {
             title, description, is_public: publicPrivate,
             preprocessing_type: tokenization, embeddings,
-            embed_col: embedCol, language,
-            date_collected: date, author
+            language, date_collected: date, author, license
         };
-        if (useDistributed && distributed) {
-            metadata.distributed = distributed;
-        }
+        // if (useDistributed && distributed) {
+        //     metadata.distributed = distributed;
+        // }
+
         // Delete undefined values
         Object.keys(metadata).forEach(x => {
             if (!metadata[x]) {
@@ -86,7 +89,7 @@ export const UploadModal = (props) => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         demoV.uploadData = tableName;
         localStorage.setItem('democracy-viewer', JSON.stringify(demoV));
-        UploadDataset(tableName, metadata, textCols_, tags);
+        UploadDataset(tableName, metadata, textCols_, embedCols_, tags);
         
         props.CancelUpload();
         navigate("/upload/complete");
@@ -142,6 +145,13 @@ export const UploadModal = (props) => {
                 value: x
             }})
         )
+
+        setEmbedColOptions(
+            headers.map(x => {return {
+                label: x,
+                value: x
+            }})
+        )
     }, [headers]);
 
     useEffect(() => {
@@ -188,15 +198,37 @@ export const UploadModal = (props) => {
 
     useEffect(() => {
         if (!embeddings) {
-            setEmbedCol(null);
+            setEmbedCols([]);
         }
     }, [embeddings]);
 
     useEffect(() => {
-        if (useDistributed && distributedOptions.length === 0) {
-            getDistributedConnections().then(x => setDistributedOptions(x));
-        }
-    }, [useDistributed]);
+        setEmbedColOptions(
+            headers
+                .filter(x => !textCols.some(y => x === y.value))
+                .map(x => {return {
+                    label: x,
+                    value: x
+                }})
+        )
+    }, [textCols]);
+
+    useEffect(() => {
+        setTextColOptions(
+            headers
+                .filter(x => !embedCols.some(y => x === y.value))
+                .map(x => {return {
+                    label: x,
+                    value: x
+                }})
+        )
+    }, [embedCols]);
+
+    // useEffect(() => {
+    //     if (useDistributed && distributedOptions.length === 0) {
+    //         getDistributedConnections().then(x => setDistributedOptions(x));
+    //     }
+    // }, [useDistributed]);
 
     return (
         <Box
@@ -355,6 +387,8 @@ export const UploadModal = (props) => {
                     setDate={setDate}
                     description={description}
                     setDescription={setDescription}
+                    license={license}
+                    setLicense={setLicense}
                     publicPrivate={publicPrivate}
                     setPublicPrivate={setPublicPrivate}
                     disabled={disabled}
@@ -512,20 +546,32 @@ export const UploadModal = (props) => {
         
                             {
                                 embeddings &&
-                                <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
-                                    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                        <InputLabel>Group By</InputLabel>
-                                        <Select
-                                            value={embedCol}
-                                            onChange={event => setEmbedCol(event.target.value)}
-                                        >
-                                            <MenuItem value = {null}>&nbsp;</MenuItem>
-                                            {textColOptions.filter(x => !textCols.includes(x)).map((header, index) => (
-                                                <MenuItem value = {header.value} key = {index}>{ header.label }</MenuItem>
-                                            ))}
-                                        </Select>
+                                <Tooltip arrow title = "Column(s) to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
+                                    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
+                                        <Typography>Word Embedding Grouping Column(s)</Typography>
+                                        <FormattedMultiSelectField
+                                            selectedOptions={embedCols}
+                                            setSelectedOptions={setEmbedCols}
+                                            getData={embedColOptions}
+                                            id="embedColSelect"
+                                            closeMenuOnSelect={false}
+                                        />
                                     </FormControl>
                                 </Tooltip>
+                                // <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
+                                //     <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                                //         <InputLabel>Group By</InputLabel>
+                                //         <Select
+                                //             value={embedCol}
+                                //             onChange={event => setEmbedCol(event.target.value)}
+                                //         >
+                                //             <MenuItem value = {null}>&nbsp;</MenuItem>
+                                //             {textColOptions.filter(x => !textCols.includes(x)).map((header, index) => (
+                                //                 <MenuItem value = {header.value} key = {index}>{ header.label }</MenuItem>
+                                //             ))}
+                                //         </Select>
+                                //     </FormControl>
+                                // </Tooltip>
                             }
                         </FormGroup>
                     </Box>

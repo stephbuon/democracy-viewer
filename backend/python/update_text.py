@@ -2,6 +2,8 @@ import json
 import polars as pl
 import sys
 import util.s3 as s3
+import util.sql_queries as sql
+from util.sql_connect import sql_connect
 
 PARAMS_FILE = sys.argv[1]
 
@@ -33,5 +35,12 @@ df = df.with_columns(
         .alias(params["col"])
 )
 
+# Download updated data frame
+df = df.collect()
+
+# Update SQL to disable dataset until upload is complete
+engine, _ = sql_connect()
+sql.deactivate_upload(engine, params["table_name"])
+
 # Upload new data frame to s3
-s3.upload(df.collect(), "datasets", params["table_name"], TOKEN)
+s3.upload(df, "datasets", params["table_name"], TOKEN)
