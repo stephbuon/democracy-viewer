@@ -3,8 +3,10 @@ import util.s3 as s3
 # Get the unique values in a given column
 def get_column_values(table_name: str, column: str, token: str | None):
     query = f'''
-        SELECT DISTINCT "{ column }"
+        SELECT "{ column }"
         FROM democracy_viewer_athena.datasets_{ table_name }
+        GROUP BY "{ column }"
+        ORDER BY COUNT(*) DESC
     '''
     
     values = (

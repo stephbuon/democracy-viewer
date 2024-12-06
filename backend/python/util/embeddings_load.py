@@ -180,7 +180,7 @@ def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str,
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = data.get_column_values(table_name, group_col, token)
+        time_values = data.get_column_values(table_name, group_col, token)[:5]
         
     pca = PCA(2)
     all_vectors = []
