@@ -4,6 +4,11 @@ import polars as pl
 import util.data_queries as data
 
 def counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
+    # Create custom groups filter if not defined
+    if column != None and column != "" and len(values) == 0:
+        values = data.get_column_values(table_name, column, 10, token)
+    
+    # Get raw token data
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
     
     # Rename columns based on if there is a grouping variable or not
@@ -46,6 +51,11 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     return df
 
 def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
+    # Create custom groups filter if not defined
+    if column != None and column != "" and len(values) == 0:
+        values = data.get_column_values(table_name, column, 10, token)
+    
+    # Get raw token data
     df = data.basic_selection(table_name, column, values, [], pos_list, token)
 
     # Compute proportions
@@ -228,6 +238,11 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
 
 def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     bar = []
+    
+    # Create custom groups filter if not defined
+    if column != None and column != "" and len(values) == 0:
+        values = data.get_column_values(table_name, column, 10, token)
+    
     # Compute TF-IDF in scatter plot format
     scatter = tf_idf(table_name, column, values, word_list, pos_list, False, token)
     # Translate scatter plot format into bar plot format
@@ -279,6 +294,11 @@ def kld(probs: pl.LazyFrame, m: pl.LazyFrame):
     return (probs * (probs / m))
 
 def jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
+    # Create custom groups filter if not defined
+    if column != None and column != "" and len(values) == 0:
+        values = data.get_column_values(table_name, column, 10, token)
+    
+    # Get raw token data
     df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
     
     # Get distinct groups

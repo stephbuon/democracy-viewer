@@ -1,12 +1,13 @@
 import util.s3 as s3
 
 # Get the unique values in a given column
-def get_column_values(table_name: str, column: str, token: str | None):
+def get_column_values(table_name: str, column: str, count: int | None = None, token: str | None = None):
     query = f'''
         SELECT "{ column }"
         FROM democracy_viewer_athena.datasets_{ table_name }
         GROUP BY "{ column }"
         ORDER BY COUNT(*) DESC
+        { "" if count is None else f"LIMIT { count }" }
     '''
     
     values = (

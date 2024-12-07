@@ -21,7 +21,7 @@ def take_similar_words_over_group(table_name: str, keyword: str, group_col: str,
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = data.get_column_values(table_name, group_col, token)
+        time_values = data.get_column_values(table_name, group_col, 10, token)
         
     for time_value in time_values:
         try:
@@ -107,7 +107,7 @@ def get_words_similarity_over_group(table_name: str, word1: str, word2: str, gro
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = data.get_column_values(table_name, group_col, token)
+        time_values = data.get_column_values(table_name, group_col, 10, token)
         
     for time_value in time_values:
         try:
@@ -180,7 +180,7 @@ def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str,
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = data.get_column_values(table_name, group_col, token)[:5]
+        time_values = data.get_column_values(table_name, group_col, 5, token)
         
     pca = PCA(2)
     all_vectors = []
