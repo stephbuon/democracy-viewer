@@ -72,7 +72,7 @@ def take_similar_words(table_name: str, keyword: str, topn: int = 5, token: str 
         
     return results
 
-def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], topn: int = 5, token: str | None = None) -> dict:
+def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], topn: int = 5, token: str | None = None) -> list[dict]:
     if group_col is not None and len(group_col.strip()) == 0:
         group_col = None
 
@@ -227,7 +227,7 @@ def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str,
             
     return results
 
-def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> dict:
+def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> list[dict]:
     if group_col is not None and len(group_col.strip()) == 0:
         group_col = None
     

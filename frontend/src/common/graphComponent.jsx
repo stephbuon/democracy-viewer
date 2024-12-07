@@ -22,6 +22,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
         },
         xaxis: {
             automargin: true,
+            categoryorder: 'category ascending',
             title: {
                 text: data.xLabel,
                 standoff: 20
@@ -29,6 +30,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
         },
         yaxis: {
             automargin: true,
+            categoryorder: 'category descending',
             tickangle: 0,
             title: {
                 text: data.yLabel,
@@ -87,6 +89,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
             // Hide legend
             if (
                 metricTypes.dotplot.includes(data.metric) ||
+                metricTypes.multibar.includes(data.metric) ||
                 (metricTypes.scatter.includes(data.metric) && data.graph.length === 1) ||
                 (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
             ) {
@@ -94,32 +97,11 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                     ...layout_,
                     showlegend: false
                 };
-            } else if (metricTypes.multibar.includes(data.metric)) {
-                layout_ = {
-                    ...layout_,
-                    legend: {
-                        title: {
-                            text: "Rank"
-                        }
-                    }
-                }
             } else {
                 layout_ = {
                     ...layout_,
                     showlegend: true
                 };
-            }
-
-            // Unsort x-axis
-            if (metricTypes.bar.includes(data.metric)) {
-                layout_ = {
-                    ...layout_,
-                    xaxis: {
-                        ...layout_.xaxis,
-                        categoryorder: 'array',
-                        categoryarray: data.graph[0].x
-                    }
-                }
             }
 
             setLayout({ ...layout_ });

@@ -3,6 +3,7 @@ start_time = time()
 total_start_time = time()
 import datetime as dt
 import humanize
+import polars as pl
 # Import metrics
 import util.metrics as metrics
 import util.embeddings_load as embed
@@ -69,7 +70,9 @@ print("Computation time: {}".format(humanize.precisedelta(dt.timedelta(seconds =
 output_file = params_file.replace("/input/", "/output/")
 if type(output) == dict or type(output) == list:
     json.dump(output, open(output_file, "w"), indent = 4)
-else:
+elif type(output) == pl.DataFrame:
     output.to_pandas(use_pyarrow_extension_array=True).to_json(output_file, orient = "records", indent = 4)
+else:
+    raise Exception(f"Unrecognized output type:", type(output))
 
 print("Total time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - total_start_time))))
