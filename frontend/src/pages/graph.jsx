@@ -108,7 +108,6 @@ export const Graph = (props) => {
         const maxY = res.reduce((max, dataPoint) => Math.max(max, dataPoint.y), -Infinity);
         const minY = res.reduce((min, dataPoint) => Math.min(min, dataPoint.y), Infinity);
         const rangeY = maxY - minY;
-        
 
         // Array to store non-overlapping labels
         const nonOverlappingLabels = [];
@@ -155,12 +154,16 @@ export const Graph = (props) => {
           }
         });
 
-        // Reverse arrays for formatting purposes
-        Object.keys(tempData.graph[0]).forEach(key => {
-          if (Array.isArray(tempData.graph[0][key])) {
-            tempData.graph[0][key].reverse();
-          }
-        })
+        // Sort for legend
+        tempData.graph.sort((a,b) => {
+            if (a.name < b.name) {
+              return -1;
+            } else if (a.name > b.name) {
+              return 1;
+            } else {
+              return 0;
+            }
+        });
       } else if (metricTypes.heatmap.includes(params.metric)) {
         tempData.xLabel = "";
         tempData.yLabel = "";

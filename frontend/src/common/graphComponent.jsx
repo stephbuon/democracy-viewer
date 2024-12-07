@@ -91,8 +91,8 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
             if (
                 metricTypes.dotplot.includes(data.metric) ||
                 metricTypes.multibar.includes(data.metric) ||
-                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1) ||
-                (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
+                metricTypes.bar.includes(data.metric) ||
+                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1)
             ) {
                 layout_ = {
                     ...layout_,
@@ -114,7 +114,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                         type: "category"
                     }
                 }
-                
+
                 // Set y-axis as categorical
                 if (metricTypes.heatmap.includes(data.metric)) {
                     layout_ = {
