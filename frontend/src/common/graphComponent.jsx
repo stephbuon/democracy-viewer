@@ -86,6 +86,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
 
             // Update layout
             let layout_ = { ...layout };
+
             // Hide legend
             if (
                 metricTypes.dotplot.includes(data.metric) ||
@@ -102,6 +103,28 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                     ...layout_,
                     showlegend: true
                 };
+            }
+
+            // Treat x-axis as categorical
+            if (!metricTypes.scatter.includes(data.metric)) {
+                layout_ = {
+                    ...layout_,
+                    xaxis: {
+                        ...layout_.xaxis,
+                        type: "category"
+                    }
+                }
+                
+                // Set y-axis as categorical
+                if (metricTypes.heatmap.includes(data.metric)) {
+                    layout_ = {
+                        ...layout_,
+                        yaxis: {
+                            ...layout_.yaxis,
+                            type: "category"
+                        }
+                    }
+                }
             }
 
             setLayout({ ...layout_ });
