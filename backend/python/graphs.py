@@ -3,6 +3,7 @@ start_time = time()
 total_start_time = time()
 import datetime as dt
 import humanize
+import polars as pl
 # Import metrics
 import util.metrics as metrics
 import util.embeddings_load as embed
@@ -12,8 +13,6 @@ import sys
 # Import sql helpers
 from util.sql_connect import sql_connect
 import util.sql_queries as sql
-# Word processing
-import util.word_processing as wp
 print("Import time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
 
 # Get input file from command line argument
@@ -42,12 +41,6 @@ if "group_list" not in params.keys():
 if "word_list" not in params.keys():
     params["word_list"] = []
     
-# Lemmatize or stem words in word_list
-if params["metric"] not in ["embed"]:
-    if metadata["preprocessing_type"] == "stem":
-        params["word_list"] = list(map(lambda x: wp.stem(x, metadata["language"])[0], params["word_list"]))
-    elif metadata["preprocessing_type"] == "lemma":
-        params["word_list"] = list(map(lambda x: wp.lemmatize(x, metadata["language"])[0], params["word_list"]))
 print("Parameter processing time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
 
 # Call function based on given metric
@@ -77,7 +70,9 @@ print("Computation time: {}".format(humanize.precisedelta(dt.timedelta(seconds =
 output_file = params_file.replace("/input/", "/output/")
 if type(output) == dict or type(output) == list:
     json.dump(output, open(output_file, "w"), indent = 4)
-else:
+elif type(output) == pl.DataFrame:
     output.to_pandas(use_pyarrow_extension_array=True).to_json(output_file, orient = "records", indent = 4)
+else:
+    raise Exception(f"Unrecognized output type:", type(output))
 
 print("Total time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - total_start_time))))

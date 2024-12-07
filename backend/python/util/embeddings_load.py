@@ -21,7 +21,7 @@ def take_similar_words_over_group(table_name: str, keyword: str, group_col: str,
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = data.get_column_values(table_name, group_col, token)
+        time_values = data.get_column_values(table_name, group_col, 10, token)
         
     for time_value in time_values:
         try:
@@ -72,7 +72,7 @@ def take_similar_words(table_name: str, keyword: str, topn: int = 5, token: str 
         
     return results
 
-def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], topn: int = 5, token: str | None = None) -> dict:
+def get_similar_words(table_name: str, keyword: str, group_col: str | None = None, vals: list[str] = [], topn: int = 5, token: str | None = None) -> list[dict]:
     if group_col is not None and len(group_col.strip()) == 0:
         group_col = None
 
@@ -107,7 +107,7 @@ def get_words_similarity_over_group(table_name: str, word1: str, word2: str, gro
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = data.get_column_values(table_name, group_col, token)
+        time_values = data.get_column_values(table_name, group_col, 10, token)
         
     for time_value in time_values:
         try:
@@ -139,24 +139,33 @@ def get_vectors(table_name: str, keywords: list[str], token: str | None = None) 
     results = []
     
     model = load_data_from_pkl(table_name, "model", token)
-        
     pca = PCA(2)
-    vectors = []
-    used_words = []
+    all_vectors = []
+    all_used_words = []
     if len(keywords) > 0:
         for word in keywords:
             try:
-                vectors.append(model.wv.get_vector(word))
-                used_words.append(word)
+                all_vectors.append(model.wv.get_vector(word))
+                all_used_words.append(word)
             except Exception:
                 pass
     else:
+        word_counts = []
+        vectors = []
+        used_words = []
         for word in model.wv.index_to_key:
             vectors.append(model.wv.get_vector(word))
             used_words.append(word)
+            word_counts.append(model.wv.get_vecattr(word, "count"))
+            
+        total_word_count = sum(word_counts)
+        for i in range(len(vectors)):
+            if word_counts[i] >= 0.00005 * total_word_count:
+                all_vectors.append(vectors[i])
+                all_used_words.append(used_words[i])
         
-    vectors_2d = pca.fit_transform(vectors)
-    for i, word in enumerate(used_words):
+    vectors_2d = pca.fit_transform(all_vectors)
+    for i, word in enumerate(all_used_words):
         results.append({
             "word": word,
             "x": vectors_2d[i, 0],
@@ -171,34 +180,44 @@ def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str,
     if len(vals) > 0:
         time_values = sorted(set(vals))
     else:
-        time_values = data.get_column_values(table_name, group_col, token)
+        time_values = data.get_column_values(table_name, group_col, 5, token)
         
     pca = PCA(2)
-    vectors = []
-    used_words = []
+    all_vectors = []
+    all_used_words = []
     all_values = []
     for time_value in time_values:
-        try:
-            pkl_name = "model_{}_{}".format(group_col, time_value)
-            model = load_data_from_pkl(table_name, pkl_name, token)
-            if len(keywords) > 0:
-                for word in keywords:
-                    try:
-                        vectors.append(model.wv.get_vector(word))
-                        used_words.append(word)
-                        all_values.append(time_value)
-                    except Exception:
-                        pass
-            else:
-                for word in model.wv.index_to_key:
+        pkl_name = "model_{}_{}".format(group_col, time_value)
+        model = load_data_from_pkl(table_name, pkl_name, token)
+        vectors = []
+        used_words = []
+        if len(keywords) > 0:
+            for word in keywords:
+                try:
                     vectors.append(model.wv.get_vector(word))
                     used_words.append(word)
                     all_values.append(time_value)
-        except:
-            pass
+                except Exception:
+                    pass
+        else:
+            word_counts = []
+            for word in model.wv.index_to_key:
+                vectors.append(model.wv.get_vector(word))
+                used_words.append(word)
+                word_counts.append(model.wv.get_vecattr(word, "count"))
+                
+            total_word_count = sum(word_counts)
+            cnt = 0
+            for i in range(len(vectors)):
+                # Adjust number to include more/less words
+                if word_counts[i] >= total_word_count * 0.00005:
+                    all_vectors.append(vectors[i])
+                    all_used_words.append(used_words[i])
+                    all_values.append(time_value)
+                    cnt += 1
         
-    vectors_2d = pca.fit_transform(vectors)
-    for i, word in enumerate(used_words):
+    vectors_2d = pca.fit_transform(all_vectors)
+    for i, word in enumerate(all_used_words):
         results.append({
             "word": word,
             "group": all_values[i],
@@ -208,7 +227,7 @@ def get_vectors_over_group(table_name: str, keywords: list[str], group_col: str,
             
     return results
 
-def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> dict:
+def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], token: str | None = None) -> list[dict]:
     if group_col is not None and len(group_col.strip()) == 0:
         group_col = None
     

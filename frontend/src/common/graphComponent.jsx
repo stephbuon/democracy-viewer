@@ -22,6 +22,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
         },
         xaxis: {
             automargin: true,
+            categoryorder: 'category ascending',
             title: {
                 text: data.xLabel,
                 standoff: 20
@@ -29,6 +30,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
         },
         yaxis: {
             automargin: true,
+            categoryorder: 'category descending',
             tickangle: 0,
             title: {
                 text: data.yLabel,
@@ -84,25 +86,18 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
 
             // Update layout
             let layout_ = { ...layout };
+
             // Hide legend
             if (
                 metricTypes.dotplot.includes(data.metric) ||
-                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1) ||
-                (metricTypes.bar.includes(data.metric) && data.graph.length === 1)
+                metricTypes.multibar.includes(data.metric) ||
+                metricTypes.bar.includes(data.metric) ||
+                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1)
             ) {
                 layout_ = {
                     ...layout_,
                     showlegend: false
                 };
-            } else if (metricTypes.multibar.includes(data.metric)) {
-                layout_ = {
-                    ...layout_,
-                    legend: {
-                        title: {
-                            text: "Rank"
-                        }
-                    }
-                }
             } else {
                 layout_ = {
                     ...layout_,
@@ -110,14 +105,24 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                 };
             }
 
-            // Unsort x-axis
-            if (metricTypes.bar.includes(data.metric)) {
+            // Treat x-axis as categorical
+            if (!metricTypes.scatter.includes(data.metric)) {
                 layout_ = {
                     ...layout_,
                     xaxis: {
                         ...layout_.xaxis,
-                        categoryorder: 'array',
-                        categoryarray: data.graph[0].x
+                        type: "category"
+                    }
+                }
+
+                // Set y-axis as categorical
+                if (metricTypes.heatmap.includes(data.metric)) {
+                    layout_ = {
+                        ...layout_,
+                        yaxis: {
+                            ...layout_.yaxis,
+                            type: "category"
+                        }
                     }
                 }
             }
