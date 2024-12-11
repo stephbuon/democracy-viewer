@@ -7,7 +7,8 @@ export const metricNames = {
     "jsd": "Jensen-Shannon Divergence",
     "embeddings-similar": "Word Embeddings Similarity",
     "embeddings-different": "Word Embeddings Difference",
-    "embeddings-raw": "Word Embedding Vectors"
+    "embeddings-raw": "Word Embedding Vectors",
+    "embeddings-cluster":"Word Embedding K-Means Clustering"
 };
 
 export const metricTypes = {
@@ -15,7 +16,7 @@ export const metricTypes = {
         "embeddings-different"
     ],
     "scatter": [
-        "tf-idf-scatter", "ll", "embeddings-raw"
+        "tf-idf-scatter", "ll", "embeddings-raw", "embeddings-cluster"
     ],
     "heatmap": [
         "jsd"
@@ -82,6 +83,12 @@ export const metricSettings = {
         values: false,
         words: 2,
         wordsOptional: true
+    },
+    "embeddings-cluster": {
+        column: false,
+        values: false,
+        words: 2,
+        wordsOptional: true
     }
 };
 
@@ -97,7 +104,8 @@ export const posOptionalMetrics = [
 export const embeddingMetrics = [
     "embeddings-similar",
     "embeddings-different",
-    "embeddings-raw"
+    "embeddings-raw",
+    "embeddings-cluster"
 ];
 
 export const posOptions = [

@@ -1,5 +1,6 @@
 from gensim.models import Word2Vec
 import pickle as pkl
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import util.data_queries as data
 import util.s3 as s3
@@ -236,5 +237,109 @@ def get_word_vectors(table_name: str, keywords: list[str], group_col: str | None
         results = get_vectors_over_group(table_name, keywords, group_col, vals, token)
     else:
         results = get_vectors(table_name, keywords, token)
+        
+    return results
+
+def get_vector_clusters(table_name: str, keywords: list[str], k: int = 5, token: str | None = None) -> list[dict]:
+    results = []
+    
+    model = load_data_from_pkl(table_name, "model", token)
+    pca = PCA(2)
+    kmeans = KMeans(k)
+    all_vectors = []
+    all_used_words = []
+    if len(keywords) > 0:
+        for word in keywords:
+            try:
+                all_vectors.append(model.wv.get_vector(word))
+                all_used_words.append(word)
+            except Exception:
+                pass
+    else:
+        word_counts = []
+        vectors = []
+        used_words = []
+        for word in model.wv.index_to_key:
+            vectors.append(model.wv.get_vector(word))
+            used_words.append(word)
+            word_counts.append(model.wv.get_vecattr(word, "count"))
+            
+        total_word_count = sum(word_counts)
+        for i in range(len(vectors)):
+            if word_counts[i] >= 0.00005 * total_word_count:
+                all_vectors.append(vectors[i])
+                all_used_words.append(used_words[i])
+        
+    kmeans.fit(all_vectors)
+    all_labels = kmeans.labels_
+    vectors_2d = pca.fit_transform(all_vectors)
+    for i, word in enumerate(all_used_words):
+        results.append({
+            "word": word,
+            "x": vectors_2d[i, 0],
+            "y": vectors_2d[i, 1],
+            "group": f"Cluster { all_labels[i] + 1 }"
+        })
+            
+    return results
+
+def get_vector_clusters_over_group(table_name: str, keywords: list[str], group_col: str, vals: list[str] = [], k: int = 5, token: str | None = None) -> list[dict]:
+    results = []
+
+    if len(vals) > 0:
+        time_value = sorted(set(vals))[0]
+    else:
+        time_value = data.get_column_values(table_name, group_col, 1, token)[0]
+    
+    pkl_name = "model_{}_{}".format(group_col, time_value)
+    model = load_data_from_pkl(table_name, pkl_name, token)
+    pca = PCA(2)
+    kmeans = KMeans(k)
+    all_vectors = []
+    all_used_words = []
+    if len(keywords) > 0:
+        for word in keywords:
+            try:
+                all_vectors.append(model.wv.get_vector(word))
+                all_used_words.append(word)
+            except Exception:
+                pass
+    else:
+        word_counts = []
+        vectors = []
+        used_words = []
+        for word in model.wv.index_to_key:
+            vectors.append(model.wv.get_vector(word))
+            used_words.append(word)
+            word_counts.append(model.wv.get_vecattr(word, "count"))
+            
+        total_word_count = sum(word_counts)
+        for i in range(len(vectors)):
+            if word_counts[i] >= 0.00005 * total_word_count:
+                all_vectors.append(vectors[i])
+                all_used_words.append(used_words[i])
+        
+    kmeans.fit(all_vectors)
+    all_labels = kmeans.labels_
+    vectors_2d = pca.fit_transform(all_vectors)
+    for i, word in enumerate(all_used_words):
+        results.append({
+            "word": word,
+            "x": vectors_2d[i, 0],
+            "y": vectors_2d[i, 1],
+            "group": f"Cluster { all_labels[i] + 1 }"
+        })
+            
+    return results
+
+def get_word_clusters(table_name: str, keywords: list[str], group_col: str | None = None, vals: list[str] = [], k: int = 5, token: str | None = None) -> list[dict]:
+    if group_col is not None and len(group_col.strip()) == 0:
+        group_col = None
+    
+    if group_col is not None:
+        #NOTE: here we assume that if user doesn't select a group col for embedding, our SQL will return NA
+        results = get_vector_clusters_over_group(table_name, keywords, group_col, vals, k, token)
+    else:
+        results = get_vector_clusters(table_name, keywords, k, token)
         
     return results
