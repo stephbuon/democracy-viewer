@@ -63,6 +63,8 @@ elif params["metric"] == "embeddings-different":
     output = embed.get_words_similarity_grouped(params["table_name"], params["word_list"][0], params["word_list"][1], params.get("group_name", None), params.get("group_list", []), TOKEN)
 elif params["metric"] == "embeddings-raw":
     output = embed.get_word_vectors(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), TOKEN)
+elif params["metric"] == "embeddings-cluster":
+    output = embed.get_word_clusters(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), params.get("k", 5), TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
 print("Computation time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
