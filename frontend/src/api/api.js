@@ -1,41 +1,5 @@
 import axios from 'axios';
-import { baseURL } from './baseURL';
-
-export const getToken = () => {
-  let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-  if (demoV && demoV.user) {
-    return demoV.user.token;
-  } else {
-    return undefined;
-  }
-}
-
-const apiConfig = () => {
-  let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-  if (demoV && demoV.user) {
-      return {
-          headers:{
-              Authorization: `Bearer ${ demoV.user.token }`
-          }
-      }
-  } else {
-      return {};
-  }
-};
-
-export const upload = (file) => new Promise((resolve, reject) => {
-    axios.post(`${baseURL}/datasets/`, file, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${ getToken() }`
-      }
-    })
-        .then(x => resolve(x.data))
-        .catch(x => {
-          alert(x);
-          reject(x);
-        });
-});
+import { baseURL } from './support/baseURL';
 
 export const getGraph = (dataset, params) => new Promise((resolve, reject) => {
   // Get graph from endpoint
