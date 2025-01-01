@@ -1,42 +1,31 @@
-import axios from 'axios';
-import { baseURL } from './baseURL';
+import { getRequest, postRequest, putRequest } from "./util";
 
-const apiConfig = () => {
-    let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-    if (demoV && demoV.user) {
-        return {
-            headers:{
-                Authorization: `Bearer ${ demoV.user.token }`
-            }
-        }
-    } else {
-        return {};
-    }
-  };
-
-export const LoginRequest = async (user) =>  {
-    const res = await axios.post(`${baseURL}/session`, user);
-    if(res.status !== 201){
-        console.error(`Couldn't login. ${res.status}`)
-        return null;
-    }
-    return res.data;
+export const LoginRequest = async (email, password) =>  {
+    const endpoint = `/session`
+    return await postRequest(endpoint, { email, password });
 };
 
-export const RegisterRequest = async (user) =>  {
-    const res = await axios.post(`${baseURL}/users`, user);
-    if(res.status !== 201){
-        console.error(`Couldn't register. ${res.status}`)
-        return null;
-    }
-    return res.data;
+export const RegisterRequest = async (params) =>  {
+    const endpoint = `/users`
+    return await postRequest(endpoint, params);
 };
 
 export const GetSession = async () => {
-    const res = await axios.get(`${baseURL}/session`, apiConfig());
-    if(res.status !== 200){
-        console.error(`Couldn't get session. ${res.status}`)
-        return null;
-    }
-    return res.data;
+    const endpoint = `/session`
+    return await getRequest(endpoint);
+}
+
+export const createResetPasswordCode = async (email) => {
+    const endpoint = `/users/reset/${ email }`
+    return await postRequest(endpoint);
+}
+
+export const verifyResetPasswordCode = async (email, code) => {
+    const endpoint = `/users/reset/verify/${ email }`
+    return await getRequest(endpoint, { code });
+}
+
+export const resetPassword = async (email, password, code) => {
+    const endpoint = `/users/reset/${ email }`
+    return await putRequest(endpoint, { password, code});
 }

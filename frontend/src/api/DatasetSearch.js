@@ -1,4 +1,4 @@
-import { getRequest, putRequest } from "./support";
+import { getRequest, putRequest } from "./util";
 
 export const FilterDatasets = async (params, page) =>  {
     const endpoint = `/datasets/filter/${ page }`;

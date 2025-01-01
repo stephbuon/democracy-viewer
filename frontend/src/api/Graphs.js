@@ -1,4 +1,4 @@
-import { getRequest } from "./support/requests";
+import { getRequest } from "./util/requests";
 
 // Graph generation APIs
 export const getGraph = async(dataset, params) => {
