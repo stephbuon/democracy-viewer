@@ -1,5 +1,5 @@
 import { Container } from "@mui/material";
-import { DownloadSubset, DownloadIds } from "../apiFolder/SubsetSearchAPI";
+import { DownloadSubset, DownloadIds } from "../../api";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom"
 

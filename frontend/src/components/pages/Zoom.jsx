@@ -1,9 +1,8 @@
 // Imports
 import { useState, useEffect } from "react";
-import { getRecordsByIds } from '../api/api.js';
+import { getRecordsByIds, getTextCols, getZoomIds, getZoomRecords } from "../../api";
 import { PaginatedDataTable } from "../common/tables/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
-import { getTextCols, getZoomIds, getZoomRecords } from "../api/api.js";
 import { metricNames } from "./subcomponents/graphs/metrics.js";
 import { useNavigate } from "react-router-dom";
 

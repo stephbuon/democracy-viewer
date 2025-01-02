@@ -1,4 +1,4 @@
-import { getRequest } from "./util/requests";
+import { getRequest, postRequest } from "./util/requests";
 
 export const GetSubsetOfDataByPage = async (table, params, page = 1, pageLength = 50) =>  {
     const endpoint = `/datasets/subset/${ table }/${ page }/${ pageLength }`;

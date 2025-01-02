@@ -10,9 +10,9 @@ import {
     Table, TableBody, TableRow, TableCell, TextField
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { UploadDataset, UploadStopwords, GetCSVFromAPI, CreateDataset } from '../apiFolder/DatasetUploadAPI';
+import { UploadDataset, UploadStopwords, GetCSVFromAPI, CreateDataset } from '../../../../api';
 import { DatasetTags, DatasetInformation, FormattedMultiSelectField } from "../../../common";
-import { getDistributedConnections } from "../../api/api";
+// import { getDistributedConnections } from "../../../../api";
 
 // Languages that allow stemming
 // Some of these languages are not yet available in democracy viewer

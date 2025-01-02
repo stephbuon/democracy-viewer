@@ -1,4 +1,4 @@
-import { getRequest, putRequest, deleteRequest } from "./util/requests";
+import { getRequest, putRequest, deleteRequest } from "./util";
 
 export const getUser = async(email) => {
   const endpoint = `/users/${ email }`;

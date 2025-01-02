@@ -4,7 +4,9 @@ export const CreateDataset = async(dataset, setProgress) => {
     const formData = new FormData();
     formData.append("file", dataset);
 
-    const settings = {};
+    const settings = {
+        isFileUpload: true
+    };
     if (setProgress) {
         settings.onUploadProgress = (progressEvent) => {
             const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
@@ -22,7 +24,7 @@ export const UploadDataset = async (table_name, metadata, text, embed, tags) => 
     };
     
     const endpoint = `/datasets/upload`;
-    return await postRequest(endpoint, params, settings);
+    return await postRequest(endpoint, params);
 };
 
 export const AddTags = async (dataset, tags) =>  {
@@ -31,17 +33,17 @@ export const AddTags = async (dataset, tags) =>  {
     };
 
     const endpoint = `/datasets/tags`;
-    return await postRequest(endpoint, params, settings);
+    return await postRequest(endpoint, params);
 };
 
 export const DeleteTag = async (dataset, tag) =>  {
     const endpoint = `/datasets/${ dataset }/tags/${ tag }`;
-    return await deleteRequest(endpoint, settings);
+    return await deleteRequest(endpoint);
 };
 
 export const UpdateMetadata = async (dataset, params) =>  {
     const endpoint = `/datasets/metadata/${ dataset }`;
-    return await postRequest(endpoint, params, settings);
+    return await postRequest(endpoint, params);
 };
 
 export const GetCSVFromAPI = async(endpoint, token) => {
@@ -49,19 +51,24 @@ export const GetCSVFromAPI = async(endpoint, token) => {
         endpoint, token
     };
     
-    const endpoint = `/datasets/api`;
-    return await postRequest(endpoint, params, settings);
+    const endpoint_ = `/datasets/api`;
+    return await postRequest(endpoint_, params);
 };
 
-export const UploadStopwords = async(file, table_name) => {
+export const UploadStopwords = async(file, table, setProgress) => {
     const formData = new FormData();
     formData.append("file", file);
-    let headers = apiConfig();
-    headers.headers = {
-        ...headers.headers,
-        "Content-Type": "multipart/form-data"
+
+    const settings = {
+        isFileUpload: true
+    };
+    if (setProgress) {
+        settings.onUploadProgress = (progressEvent) => {
+            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            setProgress(progress);
+        }
     }
     
-    const endpoint = `/datasets/upload/stopwords/${ table_name }`;
-    return await postRequest(endpoint, formData, headers);
+    const endpoint = `/datasets/upload/stopwords/${ table }`;
+    return await postRequest(endpoint, formData, settings);
 };

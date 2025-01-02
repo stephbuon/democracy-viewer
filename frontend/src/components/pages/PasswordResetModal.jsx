@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FormattedTextField } from "../common/forms";
 
-import { createResetPasswordCode, verifyResetPasswordCode, resetPassword } from "../api/api";
+import { createResetPasswordCode, verifyResetPasswordCode, resetPassword } from "../../api";
 
 // MUI Imports
 import { 

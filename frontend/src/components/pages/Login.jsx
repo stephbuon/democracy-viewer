@@ -1,14 +1,14 @@
 import { Avatar, Button, CssBaseline, TextField, Grid, Box, Typography, Container, createTheme, ThemeProvider, Snackbar, Alert, Modal } from "@mui/material";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useNavigate} from "react-router-dom";
-import { LoginRequest } from '../apiFolder/LoginRegister';
+import { LoginRequest } from '../../api';
 import { useState, useEffect  } from "react";
 import { Link } from "react-router-dom";
 import { PasswordResetModal } from "./PasswordResetModal";
 
 const theme = createTheme();
 
-export default function Login(props) {
+export const Login = (props) => {
   const navigate = useNavigate();
   const [snackBarOpen1, setSnackBarOpen1] = useState(false);
   const [loginFailed, setLoginFailed] = useState(false);

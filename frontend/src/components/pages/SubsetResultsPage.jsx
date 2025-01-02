@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 // MUI Imports
 import { Box, TextField } from '@mui/material';
 //Other Imports
-import { GetSubsetOfDataByPage } from '../apiFolder/SubsetSearchAPI';
+import { GetSubsetOfDataByPage } from '../../api';
 import { PaginatedDataTable } from '../common/tables/PaginatedDataTable';
 import Highlighter from "react-highlight-words";
 

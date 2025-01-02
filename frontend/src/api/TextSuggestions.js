@@ -1,4 +1,4 @@
-import { getRequest, postRequest, deleteRequest, putRequest } from "./util/requests";
+import { getRequest, postRequest, deleteRequest, putRequest } from "./util";
 
 export const addSuggestion = async (params) =>  {
     const endpoint = `/datasets/suggest`;
@@ -22,10 +22,10 @@ export const getSuggestion = async (id) =>  {
 
 export const confirmSuggestion = async (id) =>  {
     const endpoint = `/datasets/suggest/${ id }`;
-    return await putRequest(endpoint, params);
+    return await putRequest(endpoint);
 };
 
 export const deleteSuggestion = async (id) =>  {
     const endpoint = `/datasets/suggest/${ id }`;
-    return await deleteRequest(endpoint, params);
+    return await deleteRequest(endpoint);
 };

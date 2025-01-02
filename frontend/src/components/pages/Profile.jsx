@@ -4,11 +4,10 @@ import {
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
-import { getUser, deleteAccount } from "../api/users";
+import { getUser, deleteAccount, FilterDatasets, FilterDatasetsCount } from "../../api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./subcomponents/profile";
 import { DatasetTable } from "../common/tables/DatasetTable";
-import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
 import { AlertDialog } from "../common/AlertDialog";
 import { SuggestChangesTable } from "../common/tables/SuggestChangesTable";
 
@@ -16,7 +15,7 @@ const mdTheme = createTheme();
 
 const pageLength = 5;
 
-const Profile = (props) => {
+export const Profile = (props) => {
     const navigate = useNavigate();
     const params = useParams();
 

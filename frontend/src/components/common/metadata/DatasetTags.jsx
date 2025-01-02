@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 import { HelpOutline as HelpOutlineIcon } from "@mui/icons-material";
 import { FormattedMultiTextField } from "../forms";
-import { GetAllTags } from "../apiFolder/DatasetSearchAPI";
+import { GetAllTags } from "../../../api";
 
 export const DatasetTags = (props) => {
     const [disabled, setDisabled] = useState(false);

@@ -1,6 +1,6 @@
 import { DataTable } from 'primereact/datatable';
 import { Column } from "primereact/column";
-import { getSuggestionsFor, getSuggestionsFrom, confirmSuggestion, deleteSuggestion } from "../../api/api";
+import { getSuggestionsFor, getSuggestionsFrom, confirmSuggestion, deleteSuggestion } from "../../../api";
 import { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';

@@ -6,7 +6,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
-import { FilterDatasets, FilterDatasetsCount } from '../apiFolder/DatasetSearchAPI';
+import { FilterDatasets, FilterDatasetsCount } from '../../api';
 import { AdvancedFilter } from './subcomponents/dataset-search';
 import { DatasetTable } from '../common/tables';
 

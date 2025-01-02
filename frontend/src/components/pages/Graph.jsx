@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, Grid, Snackbar, Alert, Container } from "@mui/material";
 import { GraphComponent, GraphSettings } from "./subcomponents/graphs";
-import { getGraph } from "../api/api.js";
+import { getGraph } from "../../api";
 import { Settings, RotateLeft, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";

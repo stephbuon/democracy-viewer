@@ -1,4 +1,4 @@
-import "../../../styles/loading.css";
+import "../../../styles/Loading.css";
 import { Result } from "./Result";
 import { DataTable } from 'primereact/datatable';
 import { Column } from "primereact/column";

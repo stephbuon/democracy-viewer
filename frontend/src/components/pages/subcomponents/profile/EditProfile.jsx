@@ -1,5 +1,5 @@
 import { Modal, Button, Box, Grid } from "@mui/material";
-import { updateUser } from "../../../api/users";
+import { updateUser } from "../../../../api";
 import { FormattedTextField, FormattedPatternField } from "../../../common/forms";
 import { useState } from "react";
 

@@ -7,7 +7,7 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 import { useEffect, useState } from 'react';
 import { AlertDialog } from '../AlertDialog';
-import { addSuggestion } from '../../api/api';
+import { addSuggestion } from '../../../api';
 
 export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, downloadType, table_name, totalNumResults, columns, extLoading }) => {
     const [clickRow, setClickRow] = useState(-1);

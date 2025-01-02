@@ -4,7 +4,7 @@ import Plotly from "plotly.js-dist";
 import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { metricTypes } from "./metrics";
-import { getZoomIds } from "../api/api";
+import { getZoomIds } from "../../../../api";
 
 export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter }) => {
     // UseState definitions

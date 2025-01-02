@@ -1,11 +1,9 @@
 // Imports
 import { useState, useEffect } from "react";
-import { getRecordsByIds } from '../api/api.js';
 import { PaginatedDataTable } from "../common/tables/PaginatedDataTable.jsx";
 import Highlighter from "react-highlight-words";
-import { DownloadIds } from "../apiFolder/SubsetSearchAPI.js";
 import { useNavigate, useParams } from "react-router-dom";
-import { getSuggestion } from "../api/api.js";
+import { getSuggestion, DownloadIds, getRecordsByIds } from "../../api";
 
 const pageLength = 10;
 

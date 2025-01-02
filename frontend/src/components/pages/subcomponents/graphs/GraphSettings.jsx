@@ -1,11 +1,11 @@
 // Imports
 import { useEffect, useState } from "react";
-import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../api/api.js"
+import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../../../../api"
 import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
 import { SelectField } from "../../../../components/common";
 import { metricNames, metricSettings, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "../../../common";
-import "../../../../styles/list.css";
+import "../../../../styles/List.css";
 import { useNavigate } from "react-router-dom";
 
 const allMetricOptions = Object.keys(metricNames).map(x => {

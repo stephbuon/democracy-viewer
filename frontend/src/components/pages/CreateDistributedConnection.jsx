@@ -1,6 +1,6 @@
 // This page is currently disabled because the feature is not functional
 
-import { AddLinkIcon } from '@mui/icons-material';
+import { AddLink as AddLinkIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert, Avatar, Box, Button, Container, createTheme, CssBaseline,

@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 
 //Other Imports
 import '../../../../styles/AdvancedFilter.css'
-import { GetAllTags } from '../apiFolder/DatasetSearchAPI';
+import { GetAllTags } from "../../../../api";
 import { FormattedMultiSelectField } from "../../../common";
 
 export const AdvancedFilter = (props) => {

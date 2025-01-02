@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ResultModal } from "./ResultModal";
 import { useEffect, useState } from "react";
-import { getMetadata } from "../../api/api";
+import { getMetadata } from "../../../api";
 
 export const ResultLink = ({ table_name, setDataset}) => {
     const [open, setOpen] = useState(false);

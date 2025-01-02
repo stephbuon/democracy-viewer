@@ -5,15 +5,14 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { FormattedPatternField, FormattedTextField } from '../common/forms';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { LoginRequest, RegisterRequest } from '../apiFolder/LoginRegister';
 import { useNavigate, Link } from 'react-router-dom';
 import { useEffect } from 'react';
-import { getUser } from "../api/users";
+import { getUser, LoginRequest, RegisterRequest } from "../../api";
 import { Alert, Snackbar, Grid, Box, Typography, Container } from "@mui/material";
 
 const theme = createTheme();
 
-export default function Register(props) {
+export const Register = (props) => {
   const [disabled, setDisabled] = useState(true);
   const [openAlert, setOpenAlert] = useState(false);
 

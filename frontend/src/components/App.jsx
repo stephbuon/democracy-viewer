@@ -2,11 +2,10 @@ import { React, useState, useEffect } from "react";
 import "../styles/App.css";
 import 'animate.css';
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
-import { SubsetSuggestion } from "../pages/SubsetSuggestion.jsx";
 import { 
-  Acknowledgements, CreateDistributedConnection, DatasetResultsPage, 
+  Acknowledgements, DatasetResultsPage, 
   DownloadStarted, Graph, Homepage, Layout, Login, Profile, Register, 
-  SubsetResultsPage, Upload, UploadComplete, Zoom
+  SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom
 } from "./pages";
   
 export const App = () => {

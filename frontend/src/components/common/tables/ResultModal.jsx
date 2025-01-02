@@ -4,17 +4,12 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
-import { Popularize } from '../../apiFolder/DatasetSearchAPI';
 import { AlertDialog } from '../AlertDialog';
-import { deleteDataset, addLike, deleteLike } from '../../api/api';
-import { UpdateMetadata, AddTags, DeleteTag } from '../../apiFolder/DatasetUploadAPI';
-import { DatasetInformation } from '../DatasetInformation';
-import { DatasetTags } from '../DatasetTags';
+import { DatasetTags, DatasetInformation } from '../metadata';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
-import { getUser } from '../../api/users';
-import { reprocessDataset } from '../../api/api';
+import { reprocessDataset, getUser, deleteDataset, addLike, deleteLike, UpdateMetadata, AddTags, DeleteTag, Popularize } from '../../../api';
 
 export const ResultModal = (props) => {
     const navigate = useNavigate();
