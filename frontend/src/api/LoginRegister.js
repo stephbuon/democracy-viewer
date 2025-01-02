@@ -1,8 +1,8 @@
 import { getRequest, postRequest, putRequest } from "./util";
 
-export const LoginRequest = async (email, password) =>  {
+export const LoginRequest = async (params) =>  {
     const endpoint = `/session`
-    return await postRequest(endpoint, { email, password });
+    return await postRequest(endpoint, params);
 };
 
 export const RegisterRequest = async (params) =>  {
