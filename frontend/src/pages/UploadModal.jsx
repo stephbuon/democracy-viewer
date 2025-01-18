@@ -472,7 +472,7 @@ export const UploadModal = (props) => {
                                     <MenuItem value = "Portuguese"><Flag country = "PT"/>&nbsp;Portuguese</MenuItem>
                                     <MenuItem value = "Russian"><Flag country = "RU"/>&nbsp;Russian</MenuItem>
                                     <MenuItem value = "Spanish"><Flag country = "ES"/>&nbsp;Spanish</MenuItem>
-                                    <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem>
+                                    {/* <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem> */}
                                 </Select>
                             </FormControl>
                         </Tooltip>

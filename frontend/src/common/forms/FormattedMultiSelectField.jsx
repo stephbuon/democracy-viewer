@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import ReactSelect from 'react-select';
+// import ReactSelect from 'react-select';
+import { Select, MenuItem, FormControl, Autocomplete, TextField } from '@mui/material';
 import { FixedSizeList } from 'react-window';
 
 export const FormattedMultiSelectField = (props) => {
@@ -81,8 +82,9 @@ export const FormattedMultiSelectField = (props) => {
   }, [props.getData]);
 
   return (
-    <div style={{ margin: '20px 0' }}>
-      <ReactSelect
+    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+    {/* <div style={{ margin: '20px 0' }}> */}
+      {/* <ReactSelect
         { ...props }
         isMulti
         value={props.selectedOptions}
@@ -101,8 +103,24 @@ export const FormattedMultiSelectField = (props) => {
           ),
         }}
         isLoading={isLoading}
+      /> */}
+      <Autocomplete
+        multiple
+        id="tags-standard"
+        options={options}
+        getOptionLabel={(option) => option.label}
+        value={props.selectedOptions}
+        onChange={(event, newValues) => props.setSelectedOptions(newValues)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            // label="Select Multiple Options"
+            placeholder="Search..."
+          />
+        )}
       />
-    </div>
+    {/* </div> */}
+    </FormControl>
   );
 }
 
