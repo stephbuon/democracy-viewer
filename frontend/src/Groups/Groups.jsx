@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import {
   Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
   Grid,
   Typography,
   TextField,
@@ -25,26 +22,26 @@ export const Groups = (props) => {
     const [groupName, setGroupName] = useState("");
     const [groupDescription, setGroupDescription] = useState("");
     const [group, setGroup] = useState("");
-    const [inviteEmail, setInviteEmail] = useState("");
+    const [accessCode, setAccessCode] = useState("");
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [loadingResults, setLoadingResults] = useState(false);
     const [totalNumResults, setTotalNumResults] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const handleOpen = (type) => {
+    const handleOpen = (type, group) => {
         setModalType(type);
+        if (type === "join") setGroup(group); // Set the selected group for joining
         setModalOpen(true);
     };
 
     const handleClose = () => {
         setModalOpen(false);
         setGroupName("");
-        setInviteEmail("");
     };
 
     const handleJoinGroup = () => {
-        console.log("Joining group with email invite:", inviteEmail);
+        console.log("Joining group with access code:", accessCode);
         handleClose();
     };
 
@@ -104,7 +101,7 @@ export const Groups = (props) => {
                             </div>                        
                         </Box>
 
-                        {/* Buttons for Create and Join Group */}
+                        {/* Buttons for Create Group */}
                         <Box sx={{ textAlign: 'center' }}>
                             <Button
                                 variant="contained"
@@ -116,15 +113,6 @@ export const Groups = (props) => {
                                 Create Group
                             </Button>
                             <br />
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                width= '500px'
-                                onClick={() => handleOpen("join")}
-                                sx={{ mb: 2 }}
-                            >
-                                Join Group
-                            </Button>
                         </Box>
                     </Stack>
                 </Grid>
@@ -145,6 +133,7 @@ export const Groups = (props) => {
                             pageLength={pageLength}
                             totalNumResults={totalNumResults}
                             // deleteCallBack={deleteCallBack}
+                            onJoinGroup={(group) => handleOpen("join", group)} // New prop for handling join action
                         />
                     </Box>
                 </Grid>
@@ -201,10 +190,10 @@ export const Groups = (props) => {
                             </Typography>
                             <TextField
                                 fullWidth
-                                label="Invite Email"
+                                label="Access Code"
                                 variant="outlined"
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
+                                value={accessCode}
+                                onChange={(e) => setAccessCode(e.target.value)}
                                 sx={{ mb: 2 }}
                             />
                             <Stack direction="row" spacing={2} justifyContent="flex-end" mt={3}>

@@ -15,8 +15,16 @@ export const GroupResultModal = (props) => {
 
     const [userName, setUserName] = useState(undefined);
     const [groupId, setGroupId] = useState(props.groups.setGroupId);
+    // const [accessCode, setAccessCode] = useState("");
+
 
     const handleClose = () => props.setOpen(false);
+    // const handleOpen = (type, group) => {
+    //     setModalType(type);
+    //     setGroup(group);
+    //     setOpen(true);
+
+    // }
 
     const chooseGroup = () => {
         props.setGroup(props.group);
@@ -92,6 +100,17 @@ export const GroupResultModal = (props) => {
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
                                 {props.group.clicks}
+                            </TableCell>
+                            <TableCell sx={{textAlign: "left"}}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    width= '500px'
+                                    onClick={() => props.setOpen(true)}
+                                    sx={{ mb: 2 }}
+                                >
+                                Join Group
+                            </Button>
                             </TableCell>
 
                         </TableRow>
