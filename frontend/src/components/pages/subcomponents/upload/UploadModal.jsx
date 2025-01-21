@@ -440,8 +440,9 @@ export const UploadModal = (props) => {
 
                         <Tooltip arrow title = "Select which column(s) contain text that needs to be processed. You must select at least 1 text column.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
-                                <Typography>Text Columns</Typography>
+                                {/* <Typography>Text Columns</Typography> */}
                                 <FormattedMultiSelectField
+                                    label="Text Columns"
                                     selectedOptions={textCols}
                                     setSelectedOptions={setTextCols}
                                     getData={textColOptions}
@@ -470,7 +471,7 @@ export const UploadModal = (props) => {
                                     <MenuItem value = "Portuguese"><Flag country = "PT"/>&nbsp;Portuguese</MenuItem>
                                     <MenuItem value = "Russian"><Flag country = "RU"/>&nbsp;Russian</MenuItem>
                                     <MenuItem value = "Spanish"><Flag country = "ES"/>&nbsp;Spanish</MenuItem>
-                                    <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem>
+                                    {/* <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem> */}
                                 </Select>
                             </FormControl>
                         </Tooltip>
@@ -546,8 +547,8 @@ export const UploadModal = (props) => {
                                 embeddings &&
                                 <Tooltip arrow title = "Column(s) to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
                                     <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
-                                        <Typography>Word Embedding Grouping Column(s)</Typography>
                                         <FormattedMultiSelectField
+                                            label="Word Embedding Grouping Column(s)"
                                             selectedOptions={embedCols}
                                             setSelectedOptions={setEmbedCols}
                                             getData={embedColOptions}
@@ -556,20 +557,6 @@ export const UploadModal = (props) => {
                                         />
                                     </FormControl>
                                 </Tooltip>
-                                // <Tooltip arrow title = "Column to group the data by before computing word embeddings. Leave blank to not group the data. E.g. selecting a column that contains the year of each record will compute the word embeddings separately for each year.">
-                                //     <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                //         <InputLabel>Group By</InputLabel>
-                                //         <Select
-                                //             value={embedCol}
-                                //             onChange={event => setEmbedCol(event.target.value)}
-                                //         >
-                                //             <MenuItem value = {null}>&nbsp;</MenuItem>
-                                //             {textColOptions.filter(x => !textCols.includes(x)).map((header, index) => (
-                                //                 <MenuItem value = {header.value} key = {index}>{ header.label }</MenuItem>
-                                //             ))}
-                                //         </Select>
-                                //     </FormControl>
-                                // </Tooltip>
                             }
                         </FormGroup>
                     </Box>

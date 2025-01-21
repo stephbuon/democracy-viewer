@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import ReactSelect from 'react-select';
-import { FixedSizeList } from 'react-window';
+import { useState, useEffect } from 'react';
+// import ReactSelect from 'react-select';
+import { FormControl, Autocomplete, TextField, InputLabel } from '@mui/material';
+// import { FixedSizeList } from 'react-window';
 
 export const FormattedMultiSelectField = (props) => {
   const [options, setOptions] = useState([]);
@@ -24,12 +25,12 @@ export const FormattedMultiSelectField = (props) => {
             }
           }
         });
-  
+
         if (fetchedOptions.length === 0) {
           setHasMore(false);
         } else {
           setHasMore(true);
-          
+
           // Ensure no duplicates in options by filtering them out
           setOptions(prevOptions => {
             const uniqueOptions = new Set(prevOptions.map(option => option.value));
@@ -50,7 +51,7 @@ export const FormattedMultiSelectField = (props) => {
         });
         setOptions(data);
         setHasMore(false);
-      }      
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -81,62 +82,26 @@ export const FormattedMultiSelectField = (props) => {
   }, [props.getData]);
 
   return (
-    <div style={{ margin: '20px 0' }}>
-      <ReactSelect
-        { ...props }
-        isMulti
-        value={props.selectedOptions}
-        onChange={x => props.setSelectedOptions(x)}
-        onInputChange={x => setInputValue(x)}
+    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+      <Autocomplete
+        multiple
+        id="tags-standard"
         options={options}
-        components={{
-          MenuList: (props) => (
-            <MenuList
-              {...props}
-              setLoading={setIsLoading}
-              hasMore={hasMore}
-              fetchMoreData={fetchMoreData}
-              page={page}
+        getOptionLabel={(option) => option.label}
+        value={props.selectedOptions}
+        onChange={(event, newValues) => props.setSelectedOptions(newValues)}
+        renderInput={(params) => {
+          return <>
+            <TextField
+              {...params}
+              label={ props.label }
+              placeholder="Search..."
+              variant="filled"
             />
-          ),
+          </>
+          
         }}
-        isLoading={isLoading}
       />
-    </div>
+    </FormControl>
   );
 }
-
-const MenuList = ({ children, fetchMoreData, hasMore, isLoading, page }) => {
-  const height = 50;
-  const listRef = useRef(null);
-
-  const onScroll = ({ scrollDirection, scrollOffset }) => {
-    if (hasMore && !isLoading) {
-      const totalHeight = children.length * height;
-      const clientHeight = Math.min(children.length, 3) * height;
-      // Check if the user has scrolled near the bottom
-      if (scrollDirection === 'forward' && totalHeight - scrollOffset <= clientHeight + 10) {
-        fetchMoreData();  // Trigger loading more options when near the bottom
-      }
-    }
-  };
-
-  useEffect(() => {
-    const index = (page - 1) * 10;
-    if (!isLoading && index > 0) {
-      listRef.current.scrollToItem(index);
-    }
-  }, [isLoading]);
-
-  return (
-    <FixedSizeList
-      height={Math.min(children.length, 3) * height}
-      itemCount={children.length}
-      itemSize={height}
-      onScroll={onScroll}
-      ref={listRef}
-    >
-      {({ index, style }) => <div style={style}>{children[index]}</div>}
-    </FixedSizeList>
-  );
-};
