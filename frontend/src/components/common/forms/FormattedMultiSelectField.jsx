@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 // import ReactSelect from 'react-select';
-import { FormControl, Autocomplete, TextField, InputLabel } from '@mui/material';
+import { FormControl, Autocomplete, TextField, InputLabel, CircularProgress } from '@mui/material';
 // import { FixedSizeList } from 'react-window';
 
 export const FormattedMultiSelectField = (props) => {
@@ -60,8 +60,10 @@ export const FormattedMultiSelectField = (props) => {
   }
 
   const fetchMoreData = () => {
-    fetchOptions(inputValue, page + 1);
-    setPage(page + 1);
+    if (hasMore) {
+      fetchOptions(inputValue, page + 1);
+      setPage(page + 1);
+    }
   }
 
   useEffect(() => {
@@ -82,10 +84,9 @@ export const FormattedMultiSelectField = (props) => {
   }, [props.getData]);
 
   return (
-    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+    <FormControl { ...props } fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
       <Autocomplete
         multiple
-        id="tags-standard"
         options={options}
         getOptionLabel={(option) => option.label}
         value={props.selectedOptions}
@@ -97,10 +98,30 @@ export const FormattedMultiSelectField = (props) => {
               label={ props.label }
               placeholder="Search..."
               variant="filled"
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: <>
+                  {
+                    isLoading === true &&
+                    <CircularProgress color = "inherit" size = {20}/>
+                  }
+                  { params.InputProps.endAdornment }
+                </>
+              }}
+              onChange={event => setInputValue(event.target.value)}
             />
           </>
-          
         }}
+        ListboxProps={{
+          component: 'div',
+          style: { maxHeight: 300, overflow: 'auto' },
+          onScroll: (event) => {
+              const listboxNode = event.currentTarget;
+              if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight) {
+                  fetchMoreData();
+              }
+          },
+      }}
       />
     </FormControl>
   );

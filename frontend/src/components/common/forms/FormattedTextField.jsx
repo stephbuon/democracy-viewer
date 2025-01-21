@@ -58,6 +58,7 @@ export const FormattedTextField = (props) => {
         >
             <TextField
                 { ...props }
+                variant = "filled"
                 onChange = {event => setValueInternal(event.target.value)}
                 error = {message.length > 0}
                 type = {type}

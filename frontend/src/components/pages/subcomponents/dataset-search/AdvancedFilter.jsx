@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import '../../../../styles/AdvancedFilter.css'
 import { GetAllTags } from "../../../../api";
 import { FormattedMultiSelectField } from "../../../common";
+import { InputLabel } from "@mui/material";
 
 export const AdvancedFilter = (props) => {
     //values
@@ -63,16 +64,15 @@ export const AdvancedFilter = (props) => {
                     p: 2,
                 }}
             >
-                <Typography variant="h2">Advanced Filter</Typography>
+                <Typography variant="h3">Advanced Filter</Typography>
             </Box>
 
             <Box sx={{ p: 2 }}>
                 <Box sx={{ mb: 2 }}>
-                    <Typography>Dataset Title:</Typography>
                     <TextField
                         id="Title"
                         label="Title"
-                        // variant="filled"
+                        variant="filled"
                         fullWidth
                         sx={{
                             background: 'rgb(255, 255, 255)',
@@ -84,11 +84,10 @@ export const AdvancedFilter = (props) => {
                 </Box>
 
                 <Box sx={{ mb: 2 }}>
-                    <Typography>Dataset Description:</Typography>
                     <TextField
                         id="Description"
                         label="Description"
-                        // variant="filled"
+                        variant="filled"
                         fullWidth
                         sx={{
                             background: 'rgb(255, 255, 255)',
@@ -100,11 +99,10 @@ export const AdvancedFilter = (props) => {
                 </Box>
 
                 <Box sx={{ mb: 2 }}>
-                    <Typography>Dataset Owner:</Typography>
                     <TextField
                         id="Owner"
                         label="Owner"
-                        // variant="filled"
+                        variant="filled"
                         fullWidth
                         sx={{
                             background: 'rgb(255, 255, 255)',
@@ -116,13 +114,14 @@ export const AdvancedFilter = (props) => {
                 </Box>
 
                 <Box sx={{ mb: 2 }}>
-                    <Typography>Privacy:</Typography>
                     <FormControl
                         fullWidth
-                        // variant="filled" 
+                        variant="filled" 
                         sx={{ background: 'rgb(255, 255, 255)' }}
                     >
+                        <InputLabel>Privacy</InputLabel>
                         <Select
+                            label="Privacy"
                             value={publicPrivate}
                             onChange={event => setPublicPrivate(event.target.value)}
                         >
@@ -133,8 +132,8 @@ export const AdvancedFilter = (props) => {
                 </Box>
 
                 <Box sx={{ mb: 2 }}>
-                    <Typography>Tags:</Typography>
                     <FormattedMultiSelectField
+                        label = "Tags"
                         selectedOptions={selectedTags}
                         setSelectedOptions={setSelectedTags}
                         getData={GetAllTags}

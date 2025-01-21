@@ -1,24 +1,13 @@
 import React, { useState, useEffect } from "react";
 import {
-  Alert,
-  Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
   Container,
-  Grid,
   Modal,
-  Snackbar,
-  Stack,
   Typography,
-  LinearProgress,
 } from "@mui/material";
 
 import { UploadModal } from "./subcomponents/upload";
-import { Table, TableBody, TableRow, TableCell, TextField } from "@mui/material";
-import { useNavigate, Link } from "react-router-dom";
-import { SelectField } from "../common/forms/selectField";
+import { useNavigate } from "react-router-dom";
 
 export const Upload = (props) => {
   const navigate = useNavigate();

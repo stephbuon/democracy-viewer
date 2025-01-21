@@ -1,8 +1,7 @@
 // Imports
 import { useEffect, useState } from "react";
 import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../../../../api"
-import { Paper, Button, Modal, Tooltip, Typography } from "@mui/material";
-import { SelectField } from "../../../../components/common";
+import { Paper, Button, FormControl, InputLabel, MenuItem, Modal, Select, Tooltip, Typography } from "@mui/material";
 import { metricNames, metricSettings, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "../../../common";
 import "../../../../styles/List.css";
@@ -21,7 +20,7 @@ export const GraphSettings = ( props ) => {
     const [disabledMessage, setDisabledMessage] = useState("");
     const [searchTerms, setSearchTerms] = useState([]);
     const [checkGroupOptions, setCheckGroupOptions] = useState(false);
-    const [groupOptions, setGroupOptions] = useState(undefined);
+    const [groupOptions, setGroupOptions] = useState([]);
     const [groupList, setGroupList] = useState([]);
     const [refreshGroupOptions, setRefreshGroupOptions] = useState(true);
     const [group, setGroup] = useState("");
@@ -233,19 +232,28 @@ export const GraphSettings = ( props ) => {
                 <h2 id="child-modal-title">Graph Settings</h2>
 
                 {/* Metric select dropdown */}
-                <SelectField label="Metric"
-                    value={metric}
-                    setValue={setMetric}
-                    options={metricOptions}
-                    hideBlankOption={1}
-                />
+                <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                    <InputLabel>Metric</InputLabel>
+                    <Select
+                        value = {metric}
+                        onChange = {event => setMetric(event.target.value)}
+                    >
+                        {
+                            metricOptions.map(option => (
+                                <MenuItem value = { option.value }>
+                                    { option.label }
+                                </MenuItem>
+                            ))
+                        }
+                    </Select>
+                </FormControl>
 
                 {
                     posValid === true &&
                     <>
                         {/* Column value multiselect dropdown */}
-                        <Typography>Parts of Speech</Typography>
                         <FormattedMultiSelectField
+                            label = "Parts of Speech"
                             selectedOptions={posList}
                             setSelectedOptions={setPosList}
                             getData={posOptions}
@@ -257,18 +265,31 @@ export const GraphSettings = ( props ) => {
                 }
 
                 {/* Column select dropdown */}
-                <SelectField label="Column Name"
-                    value={group}
-                    setValue={(x)=>{
-                        setCheckGroupOptions(true); 
-                        setGroup(x);
-                    }}
-                    options={groupOptions}
-                    hideBlankOption={embeddingMetrics.includes(metric)} 
-                />
+                <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                    <InputLabel>Column Name</InputLabel>
+                    <Select
+                        value = {group}
+                        onChange = {event => {
+                            setCheckGroupOptions(true);
+                            setGroup(event.target.value);
+                        }}
+                    >
+                        {
+                            embeddingMetrics.includes(metric) === false &&
+                            <MenuItem value = ""> &nbsp;</MenuItem>
+                        }
+                        {
+                            groupOptions.map(option => (
+                                <MenuItem value = { option.value }>
+                                    { option.label }
+                                </MenuItem>
+                            ))
+                        }
+                    </Select>
+                </FormControl>
 
-                <Typography>Column Values</Typography>
                 <FormattedMultiSelectField
+                    label = "Column Values"
                     selectedOptions={groupList}
                     setSelectedOptions={setGroupList}
                     getData={params => getGroupSuggestions(params)}
@@ -280,8 +301,8 @@ export const GraphSettings = ( props ) => {
                 />
 
                 {/* Custom search + terms list */}
-                <Typography>Custom Search</Typography>
                 <FormattedMultiSelectField
+                    label = "Custom Search"
                     selectedOptions={searchTerms}
                     setSelectedOptions={setSearchTerms}
                     // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
