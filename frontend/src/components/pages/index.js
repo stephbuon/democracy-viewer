@@ -2,6 +2,8 @@ export * from "./Acknowledgements";
 // export * from "./CreateDistributedConnection";
 export * from "./DatasetResultsPage";
 export * from "./DownloadStarted";
+export * from "./GroupHome";
+export * from "./Groups";
 export * from "./Graph";
 export * from "./Homepage";
 export * from "./Layout";

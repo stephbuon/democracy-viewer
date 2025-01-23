@@ -4,14 +4,14 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from "react";
-import { AlertDialog } from '../AlertDialog';
-import { DatasetTags, DatasetInformation } from '../metadata';
+import { AlertDialog } from '../../AlertDialog';
+import { DatasetTags, DatasetInformation } from '../../metadata';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
-import { reprocessDataset, getUser, deleteDataset, addLike, deleteLike, UpdateMetadata, AddTags, DeleteTag, Popularize } from '../../../api';
+import { reprocessDataset, getUser, deleteDataset, addLike, deleteLike, UpdateMetadata, AddTags, DeleteTag, Popularize } from '../../../../api';
 
-export const ResultModal = (props) => {
+export const DatasetResultModal = (props) => {
     const navigate = useNavigate();
 
     const handleClose = () => props.setOpen(false);

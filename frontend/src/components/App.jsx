@@ -4,7 +4,7 @@ import 'animate.css';
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { 
   Acknowledgements, DatasetResultsPage, 
-  DownloadStarted, Graph, Homepage, Layout, Login, Profile, Register, 
+  DownloadStarted, Graph, GroupHome, Groups, Homepage, Layout, Login, Profile, Register, 
   SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom
 } from "./pages";
   
@@ -65,6 +65,8 @@ export const App = () => {
             <Route path="/download/:type" element={<DownloadStarted/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
+            <Route path="/groups" element={<Groups/>}/>
+            <Route path="/groups/:groupId/home" element={<GroupHome/>}/>
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout}/>} />
             <Route path="/register" element={<Register currUser={user} login={login}/>} />
