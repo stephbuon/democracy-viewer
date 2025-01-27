@@ -376,3 +376,7 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     else:
         return pl.DataFrame()
     
+def network_analysis(table_name: str, to_col: str, from_col: str, token: str) -> pl.DataFrame:
+    df = data.collect_networks(table_name, to_col, from_col, token)
+    
+    return df.collect()
