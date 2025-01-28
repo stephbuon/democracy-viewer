@@ -34,6 +34,12 @@ app.use(createDatabaseConnection);
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 
+// Define api prefix if necessary
+let apiPrefix = "";
+if (process.env.API_PREFIX) {
+    apiPrefix = process.env.API_PREFIX;
+}
+
 // Testing health route
 app.get("/health", async(req, res, next) => {
     await req.knex.raw("SELECT 1");
@@ -41,12 +47,6 @@ app.get("/health", async(req, res, next) => {
     res.json(result);
     next();
 });
-
-// Define api prefix if necessary
-let apiPrefix = "";
-if (process.env.FRONTEND_ENDPOINT.endsWith("/api")) {
-    apiPrefix = "/api"
-}
 
 // Use routes
 // app.use("/distributed", databases);
