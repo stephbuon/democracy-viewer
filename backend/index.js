@@ -42,14 +42,20 @@ app.get("/health", async(req, res, next) => {
     next();
 });
 
+// Define api prefix if necessary
+let apiPrefix = "";
+if (process.env.FRONTEND_ENDPOINT.endsWith("/api")) {
+    apiPrefix = "/api"
+}
+
 // Use routes
 // app.use("/distributed", databases);
-app.use("/datasets", datasets);
-app.use("/graphs", graphs);
-// app.use("/groups", groups);
-// app.use("/preprocessing", preprocessing);
-app.use("/session", session);
-app.use("/users", users);
+app.use(`${ apiPrefix }/datasets`, datasets);
+app.use(`${ apiPrefix }/graphs`, graphs);
+// app.use(`${ apiPrefix }/groups`, groups);
+// app.use(`${ apiPrefix }/preprocessing`, preprocessing);
+app.use(`${ apiPrefix }/session`, session);
+app.use(`${ apiPrefix }/users`, users);
 
 // Delete knex connection
 app.use(deleteDatabaseConnection);
