@@ -290,6 +290,8 @@ export const Graph = (props) => {
             })
           }
         });
+      } else if (metricTypes.directedGraph.includes(params.metric)) {
+
       } else {
         throw new Error(`Metric '${params.metric}' not implimented`)
       }

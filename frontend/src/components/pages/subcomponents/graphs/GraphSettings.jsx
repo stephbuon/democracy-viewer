@@ -22,6 +22,9 @@ export const GraphSettings = ( props ) => {
     const [checkGroupOptions, setCheckGroupOptions] = useState(false);
     const [groupOptions, setGroupOptions] = useState([]);
     const [groupList, setGroupList] = useState([]);
+    const [networkValid, setNetworkValid] = useState(false);
+    const [toCol, setToCol] = useState("");
+    const [fromCol, setFromCol] = useState("");
     const [refreshGroupOptions, setRefreshGroupOptions] = useState(true);
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
@@ -119,6 +122,14 @@ export const GraphSettings = ( props ) => {
             updateGroupNames();
         }
 
+        if (metricTypes.directedGraph.includes(metric)) {
+            setNetworkValid(true);
+        } else {
+            setNetworkValid(false);
+            setToCol("");
+            setFromCol("");
+        }
+
         setLastMetric(metric);
     }, [metric, embedCols]);
 
@@ -132,7 +143,9 @@ export const GraphSettings = ( props ) => {
                 metric: metric,
                 word_list: searchTerms.map(x => x.value),
                 pos_list: posList.map(x => x.value),
-                topn: parseInt(topn)
+                topn: parseInt(topn),
+                to_col: toCol,
+                from_col: fromCol
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
@@ -205,6 +218,12 @@ export const GraphSettings = ( props ) => {
         if (settings.column !== false && !group) {
             setDisabled(true);
             setDisabledMessage("You must select a column to group by for this metric");
+        } else if (
+            (settings.toCol && !toCol) ||
+            (settings.fromCol && !fromCol)
+        ) {
+            setDisabled(true);
+            setDisabledMessage(`You must select a to column and a from column`);
         } else if (settings.values !== false && groupList.length !== settings.values) {
             setDisabled(true);
             setDisabledMessage(`You must select ${ settings.values } column value(s) for this metric`);
@@ -264,53 +283,104 @@ export const GraphSettings = ( props ) => {
                     </>
                 }
 
-                {/* Column select dropdown */}
-                <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                    <InputLabel>Column Name</InputLabel>
-                    <Select
-                        value = {group}
-                        onChange = {event => {
-                            setCheckGroupOptions(true);
-                            setGroup(event.target.value);
-                        }}
-                    >
-                        {
-                            embeddingMetrics.includes(metric) === false &&
-                            <MenuItem value = ""> &nbsp;</MenuItem>
-                        }
-                        {
-                            groupOptions.map(option => (
-                                <MenuItem value = { option.value }>
-                                    { option.label }
-                                </MenuItem>
-                            ))
-                        }
-                    </Select>
-                </FormControl>
+                {
+                    networkValid === false &&
+                    <>
+                        {/* Column select dropdown */}
+                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                            <InputLabel>Column Name</InputLabel>
+                            <Select
+                                value = {group}
+                                onChange = {event => {
+                                    setCheckGroupOptions(true);
+                                    setGroup(event.target.value);
+                                }}
+                            >
+                                {
+                                    embeddingMetrics.includes(metric) === false &&
+                                    <MenuItem value = ""> &nbsp;</MenuItem>
+                                }
+                                {
+                                    groupOptions.map(option => (
+                                        <MenuItem value = { option.value }>
+                                            { option.label }
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
 
-                <FormattedMultiSelectField
-                    label = "Column Values"
-                    selectedOptions={groupList}
-                    setSelectedOptions={setGroupList}
-                    getData={params => getGroupSuggestions(params)}
-                    id="valueSelect"
-                    isDisabled={selectToggle}
-                    className="mb-3"
-                    closeMenuOnSelect={false}
-                    refresh={refreshGroupOptions}
-                />
+                        <FormattedMultiSelectField
+                            label = "Column Values"
+                            selectedOptions={groupList}
+                            setSelectedOptions={setGroupList}
+                            getData={params => getGroupSuggestions(params)}
+                            id="valueSelect"
+                            isDisabled={selectToggle}
+                            className="mb-3"
+                            closeMenuOnSelect={false}
+                            refresh={refreshGroupOptions}
+                        />
 
-                {/* Custom search + terms list */}
-                <FormattedMultiSelectField
-                    label = "Custom Search"
-                    selectedOptions={searchTerms}
-                    setSelectedOptions={setSearchTerms}
-                    // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
-                    getData={getWordSuggestions}
-                    id="customSearchSelect"
-                    className="mb-3"
-                    closeMenuOnSelect={false}
-                />
+                        {/* Custom search + terms list */}
+                        <FormattedMultiSelectField
+                            label = "Custom Search"
+                            selectedOptions={searchTerms}
+                            setSelectedOptions={setSearchTerms}
+                            // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
+                            getData={getWordSuggestions}
+                            id="customSearchSelect"
+                            className="mb-3"
+                            closeMenuOnSelect={false}
+                        />
+                    </>
+                }
+
+                {
+                    networkValid === true &&
+                    <>
+                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                            <InputLabel>To Column</InputLabel>
+                            <Select
+                                value = {toCol}
+                                onChange = {event => {
+                                    setToCol(event.target.value);
+                                }}
+                            >
+                                <MenuItem value = ""> &nbsp;</MenuItem>
+                                {
+                                    groupOptions.map(option => (
+                                        <MenuItem value = { option.value }>
+                                            { option.label }
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
+
+                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                            <InputLabel>From Column</InputLabel>
+                            <Select
+                                value = {fromCol}
+                                onChange = {event => {
+                                    setFromCol(event.target.value);
+                                }}
+                            >
+                                {
+                                    embeddingMetrics.includes(metric) === false &&
+                                    <MenuItem value = ""> &nbsp;</MenuItem>
+                                }
+                                {
+                                    groupOptions.map(option => (
+                                        <MenuItem value = { option.value }>
+                                            { option.label }
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
+                    </>
+                }
 
                 {
                     (
