@@ -266,7 +266,7 @@ export const GraphSettings = ( props ) => {
 
                 {/* Column select dropdown */}
                 <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                    <InputLabel>Column Name</InputLabel>
+                    <InputLabel>Group By</InputLabel>
                     <Select
                         value = {group}
                         onChange = {event => {
@@ -289,7 +289,7 @@ export const GraphSettings = ( props ) => {
                 </FormControl>
 
                 <FormattedMultiSelectField
-                    label = "Column Values"
+                    label = "Filter For"
                     selectedOptions={groupList}
                     setSelectedOptions={setGroupList}
                     getData={params => getGroupSuggestions(params)}
