@@ -48,6 +48,7 @@ export const Groups = (props) => {
     const handleCreateGroup = () => {
         console.log("Creating group with name:", groupName);
         handleClose();
+        Navigate("/group-home", {state: {groupName, groupDescription}})
     };
 
     const GetNewPage = async (selectedPage) => {
