@@ -405,7 +405,7 @@ export const UploadModal = (props) => {
                 <Box sx={{ padding: 2 }}>
                     <Typography variant="h5" align="center" gutterBottom>
                         Preprocessing Settings
-                        <Tooltip title="Provide details on how you would like your dataset to be preprocessed.">
+                        <Tooltip title="Provide details on how you would like your dataset to be preprocessed. Starred fields must be filled.">
                             <IconButton size="small">
                                 <HelpOutlineIcon fontSize="small" />
                             </IconButton>
@@ -442,12 +442,13 @@ export const UploadModal = (props) => {
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
                                 {/* <Typography>Text Columns</Typography> */}
                                 <FormattedMultiSelectField
-                                    label="Text Columns"
+                                    label="Text Columns*"
                                     selectedOptions={textCols}
                                     setSelectedOptions={setTextCols}
                                     getData={textColOptions}
                                     id="textColSelect"
                                     closeMenuOnSelect={false}
+                                    required
                                 />
                             </FormControl>
                         </Tooltip>
@@ -455,7 +456,7 @@ export const UploadModal = (props) => {
                         <Tooltip arrow title = "The language the text column(s) are written in. If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                                 
-                                <InputLabel>Language</InputLabel>
+                                <InputLabel>Language*</InputLabel>
                                 
                                 <Select
                                     value={language}
@@ -476,13 +477,13 @@ export const UploadModal = (props) => {
                             </FormControl>
                         </Tooltip>
 
-                        <Typography>Custom Stopwords TXT</Typography>
+                        <Typography color="darkslategrey">Custom Stopwords TXT (optional)</Typography>
                         {
                             stopwordsFile === undefined &&
                             <Button
                                 variant="contained"
                                 component="label"
-                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                sx={{ mb: 5, bgcolor: "cornflowerblue", color: "white", borderRadius: "50px", px: 2, py: 1, width: 350}}
                                 >
                                 Upload Stopwords List
                                 <input
@@ -521,7 +522,7 @@ export const UploadModal = (props) => {
                             </div>
                         )}>
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                <InputLabel>Tokenization</InputLabel>
+                                <InputLabel>Tokenization*</InputLabel>
                                 <Select
                                     value={tokenization}
                                     onChange={event => setTokenization(event.target.value)}
