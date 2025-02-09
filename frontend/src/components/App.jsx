@@ -48,6 +48,17 @@ export const App = () => {
   }
 
   useEffect(() => {
+    // Redirect to domain if running on http and not localhost
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHttp = window.location.protocol === "http:";
+    if (!isLocalhost && isHttp) {
+      // Redirect to deployed frontend
+      const path = window.location.pathname;
+      window.location.href = `https://democracyviewer.com${ path }`;
+    }
+  }, [])
+
+  useEffect(() => {
     setDataset(data ? data.dataset : undefined);
     setUser(data ? data.user : undefined);
   }, [data])
