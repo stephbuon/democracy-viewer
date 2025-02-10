@@ -477,36 +477,6 @@ export const UploadModal = (props) => {
                             </FormControl>
                         </Tooltip>
 
-                        <Typography color="darkslategrey">Custom Stopwords TXT (optional)</Typography>
-                        {
-                            stopwordsFile === undefined &&
-                            <Button
-                                variant="contained"
-                                component="label"
-                                //cornflowerblue, darkslategrey, borderRadius: "50px"
-                                sx={{ mb: 5, bgcolor: "royallue", color: "white", px: 2, py: 1, width: 355}}
-                                >
-                                Upload Stopwords List
-                                <input
-                                    type="file"
-                                    accept=".txt"
-                                    hidden
-                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
-                                />
-                            </Button>
-                        }
-                        
-                        {
-                            stopwordsFile !== undefined &&
-                            <Button
-                                variant="contained"
-                                component="label"
-                                sx={{ mb: 5, bgcolor: "royalblue", color: "white", borderRadius: "50px", px: 4, py: 1 }}
-                                onClick={() => setStopwordsFile(undefined)}
-                            >
-                                Remove Stopwords List
-                            </Button>
-                        }
 
                         <Tooltip arrow title = {(
                             <div>
@@ -561,6 +531,37 @@ export const UploadModal = (props) => {
                                 </Tooltip>
                             }
                         </FormGroup>
+
+                        <Typography color="darkslategrey"></Typography>
+                        {
+                            stopwordsFile === undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                //cornflowerblue, darkslategrey, borderRadius: "50px"
+                                sx={{ mb: .5, bgcolor: "royallue", color: "white", px: 2, py: 1, width: 355}}
+                                >
+                                Upload Stopwords List
+                                <input
+                                    type="file"
+                                    accept=".txt"
+                                    hidden
+                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
+                                />
+                            </Button>
+                        }
+                        
+                        {
+                            stopwordsFile !== undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: 4, bgcolor: "royalblue", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                onClick={() => setStopwordsFile(undefined)}
+                            >
+                                Remove Stopwords List
+                            </Button>
+                        }
                     </Box>
                 </Box>
             )}
