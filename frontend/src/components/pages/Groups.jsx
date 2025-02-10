@@ -14,7 +14,7 @@ import {
 import { GroupTable } from '../common/tables';
 import { filterGroups } from "../../api";
 
-const navigate = navigate();
+//const navigate = navigate();
 
 const pageLength = 5;
 
@@ -50,7 +50,7 @@ export const Groups = (props) => {
     const handleCreateGroup = () => {
         console.log("Creating group with name:", groupName);
         handleClose();
-        navigate("/group-home", {state: {groupName, groupDescription}})
+        //navigate("/group-home", {state: {groupName, groupDescription}})
     };
 
     const GetNewPage = async (selectedPage) => {

@@ -483,7 +483,8 @@ export const UploadModal = (props) => {
                             <Button
                                 variant="contained"
                                 component="label"
-                                sx={{ mb: 5, bgcolor: "cornflowerblue", color: "white", borderRadius: "50px", px: 2, py: 1, width: 350}}
+                                //cornflowerblue, darkslategrey, borderRadius: "50px"
+                                sx={{ mb: 5, bgcolor: "royallue", color: "white", px: 2, py: 1, width: 355}}
                                 >
                                 Upload Stopwords List
                                 <input
@@ -500,7 +501,7 @@ export const UploadModal = (props) => {
                             <Button
                                 variant="contained"
                                 component="label"
-                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                sx={{ mb: 5, bgcolor: "royalblue", color: "white", borderRadius: "50px", px: 4, py: 1 }}
                                 onClick={() => setStopwordsFile(undefined)}
                             >
                                 Remove Stopwords List
