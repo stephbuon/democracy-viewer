@@ -141,7 +141,7 @@ export const Graph = (props) => {
             tempData.graph[index].x.push(dataPoint.x);
             tempData.graph[index].y.push(dataPoint.y);
             tempData.graph[index].hovertext.push(dataPoint.word); // Show on hover
-          }  
+          }
 
           if (!overlap) {
             // If no overlap, display the text on the graph
@@ -154,14 +154,14 @@ export const Graph = (props) => {
         });
 
         // Sort for legend
-        tempData.graph.sort((a,b) => {
-            if (a.name < b.name) {
-              return -1;
-            } else if (a.name > b.name) {
-              return 1;
-            } else {
-              return 0;
-            }
+        tempData.graph.sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          } else if (a.name > b.name) {
+            return 1;
+          } else {
+            return 0;
+          }
         });
       } else if (metricTypes.heatmap.includes(params.metric)) {
         tempData.xLabel = "";
@@ -291,7 +291,68 @@ export const Graph = (props) => {
           }
         });
       } else if (metricTypes.directedGraph.includes(params.metric)) {
+        const nodes = [...new Set([...res.map(x => x.source), ...res.map(x => x.target)])];
 
+        const positions = {};
+        nodes.forEach(x => {
+          positions[x] = {
+            x: Math.random() * 10,
+            y: Math.random() * 10
+          }
+        });
+
+        // Use gradient descent to choose node locations
+        const iterations = 10; // Number of iterations to refine positions
+        const learning_rate = 0.1;
+
+        for (let it = 0; it < iterations; it++) {
+          res.forEach(edge => {
+            const sourcePos = positions[edge.source];
+            const targetPos = positions[edge.target];
+
+            const dx = (targetPos.x - sourcePos.x) * learning_rate;
+            const dy = (targetPos.y - sourcePos.y) * learning_rate;
+
+            // Move source slightly towards target
+            positions[edge.source] = {
+              x: sourcePos.x + dx,
+              y: sourcePos.y + dy
+            };
+
+            // Move target slightly towards source
+            positions[edge.target] = {
+              x: targetPos.x - dx,
+              y: targetPos.y - dy
+            };
+          });
+
+          const edgeTraces = res.map(edge => {
+            return {
+              x: [positions[edge.source]?.x, positions[edge.target]?.x, null],
+              y: [positions[edge.source]?.y, positions[edge.target]?.y, null],
+              text: edge.count,
+              textposition: 'middle center',
+              hoverinfo: 'text',
+              mode: 'lines+text',
+              line: {
+                width: Math.max(1, edge.count),
+                color: 'blue'
+              },
+              type: 'scatter'
+            };
+          });
+        
+          const nodeTrace = {
+            x: Object.values(positions).map(pos => pos?.x),
+            y: Object.values(positions).map(pos => pos?.y),
+            text: Object.keys(positions),
+            mode: 'markers+text',
+            marker: { size: 10 },
+            type: 'scatter'
+          };
+
+          tempData.graph = [nodeTrace, ...edgeTraces];
+        }
       } else {
         throw new Error(`Metric '${params.metric}' not implimented`)
       }
@@ -455,9 +516,9 @@ export const Graph = (props) => {
                   height: "60vh"
                 }}>
                   <div class="spinner-border" style={{
-                      width: "5rem",
-                      height: "5rem"
-                    }} role="status">
+                    width: "5rem",
+                    height: "5rem"
+                  }} role="status">
                     <span class="sr-only"></span>
                   </div>
                 </div>
@@ -465,21 +526,21 @@ export const Graph = (props) => {
             )}
 
             {
-              graph === true && zoomLoading === false && 
-                <GraphComponent 
-                  border 
-                  data={graphData} 
-                  setData={setData} 
-                  setZoomLoading={setZoomLoading} 
-                  isOverlappingScatter={isOverlappingScatter}
-                />
+              graph === true && zoomLoading === false &&
+              <GraphComponent
+                border
+                data={graphData}
+                setData={setData}
+                setZoomLoading={setZoomLoading}
+                isOverlappingScatter={isOverlappingScatter}
+              />
             }
 
             {
-              graph === false && settings === false && loading === false && 
-                <div id="test" style={{ textAlign: "center" }}>
-                  No Results Found
-                </div>
+              graph === false && settings === false && loading === false &&
+              <div id="test" style={{ textAlign: "center" }}>
+                No Results Found
+              </div>
             }
           </Grid>
         </Grid>

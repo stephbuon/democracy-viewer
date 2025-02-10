@@ -313,7 +313,7 @@ def collect_networks(table_name: str, to_col: str, from_col: str, token: str):
     dataset_table = f"datasets_{ table_name }"
     
     query = f'''
-        SELECT "{ to_col }" AS to_col, "{ from_col }" AS from_col, COUNT(*) AS count
+        SELECT "{ to_col }" AS target, "{ from_col }" AS source, COUNT(*) AS count
         FROM { dataset_table }
         GROUP BY "{ to_col }", "{ from_col }"
         ORDER BY COUNT(*) DESC

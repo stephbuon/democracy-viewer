@@ -237,7 +237,7 @@ export const GraphSettings = ( props ) => {
             setDisabled(false);
             setDisabledMessage("");
         }
-    }, [metric, group, searchTerms, groupList]);
+    }, [metric, group, searchTerms, groupList, toCol, fromCol]);
 
     return <>
         <Modal open={props.show}
