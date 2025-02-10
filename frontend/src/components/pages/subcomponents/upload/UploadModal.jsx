@@ -539,9 +539,9 @@ export const UploadModal = (props) => {
                                 variant="contained"
                                 component="label"
                                 //cornflowerblue, darkslategrey, borderRadius: "50px"
-                                sx={{ mb: .5, bgcolor: "royallue", color: "white", px: 2, py: 1, width: 355}}
+                                sx={{ mb: .5, bgcolor: "royalblue", color: "white", px: 2, py: 1, width: 355}}
                                 >
-                                Upload Stopwords List
+                                Upload Stopwords List (optional)
                                 <input
                                     type="file"
                                     accept=".txt"
@@ -556,7 +556,7 @@ export const UploadModal = (props) => {
                             <Button
                                 variant="contained"
                                 component="label"
-                                sx={{ mb: 4, bgcolor: "royalblue", color: "white", borderRadius: "50px", px: 4, py: 1 }}
+                                sx={{ mb: 4, bgcolor: "red", color: "white", px: 4, py: 1 }}
                                 onClick={() => setStopwordsFile(undefined)}
                             >
                                 Remove Stopwords List
