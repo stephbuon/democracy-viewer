@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { GroupTable } from '../common/tables';
 import { filterGroups } from "../../api";
+import { useNavigate } from "react-router-dom";
 
 const pageLength = 5;
 
@@ -28,6 +29,8 @@ export const Groups = (props) => {
     const [loadingResults, setLoadingResults] = useState(false);
     const [totalNumResults, setTotalNumResults] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
+
+    const navigate = useNavigate();
 
     const handleOpen = (type, group) => {
         setModalType(type);
@@ -48,7 +51,7 @@ export const Groups = (props) => {
     const handleCreateGroup = () => {
         console.log("Creating group with name:", groupName);
         handleClose();
-        Navigate("/group-home", {state: {groupName, groupDescription}})
+        navigate("/group-home", {state: {groupName, groupDescription}})
     };
 
     const GetNewPage = async (selectedPage) => {

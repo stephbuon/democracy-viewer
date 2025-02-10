@@ -5,7 +5,7 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { 
   Acknowledgements, DatasetResultsPage, 
   DownloadStarted, Graph, GroupHome, Groups, Homepage, Layout, Login, Profile, Register, 
-  SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom,
+  SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom
 } from "./pages";
   
 export const App = () => {
@@ -66,7 +66,7 @@ export const App = () => {
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
             <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
             <Route path="/groups" element={<Groups/>}/>
-            <Route path= "/groupHome" element={<Groups />} />
+            <Route path= "/group-home" element={<GroupHome />} />
             <Route path="/groups/:groupId/home" element={<GroupHome/>}/>
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout}/>} />

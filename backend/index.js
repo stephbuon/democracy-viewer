@@ -16,7 +16,7 @@ const { optAuthenticateJWT } = require("./middleware/authentication");
 // const databases = require("./routes/databases");
 const datasets = require("./routes/datasets");
 const graphs = require("./routes/graphs");
-// const groups = require("./routes/groups");
+const groups = require("./routes/groups");
 const session = require("./routes/session");
 const users = require('./routes/users');
 
@@ -46,7 +46,7 @@ app.get("/health", async(req, res, next) => {
 // app.use("/distributed", databases);
 app.use("/datasets", datasets);
 app.use("/graphs", graphs);
-// app.use("/groups", groups);
+app.use("/groups", groups);
 // app.use("/preprocessing", preprocessing);
 app.use("/session", session);
 app.use("/users", users);
