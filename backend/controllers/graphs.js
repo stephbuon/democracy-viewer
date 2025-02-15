@@ -2,8 +2,62 @@ const files = require("../util/file_management");
 const runPython = require("../util/python_config");
 require('dotenv').config();
 const dataQueries = require("../util/data_queries");
+const aws = require("../util/aws");
 const crypto = require('crypto');
 const datasets = require("../models/datasets");
+const graphs = require("../models/graphs");
+
+// Get the url to upload a graph to S3
+const publishGraph = async(knex, settings, user) => {
+    const model = new datasets(knex);
+
+    // Check dataset metadata to make sure user has access to this dataset
+    const metadata = await model.getMetadata(settings.table_name);
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user.email } does not have access to the dataset ${ settings.table_name }`);
+    }
+
+    // Add user to the settings
+    settings.user = user.email;
+    // Hash the settings to get a unique id
+    const hashedSettings = crypto.createHash('md5').update(JSON.stringify(settings)).digest('hex');
+
+    // Upload the settings
+    const settingsFile = `files/graphs/${ hashedSettings }.json`;
+    files.generateJSON(settingsFile, settings);
+    await aws.uploadFile(settingsFile, `graphs/${ hashedSettings }/settings.json`);
+
+    // Get the signed url to upload graph image
+    const signedUrl = await aws.uploadGraph(hashedSettings);
+
+    // Return signed url and unique id
+    return {
+        id: hashedSettings,
+        url: signedUrl
+    }
+}
+
+// Add metadata for the graph
+const addMetadata = async(knex, params, user) => {
+    const model_graphs = new graphs(knex);
+    const model_datasets = new datasets(knex);
+
+    // Check dataset metadata to make sure user has access to this dataset
+    const metadata = await model_datasets.getMetadata(params.table_name);
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user.email } does not have access to the dataset ${ params.table_name }`);
+    }
+
+    // Verify that the graph exists with the given id
+    const graphPath = `graphs/${ params.s3_id }/graph.png`;
+    const graphExists = await aws.checkFileExists(graphPath);
+    if (!graphExists) {
+        throw new Error(`No graph has been uploaded with the id '${ params.s3_id }'`);
+    }
+
+    // Upload metadata to s3
+    return await model_graphs.createMetadata(user.email, params);
+}
 
 // Generate the data for a graph based on user input
 const createGraph = async(knex, dataset, params, user = null) => {
@@ -84,6 +138,7 @@ const getZoomIds = async(knex, table, params, user = undefined) => {
     };
 }
 
+// Get the paginated records for a set of ids
 const getZoomRecords = async(knex, table, params, user = undefined) => {
     const model = new datasets(knex);
 
@@ -124,6 +179,8 @@ const getZoomRecords = async(knex, table, params, user = undefined) => {
 }
 
 module.exports = {
+    publishGraph,
+    addMetadata,
     createGraph,
     getZoomIds,
     getZoomRecords

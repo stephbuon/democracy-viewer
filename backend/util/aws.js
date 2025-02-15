@@ -3,7 +3,7 @@ const pl = require("nodejs-polars");
 const { Upload } = require("@aws-sdk/lib-storage");
 const { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand } = require("@aws-sdk/client-athena");
 const { BatchClient, SubmitJobCommand } = require("@aws-sdk/client-batch");
-const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const crypto = require('crypto');
 const humanize = require('humanize-duration');
@@ -192,6 +192,30 @@ const downloadFileDirect = async(query) => {
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
+const uploadGraph = async(name) => {
+    // Generate file path for this graph and its settings
+    const graphPath = `graphs/${ name }/graph.png`;
+    console.log(name, graphPath)
+
+    // Check if this graph has already been uploaded
+    const graphExists = await checkFileExists(graphPath);
+
+    if (graphExists ) {
+        // Return placeholder if this graph has already been uploaded
+        return "Already uploaded";
+    }
+
+    // Specify file upload command for an image
+    const uploadCommand = new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: graphPath,
+        ContentType: "image/png"
+    });
+
+    // Get upload API URL
+    return await getSignedUrl(s3Client, uploadCommand, { expiresIn: 3600 });
+}
+
 const uploadFile = async(localFile, s3File, token = null) => {
     await new Upload({
         client: s3Client,
@@ -205,9 +229,11 @@ const uploadFile = async(localFile, s3File, token = null) => {
 }
 
 module.exports = {
+    checkFileExists,
     download,
     downloadFile,
     submitBatchJob,
     downloadFileDirect,
+    uploadGraph,
     uploadFile
 }
