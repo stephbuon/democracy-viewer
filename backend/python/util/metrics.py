@@ -36,7 +36,7 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     # Run query
     df = data.run_query(query, token)
 
-    # Compute proportions
+    # Rename columns
     if column != None and column != "":
         df = df.rename({ "group": "x", "proportion": "y", "word": "group", "word_rank": "set" })
     else:
@@ -50,65 +50,23 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     return df.collect()
 
 def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
-    # Get the total number of words in the corpus
-    total_corpus_words = data.total_word_count(table_name, token)
-    # Get records by words and groups
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
-    # Get unique words and groups
-    words = df.get_column("word").unique().to_list()
-    groups = df.get_column("group").unique().to_list()
-    # Get counts of words and groups
-    word_counts = data.word_counts(table_name, word_list, pos_list, token)
-    group_counts = data.group_counts(table_name, column, values, token)
+    # Generate query for metric calculations
+    query = data.metric_log_likelihood(table_name, column, values, word_list, pos_list)
+    # Run query
+    df = data.run_query(query, token)
     
-    output = []
-    for word in words:
-        # Initialize df for word
-        df2 = pl.DataFrame({
-            "word": [word]
-        })
-        for group in groups:
-            # Compute LL terms
-            # Count of word in group
-            a = (
-                df
-                    .filter(
-                        (pl.col("word") == word) & 
-                        (pl.col("group") == group)
-                    )
-                    .get_column("count")
-                    .sum()
-            )
-            # Count of word not in group
-            b = word_counts[word] - a
-            # Count of group not word
-            c = group_counts[group] - a
-            # Count not group not word
-            d = total_corpus_words - a - b - c
-            
-            e1 = (a + c) * (a + b) / total_corpus_words
-            e2 = (b + d) * (a + b) / total_corpus_words
-            if a > 0:
-                ll = 2 * (a * np.log(a / e1))
-            else:
-                ll = 0
-            if b > 0:
-                ll += 2 * b * np.log(b / e2)
-                
-            # Add ll for group to df
-            df2 = df2.with_columns(
-                pl.lit(np.log(ll)).alias(group)
-            )
-        output.append(df2)
+    # Reconfigure output and rename columns
+    df = df.collect() \
+        .pivot(
+            "group",
+            index = "word",
+            values = "ll"
+        ) \
+            .rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }) \
+            .fill_null(0) \
+            .sort(pl.col("word"))
     
-    if len(output) > 0:
-        output_df: pl.DataFrame = pl.concat(output)
-        # Rename columns
-        output_df = output_df.rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" })
-        
-        return output_df
-    else:
-        return pl.DataFrame()
+    return df
 
 def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], scatter = True, token: str | None = None) -> pl.DataFrame:
     # Get the number of groups
