@@ -151,7 +151,7 @@ def subj_verb_pairs(tokens_table: str, word_list: list[str]):
     return query
 
 # Get number of group values that include words
-def group_count_by_words(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str], token: str | None = None) -> dict[str, int]:
+def group_count_by_words(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str], token: str | None = None):
     dataset_table = f"datasets_{ table_name }"
     tokens_table = f"tokens_{ table_name }"
     token_filter = []
@@ -181,7 +181,7 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT word, COUNT(DISTINCT dataset."{ column }") AS "count"
+        SELECT word, COUNT(DISTINCT dataset."{ column }") AS num_groups
         FROM (
             SELECT record_id, word
             FROM democracy_viewer_athena.{ tokens_table }
@@ -201,21 +201,13 @@ def group_count_by_words(table_name: str, column: str, values: list[str], word_l
     return query
 
 # Get the total number of distinct group values
-def group_count(table_name: str, column: str, token: str | None = None):
+def group_count(table_name: str, column: str):
     query = f'''
-        SELECT COUNT(DISTINCT "{ column }") AS "{ column }"
+        SELECT COUNT(DISTINCT "{ column }") AS total_groups
         FROM democracy_viewer_athena.datasets_{ table_name }
     '''
     
-    # Get distinct values in column
-    n_unique = (
-        s3.download(query, token)
-            .collect()
-            .get_column(column)
-            .to_list()[0]
-    )
-        
-    return int(n_unique)
+    return query
 
 # Get the total word count in a corpus
 def total_word_count(table_name: str):
@@ -352,13 +344,13 @@ def metric_proportions(table_name: str, column: str | None, values: list[str], w
 
 def metric_log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = []):
     query = f'''
-        WITH total_word_count AS (
+        WITH twc AS (
             { total_word_count(table_name) }
-        ), word_counts AS (
+        ), wc AS (
             { word_counts(table_name, word_list, pos_list) }
-        ), group_counts AS (
+        ), gc AS (
             { group_counts(table_name, column, values) }
-        ), basic_query AS (
+        ), bq AS (
             { basic_selection(table_name, column, values, word_list, pos_list) }
         )
         SELECT *
@@ -383,22 +375,121 @@ def metric_log_likelihood(table_name: str, column: str, values: list[str], word_
                     (1. * (b + d) * (a + b) / total_count) AS e2
                 FROM (
                     SELECT 
-                        basic_query.word,
-                        basic_query."group",
-                        (basic_query."count") AS a,
-                        (word_counts.word_count - basic_query."count") AS b,
-                        (group_counts.group_count - basic_query."count") AS c,
-                        (total_word_count.total_count - basic_query."count" - (word_counts.word_count - basic_query."count") - (group_counts.group_count - basic_query."count")) AS d,
+                        bq.word,
+                        bq."group",
+                        (bq."count") AS a,
+                        (wc.word_count - bq."count") AS b,
+                        (gc.group_count - bq."count") AS c,
+                        (twc.total_count - bq."count" - (wc.word_count - bq."count") - (gc.group_count - bq."count")) AS d,
                         total_count
-                    FROM basic_query
-                    JOIN word_counts
-                    ON basic_query."word" = word_counts."word"
-                    JOIN group_counts
-                    ON basic_query."group" = group_counts."group"
-                    CROSS JOIN total_word_count
+                    FROM bq
+                    JOIN wc
+                    ON bq."word" = wc."word"
+                    JOIN gc
+                    ON bq."group" = gc."group"
+                    CROSS JOIN twc
                 )
             )
         )
+    '''
+    
+    return query
+
+def metric_tf_idf_scatter(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = []):
+    query = f'''
+        WITH tg AS (
+            { group_count(table_name, column) }
+        ),
+        gc AS (
+            { group_counts(table_name, column, values) }
+        ),
+        gcbw AS (
+            { group_count_by_words(table_name, column, values, word_list, pos_list) }
+        ),
+        bq AS (
+            { basic_selection(table_name, column, values, word_list, pos_list) }
+        )
+        SELECT
+            term1.word,
+            "group",
+            (tf * idf) AS tf_idf
+        FROM (
+            SELECT 
+                word,
+                bq."group",
+                (1. * "count" / group_count) AS tf
+            FROM bq
+            JOIN gc
+            ON bq."group" = gc."group"
+        ) AS term1
+        JOIN (
+            SELECT
+                word,
+                LOG(1. * total_groups / num_groups, 2) AS idf
+            FROM gcbw
+            CROSS JOIN tg
+            WHERE num_groups < total_groups
+        ) AS term2
+        ON term1.word = term2.word
+    '''
+    
+    return query
+
+def metric_tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5):
+    # Configure the query to select the total number of groups based on provided group values
+    if len(values) == 0:
+        tg_query = group_count(table_name, column)
+    else:
+        tg_query = f"SELECT { len(values) } AS total_groups"
+    
+    query = f'''
+        WITH tg AS (
+            { tg_query }
+        ),
+        gc AS (
+            { group_counts(table_name, column, values) }
+        ),
+        gcbw AS (
+            { group_count_by_words(table_name, column, values, word_list, pos_list) }
+        ),
+        bq AS (
+            { basic_selection(table_name, column, values, word_list, pos_list) }
+        )
+        SELECT
+            word,
+            "group",
+            tf_idf,
+            word_rank
+        FROM (
+            SELECT
+                term1.word,
+                "group",
+                (tf * idf) AS tf_idf,
+                ROW_NUMBER() OVER (
+                    PARTITION BY "group"
+                    ORDER BY (tf * idf) DESC
+                ) AS word_rank
+            FROM (
+                SELECT 
+                    word,
+                    bq."group",
+                    (1. * "count" / group_count) AS tf
+                FROM bq
+                JOIN gc
+                ON bq."group" = gc."group"
+            ) AS term1
+            JOIN (
+                SELECT
+                    word,
+                    LOG(1. * total_groups / num_groups, 2) AS idf
+                FROM gcbw
+                CROSS JOIN tg
+                WHERE num_groups < total_groups
+            ) AS term2
+            ON term1.word = term2.word
+            GROUP BY term1.word, "group", (tf * idf)
+        )
+        WHERE word_rank <= { topn }
     '''
     
     return query
