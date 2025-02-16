@@ -109,89 +109,23 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
     
     return df
 
-def kld(probs: pl.LazyFrame, m: pl.LazyFrame):
-    return (probs * (probs / m))
-
 def jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
     # Create custom groups filter if not defined
     if column != None and column != "" and len(values) == 0:
         values = data.get_column_values(table_name, column, 10, token)
+        
+    # Generate query for metric calculations
+    query = data.metric_jsd(table_name, column, values, word_list, pos_list)
+    # Run query
+    df = data.run_query(query, token)
     
-    # Get raw token data
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token).collect()
+    # Reconfigure output and rename columns
+    df = df.collect() \
+        .rename({
+            "group1": "x",
+            "group2": "y",
+            "jsd": "fill"
+        })
     
-    # Get distinct groups
-    groups = (
-        df
-            .get_column("group")
-            .unique()
-            .to_list()
-    )
-    # Get word and group counts
-    df = (
-        df
-            .with_columns(
-                prob = pl.col("count") / pl.col("count").sum().over("group")
-            )
-    )
-    # Calculate probabilities
-    df = (
-        df
-            .pivot(
-                on = "group",
-                index = "word",
-                values = "prob"
-            )
-            .fill_null(0)
-    )
-    
-    # Compare all pairs of groups
-    output = []
-    for i in range(len(groups)):
-        for j in range(i+1, len(groups)):
-            group1 = str(groups[i])
-            group2 = str(groups[j])
-            # Subset data by current groups
-            probs = df.select(["word", group1, group2])
-            
-            probs = (
-                probs
-                    .with_columns(
-                        # Compute average distribution
-                        mean = pl.mean_horizontal(pl.all())
-                    )
-                    .with_columns(
-                        # Compute KLD for each group
-                        kld_1 = pl.col(group1) * (pl.col(group1) / pl.col("mean")).log(),
-                        kld_2 = pl.col(group2) * (pl.col(group2) / pl.col("mean")).log()
-                    )
-                    .fill_nan(0)
-                    .with_columns(
-                        # Compute mean KLD
-                        kld = pl.sum_horizontal(["kld_1", "kld_2"])
-                    )
-            )
-            # Compute JSD
-            jsd_score = 0.5 * (
-                probs
-                    .get_column("kld")
-                    .sum()
-            )
-            # Add result to df
-            output.append(
-                pl.DataFrame({
-                    "group1": [group1],
-                    "group2": [group2],
-                    "jsd": [jsd_score]
-                })
-            )
-              
-    # Concatenate results
-    if len(output) > 0:
-        output_df: pl.DataFrame = pl.concat(output)
-        # Rename columns
-        output_df = output_df.rename({ "group1": "x", "group2": "y", "jsd": "fill" })
-        return output_df
-    else:
-        return pl.DataFrame()
+    return df
     

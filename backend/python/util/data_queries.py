@@ -299,12 +299,12 @@ def metric_word_counts(table_name: str, column: str | None, values: list[str], w
         )
         SELECT "group", "word", "count", word_rank
         FROM ranked_words
-        WHERE word_rank <= { topn }
+        { f"WHERE word_rank <= { topn }" if len(word_list) == 0 else "" }
     '''
     
     return full_query
 
-def metric_proportions(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5):
+def metric_proportions(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int | None = 5):
     basic_query = basic_selection(table_name, column, values, [], pos_list)
     
     word_filter = None
@@ -337,7 +337,7 @@ def metric_proportions(table_name: str, column: str | None, values: list[str], w
         )
         SELECT "group", "word", proportion, word_rank
         FROM ranked_words
-        WHERE word_rank <= { topn }
+        { f"WHERE word_rank <= { topn }" if topn is not None and len(word_list) == 0 else "" }
     '''
     
     return full_query
@@ -489,7 +489,40 @@ def metric_tf_idf_bar(table_name: str, column: str, values: list[str], word_list
             ON term1.word = term2.word
             GROUP BY term1.word, "group", (tf * idf)
         )
-        WHERE word_rank <= { topn }
+        { f"WHERE word_rank <= { topn }" if topn is not None and len(word_list) == 0 else "" }
+    '''
+    
+    return query
+
+def metric_jsd(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = []):
+    query = f'''
+        WITH word_probs AS (
+            { metric_proportions(table_name, column, values, word_list, pos_list, None) }
+        ), word_means AS (
+            SELECT
+                word,
+                AVG(proportion) AS mean_prob
+            FROM word_probs
+            GROUP BY word
+        ), kld AS (
+            SELECT
+                a.word AS word,
+                a."group" AS group1,
+                b."group" AS group2,
+                a.proportion * LN(a.proportion / c.mean_prob) AS kld1,
+                b.proportion * LN(b.proportion / c.mean_prob) AS kld2
+            FROM word_probs a
+            JOIN word_probs b
+            ON a.word = b.word AND a."group" < b."group"
+            JOIN word_means c
+            ON a.word = c.word
+        )
+        SELECT
+            group1,
+            group2,
+            SUM(0.5 * (kld1 + kld2)) AS jsd
+        FROM kld
+        GROUP BY group1, group2
     '''
     
     return query
