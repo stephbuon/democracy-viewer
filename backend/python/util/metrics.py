@@ -7,48 +7,24 @@ def counts(table_name: str, column: str | None, values: list[str], word_list: li
     # Create custom groups filter if not defined
     if column != None and column != "" and len(values) == 0:
         values = data.get_column_values(table_name, column, 10, token)
-    
-    # Get raw token data
-    df = data.basic_selection(table_name, column, values, word_list, pos_list, token)
+        
+    # Generate query for metric calculations
+    query = data.metric_word_counts(table_name, column, values, word_list, pos_list, topn)
+    # Run query
+    df = data.run_query(query, token)
     
     # Rename columns based on if there is a grouping variable or not
     if column != None and column != "":
-        df = df.rename({ "group": "x", "count": "y", "word": "group" })
+        df = df.rename({ "group": "x", "count": "y", "word": "group", "word_rank": "set" })
     else:
         df = (
             df
-                .rename({ "count": "y", "word": "group" })
+                .drop(["group"])
+                .rename({ "count": "y", "word": "group", "word_rank": "set" })
                 .with_columns(x = pl.lit(""))
         )
     
-    # # Keep topn words for each group
-    if len(word_list) == 0:
-        df = (
-            df
-                .sort("y", descending = True)
-                .group_by("x")
-                .head(n=int(topn))
-        )
-    else:
-        df = df.sort("y", descending = True)
-        
-    # Rank words in each group
-    df = df.collect()
-    df2 = (
-        df
-            .clone()
-            .with_columns(
-                set = (
-                    pl.col("y")
-                        .rank(method = "ordinal", descending = True)
-                        .over("x")
-                )
-            )
-            .select(["x", "group", "set"])
-    )
-    df = df.join(df2, on = ["x", "group"]).select(["x", "y", "group", "set"])
-    
-    return df
+    return df.collect()
 
 def proportions(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5, token: str | None = None) -> pl.DataFrame:
     # Create custom groups filter if not defined

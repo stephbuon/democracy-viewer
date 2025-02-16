@@ -1,5 +1,9 @@
 import util.s3 as s3
 
+# Collect the data for a query
+def run_query(query: str, token: str | None = None):
+    return s3.download(query, token)
+
 # Get the unique values in a given column
 def get_column_values(table_name: str, column: str, count: int | None = None, token: str | None = None):
     query = f'''
@@ -20,13 +24,16 @@ def get_column_values(table_name: str, column: str, count: int | None = None, to
     return values
 
 # Select records by group and word lists
-def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None):
+def basic_selection(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = []):
     dataset_table = f"datasets_{ table_name }"
     tokens_table = f"tokens_{ table_name }"
     dataset_query = None
     token_filter = []
     adj_noun_query = None
     subj_verb_query = None
+    alt_group_select = f'''
+        SELECT '_all_groups_' AS "group"
+    '''
     
     if column is not None and column != "":
         val_filter = None
@@ -61,7 +68,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         subj_verb_query = subj_verb_pairs(tokens_table, word_list)
         
     query = f'''
-        SELECT { f'dataset."{ column }" AS "group",' if dataset_query is not None else "" } tokens.word AS word, SUM(tokens.count) AS "count"
+        SELECT { f'dataset."{ column }" AS "group"' if dataset_query is not None else alt_group_select }, tokens.word AS word, SUM(tokens.count) AS "count"
         FROM (
             SELECT record_id, word, "count"
             FROM democracy_viewer_athena.{ tokens_table }
@@ -73,9 +80,10 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
         GROUP BY tokens.word{ f', dataset."{ column }"' if dataset_query is not None else "" }
     '''
     
-    df = s3.download(query, token)
+    # df = s3.download(query, token)
     
-    return df
+    # return df
+    return query
 
 # POS collocates
 ### Adjective/Noun
@@ -307,3 +315,27 @@ def group_counts(table_name: str, column: str, values: list[str], token: str | N
         records[row["group"]] = row["count"]
         
     return records
+
+def metric_word_counts(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5):
+    basic_query = basic_selection(table_name, column, values, word_list, pos_list)
+    
+    full_query = f'''
+        WITH RankedWords AS (
+            SELECT "group",
+                "word",
+                SUM("count") AS "count",
+                ROW_NUMBER() OVER (
+                    PARTITION BY "group"
+                    ORDER BY SUM("count") DESC
+                ) AS word_rank
+            FROM (
+                { basic_query }
+            )
+            GROUP BY "group", "word"
+        )
+        SELECT "group", "word", "count", word_rank
+        FROM RankedWords
+        WHERE word_rank <= { topn }
+    '''
+    
+    return full_query
