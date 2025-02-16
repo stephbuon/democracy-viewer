@@ -343,6 +343,16 @@ def metric_proportions(table_name: str, column: str | None, values: list[str], w
     return full_query
 
 def metric_log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = []):
+    # Filter query if no word list was provided
+    required_proportion = 0.0005
+    word_filter = f'''
+        JOIN gc
+        ON results."group" = gc."group"
+        JOIN wc
+        ON results.word = wc.word
+        WHERE 1. * wc.word_count / gc.group_count > { required_proportion }
+    '''
+    
     query = f'''
         WITH twc AS (
             { total_word_count(table_name) }
@@ -353,7 +363,7 @@ def metric_log_likelihood(table_name: str, column: str, values: list[str], word_
         ), bq AS (
             { basic_selection(table_name, column, values, word_list, pos_list) }
         )
-        SELECT *
+        SELECT results.*
         FROM 
         (
             SELECT
@@ -390,17 +400,29 @@ def metric_log_likelihood(table_name: str, column: str, values: list[str], word_
                     CROSS JOIN twc
                 )
             )
-        )
+        ) AS results
+        { word_filter if len(word_list) == 0 else "" }
     '''
     
     return query
 
 def metric_tf_idf_scatter(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = []):
+    # Filter query if no word list was provided
+    required_proportion = 0.0005
+    word_filter = f'''
+        JOIN gc
+        ON results."group" = gc."group"
+        JOIN wc
+        ON results.word = wc.word
+        WHERE 1. * wc.word_count / gc.group_count > { required_proportion }
+    '''
+    
     query = f'''
         WITH tg AS (
             { group_count(table_name, column) }
-        ),
-        gc AS (
+        ), wc AS (
+            { word_counts(table_name, word_list, pos_list) }
+        ), gc AS (
             { group_counts(table_name, column, values) }
         ),
         gcbw AS (
@@ -409,28 +431,32 @@ def metric_tf_idf_scatter(table_name: str, column: str, values: list[str], word_
         bq AS (
             { basic_selection(table_name, column, values, word_list, pos_list) }
         )
-        SELECT
-            term1.word,
-            "group",
-            (tf * idf) AS tf_idf
+        SELECT results.*
         FROM (
-            SELECT 
-                word,
-                bq."group",
-                (1. * "count" / group_count) AS tf
-            FROM bq
-            JOIN gc
-            ON bq."group" = gc."group"
-        ) AS term1
-        JOIN (
             SELECT
-                word,
-                LOG(1. * total_groups / num_groups, 2) AS idf
-            FROM gcbw
-            CROSS JOIN tg
-            WHERE num_groups < total_groups
-        ) AS term2
-        ON term1.word = term2.word
+                term1.word,
+                "group",
+                (tf * idf) AS tf_idf
+            FROM (
+                SELECT 
+                    word,
+                    bq."group",
+                    (1. * "count" / group_count) AS tf
+                FROM bq
+                JOIN gc
+                ON bq."group" = gc."group"
+            ) AS term1
+            JOIN (
+                SELECT
+                    word,
+                    LOG(1. * total_groups / num_groups, 2) AS idf
+                FROM gcbw
+                CROSS JOIN tg
+                WHERE num_groups < total_groups
+            ) AS term2
+            ON term1.word = term2.word
+        ) AS results
+        { word_filter if len(word_list) == 0 else "" }
     '''
     
     return query

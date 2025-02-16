@@ -84,7 +84,7 @@ def tf_idf(table_name: str, column: str, values: list[str], word_list: list[str]
         .rename({ f"{ values[0] }": "x", f"{ values[1] }": "y" }) \
         .fill_null(0) \
         .sort(pl.col("word"))
-    
+        
     return df
     
 
