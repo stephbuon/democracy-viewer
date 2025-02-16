@@ -32,7 +32,7 @@ def basic_selection(table_name: str, column: str | None, values: list[str], word
     adj_noun_query = None
     subj_verb_query = None
     alt_group_select = f'''
-        SELECT '_all_groups_' AS "group"
+        '_all_groups_' AS "group"
     '''
     
     if column is not None and column != "":
@@ -334,6 +334,44 @@ def metric_word_counts(table_name: str, column: str | None, values: list[str], w
             GROUP BY "group", "word"
         )
         SELECT "group", "word", "count", word_rank
+        FROM RankedWords
+        WHERE word_rank <= { topn }
+    '''
+    
+    return full_query
+
+def metric_proportions(table_name: str, column: str | None, values: list[str], word_list: list[str], pos_list: list[str] = [], topn: int = 5):
+    basic_query = basic_selection(table_name, column, values, [], pos_list)
+    
+    word_filter = None
+    if len(word_list) > 0:
+        word_filter = f'''
+            WHERE "word" IN ({ ", ".join([ f"'{ word }'" for word in word_list ]) })
+        '''
+    
+    full_query = f'''
+        WITH ProportionData AS (
+            SELECT "group",
+                "word",
+                SUM("count") AS "count",
+                SUM(SUM("count")) OVER (PARTITION BY "group") AS total_count
+            FROM (
+                { basic_query }
+            )
+            GROUP BY "word", "group"
+        ), RankedWords AS (
+            SELECT "group",
+                "word",
+                (1. * "count" / total_count) AS proportion,
+                ROW_NUMBER() OVER (
+                    PARTITION BY "group"
+                    ORDER BY (1. * "count" / total_count) DESC
+                ) AS word_rank
+            FROM ProportionData
+            { word_filter if word_filter is not None else "" }
+            GROUP BY "group", "word", "count", total_count
+        )
+        SELECT "group", "word", proportion, word_rank
         FROM RankedWords
         WHERE word_rank <= { topn }
     '''

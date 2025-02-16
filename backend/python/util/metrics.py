@@ -31,57 +31,23 @@ def proportions(table_name: str, column: str, values: list[str], word_list: list
     if column != None and column != "" and len(values) == 0:
         values = data.get_column_values(table_name, column, 10, token)
     
-    # Get raw token data
-    df = data.basic_selection(table_name, column, values, [], pos_list, token)
+    # Generate query for metric calculations
+    query = data.metric_proportions(table_name, column, values, word_list, pos_list, topn)
+    # Run query
+    df = data.run_query(query, token)
 
     # Compute proportions
-    if column is not None and column != "":
-        df = (
-            df
-                .with_columns(
-                    proportion = pl.col("count") / pl.col("count").sum().over("group")
-                )
-                .rename({ "group": "x", "proportion": "y", "word": "group" })
-        )
+    if column != None and column != "":
+        df = df.rename({ "group": "x", "proportion": "y", "word": "group", "word_rank": "set" })
     else:
         df = (
             df
-                .with_columns(
-                    proportion = pl.col("count") / pl.col("count").sum(),
-                    x = pl.lit("")
-                )
-                .rename({ "proportion": "y", "word": "group" })
+                .drop(["group"])
+                .rename({ "proportion": "y", "word": "group", "word_rank": "set" })
+                .with_columns(x = pl.lit(""))
         )
     
-    if len(word_list) == 0:
-        # Keep topn words for each group
-        df = (
-            df
-                .sort("y", descending = True)
-                .group_by("x")
-                .head(n=int(topn))
-        )
-    else:
-        # Filter by word list
-        df = df.filter(pl.col("group").is_in(word_list)).sort("y", descending = True)
-        
-    # Rank words in each group
-    df = df.collect()
-    df2 = (
-        df
-            .clone()
-            .with_columns(
-                set = (
-                    pl.col("y")
-                        .rank(method = "ordinal", descending = True)
-                        .over("x")
-                )
-            )
-            .select(["x", "group", "set"])
-    )
-    df = df.join(df2, on = ["x", "group"]).select(["x", "y", "group", "set"])
-    
-    return df
+    return df.collect()
 
 def log_likelihood(table_name: str, column: str, values: list[str], word_list: list[str], pos_list: list[str] = [], token: str | None = None) -> pl.DataFrame:
     # Get the total number of words in the corpus
