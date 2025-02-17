@@ -195,7 +195,6 @@ const downloadFileDirect = async(query) => {
 const uploadGraph = async(name) => {
     // Generate file path for this graph and its settings
     const graphPath = `graphs/${ name }/graph.png`;
-    console.log(name, graphPath)
 
     // Check if this graph has already been uploaded
     const graphExists = await checkFileExists(graphPath);

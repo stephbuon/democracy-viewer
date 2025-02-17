@@ -17,8 +17,6 @@ const publishGraph = async(knex, settings, user) => {
         throw new Error(`User ${ user.email } does not have access to the dataset ${ settings.table_name }`);
     }
 
-    // Add user to the settings
-    settings.user = user.email;
     // Hash the settings to get a unique id
     const hashedSettings = crypto.createHash('md5').update(JSON.stringify(settings)).digest('hex');
 
