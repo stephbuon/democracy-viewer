@@ -1,4 +1,3 @@
-import numpy as np
 import polars as pl
 # Database interaction
 import util.data_queries as data
