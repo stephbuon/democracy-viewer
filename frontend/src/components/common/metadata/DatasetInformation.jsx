@@ -26,11 +26,11 @@ export const DatasetInformation = (props) => {
         <Box sx={{ padding: 0 }}>
             <Typography variant="h5" align="center" gutterBottom>
                 Dataset Information
-                <Tooltip title="Provide general information about the dataset. Noticed that the information will be shared to public if you select 'public' for privacy.">
+                {/* <Tooltip title="Provide general information about the dataset. Noticed that the information will be shared to public if you select 'public' for privacy.">
                     <IconButton size="small">
                         <HelpOutlineIcon fontSize="small" />
                     </IconButton>
-                </Tooltip>
+                </Tooltip> */}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mt: 1 }}>
                 <FormattedTextField
