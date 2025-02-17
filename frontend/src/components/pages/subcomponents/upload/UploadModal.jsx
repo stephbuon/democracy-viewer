@@ -452,7 +452,7 @@ export const UploadModal = (props) => {
                             </FormControl>
                         </Tooltip>
 
-                        <Tooltip arrow title = "The language the text column(s) are written in. If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
+                        <Tooltip arrow title = "If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                                 
                                 <InputLabel>Language*</InputLabel>
@@ -478,7 +478,7 @@ export const UploadModal = (props) => {
 
                         <Tooltip arrow title = {(
                             <div>
-                                How to handle word morphology in the text. The options are in order of shortest to longest preprocessing time.
+                                Select how you wish to handle word morphology.
 
                                 <ul>
                                     <li>No Processing: Words will be stored as they are found in the text. E.g. achieve and achieving will be stored as achieve and achieving, meaning they will not be viewed as equivalent.</li>
@@ -508,7 +508,7 @@ export const UploadModal = (props) => {
 
                         <FormGroup>
                             <Tooltip arrow title = {(
-                                <p>Word embeddings use cosine similarity to identify the most similar or dissimilar words in a dataset. They are disabled by default due to their slow processing time on large datasets.</p>
+                                <p>Word embeddings use cosine similarity to identify the most similar or dissimilar words in a dataset.</p>
                             )}>
                                 <FormControlLabel control={<Checkbox defaultChecked = {embeddings}/>} label="Compute Word Embeddings" onChange={event => setEmbeddings(!embeddings)}/>
                             </Tooltip>

@@ -225,9 +225,19 @@ export const GraphSettings = ( props ) => {
             onClose={handleClose}
             aria-labelledby="contained-modal-title-vcenter"
             className="mx-auto"
-            style={{width:"75%", marginTop:"50px"}}
+            style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px"
+            }}
             >
-            <Paper className="mt-0" elevation={3} sx={{ padding: "16px", margin: "8px"}}>
+            <Paper className="mt-0" elevation={3} sx={{ width: "90%", 
+            maxWidth: "600px", 
+            maxHeight: "80vh", 
+            overflowY: "auto", 
+            padding: "16px", 
+            position: "relative"}}>
                 {/* {"Title"} */}
                 <h2 id="child-modal-title">Graph Settings</h2>
 
@@ -266,7 +276,7 @@ export const GraphSettings = ( props ) => {
 
                 {/* Column select dropdown */}
                 <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                    <InputLabel>Column Name</InputLabel>
+                    <InputLabel>Group By</InputLabel>
                     <Select
                         value = {group}
                         onChange = {event => {
@@ -289,7 +299,7 @@ export const GraphSettings = ( props ) => {
                 </FormControl>
 
                 <FormattedMultiSelectField
-                    label = "Column Values"
+                    label = "Filter For"
                     selectedOptions={groupList}
                     setSelectedOptions={setGroupList}
                     getData={params => getGroupSuggestions(params)}

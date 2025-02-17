@@ -35,6 +35,7 @@ export const FormattedPatternField = (props) => {
         <PatternFormat
             {...props}
             customInput={TextField}
+            variant="filled"
             onChange = {event => setValueInternal(event.target.value)}
             error = {message.length > 0}
         />

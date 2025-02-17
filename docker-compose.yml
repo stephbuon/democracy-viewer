@@ -28,7 +28,7 @@ services:
     # working directory in container to place files
     working_dir: /usr/src/app/frontend
     # startup command 
-    command: bash -c "npm run build && npm install -g serve && serve -s build"
+    command: bash -c "npm run start"
     # map code volumes from local to inside working directory, changes made locally will update into the container
     volumes:
       - ./frontend:/usr/src/app/frontend
