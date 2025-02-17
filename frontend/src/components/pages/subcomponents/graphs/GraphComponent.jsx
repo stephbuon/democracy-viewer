@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { metricTypes } from "./metrics";
 import { getZoomIds } from "../../../../api";
 
-export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter }) => {
+export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter, annotations }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
@@ -106,7 +106,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
             }
 
             // Treat x-axis as categorical
-            if (!metricTypes.scatter.includes(data.metric)) {
+            if (!(metricTypes.scatter.includes(data.metric) || metricTypes.directedGraph.includes(data.metric))) {
                 layout_ = {
                     ...layout_,
                     xaxis: {
@@ -127,9 +127,19 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                 }
             }
 
+            // Show annotations
+            if (annotations) {
+                layout_ = {
+                    ...layout_,
+                    annotations
+                }
+            } else if (Object.keys(layout_).includes("annotations")) {
+                delete layout_.annotations;
+            }
+
             setLayout({ ...layout_ });
         }
-    }, [data]);
+    }, [data, annotations]);
 
     useEffect(() => {
         if (foundData) {

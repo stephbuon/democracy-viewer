@@ -13,6 +13,7 @@ export const Graph = (props) => {
   // useState definitions
   const [data, setData] = useState(undefined);
   const [graphData, setGraphData] = useState(undefined);
+  const [annotationData, setAnnotationData] = useState(undefined);
   const [settings, setSettings] = useState(true);
   const [graph, setGraph] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -53,6 +54,8 @@ export const Graph = (props) => {
     setLoading(true);
 
     getGraph(data.dataset.table_name, params).then(async (res) => {
+      setAnnotationData(undefined);
+
       let tempData = {
         graph: [],
         table_name: data.dataset.table_name,
@@ -291,6 +294,7 @@ export const Graph = (props) => {
           }
         });
       } else if (metricTypes.directedGraph.includes(params.metric)) {
+        const annotations = [];
         const nodes = [...new Set([...res.map(x => x.source), ...res.map(x => x.target)])];
 
         const positions = {};
@@ -303,7 +307,7 @@ export const Graph = (props) => {
 
         // Use gradient descent to choose node locations
         const iterations = 10; // Number of iterations to refine positions
-        const learning_rate = 0.1;
+        const learning_rate = 0.01;
 
         for (let it = 0; it < iterations; it++) {
           res.forEach(edge => {
@@ -326,20 +330,101 @@ export const Graph = (props) => {
             };
           });
 
-          const edgeTraces = res.map(edge => {
-            return {
-              x: [positions[edge.source]?.x, positions[edge.target]?.x, null],
-              y: [positions[edge.source]?.y, positions[edge.target]?.y, null],
-              text: edge.count,
-              textposition: 'middle center',
-              hoverinfo: 'text',
-              mode: 'lines+text',
-              line: {
-                width: Math.max(1, edge.count),
-                color: 'blue'
-              },
-              type: 'scatter'
-            };
+          const visited = [];
+          const edgeTraces = [];
+          res.map((edge, idx) => {
+            if (!visited.includes(idx)) {
+              visited.push(idx);
+
+              let x0 = positions[edge.source]?.x
+              let y0 = positions[edge.source]?.y
+              let x1 = positions[edge.target]?.x
+              let y1 = positions[edge.target]?.y
+  
+              const index = res.findIndex(x => x.source === edge.target && x.target === edge.source);
+              if (index !== -1) {
+                visited.push(index);
+                const edge2 = res[index];
+
+                const offset = 0.001;
+                const dx = x1 - x0;
+                const dy = y1 - y0;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const normX = dx / length;
+                const normY = dy / length;
+
+                const x0_ = x0 - offset * normX;
+                const y0_ = y0 - offset * normY;
+                const x1_ = x1 - offset * normX;
+                const y1_ = y1 - offset * normY;
+
+                edgeTraces.push({
+                  x: [x0_, x1_, null],
+                  y: [y0_, y1_, null],
+                  text: edge2.count,
+                  textposition: 'middle center',
+                  hoverinfo: 'text',
+                  mode: 'lines+text',
+                  line: {
+                    width: Math.max(1, edge2.count),
+                    color: 'blue'
+                  },
+                  type: 'scatter'
+                });
+
+                annotations.push({
+                  ax: x1_,
+                  ay: y1_,
+                  x: x0_,
+                  y: y0_,
+                  xref: "x",
+                  yref: "y",
+                  axref: "x",
+                  ayref: "y",
+                  showarrow: true,
+                  arrowhead: 2,
+                  arrowsize: 1.2,
+                  arrowwidth: 1.5,
+                  arrowcolor: "red"
+                });
+    
+                x0 += offset * normX;
+                y0 += offset * normY;
+                x1 += offset * normX;
+                y1 += offset * normY;
+
+              }
+
+              edgeTraces.push({
+                x: [x0, x1, null],
+                y: [y0, y1, null],
+                text: edge.count,
+                textposition: 'middle center',
+                hoverinfo: 'text',
+                mode: 'lines+text',
+                line: {
+                  width: Math.max(1, edge.count),
+                  color: 'blue'
+                },
+                type: 'scatter'
+              });
+
+              annotations.push({
+                ax: x0,
+                ay: y0,
+                x: x1,
+                y: y1,
+                xref: "x",
+                yref: "y",
+                axref: "x",
+                ayref: "y",
+                showarrow: true,
+                arrowhead: 2,
+                arrowsize: 1.2,
+                arrowwidth: 1.5,
+                arrowcolor: "red"
+              });
+            }
           });
         
           const nodeTrace = {
@@ -352,6 +437,7 @@ export const Graph = (props) => {
           };
 
           tempData.graph = [nodeTrace, ...edgeTraces];
+          setAnnotationData(annotations);
         }
       } else {
         throw new Error(`Metric '${params.metric}' not implimented`)
@@ -533,6 +619,7 @@ export const Graph = (props) => {
                 setData={setData}
                 setZoomLoading={setZoomLoading}
                 isOverlappingScatter={isOverlappingScatter}
+                annotations={annotationData}
               />
             }
 
