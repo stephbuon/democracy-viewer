@@ -1,4 +1,4 @@
-import { getRequest } from "./util/requests";
+import { getRequest, postRequest, signedURLPutRequest } from "./util/requests";
 
 // Graph generation APIs
 export const getGraph = async(dataset, params) => {
@@ -41,3 +41,41 @@ export const getZoomRecords = async(dataset, params) => {
     const endpoint = `/graphs/zoom/records/${ dataset }`;
     return await getRequest(endpoint, params);
 };
+
+// Published graph APIs
+export const publishGraph = async(params, graph) => {
+    // Run API to get AWS signed URL
+    const endpoint = `/graphs/publish`;
+    const result = await postRequest(endpoint, params);
+
+    // Upload graph if it is not a duplicate
+    if (result.url !== "Already uploaded") {
+        await signedURLPutRequest(
+            result.url, 
+            graph, 
+            {
+                headers: {
+                    "Content-Type": "image/png"
+                },
+                maxBodyLength: Infinity
+            }
+        );
+    }
+
+    return result.id;
+}
+
+export const uploadGraphMetadata = async(params) => {
+    const endpoint = `/graphs/metadata`;
+    return await postRequest(endpoint, params);
+}
+
+export const filterGraphs = async(params, page) => {
+    const endpoint = `/graphs/filter/${ page }`;
+    return await getRequest(endpoint, params);
+}
+
+export const filterGraphsCount = async(params) => {
+    const endpoint = `/graphs/count/filter`;
+    return await getRequest(endpoint, params);
+}

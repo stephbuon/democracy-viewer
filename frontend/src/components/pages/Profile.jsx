@@ -7,9 +7,8 @@ import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icon
 import { getUser, deleteAccount, FilterDatasets, FilterDatasetsCount } from "../../api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./subcomponents/profile";
-import { DatasetTable } from "../common/tables/DatasetTable";
 import { AlertDialog } from "../common/AlertDialog";
-import { SuggestChangesTable } from "../common/tables/SuggestChangesTable";
+import { SuggestChangesTable, DatasetTable } from "../common/tables";
 
 const mdTheme = createTheme();
 
