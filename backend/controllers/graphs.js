@@ -46,6 +46,12 @@ const addMetadata = async(knex, params, user) => {
         throw new Error(`User ${ user.email } does not have access to the dataset ${ params.table_name }`);
     }
 
+    // Check if the user has already published this graph
+    const graphCount = await model_graphs.getFilteredGraphsCount({ s3_id: params.s3_id, user: user.email }, user.email);
+    if (graphCount > 0) {
+        throw new Error(`User ${ user.email } has already published a graph with these parameters`);
+    }
+
     // Verify that the graph exists with the given id
     const graphPath = `graphs/${ params.s3_id }/graph.png`;
     const graphExists = await aws.checkFileExists(graphPath);
@@ -176,10 +182,39 @@ const getZoomRecords = async(knex, table, params, user = undefined) => {
     return df;
 }
 
+// Get filtered graphs
+const getFilteredGraphs = async(knex, query, email, page) => {
+    const model = new graphs(knex);
+
+    const results = await model.getFilteredGraphs(query, email, true, page);
+    // Get tags and likes for search results
+    // for (let i = 0; i < results.length; i++) {
+    //     results[i].tags = await getTags(knex, results[i].table_name);
+    //     if (email) {
+    //         results[i].liked = await model.getLike(email, results[i].table_name);
+    //     } else {
+    //         results[i].liked = false;
+    //     }
+    //     results[i].likes = await model.getLikeCount(results[i].table_name);
+    // }
+
+    return results;
+}
+
+// Get count of graph filter
+const getFilteredGraphsCount = async(knex, query, email) => {
+    const model = new graphs(knex);
+
+    const result = await model.getFilteredGraphsCount(query, email);
+    return result;
+}
+
 module.exports = {
     publishGraph,
     addMetadata,
     createGraph,
     getZoomIds,
-    getZoomRecords
+    getZoomRecords,
+    getFilteredGraphs,
+    getFilteredGraphsCount
 }

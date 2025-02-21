@@ -78,4 +78,38 @@ router.get('/zoom/records/:dataset', async(req, res, next) => {
     next();
 });
 
+// Route to filter graphs
+router.get('/filter/:page', async(req, res, next) => {
+    try {
+        let results;
+        if (req.user) {
+            results = await control.getFilteredGraphs(req.knex, req.query, req.user.email, req.params.page);
+        } else {
+            results = await control.getFilteredGraphs(req.knex, req.query, undefined, req.params.page);
+        }
+        res.status(200).json(results);
+    } catch (err) {
+        console.error('Failed to get filtered graphs:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get number of graph filter results
+router.get('/count/filter', async(req, res, next) => {
+    try {
+        let result;
+        if (req.user) {
+            result = await control.getFilteredGraphsCount(req.knex, req.query, req.user.email);
+        } else {
+            result = await control.getFilteredGraphsCount(req.knex, req.query, undefined);
+        }
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get filtered graphs count:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 module.exports = router;
