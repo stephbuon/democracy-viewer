@@ -1,108 +1,25 @@
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { 
-    ListItemText, Paper, Grid, Container, Typography, List,
+    Paper, Grid, Container, Typography, Modal, Table,
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
-import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
-import { getUser, deleteAccount, FilterDatasets, FilterDatasetsCount } from "../../api";
+import { getUser, leaveGroup} from "../../api";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { EditProfile } from "./subcomponents/profile";
 import { DatasetTable } from "../common/tables/DatasetTable";
 import { AlertDialog } from "../common/AlertDialog";
-import { SuggestChangesTable } from "../common/tables/SuggestChangesTable";
 
-const mdTheme = createTheme();
+export const GroupHome = ({ groupName, groupDescription, datasets, onAddDataset, onLeaveGroup }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
 
-const pageLength = 5;
+  const onLeave = () => {
+          leaveGroup();
+          props.leave();
+          navigate("/");
+      }
 
-export const GroupHome = (props) => {
-    const navigate = useNavigate();
-    const params = useParams();
-
-    const [user, setUser] = useState(undefined);
-    const [editable, setEditable] = useState(false);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [deleteOpen, setDeleteOpen] = useState(false);
-
-    const [loadingResults, setLoadingResults] = useState(false);
-    const [searchResults, setSearchResults] = useState([]);
-    const [totalNumOfResults, setTotalNumOfResults] = useState(0);
-
-    const [loadingLikeResults, setLoadingLikeResults] = useState(false);
-    const [likeSearchResults, setLikeSearchResults] = useState([]);
-    const [totalNumOfLikeResults, setTotalNumOfLikeResults] = useState(0);
-
-    const [loadingGroupResults, setLoadingGroupResults] = useState(false);
-    const [groupResults, setGroupResults] = useState([]);
-    const [totalNumOfGroupResults, setTotalNumOfGroupResults] = useState(0);
-
-    const [suggestionsFor, setSuggestionsFor] = useState([]);
-    const [suggestionsFrom, setSuggestionsFrom] = useState([]);
-    const [refreshSuggestions, setRefreshSuggestions] = useState(false);
-
-    const GetNewPage = (num) => {
-        // const filter = {
-        //     user: params.email,
-        //     pageLength
-        // };
-        // setLoadingResults(true);
-        // FilterDatasets(filter, num).then((res) => {
-        //     setLoadingResults(false);
-
-        //     if (!res) { setSearchResults([]) }
-        //     else { setSearchResults(res) }
-        // });
-
-        // FilterDatasetsCount(filter).then(async (res) => {
-        //     setTotalNumOfResults(res);
-        // });
-    }
-
-    const getNewLikePage = (num) => {
-        // const filter = {
-        //     liked: params.email,
-        //     pageLength
-        // };
-        // setLoadingLikeResults(true);
-        // FilterDatasets(filter, num).then((res) => {
-        //     setLoadingLikeResults(false);
-
-        //     if (!res) { setLikeSearchResults([]) }
-        //     else { setLikeSearchResults(res) }
-        // });
-
-        // FilterDatasetsCount(filter).then(async (res) => {
-        //     setTotalNumOfLikeResults(res);
-        // });
-    }
-
-    //get groups page
-    const getGroupsPage = (num) => {
-        // const filter = {
-        //     invited: params.email,
-        //     pageLength
-        // };
-        // setLoadingGroupResults(false);
-        // FilterDatasets(filter, num).then((res) => {
-        //     setLoadingGroupResults(false);
-
-        //     if (!res) { setGroupResults([]) }
-        //     else { setGroupResults(res) }
-        // });
-
-        // FilterDatasetsCount(filter).then(async (res) => {
-        //     setTotalNumOfGroupResults(res);
-        // });
-    }
-
-    const onDelete = () => {
-        deleteAccount();
-        props.logout();
-        navigate("/");
-    }
-
-    return (
-        <ThemeProvider theme={mdTheme}>
+  return (
+    <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
 
@@ -117,8 +34,8 @@ export const GroupHome = (props) => {
                         height: '100vh',
                         overflow: 'auto'
                     }}
-                >
-                    <Toolbar />
+                ></Box>
+                <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
                         <Grid container spacing={3} justifyContent="center" alignItems="center">
                             {/* User information */}
@@ -139,44 +56,27 @@ export const GroupHome = (props) => {
                                     {/* <Avatar alt={user.email} src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
                                     <Divider flexItem sx={{ mt: 2, mb: 4 }} /> */}
                                     <Typography variant="h3" component="h4">
-                                        
+                                        {user.first_name} {user.last_name} {user.suffix}
                                     </Typography>
-                                    <List>
-                                        {/* {user.email && (
-                                            <ListItemText>
-                                                <Email /> Email: <Link to={`mailto: ${user.email}`}>{user.email}</Link>
-                                            </ListItemText>
-                                        )} */}
-                                    </List>
                                     {
                                         editable === true && <>
                                             <Grid container justifyContent="center" sx={{ mb: 3, mt: 2 }}>
-                                                <Grid item xs={12} sm={6} md={4}>
-                                                    <Button
-                                                        variant="contained"
-                                                        component="label"
-                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }}
-                                                        onClick={() => setModalOpen(true)}
-                                                    >
-                                                        Edit Profile
-                                                    </Button>
-                                                </Grid>
 
                                                 <Grid item xs={12} sm={6} md={4}>
                                                     <Button 
                                                         variant="contained"
                                                         component="label"
                                                         sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }} 
-                                                        onClick={() => setDeleteOpen(true)}
+                                                        onClick={() => setLeaveOpen(true)}
                                                     >
-                                                        Delete Account
+                                                        Leave Group
                                                     </Button>
                                                     <AlertDialog
-                                                        open={deleteOpen}
-                                                        setOpen={setDeleteOpen}
-                                                        titleText={`Are you sure you want to delete your account?`}
+                                                        open={leaveOpen}
+                                                        setOpen={setLeaveOpen}
+                                                        titleText={`Are you sure you want to leave the group?`}
                                                         bodyText={"This action cannot be undone."}
-                                                        action={() => onDelete()}
+                                                        action={() => onLeave()}
                                                     />
                                                 </Grid>
                                             </Grid>
@@ -209,86 +109,9 @@ export const GroupHome = (props) => {
                                     />
                                 </Paper>
                             </Grid>
-                            <Grid  item xs={12} md={6}>
-                                <Paper
-                                    elevation={12}
-                                    sx={{
-                                        p: 2,
-                                        m: 5,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        width: '100%',
-                                    }}
-                                >
-                                    <h1>Bookmarked Datasets</h1>
-                                    <DatasetTable
-                                        loadingResults={loadingLikeResults}
-                                        searchResults={likeSearchResults}
-                                        setDataset={props.setDataset}
-                                        GetNewPage={getNewLikePage}
-                                        editable={false}
-                                        totalNumResults={totalNumOfLikeResults}
-                                        pageLength={pageLength}
-                                    />
-                                </Paper>
-                            </Grid>
-                            
-                            {
-                                editable === true && 
-                                <>
-                                    <Grid item xs={12} md={12}>
-                                        <Paper
-                                            elevation={12}
-                                            sx={{
-                                                p: 2,
-                                                m: 5,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                width: '100%',
-                                            }}
-                                        >
-                                            <h1>Pending Sent Suggestions</h1>
-                                            <SuggestChangesTable
-                                                pageLength={pageLength}
-                                                type={"from"}
-                                                refresh={refreshSuggestions}
-                                                setRefresh={setRefreshSuggestions}
-                                                setDataset={props.setDataset}
-                                            />
-                                        </Paper>
-                                    </Grid>
-                                    <Grid  item xs={12} md={12}>
-                                        <Paper
-                                            elevation={12}
-                                            sx={{
-                                                p: 2,
-                                                m: 5,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                width: '100%',
-                                            }}
-                                        >
-                                            <h1>Recieved Suggestions</h1>
-                                            <SuggestChangesTable
-                                                pageLength={pageLength}
-                                                type={"for"}
-                                                refresh={refreshSuggestions}
-                                                setRefresh={setRefreshSuggestions}
-                                                setDataset={props.setDataset}
-                                            />
-                                        </Paper>
-                                    </Grid>
-                                </>
-                            }
                         </Grid>
                     </Container>
                 </Box>
-            </Box>
-
-            <EditProfile user={user} setUser={setUser} open={modalOpen} setOpen={setModalOpen} />
-        </ThemeProvider>
-    );
-}
+            </ThemeProvider>
+  );
+};
