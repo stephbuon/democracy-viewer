@@ -329,91 +329,95 @@ export const Graph = (props) => {
               y: targetPos.y - dy
             };
           });
+        }
 
-          const visited = [];
-          const edgeTraces = [];
-          res.map((edge, idx) => {
-            if (!visited.includes(idx)) {
-              visited.push(idx);
+        const generateOffset = (x0, y0, x1, y1, direction = 1, strength = 0.2) => {
+          // Compute direction vector
+          const dx = x1 - x0;
+          const dy = y1 - y0;
+          const length = Math.sqrt(dx * dx + dy * dy);
 
-              let x0 = positions[edge.source]?.x
-              let y0 = positions[edge.source]?.y
-              let x1 = positions[edge.target]?.x
-              let y1 = positions[edge.target]?.y
-  
-              const index = res.findIndex(x => x.source === edge.target && x.target === edge.source);
-              if (index !== -1) {
-                visited.push(index);
-                const edge2 = res[index];
+          // Normalize and rotate 90 degrees to get perpendicular vector
+          const normX = (-1 * direction) * dy / length;
+          const normY = direction * dx / length;
 
-                const offset = 0.001;
-                const dx = x1 - x0;
-                const dy = y1 - y0;
-                const length = Math.sqrt(dx * dx + dy * dy);
-                const normX = dx / length;
-                const normY = dy / length;
+          // Compute midpoint
+          const mx = (x0 + x1) / 2;
+          const my = (y0 + y1) / 2;
 
-                const x0_ = x0 - offset * normX;
-                const y0_ = y0 - offset * normY;
-                const x1_ = x1 - offset * normX;
-                const y1_ = y1 - offset * normY;
+          // Offset midpoint in the perpendicular direction
+          const cX = mx + normX * strength * length;
+          const cY = my + normY * strength * length;
 
-                edgeTraces.push({
-                  x: [x0_, x1_, null],
-                  y: [y0_, y1_, null],
-                  text: edge2.count,
-                  textposition: 'middle center',
-                  hoverinfo: 'text',
-                  mode: 'lines+text',
-                  line: {
-                    width: Math.max(1, edge2.count),
-                    color: 'blue'
-                  },
-                  type: 'scatter'
-                });
+          return { cX, cY };
+        }
 
-                annotations.push({
-                  ax: x1_,
-                  ay: y1_,
-                  x: x0_,
-                  y: y0_,
-                  xref: "x",
-                  yref: "y",
-                  axref: "x",
-                  ayref: "y",
-                  showarrow: true,
-                  arrowhead: 2,
-                  arrowsize: 1.2,
-                  arrowwidth: 1.5,
-                  arrowcolor: "red"
-                });
-    
-                x0 += offset * normX;
-                y0 += offset * normY;
-                x1 += offset * normX;
-                y1 += offset * normY;
+        const generateCurve = (x0, y0, cx, cy, x1, y1, numPoints = 20) => {
+          let curveX = [];
+          let curveY = [];
 
-              }
+          for (let t = 0; t <= 1; t += 1 / numPoints) {
+            const xt = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * cx + t * t * x1;
+            const yt = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * cy + t * t * y1;
+            curveX.push(xt);
+            curveY.push(yt);
+          }
+
+          return { x: curveX, y: curveY };
+        }
+
+        const visited = [];
+        const edgeTraces = [];
+        res.map((edge, idx) => {
+          if (!visited.includes(idx)) {
+            visited.push(idx);
+
+            let x0 = positions[edge.source]?.x
+            let y0 = positions[edge.source]?.y
+            let x1 = positions[edge.target]?.x
+            let y1 = positions[edge.target]?.y
+
+            const index = res.findIndex(x => x.source === edge.target && x.target === edge.source);
+            if (index !== -1) {
+              visited.push(index);
+              const edge2 = res[index];
+
+              const offset = 0.001;
+              const dx = x1 - x0;
+              const dy = y1 - y0;
+              const length = Math.sqrt(dx * dx + dy * dy);
+              const normX = dx / length;
+              const normY = dy / length;
+
+              const x0_ = x0 - offset * normX;
+              const y0_ = y0 - offset * normY;
+              const x1_ = x1 - offset * normX;
+              const y1_ = y1 - offset * normY;
+
+              const { cX, cY } = generateOffset(x0_, y0_, x1_, y1_, -1);
+              const curve = generateCurve(x0_, y0_, cX, cY, x1_, y1_);
 
               edgeTraces.push({
-                x: [x0, x1, null],
-                y: [y0, y1, null],
-                text: edge.count,
-                textposition: 'middle center',
+                x: curve.x,
+                y: curve.y,
+                // text: [`Weight: ${edge.count}`],
+                // textposition: 'middle center',
+                hovertext: `Weight: ${edge.count}`,
                 hoverinfo: 'text',
                 mode: 'lines+text',
                 line: {
-                  width: Math.max(1, edge.count),
-                  color: 'blue'
+                  color: "red",
+                  shape: "spline"
                 },
+                // marker: { size: 5, color: "red" },
                 type: 'scatter'
               });
 
               annotations.push({
-                ax: x0,
-                ay: y0,
-                x: x1,
-                y: y1,
+                ax: x1_,
+                ay: y1_,
+                x: x0_,
+                y: y0_,
                 xref: "x",
                 yref: "y",
                 axref: "x",
@@ -422,23 +426,68 @@ export const Graph = (props) => {
                 arrowhead: 2,
                 arrowsize: 1.2,
                 arrowwidth: 1.5,
-                arrowcolor: "red"
+                arrowcolor: "red",
+                hovertext: `Weight: ${edge2.count}`,
+                hoverinfo: "text"
               });
-            }
-          });
-        
-          const nodeTrace = {
-            x: Object.values(positions).map(pos => pos?.x),
-            y: Object.values(positions).map(pos => pos?.y),
-            text: Object.keys(positions),
-            mode: 'markers+text',
-            marker: { size: 10 },
-            type: 'scatter'
-          };
 
-          tempData.graph = [nodeTrace, ...edgeTraces];
-          setAnnotationData(annotations);
-        }
+              x0 += offset * normX;
+              y0 += offset * normY;
+              x1 += offset * normX;
+              y1 += offset * normY;
+
+            }
+
+            const { cX, cY } = generateOffset(x0, y0, x1, y1);
+            const curve = generateCurve(x0, y0, cX, cY, x1, y1);
+
+            edgeTraces.push({
+              x: curve.x,
+              y: curve.y,
+              // text: [`Weight: ${edge.count}`],
+              // textposition: 'middle center',
+              hovertext: `Weight: ${edge.count}`,
+              hoverinfo: 'text',
+              mode: 'lines+text',
+              line: {
+                color: "red",
+                shape: "spline"
+              },
+              // marker: { size: 5, color: "red" },
+              type: 'scatter'
+            });
+
+            annotations.push({
+              ax: x0,
+              ay: y0,
+              x: x1,
+              y: y1,
+              xref: "x",
+              yref: "y",
+              axref: "x",
+              ayref: "y",
+              showarrow: true,
+              arrowhead: 2,
+              arrowsize: 1.2,
+              arrowwidth: 1.5,
+              arrowcolor: "red",
+              hovertext: `Weight: ${edge.count}`,
+              hoverinfo: "text"
+            });
+          }
+        });
+
+        const nodeTrace = {
+          x: Object.values(positions).map(pos => pos?.x),
+          y: Object.values(positions).map(pos => pos?.y),
+          text: Object.keys(positions),
+          mode: 'markers+text',
+          marker: { size: 10 },
+          type: 'scatter'
+        };
+
+        tempData.graph = [nodeTrace, ...edgeTraces];
+        // setAnnotationData(annotations);
       } else {
         throw new Error(`Metric '${params.metric}' not implimented`)
       }
