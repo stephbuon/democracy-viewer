@@ -84,3 +84,8 @@ export const getGraphImageUrl = async(id) => {
     const endpoint = `/graphs/image/${ id }`;
     return await getRequest(endpoint);
 }
+
+export const getPublishedGraph = async(id) => {
+    const endpoint = `/graphs/id/${ id }`;
+    return await getRequest(endpoint);
+}

@@ -1,10 +1,10 @@
 
 // Imports
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Box, Button, Grid, Snackbar, Alert, Container } from "@mui/material";
 import { GraphComponent, GraphSettings } from "./subcomponents/graphs";
-import { getGraph } from "../../api";
+import { getGraph, getPublishedGraph } from "../../api";
 import { Settings, RotateLeft, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";
@@ -22,6 +22,7 @@ export const Graph = (props) => {
 
   // variable definitions
   const navigate = useNavigate();
+  const urlParams = useParams();
 
   // Function definitions
   const openSnackbar1 = () => {
@@ -357,6 +358,10 @@ export const Graph = (props) => {
   // Dataset has been selected -> Populates group options array for column name dropdown
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
+    if (urlParams.id) {
+      setSettings(false);
+    }
+
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if (!demoV || !demoV.dataset || !demoV.dataset.tokens_done) {
       navigate('/datasets/search')
@@ -369,19 +374,17 @@ export const Graph = (props) => {
         setAlert(1);
         openSnackbar1()
       }
-
-      // let graph = JSON.parse(localStorage.getItem('graph-data'));
-      // if (graph) {
-      //   if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
-      //     setGraphData(graph);
-      //     setGraph(true);
-      //     setSettings(false);
-      //   } else {
-      //     localStorage.removeItem("graph-data")
-      //   }
-      // }
     }
   }, []);
+
+  useEffect(() => {
+    if (data && urlParams.id) {
+      getPublishedGraph(urlParams.id).then(params => {
+        localStorage.setItem('graph-settings', JSON.stringify(params));
+        updateGraph(params);
+      });
+    }
+  }, [data]);
 
   return (
     <>
@@ -467,7 +470,6 @@ export const Graph = (props) => {
                 <GraphComponent 
                   border 
                   data={graphData} 
-                  setData={setData} 
                   setZoomLoading={setZoomLoading} 
                   isOverlappingScatter={isOverlappingScatter}
                 />

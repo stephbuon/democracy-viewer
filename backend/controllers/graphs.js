@@ -224,7 +224,7 @@ const getFilteredGraphsCount = async(knex, query, email) => {
 }
 
 // Return the settings for a graph based on its id
-const getGraphFromSettings = async(knex, id, user = null) => {
+const getGraphSettings = async(knex, id, user = null) => {
     const model = new graphs(knex);
 
     // Check if user has permission to view this graph
@@ -243,8 +243,8 @@ const getGraphFromSettings = async(knex, id, user = null) => {
     // Add a view for the graph
     await model.incrementClicks(id);
 
-    // Return graph results
-    return await createGraph(knex, metadata.table_name, settings, user);
+    // Return graph settings
+    return settings;
 }
 
 // Get image by id
@@ -297,7 +297,7 @@ module.exports = {
     getZoomRecords,
     getFilteredGraphs,
     getFilteredGraphsCount,
-    getGraphFromSettings,
+    getGraphSettings,
     getGraphImage,
     deleteGraph
 }

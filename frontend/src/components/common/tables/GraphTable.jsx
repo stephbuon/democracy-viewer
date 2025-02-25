@@ -5,7 +5,7 @@ import { Column } from "primereact/column";
 import { useState, useEffect } from 'react';
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 
-export const GraphTable = ({ loadingResults, searchResults, setGraph, GetNewPage, editable, pageLength, totalNumResults, deleteCallback }) => {
+export const GraphTable = ({ loadingResults, searchResults, setDataset, GetNewPage, editable, pageLength, totalNumResults, deleteCallback }) => {
     const [formattedResults, setFormattedResults] = useState([...Array(pageLength).keys()]);
     const [first, setFirst] = useState(0);
 
@@ -22,7 +22,7 @@ export const GraphTable = ({ loadingResults, searchResults, setGraph, GetNewPage
         } else if (typeof result === "object") {
             return <GraphResult
                 result = {result} 
-                setGraph={(x) => setGraph(x)} 
+                setDataset={(x) => setDataset(x)} 
                 editable={editable}
                 deleteCallback={deleteCallback}
             />

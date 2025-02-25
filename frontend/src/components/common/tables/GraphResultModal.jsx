@@ -8,7 +8,7 @@ import { AlertDialog } from '../AlertDialog';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
-import { getUser, getGraphImageUrl, downloadGraphImage } from '../../../api';
+import { getUser, getGraphImageUrl, downloadGraphImage, getMetadata } from '../../../api';
 
 export const GraphResultModal = (props) => {
     const navigate = useNavigate();
@@ -17,11 +17,18 @@ export const GraphResultModal = (props) => {
 
     const [userName, setUserName] = useState(undefined);
     const [imageUrl, setImageUrl] = useState(undefined);
+    const [dataset, setDataset] = useState(undefined);
+
+    const openGraph = () => {
+        props.setDataset(dataset);
+        navigate(`/graph/published/${ props.graph.id }`);
+    }
 
     useEffect(() => {
         if (props.open && !userName) {
             getUser(props.graph.email).then(user => setUserName(`${user.first_name} ${user.last_name}`));
             getGraphImageUrl(props.graph.id).then(url => setImageUrl(url));
+            getMetadata(props.graph.table_name).then(meta => setDataset(meta));
         }
     }, [props.open]);
 
@@ -100,9 +107,7 @@ export const GraphResultModal = (props) => {
                                 bgcolor: 'black',
                                 color: 'white'
                             }}
-                            onClick={() => {
-                                navigate('/graph');
-                            }}
+                            onClick={() => openGraph()}
                         >
                             Visualize
                         </Button>
@@ -130,6 +135,20 @@ export const GraphResultModal = (props) => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
+                        <TableRow>
+                            <TableCell>
+                                <b> Dataset </b>
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "left" }}>
+                                {/* <Link to={`/profile/${props.graph.email}`}> */}
+                                    {
+                                        dataset !== undefined &&
+                                        <>{ dataset.title }</>
+                                    }
+                                {/* </Link> */}
+                            </TableCell>
+
+                        </TableRow>
                         <TableRow>
                             <TableCell>
                                 <b> Author </b>

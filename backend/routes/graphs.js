@@ -127,7 +127,7 @@ router.get('/count/filter', async(req, res, next) => {
 // Route to get a graph from a graph id
 router.get('/id/:id', async(req, res, next) => {
     try {
-        const result = await control.getGraphFromSettings(req.knex, req.params.id, req.user);
+        const result = await control.getGraphSettings(req.knex, req.params.id, req.user);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get graph by id:', err);
