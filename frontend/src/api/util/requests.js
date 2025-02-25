@@ -79,7 +79,7 @@ export const deleteRequest = async(endpoint = {}, settings = {}) => {
     return res.data;
 }
 
-// Make an API call directly to AWS using a signed URL
+// Make API calls directly to AWS using a signed URL
 export const signedURLPutRequest = async(signedUrl, body = {}, settings = {}) => {
     // Make API call
     const res = await axios.put(signedUrl, body, settings);
@@ -87,6 +87,26 @@ export const signedURLPutRequest = async(signedUrl, body = {}, settings = {}) =>
     // Handle error
     if (res.status !== 200) {
         console.error(`API request "PUT ${ signedUrl }" failed with status code ${ res.status }`);
+        throw new Error(res.statusText);
+    }
+
+    // Return output
+    return res.data;
+}
+
+export const signedURLGetRequest = async(signedUrl, query = {}, settings = {}) => {
+    // Setup config
+    const config = {
+        ...settings,
+        params: query
+    };
+
+    // Make API call
+    const res = await axios.get(signedUrl, config);
+
+    // Handle error
+    if (res.status !== 200) {
+        console.error(`API request "GET ${ signedUrl }" failed with status code ${ res.status }`);
         throw new Error(res.statusText);
     }
 

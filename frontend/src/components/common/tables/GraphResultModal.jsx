@@ -8,7 +8,7 @@ import { AlertDialog } from '../AlertDialog';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
-import { reprocessDataset, getUser, deleteDataset, addLike, deleteLike, UpdateMetadata, AddTags, DeleteTag, Popularize } from '../../../api';
+import { getUser, getGraphImageUrl, downloadGraphImage } from '../../../api';
 
 export const GraphResultModal = (props) => {
     const navigate = useNavigate();
@@ -16,10 +16,12 @@ export const GraphResultModal = (props) => {
     const handleClose = () => props.setOpen(false);
 
     const [userName, setUserName] = useState(undefined);
+    const [imageUrl, setImageUrl] = useState(undefined);
 
     useEffect(() => {
         if (props.open && !userName) {
             getUser(props.graph.email).then(user => setUserName(`${user.first_name} ${user.last_name}`));
+            getGraphImageUrl(props.graph.id).then(url => setImageUrl(url));
         }
     }, [props.open]);
 
@@ -195,12 +197,10 @@ export const GraphResultModal = (props) => {
                 </Table>
                 <Box
                     sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
                         marginTop: '2em'
-                    }}>
-
+                    }}
+                >
+                    <img src = { imageUrl }/>
                 </Box>
             </Box>
         </Modal>

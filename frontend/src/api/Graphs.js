@@ -1,4 +1,4 @@
-import { getRequest, postRequest, signedURLPutRequest } from "./util/requests";
+import { getRequest, postRequest, signedURLPutRequest, signedURLGetRequest } from "./util/requests";
 
 // Graph generation APIs
 export const getGraph = async(dataset, params) => {
@@ -78,4 +78,9 @@ export const filterGraphs = async(params, page) => {
 export const filterGraphsCount = async(params) => {
     const endpoint = `/graphs/count/filter`;
     return await getRequest(endpoint, params);
+}
+
+export const getGraphImageUrl = async(id) => {
+    const endpoint = `/graphs/image/${ id }`;
+    return await getRequest(endpoint);
 }

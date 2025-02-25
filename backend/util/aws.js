@@ -196,6 +196,17 @@ const downloadFileDirect = async(query) => {
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
+const downloadGraph = async(name) => {
+    // Specify file to download
+    const command = new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: `graphs/${ name }/graph.png`
+    });
+
+    // Return signed url
+    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+}
+
 const uploadGraph = async(name) => {
     // Generate file path for this graph and its settings
     const graphPath = `graphs/${ name }/graph.png`;
@@ -239,5 +250,6 @@ module.exports = {
     downloadFileDirect,
     uploadGraph,
     uploadFile,
-    deleteFile
+    deleteFile,
+    downloadGraph
 }

@@ -136,6 +136,18 @@ router.get('/id/:id', async(req, res, next) => {
     next();
 });
 
+// Route to get a signed url to download a graph image
+router.get('/image/:id', async(req, res, next) => {
+    try {
+        const result = await control.getGraphImage(req.knex, req.params.id, req.user);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to download graph image:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to delete a graph
 router.delete('/:id', async(req, res, next) => {
     try {

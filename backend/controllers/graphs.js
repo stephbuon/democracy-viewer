@@ -247,6 +247,20 @@ const getGraphFromSettings = async(knex, id, user = null) => {
     return await createGraph(knex, metadata.table_name, settings, user);
 }
 
+// Get image by id
+const getGraphImage = async(knex, id, user = null) => {
+    const model = new graphs(knex);
+
+    // Check if user has permission to view this graph
+    const metadata = await model.getMetadataById(id);
+    if (!metadata.is_public && metadata.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to view this graph`);
+    }
+
+    // Return signed url to get image
+    return await aws.downloadGraph(metadata.s3_id);
+}
+
 // Delete graph metadata and graph from s3 if needed
 const deleteGraph = async(knex, id, user) => {
     const model = new graphs(knex);
@@ -284,5 +298,6 @@ module.exports = {
     getFilteredGraphs,
     getFilteredGraphsCount,
     getGraphFromSettings,
+    getGraphImage,
     deleteGraph
 }
