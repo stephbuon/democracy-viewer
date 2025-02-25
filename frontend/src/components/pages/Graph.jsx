@@ -14,6 +14,7 @@ export const Graph = (props) => {
   const [data, setData] = useState(undefined);
   const [graphData, setGraphData] = useState(undefined);
   const [settings, setSettings] = useState(true);
+  const [newSettings, setNewSettings] = useState(false);
   const [graph, setGraph] = useState(false);
   const [loading, setLoading] = useState(false);
   const [zoomLoading, setZoomLoading] = useState(false);
@@ -381,6 +382,7 @@ export const Graph = (props) => {
     if (data && urlParams.id) {
       getPublishedGraph(urlParams.id).then(params => {
         localStorage.setItem('graph-settings', JSON.stringify(params));
+        setNewSettings(!newSettings);
         updateGraph(params);
       });
     }
@@ -400,7 +402,7 @@ export const Graph = (props) => {
       </Snackbar>
 
       {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
-        updateGraph={updateGraph} generated={graph} />}
+        updateGraph={updateGraph} generated={graph} newSettings={newSettings} />}
 
       <Box component="div" sx={{ marginTop: "5%" }}>
         <Grid container justifyContent="center" direction="column">

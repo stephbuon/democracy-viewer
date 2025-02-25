@@ -85,7 +85,7 @@ export const GraphSettings = ( props ) => {
                 }
             })
         }
-    }, []);
+    }, [props.newSettings]);
 
     useEffect(() => {
         if (posOptionalMetrics.includes(metric) && props.dataset.dataset.preprocessing_type === "lemma") {
