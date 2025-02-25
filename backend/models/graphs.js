@@ -12,16 +12,59 @@ class graphs {
 
     // Add initial metadata for a graph
     async createMetadata(email, metadata) {
-        console.log(metadata)
-        if (typeof metadata === "object") {
-            console.log({ ...metadata, email, date_posted: new Date() })
-            await this.knex(metadata_table).insert({ ...metadata, email, date_posted: new Date() });
-        }
+        await this.knex(metadata_table).insert({ ...metadata, email, date_posted: new Date() });
         
         const record = await this.knex(metadata_table)
-            .where({ s3_id: metadata.s3_id, email });
+            .orderBy("id", "desc")
+            .limit(1);
 
         return record[0];
+    }
+
+    // Update graph metadata
+    async updateMetadata(id, params) {
+        await this.knex(metadata_table)
+            .where({ id })
+            .update({ ...params });
+
+        const record = await this.knex(metadata_table).where({ id });
+        return record[0];
+    }
+
+    // Like a graph
+    // async incrementLikes(id) {
+    //     await this.knex(metadata_table)
+    //         .where({ id })
+    //         .increment("likes");
+
+    //     const record = await this.knex(metadata_table).where({ id });
+    //     return record[0];
+    // }
+
+    // // Unlike a graph
+    // async incrementLikes(id) {
+    //     await this.knex(metadata_table)
+    //         .where({ id })
+    //         .increment("likes");
+
+    //     const record = await this.knex(metadata_table).where({ id });
+    //     return record[0];
+    // }
+
+    // View a graph
+    async incrementClicks(id) {
+        await this.knex(metadata_table)
+            .where({ id })
+            .increment("clicks");
+
+        const record = await this.knex(metadata_table).where({ id });
+        return record[0];
+    }
+
+    // Get a dataset by id
+    async getMetadataById(id) {
+        const records = await this.knex(metadata_table).where({ id });
+        return records[0];
     }
 
     // Filter metadata
@@ -132,6 +175,18 @@ class graphs {
     async getFilteredGraphsCount(params, email) {
         const results = await this.getFilteredGraphs(params, email, false);
         return results.length;
+    }
+
+    // Get all graphs with an s3 id
+    async getGraphsByS3Id(s3_id) {
+        return await this.knex(metadata_table).where({ s3_id });
+    }
+
+    // Delete metadata by id
+    async deleteMetadataById(id) {
+        await this.knex(metadata_table)
+            .where({ id })
+            .delete();
     }
 }
 

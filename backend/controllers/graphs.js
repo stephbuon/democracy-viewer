@@ -98,6 +98,20 @@ const createGraph = async(knex, dataset, params, user = null) => {
     return files.readJSON(file2, false);
 }
 
+// Update a graph's metadata
+const updateMetadata = async(knex, id, params, user) => {
+    const model = new graphs(knex);
+
+    // Check metadata to ensure this user has the rights to update this graph
+    const oldRecord = await model.getMetadataById(id);
+    if (oldRecord.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to update this metadata`);
+    }
+
+    // Update metadata and return new record
+    return await model.updateMetadata(id, params);
+}
+
 // Get the ids of records the match the given words and/or groups
 const getZoomIds = async(knex, table, params, user = undefined) => {
     const model = new datasets(knex);
@@ -209,12 +223,66 @@ const getFilteredGraphsCount = async(knex, query, email) => {
     return result;
 }
 
+// Return the settings for a graph based on its id
+const getGraphFromSettings = async(knex, id, user = null) => {
+    const model = new graphs(knex);
+
+    // Check if user has permission to view this graph
+    const metadata = await model.getMetadataById(id);
+    if (!metadata.is_public && metadata.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to view this graph`);
+    }
+
+    // Download the graph settings from s3
+    const localPath = `files/graphs/${ metadata.s3_id }.json`;
+    const s3Path = `graphs/${ metadata.s3_id }`;
+    await aws.downloadFile(localPath, s3Path, "settings.json");
+    // Read downloaded file
+    const settings = files.readJSON(localPath, false);
+
+    // Add a view for the graph
+    await model.incrementClicks(id);
+
+    // Return graph results
+    return await createGraph(knex, metadata.table_name, settings, user);
+}
+
+// Delete graph metadata and graph from s3 if needed
+const deleteGraph = async(knex, id, user) => {
+    const model = new graphs(knex);
+
+    // Check if user has permission to delete this graph
+    const metadata = await model.getMetadataById(id);
+    if (metadata.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to view this graph`);
+    }
+
+    // Check if another graph uses the same s3 id
+    const matchingS3 = await model.getGraphsByS3Id(metadata.s3_id);
+    // Delete data from s3 if this is the only graph with this s3 id
+    if (matchingS3.length == 1) {
+        const dirPath = `graphs/${ metadata.s3_id }`;
+        const graphPath = `${ dirPath }/graph.png`;
+        const settingsPath = `${ dirPath }/settings.json`;
+        
+        await aws.deleteFile(graphPath);
+        await aws.deleteFile(settingsPath);
+        await aws.deleteFile(dirPath);
+    }
+
+    // Delete metadata record
+    await model.deleteMetadataById(id);
+}
+
 module.exports = {
     publishGraph,
     addMetadata,
     createGraph,
+    updateMetadata,
     getZoomIds,
     getZoomRecords,
     getFilteredGraphs,
-    getFilteredGraphsCount
+    getFilteredGraphsCount,
+    getGraphFromSettings,
+    deleteGraph
 }

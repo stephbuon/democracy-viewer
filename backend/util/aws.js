@@ -73,6 +73,14 @@ const waitAthenaQuery = async(queryId) => {
     }
 }
 
+const deleteFile = async(file) => {
+    const deleteCommand = new DeleteObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: file
+    });
+    await s3Client.send(deleteCommand);
+}
+
 const renameFile = async(oldFile, newFile) => {
     const copyCommand = new CopyObjectCommand({
         CopySource: `${ process.env.S3_BUCKET }/${ oldFile }`,
@@ -81,11 +89,7 @@ const renameFile = async(oldFile, newFile) => {
     });
     await s3Client.send(copyCommand);
 
-    const deleteCommand = new DeleteObjectCommand({
-        Bucket: process.env.S3_BUCKET,
-        Key: oldFile
-    });
-    await s3Client.send(deleteCommand);
+   await deleteFile(oldFile);
 }
 
 const checkFileExists = async(filePath) => {
@@ -234,5 +238,6 @@ module.exports = {
     submitBatchJob,
     downloadFileDirect,
     uploadGraph,
-    uploadFile
+    uploadFile,
+    deleteFile
 }

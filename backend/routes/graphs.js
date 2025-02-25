@@ -27,6 +27,18 @@ router.post('/metadata', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route update graph metadata
+router.put('/metadata/:id', async(req, res, next) => {
+    try {
+        const result = await control.updateMetadata(req.knex, req.params.id, req.body, req.user);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to update metadata:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to get the data to generate a given graph
 router.get('/:dataset', async(req, res, next) => {
     try {
@@ -107,6 +119,30 @@ router.get('/count/filter', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get filtered graphs count:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get a graph from a graph id
+router.get('/id/:id', async(req, res, next) => {
+    try {
+        const result = await control.getGraphFromSettings(req.knex, req.params.id, req.user);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get graph by id:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a graph
+router.delete('/:id', async(req, res, next) => {
+    try {
+        await control.deleteGraph(req.knex, req.params.id, req.user);
+        res.status(204).end();
+    } catch (err) {
+        console.error('Failed to delete graph:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
