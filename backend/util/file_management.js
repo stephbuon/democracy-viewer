@@ -140,6 +140,13 @@ const renameFile = (oldName, newName) => {
     fs.renameSync(oldName, newName);
 }
 
+// Get the size of a file in MB
+const getFileSize = (path) => {
+    const stats = fs.statSync(path);
+    const sizeBytes = stats.size;
+    return sizeBytes / (1024 * 1024);
+}
+
 module.exports = {
     readFile,
     deleteDatasetFiles,
@@ -151,5 +158,6 @@ module.exports = {
     getCsvHeaders,
     readJSON,
     uploadFile,
-    renameFile
+    renameFile,
+    getFileSize
 }

@@ -151,20 +151,43 @@ const downloadFile = async(localFile, folder, name) => {
     }
 }
 
-const submitBatchJob = async(table_name, num_threads = 4) => {
+const submitBatchJob = async(table_name) => {
+    // Set config based on size of dataset
+    let queue, def, num_threads;
+    const local_path = `files/s3/datasets/${ table_name }.parquet`;
+    const sizeMB = util.getFileSize(local_path);
+    if (process.env.BATCH_QUEUE_LARGE && process.env.BATCH_DEF_LARGE) {
+        if (sizeMB < 250) {
+            queue = process.env.BATCH_QUEUE;
+            def = process.env.BATCH_DEF;
+            num_threads = 4;
+        } else {
+            queue = process.env.BATCH_QUEUE_LARGE;
+            def = process.env.BATCH_DEF_LARGE;
+            num_threads = 15;
+        }
+    } else {
+        queue = process.env.BATCH_QUEUE;
+        def = process.env.BATCH_DEF;
+        num_threads = 4;
+    }
+
+    // Submit job
     const command = new SubmitJobCommand({
         jobName: table_name,
-        jobQueue: process.env.BATCH_QUEUE,
-        jobDefinition: process.env.BATCH_DEF,
+        jobQueue: queue,
+        jobDefinition: def,
         parameters: {
            table_name,
            num_threads
         }
     });
-
     const response = await batchClient.send(command);
     console.log("Batch job submitted:");
     console.log(response);
+
+    // Delete file when job is submitted
+    util.deleteDatasetFiles(table_name);
 }
 
 const downloadFileDirect = async(query) => {
