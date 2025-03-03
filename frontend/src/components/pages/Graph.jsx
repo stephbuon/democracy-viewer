@@ -298,10 +298,11 @@ export const Graph = (props) => {
         const nodes = [...new Set([...res.map(x => x.source), ...res.map(x => x.target)])];
 
         const positions = {};
-        nodes.forEach(x => {
+        nodes.forEach((x, i) => {
+          const angle = (2 * Math.PI * i) / nodes.length;
           positions[x] = {
-            x: Math.random() * 10,
-            y: Math.random() * 10
+            x: Math.cos(angle),
+            y: Math.sin(angle)
           }
         });
 
@@ -382,27 +383,15 @@ export const Graph = (props) => {
               visited.push(index);
               const edge2 = res[index];
 
-              const offset = 0.001;
-              const dx = x1 - x0;
-              const dy = y1 - y0;
-              const length = Math.sqrt(dx * dx + dy * dy);
-              const normX = dx / length;
-              const normY = dy / length;
-
-              const x0_ = x0 - offset * normX;
-              const y0_ = y0 - offset * normY;
-              const x1_ = x1 - offset * normX;
-              const y1_ = y1 - offset * normY;
-
-              const { cX, cY } = generateOffset(x0_, y0_, x1_, y1_, -1);
-              const curve = generateCurve(x0_, y0_, cX, cY, x1_, y1_);
+              const { cX, cY } = generateOffset(x0, y0, x1, y1, -1);
+              const curve = generateCurve(x0, y0, cX, cY, x1, y1);
 
               edgeTraces.push({
                 x: curve.x,
                 y: curve.y,
                 // text: [`Weight: ${edge.count}`],
                 // textposition: 'middle center',
-                hovertext: `Weight: ${edge.count}`,
+                hovertext: `${ edge2.source } -> ${ edge2.target }<br>Weight: ${ edge2.count }`,
                 hoverinfo: 'text',
                 mode: 'lines+text',
                 line: {
@@ -414,28 +403,20 @@ export const Graph = (props) => {
               });
 
               annotations.push({
-                ax: x1_,
-                ay: y1_,
-                x: x0_,
-                y: y0_,
+                x: x1,
+                y: y1,
+                ax: curve.x[curve.x.length - 1],
+                ay: curve.y[curve.y.length - 1],
                 xref: "x",
                 yref: "y",
                 axref: "x",
                 ayref: "y",
                 showarrow: true,
-                arrowhead: 2,
-                arrowsize: 1.2,
-                arrowwidth: 1.5,
-                arrowcolor: "red",
-                hovertext: `Weight: ${edge2.count}`,
-                hoverinfo: "text"
+                // arrowhead: 2,
+                // arrowsize: 1.2,
+                // arrowwidth: 1.5,
+                arrowcolor: "red"
               });
-
-              x0 += offset * normX;
-              y0 += offset * normY;
-              x1 += offset * normX;
-              y1 += offset * normY;
-
             }
 
             const { cX, cY } = generateOffset(x0, y0, x1, y1);
@@ -444,35 +425,27 @@ export const Graph = (props) => {
             edgeTraces.push({
               x: curve.x,
               y: curve.y,
-              // text: [`Weight: ${edge.count}`],
-              // textposition: 'middle center',
-              hovertext: `Weight: ${edge.count}`,
+              hovertext: `${ edge.source } -> ${ edge.target }<br>Weight: ${ edge.count }`,
               hoverinfo: 'text',
               mode: 'lines+text',
               line: {
                 color: "red",
                 shape: "spline"
               },
-              // marker: { size: 5, color: "red" },
               type: 'scatter'
             });
 
             annotations.push({
-              ax: x0,
-              ay: y0,
-              x: x1,
-              y: y1,
+              x: x0,
+              y: y0,
+              ax: curve.x[0],
+              ay: curve.y[0],
               xref: "x",
               yref: "y",
               axref: "x",
               ayref: "y",
               showarrow: true,
-              arrowhead: 2,
-              arrowsize: 1.2,
-              arrowwidth: 1.5,
-              arrowcolor: "red",
-              hovertext: `Weight: ${edge.count}`,
-              hoverinfo: "text"
+              arrowcolor: "red"
             });
           }
         });
@@ -482,12 +455,15 @@ export const Graph = (props) => {
           y: Object.values(positions).map(pos => pos?.y),
           text: Object.keys(positions),
           mode: 'markers+text',
+          textposition: 'top center',
           marker: { size: 10 },
-          type: 'scatter'
+          type: 'scatter',
+          hovertext: Object.keys(positions),
+          hoverinfo: 'text',
         };
 
         tempData.graph = [nodeTrace, ...edgeTraces];
-        // setAnnotationData(annotations);
+        setAnnotationData(annotations);
       } else {
         throw new Error(`Metric '${params.metric}' not implimented`)
       }

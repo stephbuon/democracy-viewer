@@ -92,7 +92,8 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                 metricTypes.dotplot.includes(data.metric) ||
                 metricTypes.multibar.includes(data.metric) ||
                 metricTypes.bar.includes(data.metric) ||
-                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1)
+                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1) ||
+                metricTypes.directedGraph.includes(data.metric)
             ) {
                 layout_ = {
                     ...layout_,
@@ -123,6 +124,21 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                             ...layout_.yaxis,
                             type: "category"
                         }
+                    }
+                }
+            }
+
+            // Remove axis ticks
+            if (metricTypes.directedGraph.includes(data.metric)) {
+                layout_ = {
+                    ...layout_,
+                    xaxis: {
+                        ...layout_.xaxis,
+                        showticklabels: false
+                    },
+                    yaxis: {
+                        ...layout_.yaxis,
+                        showticklabels: false
                     }
                 }
             }
@@ -229,6 +245,8 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                 } else if (metricTypes.multibar.includes(data.metric)) {
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.text];
+                } else if (metricTypes.directedGraph.includes(data.metric)) {
+                    
                 } else {
                     throw new Error("Graph type not supported")
                 }
