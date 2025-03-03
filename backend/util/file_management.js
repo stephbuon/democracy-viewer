@@ -3,8 +3,8 @@ const multer = require("multer");
 const util = require("util");
 const csv_read = require("csv-parser");
 const csv_write =require("objects-to-csv");
-const runPython = require("./python_config");
 const findRemoveSync = require('find-remove');
+const pl = require("nodejs-polars");
 
 // Read a file into memory as a readable stream
 const readFile = (path) => {
@@ -84,6 +84,22 @@ const readCSV = (path, del = true) => new Promise((resolve, reject) => {
         });
 });
 
+// Load a file into a polars lazy frame
+const lazyLoadFile = (path) => {
+    let df;
+    if (path.endsWith(".csv")) {
+        df = pl.scanCSV(path);
+    } else if (path.endsWith(".json")) {
+        df = pl.scanJson(path);
+    } else if (path.endsWith(".parquet")) {
+        df = pl.scanParquet(path);
+    } else {
+        throw new Error(`File '${ path }' has an invalid file extension`);
+    }
+
+    return df;
+}
+
 // Get the column names of a csv file
 const getCsvHeaders = async(path) => new Promise((resolve, reject) => {
     const stream = fs.createReadStream(path);
@@ -155,6 +171,7 @@ module.exports = {
     generateJSON,
     generateFile,
     readCSV,
+    lazyLoadFile,
     getCsvHeaders,
     readJSON,
     uploadFile,

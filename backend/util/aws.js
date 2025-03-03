@@ -215,7 +215,7 @@ const downloadFileDirect = async(query) => {
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
-const uploadFile = async(localFile, s3File, token = null) => {
+const uploadFile = async(localFile, s3File) => {
     await new Upload({
         client: s3Client,
         params: {

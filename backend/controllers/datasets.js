@@ -148,6 +148,39 @@ const reprocessDataset = async(knex, table, email) => {
     await model.updateMetadata(table, { reprocess_start: true });
 }
 
+// Add records to a dataset with a new uploaded file
+const addRecords = async(knex, table, email, path) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    // Get column names from current version of dataset
+    const oldHeaders = await dataQueries.columnNames(table);
+
+    // Read uploaded file and collect column names
+    const df = util.lazyLoadFile(path);
+    const newHeaders = df.columns;
+
+    // Throw error if new headers don't match old headers
+    const oldHeadersStr = oldHeaders.sort().toString();
+    const newHeadersStr = newHeaders.sort().toString()
+    if (oldHeadersStr !== newHeadersStr) {
+        throw new Error(`Uploaded file headers do not match existing headers.
+            Old headers: ${ oldHeadersStr }
+            New headers: ${ newHeadersStr }
+        `);
+    }
+
+    // Upload new file to s3
+    await runPython("upload_dataset", [ name, path ], metadata.distributed);
+}
+
 // Add a tag for a dataset
 const addTag = async(knex, user, table, tags) => {
     const model = new datasets(knex);
