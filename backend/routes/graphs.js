@@ -27,6 +27,18 @@ router.post('/metadata', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to like a dataset
+router.post('/like/:id', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.addLike(req.knex, req.user.email, req.params.id);
+        res.status(201).end();
+    } catch (err) {
+        console.error('Failed to like graph:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route update graph metadata
 router.put('/metadata/:id', async(req, res, next) => {
     try {
@@ -155,6 +167,18 @@ router.delete('/:id', async(req, res, next) => {
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete graph:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a user's like
+router.delete('/like/:id', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.deleteLike(req.knex, req.user.email, req.params.id);
+        res.status(204).end();
+    } catch (err) {
+        console.error('Failed to delete like:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

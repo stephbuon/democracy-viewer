@@ -149,4 +149,12 @@ CREATE TABLE graph_metadata (
     likes INT DEFAULT 0 NOT NULL,
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
-)
+);
+
+CREATE TABLE liked_graphs (
+    email VARCHAR(30) NOT NULL,
+    graph_id BIGINT UNSIGNED NOT NULL,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
+    FOREIGN KEY(graph_id) REFERENCES graph_metadata(id) ON DELETE CASCADE,
+    PRIMARY KEY(email, graph_id)
+);

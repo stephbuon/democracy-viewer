@@ -21,6 +21,13 @@ class graphs {
         return record[0];
     }
 
+    // Like a graph
+    async addLike(email, graph_id) {
+        await this.knex(likes_table).insert({ email, graph_id });
+        const record = await this.knex(likes_table).where({ email, graph_id });
+        return record[0];
+    }
+
     // Update graph metadata
     async updateMetadata(id, params) {
         await this.knex(metadata_table)
@@ -30,26 +37,6 @@ class graphs {
         const record = await this.knex(metadata_table).where({ id });
         return record[0];
     }
-
-    // Like a graph
-    // async incrementLikes(id) {
-    //     await this.knex(metadata_table)
-    //         .where({ id })
-    //         .increment("likes");
-
-    //     const record = await this.knex(metadata_table).where({ id });
-    //     return record[0];
-    // }
-
-    // // Unlike a graph
-    // async incrementLikes(id) {
-    //     await this.knex(metadata_table)
-    //         .where({ id })
-    //         .increment("likes");
-
-    //     const record = await this.knex(metadata_table).where({ id });
-    //     return record[0];
-    // }
 
     // View a graph
     async incrementClicks(id) {
@@ -70,8 +57,8 @@ class graphs {
     // Filter metadata
     async getFilteredGraphs(params, email, paginate = true, currentPage = 1) {
         const query = this.knex(metadata_table).select(`${ metadata_table }.*`).distinct()
-            // .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
-            // .leftJoin(likes_table, `${ metadata_table }.table_name`, `${ likes_table }.table_name`)
+            // .leftJoin(tag_table, `${ metadata_table }.id`, `${ tag_table }.graph_id`)
+            .leftJoin(likes_table, `${ metadata_table }.id`, `${ likes_table }.graph_id`)
             .where(q => {
                 // Filter by type (public/private)
                 const type = params.type;
@@ -153,10 +140,10 @@ class graphs {
                 // }
 
                 // Search for liked datasets
-                // const liked = params.liked;
-                // if (liked) {
-                //     q.where(`${ likes_table }.email`, liked);
-                // }
+                const liked = params.liked;
+                if (liked) {
+                    q.where(`${ likes_table }.email`, liked);
+                }
             });
 
         let results;
@@ -177,6 +164,18 @@ class graphs {
         return results.length;
     }
 
+    // Get the number of likes for this graph
+    async getLikeCount(graph_id) {
+        const results = await this.knex(likes_table).where({ graph_id });
+        return results.length;
+    }
+
+    // Determine if a given user liked a given graph
+    async getLike(email, graph_id) {
+        const results = await this.knex(likes_table).where({ email, graph_id });
+        return results.length > 0;
+    }
+
     // Get all graphs with an s3 id
     async getGraphsByS3Id(s3_id) {
         return await this.knex(metadata_table).where({ s3_id });
@@ -187,6 +186,11 @@ class graphs {
         await this.knex(metadata_table)
             .where({ id })
             .delete();
+    }
+
+    // Delete a user's liked graph
+    async deleteLike(email, graph_id) {
+        await this.knex(likes_table).where({ email, graph_id }).delete();
     }
 }
 

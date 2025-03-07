@@ -98,6 +98,13 @@ const createGraph = async(knex, dataset, params, user = null) => {
     return files.readJSON(file2, false);
 }
 
+// Like a graph
+const addLike = async(knex, user, id) => {
+    const model = new graphs(knex);
+
+    await model.addLike(user, id);
+}
+
 // Update a graph's metadata
 const updateMetadata = async(knex, id, params, user) => {
     const model = new graphs(knex);
@@ -196,21 +203,39 @@ const getZoomRecords = async(knex, table, params, user = undefined) => {
     return df;
 }
 
+// Get metadata including data from other columns
+const getFullMetadata = async(knex, id, email) => {
+    const model = new graphs(knex);
+
+    const result = await model.getMetadataById(id);
+    
+
+    // result.tags = await getTags(knex, id);
+    if (email) {
+        result.liked = await model.getLike(email, id);
+    } else {
+        result.liked = false;
+    }
+    result.likes = await model.getLikeCount(id);
+
+    return result;
+}
+
 // Get filtered graphs
 const getFilteredGraphs = async(knex, query, email, page) => {
     const model = new graphs(knex);
 
     const results = await model.getFilteredGraphs(query, email, true, page);
     // Get tags and likes for search results
-    // for (let i = 0; i < results.length; i++) {
-    //     results[i].tags = await getTags(knex, results[i].table_name);
-    //     if (email) {
-    //         results[i].liked = await model.getLike(email, results[i].table_name);
-    //     } else {
-    //         results[i].liked = false;
-    //     }
-    //     results[i].likes = await model.getLikeCount(results[i].table_name);
-    // }
+    for (let i = 0; i < results.length; i++) {
+        // results[i].tags = await getTags(knex, results[i].id);
+        if (email) {
+            results[i].liked = await model.getLike(email, results[i].id);
+        } else {
+            results[i].liked = false;
+        }
+        results[i].likes = await model.getLikeCount(results[i].id);
+    }
 
     return results;
 }
@@ -288,16 +313,27 @@ const deleteGraph = async(knex, id, user) => {
     await model.deleteMetadataById(id);
 }
 
+// Unlike a graph
+const deleteLike = async(knex, user, id) => {
+    const model = new graphs(knex);
+
+    await model.deleteLike(user, id);
+}
+
+
 module.exports = {
     publishGraph,
     addMetadata,
     createGraph,
+    addLike,
     updateMetadata,
     getZoomIds,
     getZoomRecords,
+    getFullMetadata,
     getFilteredGraphs,
     getFilteredGraphsCount,
     getGraphSettings,
     getGraphImage,
-    deleteGraph
+    deleteGraph,
+    deleteLike
 }
