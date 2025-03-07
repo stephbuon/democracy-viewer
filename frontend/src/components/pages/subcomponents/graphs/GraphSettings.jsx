@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../../../../api"
 import { Paper, Button, FormControl, InputLabel, MenuItem, Modal, Select, Tooltip, Typography } from "@mui/material";
-import { metricNames, metricSettings, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
+import { metricNames, metricSettings, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes, clusteringMetrics } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "../../../common";
 import "../../../../styles/List.css";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +30,7 @@ export const GraphSettings = ( props ) => {
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
     const [topn, setTopn] = useState("5");
+    const [numClusters, setNumClusters] = useState("5");
     const [savedSettings, setSavedSettings] = useState(undefined);
     const [firstUpdate, setFirstUpdate] = useState(true);
     const [embedCols, setEmbedCols] = useState([]);
@@ -47,6 +48,7 @@ export const GraphSettings = ( props ) => {
             setLastMetric(settings.metric);
             setGroup(settings.group_name);
             setTopn(String(settings.topn));
+            setNumClusters(String(settings.num_clusters));
 
             let searchList = []
             settings.group_list.forEach(x => {
@@ -132,7 +134,8 @@ export const GraphSettings = ( props ) => {
                 metric: metric,
                 word_list: searchTerms.map(x => x.value),
                 pos_list: posList.map(x => x.value),
-                topn: parseInt(topn)
+                topn: parseInt(topn),
+                num_clusters: parseInt(numClusters)
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
@@ -324,6 +327,20 @@ export const GraphSettings = ( props ) => {
                             fullWidth
                             defaultValue={topn}
                             setValue={setTopn}
+                            numeric
+                            sx={{ zIndex: 0, marginTop: "10px" }}
+                        />
+                    )
+                }
+
+                {
+                    clusteringMetrics.includes(metric) && (
+                        <FormattedTextField
+                            id="num-clusters"
+                            label="Number of Clusters"
+                            fullWidth
+                            defaultValue={numClusters}
+                            setValue={setNumClusters}
                             numeric
                             sx={{ zIndex: 0, marginTop: "10px" }}
                         />

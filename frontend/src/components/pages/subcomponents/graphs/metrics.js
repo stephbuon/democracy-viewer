@@ -166,3 +166,7 @@ export const posOptions = [
         "value": "subj-verb"
     }
 ];
+
+export const clusteringMetrics = [
+    "embeddings-cluster"
+]
