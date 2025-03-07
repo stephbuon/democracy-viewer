@@ -1,4 +1,4 @@
-import { getRequest, postRequest, signedURLPutRequest, signedURLGetRequest } from "./util/requests";
+import { getRequest, postRequest, signedURLPutRequest, deleteRequest } from "./util/requests";
 
 // Graph generation APIs
 export const getGraph = async(dataset, params) => {
@@ -88,4 +88,14 @@ export const getGraphImageUrl = async(id) => {
 export const getPublishedGraph = async(id) => {
     const endpoint = `/graphs/id/${ id }`;
     return await getRequest(endpoint);
+}
+
+export const bookmarkGraph = async(id) => {
+    const endpoint = `/graphs/like/${ id }`;
+    return await postRequest(endpoint);
+}
+
+export const unbookmarkGraph = async(id) => {
+    const endpoint = `/graphs/like/${ id }`;
+    return await deleteRequest(endpoint);
 }

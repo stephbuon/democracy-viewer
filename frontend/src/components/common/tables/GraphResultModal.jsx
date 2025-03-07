@@ -8,29 +8,49 @@ import { AlertDialog } from '../AlertDialog';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import { Link } from 'react-router-dom';
-import { getUser, getGraphImageUrl, downloadGraphImage, getMetadata } from '../../../api';
+import { getUser, getGraphImageUrl, getMetadata, bookmarkGraph, unbookmarkGraph } from '../../../api';
 
 export const GraphResultModal = (props) => {
     const navigate = useNavigate();
 
     const handleClose = () => props.setOpen(false);
 
+    const [graph, setGraph] = useState(undefined);
     const [userName, setUserName] = useState(undefined);
     const [imageUrl, setImageUrl] = useState(undefined);
     const [dataset, setDataset] = useState(undefined);
 
     const openGraph = () => {
         props.setDataset(dataset);
-        navigate(`/graph/published/${ props.graph.id }`);
+        navigate(`/graph/published/${ graph.id }`);
+    }
+
+     const like = async() => {
+        await bookmarkGraph(graph.id);
+
+        const newGraph = { ...graph, liked: true, likes: graph.likes + 1 };
+        setGraph(newGraph);
+    }
+
+    const dislike = async() => {
+        await unbookmarkGraph(graph.id);
+
+        const newGraph = { ...graph, liked: false, likes: graph.likes - 1 };
+        setGraph(newGraph);
     }
 
     useEffect(() => {
         if (props.open && !userName) {
+            setGraph(props.graph);
             getUser(props.graph.email).then(user => setUserName(`${user.first_name} ${user.last_name}`));
             getGraphImageUrl(props.graph.id).then(url => setImageUrl(url));
             getMetadata(props.graph.table_name).then(meta => setDataset(meta));
         }
     }, [props.open]);
+
+    if (!graph) {
+        return <></>
+    }
 
     return <>
         <Modal
@@ -56,7 +76,7 @@ export const GraphResultModal = (props) => {
                         width: "100%"
                     }}>
                     {
-                        props.loggedIn && props.graph.liked === false &&
+                        props.loggedIn && graph.liked === false &&
                         <Button
                             variant="contained"
                             disableElevation
@@ -68,13 +88,13 @@ export const GraphResultModal = (props) => {
                                 color: 'white'
                             }}
                             endIcon={<BookmarkBorderIcon />}
-                            onClick={() => {}}>
+                            onClick={() => like()}>
                             Bookmark
                         </Button>
                     }
 
                     {
-                        props.loggedIn && props.graph.liked === true &&
+                        props.loggedIn && graph.liked === true &&
                         <Button
                             variant="contained"
                             disableElevation
@@ -86,7 +106,7 @@ export const GraphResultModal = (props) => {
                                 color: 'white'
                             }}
                             endIcon={<BookmarkIcon />}
-                            onClick={() => {}}>
+                            onClick={() => dislike()}>
                             Remove Bookmark
                         </Button>
                     }
@@ -122,15 +142,15 @@ export const GraphResultModal = (props) => {
                                     align: 'center'
 
                                 }}>
-                                <b>{props.graph.title}</b>
+                                <b>{graph.title}</b>
                             </TableCell>
                             <TableCell
                                 sx={{
                                     textAlign: "left",
                                     paddingTop: "40px"
                                 }}>
-                                {props.graph.is_public == 1 && <span>Public</span>}
-                                {props.graph.is_public == 0 && <span>Private</span>}
+                                {graph.is_public == 1 && <span>Public</span>}
+                                {graph.is_public == 0 && <span>Private</span>}
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -140,7 +160,7 @@ export const GraphResultModal = (props) => {
                                 <b> Dataset </b>
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
-                                {/* <Link to={`/profile/${props.graph.email}`}> */}
+                                {/* <Link to={`/profile/${graph.email}`}> */}
                                     {
                                         dataset !== undefined &&
                                         <>{ dataset.title }</>
@@ -154,13 +174,13 @@ export const GraphResultModal = (props) => {
                                 <b> Author </b>
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
-                                <Link to={`/profile/${props.graph.email}`}>
+                                <Link to={`/profile/${graph.email}`}>
                                     {
                                         userName !== undefined && userName
                                     }
 
                                     {
-                                        userName === undefined && props.graph.email
+                                        userName === undefined && graph.email
                                     }
                                 </Link>
                             </TableCell>
@@ -171,7 +191,7 @@ export const GraphResultModal = (props) => {
                                 <b> Description </b>
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
-                                {props.graph.description}
+                                {graph.description}
                             </TableCell>
                         </TableRow>
 
@@ -180,7 +200,7 @@ export const GraphResultModal = (props) => {
                                 <b> Views </b>
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
-                                {props.graph.clicks}
+                                {graph.clicks}
                             </TableCell>
 
                         </TableRow>
@@ -190,7 +210,7 @@ export const GraphResultModal = (props) => {
                                 <b> Bookmarks </b>
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
-                                {props.graph.likes}
+                                {graph.likes}
                             </TableCell>
 
                         </TableRow>
@@ -201,7 +221,7 @@ export const GraphResultModal = (props) => {
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
                                 <div class="row">
-                                    {props.graph.tags.map((tag, index) => {
+                                    {graph.tags.map((tag, index) => {
                                         if (index < 5) {
                                             return <span class="col"
                                                 key={index} >
