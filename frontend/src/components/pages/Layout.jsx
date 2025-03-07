@@ -29,6 +29,8 @@ export const Layout = (props) => {
         return 'Search';
       case '/graph':
         return 'Graphs';
+      case '/graphs/search':
+        return 'Graph Search';
       case '/login':
         return 'Login';
       case '/register':
@@ -46,6 +48,8 @@ export const Layout = (props) => {
           return "Profile";
         } else if (location.pathname.includes("/upload")) {
           return "Upload";
+        } else if (location.pathname.includes("/graph/published/")) {
+          return "Graphs";
         } else {
           return 'Home';
         }
@@ -125,6 +129,13 @@ export const Layout = (props) => {
                 <ShowChartIcon/>
               </ListItemIcon>
               <ListItemText primary="Visualize" />
+            </ListItemButton>
+
+            <ListItemButton component={Link} to="/graphs/search" sx = {{ height: "50px" }}>
+              <ListItemIcon>
+                <Search />
+              </ListItemIcon>
+              <ListItemText primary="Graph Search" />
             </ListItemButton>
 
             <ListItemButton component={Link} to='/upload' sx = {{ height: "50px" }}>

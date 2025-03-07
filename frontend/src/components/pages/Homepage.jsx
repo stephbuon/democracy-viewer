@@ -125,23 +125,23 @@ export const Homepage = () => {
               </Card>
             </Grid>
 
-            {/* <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Create Distributed Connection
+                    Graph Search
                   </Typography>
                   <Typography align='center'>
-                    Create a Distributed Connection to Store Your Datasets in Your Own S3 Bucket
+                    Browse visualizations published by our users
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button onClick={() => navigate("/distributed")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button onClick={() => navigate("/graphs/search")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
-            </Grid> */}
+            </Grid>
           </Grid>
         </Container>
       </main>
