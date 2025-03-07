@@ -2,10 +2,10 @@
 // Imports
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Button, Grid, Snackbar, Alert, Container } from "@mui/material";
-import { GraphComponent, GraphSettings } from "./subcomponents/graphs";
+import { Box, Button, Grid, Snackbar, Alert, Container, Modal } from "@mui/material";
+import { GraphComponent, GraphPublishModal, GraphSettings } from "./subcomponents/graphs";
 import { getGraph, getPublishedGraph } from "../../api";
-import { Settings, RotateLeft, Download } from '@mui/icons-material';
+import { Settings, RotateLeft, Download, Upload } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";
 
@@ -20,6 +20,8 @@ export const Graph = (props) => {
   const [zoomLoading, setZoomLoading] = useState(false);
   const [alert, setAlert] = useState(1);
   const [snackBarOpen1, setSnackBarOpen1] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [publishDisabled, setPublishDisabled] = useState(true);
 
   // variable definitions
   const navigate = useNavigate();
@@ -47,6 +49,11 @@ export const Graph = (props) => {
     const yDistance = Math.abs(y1 - y2);
     return xDistance < xThreshold && yDistance < yThreshold;
   };
+
+  // Close publish modal
+  const handlePublishClose = () => {
+    setPublishOpen(false);
+  }
 
   // Runs on graph settings submit
   // Generate a graph or update the existing graph
@@ -401,8 +408,28 @@ export const Graph = (props) => {
         </Alert>
       </Snackbar>
 
-      {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
-        updateGraph={updateGraph} generated={graph} newSettings={newSettings} />}
+      {
+        data !== undefined && 
+        <GraphSettings 
+          dataset={data} 
+          show={settings} 
+          setSettings={setSettings}
+          updateGraph={updateGraph} 
+          generated={graph} 
+          newSettings={newSettings} 
+        />
+      }
+
+      <Modal open={publishOpen} onClose={() => handlePublishClose()}>
+        <div>
+          <GraphPublishModal
+            disabled={publishDisabled}
+            setDisabled={setPublishDisabled}
+            handleClose={handlePublishClose}
+            downloadGraph={downloadGraph}
+          />
+        </div>
+      </Modal>
 
       <Box component="div" sx={{ marginTop: "5%" }}>
         <Grid container justifyContent="center" direction="column">
@@ -436,6 +463,16 @@ export const Graph = (props) => {
                   sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
                   disabled={loading || zoomLoading}
                 ><Download sx={{ mr: "10px" }} />Download</Button>
+              </Grid>
+
+              {/* {"Publish graph button"} */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Button variant="contained"
+                  onClick={() => setPublishOpen(true)}
+                  className="mt-2"
+                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  disabled={loading || zoomLoading}
+                ><Upload sx={{ mr: "10px" }} />Publish</Button>
               </Grid>
             </Grid>
           </Container>
