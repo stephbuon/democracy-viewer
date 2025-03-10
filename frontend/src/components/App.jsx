@@ -67,7 +67,7 @@ export const App = () => {
             <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
             <Route path="/groups" element={<Groups/>}/>
             <Route path= "/group-home" element={<GroupHome />} />
-            {/* <Route path="/groups/:groupId/home" element={<GroupHome/>}/> */}
+            <Route path="/group-home/:groupId" element={<GroupHome />} />
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout}/>} />
             <Route path="/register" element={<Register currUser={user} login={login}/>} />

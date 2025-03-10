@@ -57,13 +57,23 @@ export const Groups = (props) => {
     const GetNewPage = async (selectedPage) => {
         setLoadingResults(true);
         // Fetch groups logic here
-        setLoadingResults(false);
+        try {
+            // Implement your group fetching logic here
+            const response = await filterGroups({ searchTerm }, selectedPage);
+            setSearchResults(response.results || []);
+            setTotalNumResults(response.total || 0);
+        } catch (error) {
+            console.error("Error fetching groups:", error);
+        } finally {
+            setLoadingResults(false);
+        }
     };
 
     const onEnter = (event) => {
         //run a backend filter
         if (event.key === "Enter") {
-            filterGroups({ searchTerm }, 1);
+            //filterGroups({ searchTerm }, 1);
+            GetNewPage(1);
         }
     }
 

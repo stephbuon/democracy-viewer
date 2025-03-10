@@ -1,26 +1,77 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
-    Paper, Grid, Container, Typography, Modal, Table,
+    Paper, Grid, Container, Typography, 
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
-import { getUser, leaveGroup} from "../../api";
-import { useNavigate, useParams, Link } from "react-router-dom";
+//import { getGroup, leaveGroup } from "../../api";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { DatasetTable } from "../common/tables/DatasetTable";
 import { AlertDialog } from "../common/AlertDialog";
 
-export const GroupHome = ({ groupName, groupDescription, datasets, onAddDataset, onLeaveGroup }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [leaveOpen, setLeaveOpen] = useState(false);
+const mdTheme = createTheme();
 
-  const onLeave = () => {
-          leaveGroup();
-          props.leave();
-          navigate("/");
-      }
+const pageLength = 5;
 
-  return (
-    <ThemeProvider theme={mdTheme}>
-            <Box sx={{ display: 'flex' }}>
+export const GroupHome = (props) => {
+    const navigate = useNavigate();
+    const params = useParams();
+    const location = useLocation();
+    
+    // Get group data from location state (passed from Groups component)
+    const [group, setGroup] = useState({
+        groupName: location.state?.groupName || "Group Name",
+        groupDescription: location.state?.groupDescription || "Group Description"
+    });
+    const [editable, setEditable] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [leaveOpen, setLeaveOpen] = useState(false);
+
+    const [loadingResults, setLoadingResults] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+    const [totalNumOfResults, setTotalNumOfResults] = useState(0);
+
+    // Function to fetch datasets for this group
+    const GetNewPage = async (selectedPage) => {
+        setLoadingResults(true);
+        // Fetch datasets logic here
+        // Example:
+        // const response = await getGroupDatasets(group.id, selectedPage, pageLength);
+        // setSearchResults(response.data);
+        // setTotalNumOfResults(response.total);
+        setLoadingResults(false);
+    };
+
+    // Effect to load initial data
+    useEffect(() => {
+        if (location.state?.groupName) {
+            // If coming from group creation, we already have the data
+            setEditable(true);
+        } else if (params.groupId) {
+            // If accessing directly with URL parameter, fetch group data
+            const fetchGroup = async () => {
+                try {
+                    //const response = await getGroup(params.groupId);
+                    //setGroup(response);
+                    setEditable(true); // Set based on user permissions
+                } catch (error) {
+                    console.error("Error fetching group:", error);
+                }
+            };
+            fetchGroup();
+        }
+        
+        // Load initial datasets
+        GetNewPage(1);
+    }, [params.groupId, location.state]);
+
+    const onLeave = () => {
+        //leaveGroup(group.id); // Assuming group ID is needed
+        navigate("/groups");
+    };
+
+    return (
+        <ThemeProvider theme={mdTheme}>
+            <Box sx={{ display: 'flex'}}>
                 <CssBaseline />
 
                 <Box
@@ -34,11 +85,11 @@ export const GroupHome = ({ groupName, groupDescription, datasets, onAddDataset,
                         height: '100vh',
                         overflow: 'auto'
                     }}
-                ></Box>
-                <Toolbar />
+                >
+                    <Toolbar />
                     <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
                         <Grid container spacing={3} justifyContent="center" alignItems="center">
-                            {/* User information */}
+                            {/* Group information */}
                             <Grid item xs={12} md={8}>
                                 <Paper
                                     elevation={12}
@@ -48,25 +99,34 @@ export const GroupHome = ({ groupName, groupDescription, datasets, onAddDataset,
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
-                                        // height: 320,
                                         width: '100%',
                                     }}
                                 >
-                                    {/* User avatar */}
-                                    {/* <Avatar alt={user.email} src="/static/images/avatar/2.jpg" sx={{ width: 100, height: 100 }} />
-                                    <Divider flexItem sx={{ mt: 2, mb: 4 }} /> */}
                                     <Typography variant="h3" component="h4">
-                                        {user.first_name} {user.last_name} {user.suffix}
+                                        {group.groupName}
+                                    </Typography>
+                                    <Typography variant="h6" color="textSecondary" sx={{ mt: 1 }}>
+                                        {group.groupDescription}
                                     </Typography>
                                     {
                                         editable === true && <>
                                             <Grid container justifyContent="center" sx={{ mb: 3, mt: 2 }}>
+                                                <Grid item xs={12} sm={6} md={4}>
+                                                    <Button
+                                                        variant="contained"
+                                                        component="label"
+                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+                                                        onClick={() => setModalOpen(true)}
+                                                    >
+                                                        Group Members
+                                                    </Button>
+                                                </Grid>
 
                                                 <Grid item xs={12} sm={6} md={4}>
                                                     <Button 
                                                         variant="contained"
                                                         component="label"
-                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1 , alignItems: 'center' }} 
+                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }} 
                                                         onClick={() => setLeaveOpen(true)}
                                                     >
                                                         Leave Group
@@ -74,9 +134,9 @@ export const GroupHome = ({ groupName, groupDescription, datasets, onAddDataset,
                                                     <AlertDialog
                                                         open={leaveOpen}
                                                         setOpen={setLeaveOpen}
-                                                        titleText={`Are you sure you want to leave the group?`}
+                                                        titleText={`Are you sure you want to leave this group?`}
                                                         bodyText={"This action cannot be undone."}
-                                                        action={() => onLeave()}
+                                                        action={onLeave}
                                                     />
                                                 </Grid>
                                             </Grid>
@@ -112,6 +172,10 @@ export const GroupHome = ({ groupName, groupDescription, datasets, onAddDataset,
                         </Grid>
                     </Container>
                 </Box>
-            </ThemeProvider>
-  );
-};
+            </Box>
+
+            {/* Note: EditProfile component was using undefined "user" variable - removed for now */}
+            {/* If you need member management, implement a separate MemberManagement component */}
+        </ThemeProvider>
+    );
+}
