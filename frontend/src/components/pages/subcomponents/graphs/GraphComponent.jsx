@@ -246,7 +246,18 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.text];
                 } else if (metricTypes.directedGraph.includes(data.metric)) {
-                    
+                    if (dataPoint.data.hovertext.includes("<br>Weight: ")) {
+                        // line
+                        params.group_name = [params.from_col, params.to_col];
+                        params.word_list = [];
+                        let names = dataPoint.data.hovertext.split("<br>")[0];
+                        params.group_list = names.split(" -> ");
+                    } else {
+                        // point
+                        params.group_name = [params.to_col, params.from_col];
+                        params.group_list = dataPoint.hovertext;
+                        params.word_list = [];
+                    }
                 } else {
                     throw new Error("Graph type not supported")
                 }

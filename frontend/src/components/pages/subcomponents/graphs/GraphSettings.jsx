@@ -50,6 +50,8 @@ export const GraphSettings = ( props ) => {
             setLastMetric(settings.metric);
             setGroup(settings.group_name);
             setTopn(String(settings.topn));
+            setToCol(settings.to_col);
+            setFromCol(settings.from_col);
 
             let searchList = []
             settings.group_list.forEach(x => {
@@ -126,8 +128,6 @@ export const GraphSettings = ( props ) => {
             setNetworkValid(true);
         } else {
             setNetworkValid(false);
-            setToCol("");
-            setFromCol("");
         }
 
         setLastMetric(metric);
