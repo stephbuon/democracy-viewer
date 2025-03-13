@@ -18,26 +18,13 @@ export const Graph = (props) => {
   const [graph, setGraph] = useState(false);
   const [loading, setLoading] = useState(false);
   const [zoomLoading, setZoomLoading] = useState(false);
-  const [alert, setAlert] = useState(1);
-  const [snackBarOpen1, setSnackBarOpen1] = useState(false);
+  const [alert, setAlert] = useState(0);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishDisabled, setPublishDisabled] = useState(true);
 
   // variable definitions
   const navigate = useNavigate();
   const urlParams = useParams();
-
-  // Function definitions
-  const openSnackbar1 = () => {
-    setSnackBarOpen1(true)
-  }
-
-  const handleSnackBarClose1 = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackBarOpen1(false);
-  };
 
   // Function to determine if two labels overlap in a scatter plot
   const isOverlappingScatter = (x1, y1, x2, y2, rangeX, rangeY) => {
@@ -58,6 +45,7 @@ export const Graph = (props) => {
   // Runs on graph settings submit
   // Generate a graph or update the existing graph
   const updateGraph = (params) => {
+    localStorage.removeItem('selected');
     setGraph(false);
     setLoading(true);
 
@@ -380,7 +368,6 @@ export const Graph = (props) => {
       if (props.navigated) {
         props.setNavigated(false)
         setAlert(1);
-        openSnackbar1()
       }
     }
   }, []);
@@ -399,12 +386,16 @@ export const Graph = (props) => {
     <>
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={snackBarOpen1}
+        open={alert !== 0}
         autoHideDuration={6000}
-        onClose={() => handleSnackBarClose1()}
       >
-        <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
+        <Alert 
+          onClose={() => setAlert(0)} 
+          severity={alert === 2 ? "success" : "error"} 
+          sx={{ width: '100%' }}
+        >
           {alert === 1 && <>You must select a data point first</>}
+          {alert === 2 && <>Successfully published graph!</>}
         </Alert>
       </Snackbar>
 
@@ -427,6 +418,7 @@ export const Graph = (props) => {
             setDisabled={setPublishDisabled}
             handleClose={handlePublishClose}
             downloadGraph={downloadGraph}
+            setAlert={setAlert}
           />
         </div>
       </Modal>

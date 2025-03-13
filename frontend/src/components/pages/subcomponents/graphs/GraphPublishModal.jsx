@@ -34,12 +34,12 @@ export const GraphPublishModal = (props) => {
             settings.group_list = settings.group_list.sort();
             settings.pos_list = settings.pos_list.sort();
             settings.word_list = settings.word_list.sort();
-            debugger;
             const s3_id = await publishGraph({ settings }, graph);
             await uploadGraphMetadata({
                 s3_id, title, description, is_public: publicPrivate, table_name: settings.table_name
             });
             props.handleClose();
+            props.setAlert(2);
         } catch {
             props.setDisabled(false);
         }
