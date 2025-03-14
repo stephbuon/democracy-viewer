@@ -96,8 +96,8 @@ export const DatasetInformation = (props) => {
                         value={props.publicPrivate}
                         onChange={event => props.setPublicPrivate(event.target.value)}
                     >
-                        <MenuItem value={true}>Public</MenuItem>
-                        <MenuItem value={false}>Private</MenuItem>
+                        <MenuItem value={1}>Public</MenuItem>
+                        <MenuItem value={0}>Private</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
