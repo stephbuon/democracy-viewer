@@ -3,6 +3,7 @@ export * from "./Acknowledgements";
 export * from "./DatasetResultsPage";
 export * from "./DownloadStarted";
 export * from "./Graph";
+export * from "./GraphResultsPage"
 export * from "./Homepage";
 export * from "./Layout";
 export * from "./Login";

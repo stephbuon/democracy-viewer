@@ -2,8 +2,66 @@ const files = require("../util/file_management");
 const runPython = require("../util/python_config");
 require('dotenv').config();
 const dataQueries = require("../util/data_queries");
+const aws = require("../util/aws");
 const crypto = require('crypto');
 const datasets = require("../models/datasets");
+const graphs = require("../models/graphs");
+
+// Get the url to upload a graph to S3
+const publishGraph = async(knex, settings, user) => {
+    const model = new datasets(knex);
+
+    // Check dataset metadata to make sure user has access to this dataset
+    const metadata = await model.getMetadata(settings.table_name);
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user.email } does not have access to the dataset ${ settings.table_name }`);
+    }
+
+    // Hash the settings to get a unique id
+    const hashedSettings = crypto.createHash('md5').update(JSON.stringify(settings)).digest('hex');
+
+    // Upload the settings
+    const settingsFile = `files/graphs/${ hashedSettings }.json`;
+    files.generateJSON(settingsFile, settings);
+    await aws.uploadFile(settingsFile, `graphs/${ hashedSettings }/settings.json`);
+
+    // Get the signed url to upload graph image
+    const signedUrl = await aws.uploadGraph(hashedSettings);
+
+    // Return signed url and unique id
+    return {
+        id: hashedSettings,
+        url: signedUrl
+    }
+}
+
+// Add metadata for the graph
+const addMetadata = async(knex, params, user) => {
+    const model_graphs = new graphs(knex);
+    const model_datasets = new datasets(knex);
+
+    // Check dataset metadata to make sure user has access to this dataset
+    const metadata = await model_datasets.getMetadata(params.table_name);
+    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+        throw new Error(`User ${ user.email } does not have access to the dataset ${ params.table_name }`);
+    }
+
+    // Check if the user has already published this graph
+    const graphCount = await model_graphs.getFilteredGraphsCount({ s3_id: params.s3_id, user: user.email }, user.email);
+    if (graphCount > 0) {
+        throw new Error(`User ${ user.email } has already published a graph with these parameters`);
+    }
+
+    // Verify that the graph exists with the given id
+    const graphPath = `graphs/${ params.s3_id }/graph.png`;
+    const graphExists = await aws.checkFileExists(graphPath);
+    if (!graphExists) {
+        throw new Error(`No graph has been uploaded with the id '${ params.s3_id }'`);
+    }
+
+    // Upload metadata to s3
+    return await model_graphs.createMetadata(user.email, params);
+}
 
 // Generate the data for a graph based on user input
 const createGraph = async(knex, dataset, params, user = null) => {
@@ -38,6 +96,27 @@ const createGraph = async(knex, dataset, params, user = null) => {
    
     // Read python output files and return results
     return files.readJSON(file2, false);
+}
+
+// Like a graph
+const addLike = async(knex, user, id) => {
+    const model = new graphs(knex);
+
+    await model.addLike(user, id);
+}
+
+// Update a graph's metadata
+const updateMetadata = async(knex, id, params, user) => {
+    const model = new graphs(knex);
+
+    // Check metadata to ensure this user has the rights to update this graph
+    const oldRecord = await model.getMetadataById(id);
+    if (oldRecord.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to update this metadata`);
+    }
+
+    // Update metadata and return new record
+    return await model.updateMetadata(id, params);
 }
 
 // Get the ids of records the match the given words and/or groups
@@ -84,6 +163,7 @@ const getZoomIds = async(knex, table, params, user = undefined) => {
     };
 }
 
+// Get the paginated records for a set of ids
 const getZoomRecords = async(knex, table, params, user = undefined) => {
     const model = new datasets(knex);
 
@@ -123,8 +203,137 @@ const getZoomRecords = async(knex, table, params, user = undefined) => {
     return df;
 }
 
+// Get metadata including data from other columns
+const getFullMetadata = async(knex, id, email) => {
+    const model = new graphs(knex);
+
+    const result = await model.getMetadataById(id);
+    
+
+    // result.tags = await getTags(knex, id);
+    if (email) {
+        result.liked = await model.getLike(email, id);
+    } else {
+        result.liked = false;
+    }
+    result.likes = await model.getLikeCount(id);
+
+    return result;
+}
+
+// Get filtered graphs
+const getFilteredGraphs = async(knex, query, email, page) => {
+    const model = new graphs(knex);
+
+    const results = await model.getFilteredGraphs(query, email, true, page);
+    // Get tags and likes for search results
+    for (let i = 0; i < results.length; i++) {
+        // results[i].tags = await getTags(knex, results[i].id);
+        if (email) {
+            results[i].liked = await model.getLike(email, results[i].id);
+        } else {
+            results[i].liked = false;
+        }
+        results[i].likes = await model.getLikeCount(results[i].id);
+    }
+
+    return results;
+}
+
+// Get count of graph filter
+const getFilteredGraphsCount = async(knex, query, email) => {
+    const model = new graphs(knex);
+
+    const result = await model.getFilteredGraphsCount(query, email);
+    return result;
+}
+
+// Return the settings for a graph based on its id
+const getGraphSettings = async(knex, id, user = null) => {
+    const model = new graphs(knex);
+
+    // Check if user has permission to view this graph
+    const metadata = await model.getMetadataById(id);
+    if (!metadata.is_public && metadata.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to view this graph`);
+    }
+
+    // Download the graph settings from s3
+    const localPath = `files/graphs/${ metadata.s3_id }.json`;
+    const s3Path = `graphs/${ metadata.s3_id }`;
+    await aws.downloadFile(localPath, s3Path, "settings.json");
+    // Read downloaded file
+    const settings = files.readJSON(localPath, false);
+
+    // Add a view for the graph
+    await model.incrementClicks(id);
+
+    // Return graph settings
+    return settings;
+}
+
+// Get image by id
+const getGraphImage = async(knex, id, user = null) => {
+    const model = new graphs(knex);
+
+    // Check if user has permission to view this graph
+    const metadata = await model.getMetadataById(id);
+    if (!metadata.is_public && metadata.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to view this graph`);
+    }
+
+    // Return signed url to get image
+    return await aws.downloadGraph(metadata.s3_id);
+}
+
+// Delete graph metadata and graph from s3 if needed
+const deleteGraph = async(knex, id, user) => {
+    const model = new graphs(knex);
+
+    // Check if user has permission to delete this graph
+    const metadata = await model.getMetadataById(id);
+    if (metadata.email !== user.email) {
+        throw new Error(`User ${ user.email } does not have permission to view this graph`);
+    }
+
+    // Check if another graph uses the same s3 id
+    const matchingS3 = await model.getGraphsByS3Id(metadata.s3_id);
+    // Delete data from s3 if this is the only graph with this s3 id
+    if (matchingS3.length == 1) {
+        const dirPath = `graphs/${ metadata.s3_id }`;
+        const graphPath = `${ dirPath }/graph.png`;
+        const settingsPath = `${ dirPath }/settings.json`;
+        
+        await aws.deleteFile(graphPath);
+        await aws.deleteFile(settingsPath);
+        await aws.deleteFile(dirPath);
+    }
+
+    // Delete metadata record
+    await model.deleteMetadataById(id);
+}
+
+// Unlike a graph
+const deleteLike = async(knex, user, id) => {
+    const model = new graphs(knex);
+
+    await model.deleteLike(user, id);
+}
+
+
 module.exports = {
+    publishGraph,
+    addMetadata,
     createGraph,
+    addLike,
+    updateMetadata,
     getZoomIds,
-    getZoomRecords
+    getZoomRecords,
+    getFullMetadata,
+    getFilteredGraphs,
+    getFilteredGraphsCount,
+    getGraphSettings,
+    getGraphImage,
+    deleteGraph,
+    deleteLike
 }

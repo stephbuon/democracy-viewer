@@ -3,14 +3,15 @@ import { useRef, useEffect, useState } from "react";
 import Plotly from "plotly.js-dist";
 import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { metricTypes } from "./metrics";
+import { metricTypes, metricNames } from "./metrics";
 import { getZoomIds } from "../../../../api";
 
-export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter }) => {
+export const GraphComponent = ({ data, setZoomLoading, isOverlappingScatter }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
-        title: data.title,
+        // title: data.title,
+        title: metricNames[data.metric],
         width: 1000,
         height: 500,
         margin: {

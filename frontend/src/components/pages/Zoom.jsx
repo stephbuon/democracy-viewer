@@ -60,7 +60,14 @@ export const Zoom = (props) => {
     // UseEffect: Gets record for all data.ids and populates searchResults
     useEffect(() => {
         const graphData_ = JSON.parse(localStorage.getItem('selected'));
-        if (!graphData_ || !graphData_.dataset) {
+        const gs = JSON.parse(localStorage.getItem('graph-settings'));
+        const dv = JSON.parse(localStorage.getItem('democracy-viewer'));
+        if (
+            !graphData_ || !graphData_.dataset || 
+            !gs || gs.table_name !== graphData_.dataset ||
+            !dv || !dv.dataset || dv.dataset.table_name !== graphData_.dataset
+        ) {
+            localStorage.removeItem("selected");
             navigate('/graph')
             props.setNavigated(true);
         } else {

@@ -1,11 +1,11 @@
 
 // Imports
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Box, Button, Grid, Snackbar, Alert, Container } from "@mui/material";
-import { GraphComponent, GraphSettings } from "./subcomponents/graphs";
-import { getGraph } from "../../api";
-import { Settings, RotateLeft, Download } from '@mui/icons-material';
+import { useNavigate, useParams } from "react-router-dom";
+import { Box, Button, Grid, Snackbar, Alert, Container, Modal } from "@mui/material";
+import { GraphComponent, GraphPublishModal, GraphSettings } from "./subcomponents/graphs";
+import { getGraph, getPublishedGraph } from "../../api";
+import { Settings, RotateLeft, Download, Upload } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";
 
@@ -14,26 +14,17 @@ export const Graph = (props) => {
   const [data, setData] = useState(undefined);
   const [graphData, setGraphData] = useState(undefined);
   const [settings, setSettings] = useState(true);
+  const [newSettings, setNewSettings] = useState(false);
   const [graph, setGraph] = useState(false);
   const [loading, setLoading] = useState(false);
   const [zoomLoading, setZoomLoading] = useState(false);
-  const [alert, setAlert] = useState(1);
-  const [snackBarOpen1, setSnackBarOpen1] = useState(false);
+  const [alert, setAlert] = useState(0);
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [publishDisabled, setPublishDisabled] = useState(true);
 
   // variable definitions
   const navigate = useNavigate();
-
-  // Function definitions
-  const openSnackbar1 = () => {
-    setSnackBarOpen1(true)
-  }
-
-  const handleSnackBarClose1 = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackBarOpen1(false);
-  };
+  const urlParams = useParams();
 
   // Function to determine if two labels overlap in a scatter plot
   const isOverlappingScatter = (x1, y1, x2, y2, rangeX, rangeY) => {
@@ -46,9 +37,15 @@ export const Graph = (props) => {
     return xDistance < xThreshold && yDistance < yThreshold;
   };
 
+  // Close publish modal
+  const handlePublishClose = () => {
+    setPublishOpen(false);
+  }
+
   // Runs on graph settings submit
   // Generate a graph or update the existing graph
   const updateGraph = (params) => {
+    localStorage.removeItem('selected');
     setGraph(false);
     setLoading(true);
 
@@ -357,6 +354,10 @@ export const Graph = (props) => {
   // Dataset has been selected -> Populates group options array for column name dropdown
   // Navigate to datasetSearch page otherwise
   useEffect(() => {
+    if (urlParams.id) {
+      setSettings(false);
+    }
+
     let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
     if (!demoV || !demoV.dataset || !demoV.dataset.tokens_done) {
       navigate('/datasets/search')
@@ -367,37 +368,60 @@ export const Graph = (props) => {
       if (props.navigated) {
         props.setNavigated(false)
         setAlert(1);
-        openSnackbar1()
       }
-
-      // let graph = JSON.parse(localStorage.getItem('graph-data'));
-      // if (graph) {
-      //   if (graph["table_name"] === demoV["dataset"]["table_name"] && graph.graph.length > 0) {
-      //     setGraphData(graph);
-      //     setGraph(true);
-      //     setSettings(false);
-      //   } else {
-      //     localStorage.removeItem("graph-data")
-      //   }
-      // }
     }
   }, []);
+
+  useEffect(() => {
+    if (data && urlParams.id) {
+      getPublishedGraph(urlParams.id).then(params => {
+        localStorage.setItem('graph-settings', JSON.stringify(params));
+        setNewSettings(!newSettings);
+        updateGraph(params);
+      });
+    }
+  }, [data]);
 
   return (
     <>
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={snackBarOpen1}
+        open={alert !== 0}
         autoHideDuration={6000}
-        onClose={() => handleSnackBarClose1()}
       >
-        <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
+        <Alert 
+          onClose={() => setAlert(0)} 
+          severity={alert === 2 ? "success" : "error"} 
+          sx={{ width: '100%' }}
+        >
           {alert === 1 && <>You must select a data point first</>}
+          {alert === 2 && <>Successfully published graph!</>}
         </Alert>
       </Snackbar>
 
-      {data !== undefined && <GraphSettings dataset={data} show={settings} setSettings={setSettings}
-        updateGraph={updateGraph} generated={graph} />}
+      {
+        data !== undefined && 
+        <GraphSettings 
+          dataset={data} 
+          show={settings} 
+          setSettings={setSettings}
+          updateGraph={updateGraph} 
+          generated={graph} 
+          newSettings={newSettings} 
+        />
+      }
+
+      <Modal open={publishOpen} onClose={() => handlePublishClose()}>
+        <div>
+          <GraphPublishModal
+            disabled={publishDisabled}
+            setDisabled={setPublishDisabled}
+            handleClose={handlePublishClose}
+            downloadGraph={downloadGraph}
+            setAlert={setAlert}
+          />
+        </div>
+      </Modal>
 
       <Box component="div" sx={{ marginTop: "5%" }}>
         <Grid container justifyContent="center" direction="column">
@@ -431,6 +455,16 @@ export const Graph = (props) => {
                   sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
                   disabled={loading || zoomLoading}
                 ><Download sx={{ mr: "10px" }} />Download</Button>
+              </Grid>
+
+              {/* {"Publish graph button"} */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Button variant="contained"
+                  onClick={() => setPublishOpen(true)}
+                  className="mt-2"
+                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
+                  disabled={loading || zoomLoading}
+                ><Upload sx={{ mr: "10px" }} />Publish</Button>
               </Grid>
             </Grid>
           </Container>
@@ -467,7 +501,6 @@ export const Graph = (props) => {
                 <GraphComponent 
                   border 
                   data={graphData} 
-                  setData={setData} 
                   setZoomLoading={setZoomLoading} 
                   isOverlappingScatter={isOverlappingScatter}
                 />

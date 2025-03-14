@@ -182,6 +182,7 @@ export const ResultModal = (props) => {
                                     />
                                 }
                                 action={() => updateInfo()}
+                                disabled={disabled || infoDisabled}
                             />
                             <Button
                                 variant="contained"
