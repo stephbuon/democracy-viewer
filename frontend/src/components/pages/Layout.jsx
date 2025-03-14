@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItemIcon,ListItemText,Box,Tooltip} from '@mui/material';
-import {Menu as MenuIcon, Person, Home, Search, MilitaryTech, ScreenSearchDesktop, Cable} from '@mui/icons-material';
+import {Menu as MenuIcon, Person, Home, Search, MilitaryTech, ScreenSearchDesktop, Cable, ImageSearch} from '@mui/icons-material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import UploadIcon from '@mui/icons-material/Upload';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -133,7 +133,7 @@ export const Layout = (props) => {
 
             <ListItemButton component={Link} to="/graphs/search" sx = {{ height: "50px" }}>
               <ListItemIcon>
-                <Search />
+                <ImageSearch />
               </ListItemIcon>
               <ListItemText primary="Graph Search" />
             </ListItemButton>
