@@ -10,11 +10,6 @@ export const GraphResult = (props) => {
 
     const handleOpen = () => setOpen(true);
 
-    const updateGraph = (ds) => {
-        setGraph(ds);
-        props.setGraph(ds);
-    }
-
     useEffect(() => {
         setGraph(props.result);
 
@@ -40,7 +35,7 @@ export const GraphResult = (props) => {
             
             <GraphResultModal
                 graph={graph}
-                setGraph={updateGraph}
+                setGraph={x => setGraph(x)}
                 open={open}
                 setOpen={setOpen}
                 loggedIn={loggedIn}

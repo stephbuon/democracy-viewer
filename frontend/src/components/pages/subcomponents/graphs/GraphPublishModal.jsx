@@ -1,7 +1,6 @@
 // MUI Imports
-import { Box, Button, FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip, Typography } from '@mui/material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { FormattedTextField } from "../../../common/forms";
+import { Box, Button } from '@mui/material';
+import { GraphInformation } from '../../../common';
 import { useState } from 'react';
 import { publishGraph, uploadGraphMetadata } from '../../../../api';
 import Plotly from "plotly.js-dist";
@@ -10,19 +9,6 @@ export const GraphPublishModal = (props) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [publicPrivate, setPublicPrivate] = useState(false);
-
-    const setValid = (val) => {
-        if (!props.disabled) {
-          if (!val) {
-            props.setDisabled(true);
-          }
-        } else if (val) {
-          const errors = document.querySelectorAll("p.Mui-error");
-          if (errors.length === 0) {
-            props.setDisabled(false);
-          }
-        }
-    }
 
     const submitGraph = async() => {
         props.setDisabled(true);
@@ -63,52 +49,16 @@ export const GraphPublishModal = (props) => {
                 outline: 'none'
             }}
         >
-            <Box sx={{ padding: 0 }}>
-                <Typography variant="h5" align="center" gutterBottom>
-                    Dataset Information
-                    <Tooltip title="Provide general information about the dataset. Noticed that the information will be shared to public if you select 'public' for privacy.">
-                        <IconButton size="small">
-                            <HelpOutlineIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, mt: 1 }}>
-                    <FormattedTextField
-                        id="Title"
-                        label="Title"
-                        variant="filled"
-                        fullWidth
-                        sx={{ background: 'rgb(255, 255, 255)' }}
-                        defaultValue={title}
-                        setValue={setTitle}
-                        maxChars={100}
-                        required
-                        setValid={setValid}
-                    />
-                    <FormattedTextField
-                        id="Description"
-                        label="Description"
-                        variant="filled"
-                        fullWidth
-                        sx={{ background: 'rgb(255, 255, 255)' }}
-                        defaultValue={description}
-                        setValue={setDescription}
-                        maxChars={500}
-                        required
-                        setValid={setValid}
-                    />
-                    <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                        <InputLabel>Privacy</InputLabel>
-                        <Select
-                            value={publicPrivate}
-                            onChange={event => setPublicPrivate(event.target.value)}
-                        >
-                            <MenuItem value={true}>Public</MenuItem>
-                            <MenuItem value={false}>Private</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
-            </Box>
+            <GraphInformation
+                disabled = {props.disabled}
+                setDisabled = {props.setDisabled}
+                title = {title}
+                setTitle = {setTitle}
+                description = {description}
+                setDescription = {setDescription}
+                publicPrivate = {publicPrivate}
+                setPublicPrivate = {setPublicPrivate}
+            />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', padding: 2 }}>
                 <Button
