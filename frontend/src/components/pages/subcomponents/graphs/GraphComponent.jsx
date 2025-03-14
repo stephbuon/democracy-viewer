@@ -208,15 +208,14 @@ export const GraphComponent = ({ data, setZoomLoading, isOverlappingScatter }) =
 
                 const params = JSON.parse(localStorage.getItem("graph-settings"));
                 if (metricTypes.bar.includes(data.metric)) {
-                    params.group_list = dataPoint.data.name;
-                    params.word_list = [dataPoint.x];
+                    params.group_list = dataPoint.x;
                 } else if (metricTypes.scatter.includes(data.metric)) {
                     params.word_list = [dataPoint.hovertext];
                 } else if (metricTypes.heatmap.includes(data.metric)) {
                     params.group_list = [dataPoint.x, dataPoint.y];
                 } else if (metricTypes.dotplot.includes(data.metric)) {
                     params.group_list = dataPoint.x;
-                    params.word_list = [dataPoint.text, data.titleList[0]];
+                    params.word_list = [dataPoint.text, params.word_list[0]];
                 } else if (metricTypes.multibar.includes(data.metric)) {
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.text];

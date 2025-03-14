@@ -8,7 +8,7 @@ import Plotly from "plotly.js-dist";
 export const GraphPublishModal = (props) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [publicPrivate, setPublicPrivate] = useState(false);
+    const [publicPrivate, setPublicPrivate] = useState(0);
 
     const submitGraph = async() => {
         props.setDisabled(true);
@@ -29,7 +29,6 @@ export const GraphPublishModal = (props) => {
         } catch {
             props.setDisabled(false);
         }
-        
     }
 
     return <>
