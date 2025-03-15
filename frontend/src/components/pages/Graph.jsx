@@ -8,6 +8,7 @@ import { getGraph } from "../../api";
 import { Settings, RotateLeft, Download } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";
+import { std } from "mathjs";
 
 export const Graph = (props) => {
   // useState definitions
@@ -295,8 +296,14 @@ export const Graph = (props) => {
         });
       } else if (metricTypes.directedGraph.includes(params.metric)) {
         const annotations = [];
+      
+        // Get unique nodes
         const nodes = [...new Set([...res.map(x => x.source), ...res.map(x => x.target)])];
 
+        const weights = res.map(x => x.count);
+        const weightStd = std(weights);
+
+        // Initialize nodes around the unit circle
         const positions = {};
         nodes.forEach((x, i) => {
           const angle = (2 * Math.PI * i) / nodes.length;
@@ -422,20 +429,19 @@ export const Graph = (props) => {
 
               const { cX, cY } = generateOffset(x0, y0, x1, y1, -1);
               const curve = generateCurve(x0, y0, cX, cY, x1, y1);
+              const edgeWidth = edge2.count / weightStd;
 
               edgeTraces.push({
                 x: curve.x,
                 y: curve.y,
-                // text: [`Weight: ${edge.count}`],
-                // textposition: 'middle center',
                 hovertext: `${ edge2.source } -> ${ edge2.target }<br>Weight: ${ edge2.count }`,
                 hoverinfo: 'text',
-                mode: 'lines+text',
+                mode: 'lines',
                 line: {
                   color: "red",
-                  shape: "spline"
+                  shape: "spline",
+                  width: edgeWidth
                 },
-                // marker: { size: 5, color: "red" },
                 type: 'scatter'
               });
 
@@ -452,23 +458,25 @@ export const Graph = (props) => {
                 showarrow: true,
                 // arrowhead: 2,
                 // arrowsize: 1.2,
-                // arrowwidth: 1.5,
+                arrowwidth: edgeWidth,
                 arrowcolor: "red"
               });
             }
 
             const { cX, cY } = generateOffset(x0, y0, x1, y1);
             const curve = generateCurve(x0, y0, cX, cY, x1, y1);
+            const edgeWidth = edge.count / weightStd;
 
             edgeTraces.push({
               x: curve.x,
               y: curve.y,
               hovertext: `${ edge.source } -> ${ edge.target }<br>Weight: ${ edge.count }`,
               hoverinfo: 'text',
-              mode: 'lines+text',
+              mode: 'lines',
               line: {
                 color: "red",
-                shape: "spline"
+                shape: "spline",
+                width: edgeWidth
               },
               type: 'scatter'
             });
@@ -484,6 +492,9 @@ export const Graph = (props) => {
               axref: "x",
               ayref: "y",
               showarrow: true,
+              // arrowhead: 2,
+              // arrowsize: 1.2,
+              arrowwidth: edgeWidth,
               arrowcolor: "red"
             });
           }
