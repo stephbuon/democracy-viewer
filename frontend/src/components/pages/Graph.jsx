@@ -19,6 +19,7 @@ export const Graph = (props) => {
   const [loading, setLoading] = useState(false);
   const [zoomLoading, setZoomLoading] = useState(false);
   const [alert, setAlert] = useState(0);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishDisabled, setPublishDisabled] = useState(true);
 
@@ -369,6 +370,13 @@ export const Graph = (props) => {
         props.setNavigated(false)
         setAlert(1);
       }
+
+      // Disable publish button if user is not logged in
+      if (!demoV.user) {
+        setLoggedIn(false);
+      } else {
+        setLoggedIn(true);
+      }
     }
   }, []);
 
@@ -463,7 +471,7 @@ export const Graph = (props) => {
                   onClick={() => setPublishOpen(true)}
                   className="mt-2"
                   sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  disabled={loading || zoomLoading}
+                  disabled={loading || zoomLoading || !loggedIn}
                 ><Upload sx={{ mr: "10px" }} />Publish</Button>
               </Grid>
             </Grid>
