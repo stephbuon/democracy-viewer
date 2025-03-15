@@ -367,6 +367,43 @@ export const Graph = (props) => {
           return { x: curveX, y: curveY };
         }
 
+        const placeArrow = (x, y, curveX, curveY, direction = "back") => {
+          const n = curveX.length;
+          if (n < 2) {
+            return {
+              ax: x, ay: y
+            }
+          }
+
+          // Get two points
+          let x0, x1, y0, y1;
+          if (direction == "front") {
+            x0 = curveX[1];
+            y0 = curveY[1];
+            x1 = curveX[0];
+            y1 = curveY[0];
+          } else if (direction == "back") {
+            x0 = curveX[n - 2];
+            y0 = curveY[n - 2];
+            x1 = curveX[n - 1];
+            y1 = curveY[n - 1];
+          } else {
+            throw new Error(`Unknown arrow direction: ${ direction }`)
+          }
+
+          // Compute the direction vector
+          const dx = x1 - x0;
+          const dy = y1 - y0;
+          const length = Math.sqrt(dx * dx + dy * dy);
+
+          // Normalize and move slightly back to align the arrow with the curve
+          const offset = 0.05; // Adjust as needed
+          const ax = x1 - (dx / length) * offset;
+          const ay = y1 - (dy / length) * offset;
+
+          return { ax, ay };
+        }
+
         const visited = [];
         const edgeTraces = [];
         res.map((edge, idx) => {
@@ -402,11 +439,12 @@ export const Graph = (props) => {
                 type: 'scatter'
               });
 
+              const { ax, ay } = placeArrow(x0, y0, curve.x, curve.y, "front");
               annotations.push({
-                x: x1,
-                y: y1,
-                ax: curve.x[curve.x.length - 1],
-                ay: curve.y[curve.y.length - 1],
+                x: x0,
+                y: y0,
+                ax: ax,
+                ay: ay,
                 xref: "x",
                 yref: "y",
                 axref: "x",
@@ -435,11 +473,12 @@ export const Graph = (props) => {
               type: 'scatter'
             });
 
+            const { ax, ay } = placeArrow(x1, y1, curve.x, curve.y, "back");
             annotations.push({
-              x: x0,
-              y: y0,
-              ax: curve.x[0],
-              ay: curve.y[0],
+              x: x1,
+              y: y1,
+              ax: ax,
+              ay: ay,
               xref: "x",
               yref: "y",
               axref: "x",
