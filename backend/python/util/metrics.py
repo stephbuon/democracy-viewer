@@ -128,3 +128,8 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     
     return df
     
+def network_analysis(table_name: str, to_col: str, from_col: str, token: str) -> pl.DataFrame:
+    query = data.metric_networks(table_name, to_col, from_col)
+    df = data.run_query(query, token)
+    
+    return df.collect()

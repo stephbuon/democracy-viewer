@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { metricTypes, metricNames } from "./metrics";
 import { getZoomIds } from "../../../../api";
 
-export const GraphComponent = ({ data, setZoomLoading, isOverlappingScatter }) => {
+export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter, annotations }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
@@ -93,7 +93,8 @@ export const GraphComponent = ({ data, setZoomLoading, isOverlappingScatter }) =
                 metricTypes.dotplot.includes(data.metric) ||
                 metricTypes.multibar.includes(data.metric) ||
                 metricTypes.bar.includes(data.metric) ||
-                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1)
+                (metricTypes.scatter.includes(data.metric) && data.graph.length === 1) ||
+                metricTypes.directedGraph.includes(data.metric)
             ) {
                 layout_ = {
                     ...layout_,
@@ -107,7 +108,7 @@ export const GraphComponent = ({ data, setZoomLoading, isOverlappingScatter }) =
             }
 
             // Treat x-axis as categorical
-            if (!metricTypes.scatter.includes(data.metric)) {
+            if (!(metricTypes.scatter.includes(data.metric) || metricTypes.directedGraph.includes(data.metric))) {
                 layout_ = {
                     ...layout_,
                     xaxis: {
@@ -128,9 +129,34 @@ export const GraphComponent = ({ data, setZoomLoading, isOverlappingScatter }) =
                 }
             }
 
+            // Remove axis ticks
+            if (metricTypes.directedGraph.includes(data.metric)) {
+                layout_ = {
+                    ...layout_,
+                    xaxis: {
+                        ...layout_.xaxis,
+                        showticklabels: false
+                    },
+                    yaxis: {
+                        ...layout_.yaxis,
+                        showticklabels: false
+                    }
+                }
+            }
+
+            // Show annotations
+            if (annotations) {
+                layout_ = {
+                    ...layout_,
+                    annotations
+                }
+            } else if (Object.keys(layout_).includes("annotations")) {
+                delete layout_.annotations;
+            }
+
             setLayout({ ...layout_ });
         }
-    }, [data]);
+    }, [data, annotations]);
 
     useEffect(() => {
         if (foundData) {
@@ -219,6 +245,19 @@ export const GraphComponent = ({ data, setZoomLoading, isOverlappingScatter }) =
                 } else if (metricTypes.multibar.includes(data.metric)) {
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.text];
+                } else if (metricTypes.directedGraph.includes(data.metric)) {
+                    if (dataPoint.data.hovertext.includes("<br>Weight: ")) {
+                        // line
+                        params.group_name = [params.from_col, params.to_col];
+                        params.word_list = [];
+                        let names = dataPoint.data.hovertext.split("<br>")[0];
+                        params.group_list = names.split(" -> ");
+                    } else {
+                        // point
+                        params.group_name = [params.to_col, params.from_col];
+                        params.group_list = dataPoint.hovertext;
+                        params.word_list = [];
+                    }
                 } else {
                     throw new Error("Graph type not supported")
                 }
