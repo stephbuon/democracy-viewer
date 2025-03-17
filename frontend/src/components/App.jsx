@@ -4,7 +4,7 @@ import 'animate.css';
 import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { 
   Acknowledgements, DatasetResultsPage, 
-  DownloadStarted, Graph, Homepage, Layout, Login, Profile, Register, 
+  DownloadStarted, Graph, GraphResultsPage, Homepage, Layout, Login, Profile, Register, 
   SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom
 } from "./pages";
   
@@ -48,6 +48,17 @@ export const App = () => {
   }
 
   useEffect(() => {
+    // Redirect to domain if running on http and not localhost
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHttp = window.location.protocol === "http:";
+    if (!isLocalhost && isHttp) {
+      // Redirect to deployed frontend
+      const path = window.location.pathname;
+      window.location.href = `https://democracyviewer.com${ path }`;
+    }
+  }, [])
+
+  useEffect(() => {
     setDataset(data ? data.dataset : undefined);
     setUser(data ? data.user : undefined);
   }, [data])
@@ -64,7 +75,9 @@ export const App = () => {
             <Route path='/datasets/subsets/suggestion/:id' element={<SubsetSuggestion/>} />
             <Route path="/download/:type" element={<DownloadStarted/>} />
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)}/>}></Route>
+            <Route path="/graph/published/:id" element={<Graph navigated={navigated} setNavigated={(x) => setNavigated(x)} setDataset={(x) => setDataset}/>}></Route>
             <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={(x) => setNavigated(x)} />}></Route>
+            <Route path='/graphs/search' element={<GraphResultsPage login={login} currUser={user} setUser={(x)=>setUser(x)} setDataset={(x) => chooseDataset(x)} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={(x) => setNavigated(x)}/>} />
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout}/>} />
             <Route path="/register" element={<Register currUser={user} login={login}/>} />

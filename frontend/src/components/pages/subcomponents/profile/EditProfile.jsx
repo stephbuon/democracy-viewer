@@ -65,27 +65,19 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                 sx={{
                     position: 'absolute',
                     top: '15%',
-                    left: '15%',
+                    left: '25%',
                     height: "70%",
                     overflow: "scroll",
-                    width: "70%",
+                    width: "50%",
                     bgcolor: 'background.paper',
                     border: '1px solid #000',
                     borderRadius: ".5em .5em",
                 }}
             >
-                <Box component="form" noValidate sx={{ mt: 1 }} className="text-center">
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <FormattedTextField
-                                id="email"
-                                label="Email Address"
-                                defaultValue={user.email}
-                                email
-                                disabled
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
+                <Box component="form" noValidate sx={{ mt: 6 }} className="text-center">
+                    <Grid container columnSpacing={2} rowSpacing={3}>
+
+                        <Grid item xs={6}>
                             <FormattedTextField
                                 id="first_name"
                                 label="First Name"
@@ -96,7 +88,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 setValue={setFirstName}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <FormattedTextField
                                 id="last_name"
                                 label="Last Name"
@@ -107,7 +99,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 setValue={setLastName}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <FormattedTextField
                                 id="suffix"
                                 label="Suffix"
@@ -117,7 +109,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 setValue={setSuffix}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <FormattedTextField
                                 id="title"
                                 label="Title"
@@ -127,7 +119,16 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 setValue={setTitle}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
+                            <FormattedTextField
+                                id="email"
+                                label="Email Address"
+                                defaultValue={user.email}
+                                email
+                                disabled
+                            />
+                        </Grid>
+                        <Grid item xs={6}>
                             <FormattedPatternField
                                 id="orcid"
                                 label="OrcID"
@@ -139,7 +140,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 setValue={setOrcid}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <FormattedTextField
                                 id="linkedin_link"
                                 label="LinkedIn Link"
@@ -151,7 +152,7 @@ export const EditProfile = ({ user, setUser, open, setOpen }) => {
                                 setValue={setLinkedin}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={6}>
                             <FormattedTextField
                                 id="website"
                                 label="Website Link"

@@ -54,7 +54,10 @@ def wait_athena_query(athena_client, query_execution_id: str) -> str:
         status = response["QueryExecution"]["Status"]["State"]
         
         if status in ["SUCCEEDED", "FAILED", "CANCELLED"]:
-            return status
+            try:
+                return status, response["QueryExecution"]["Status"]["StateChangeReason"]
+            except:
+                return status, None
         sleep(0.1)
         
 def rename_file(old_file: str, new_file: str, token: str | None):
@@ -192,11 +195,11 @@ def download(query: str, token: str | None = None) -> pl.LazyFrame:
             
             start_time = time()
             query_id = submit_athena_query(athena_client, query)
-            status = wait_athena_query(athena_client, query_id)
+            status, reason = wait_athena_query(athena_client, query_id)
             print("Athena query time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))
             
             if status.lower() != "succeeded":
-                raise Exception("Query failed with status {}".format(status))
+                raise Exception("Query failed with status {} and reason {}".format(status, reason))
         
             rename_file("athena/{}.csv".format(query_id), "athena/{}.csv".format(query_filename), token)
         download_file(local_path, "athena", "{}.csv".format(query_filename), token)
@@ -254,7 +257,6 @@ def download_file(local_file: str, folder: str, name: str, token: str | None = N
                 region_name = distributed["region"]
             )
         path = "{}/{}".format(folder, name)
-        print(path)
         
         start_time = time()
         s3_client.download_file(

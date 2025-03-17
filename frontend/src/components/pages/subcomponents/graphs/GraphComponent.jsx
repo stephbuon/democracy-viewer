@@ -3,14 +3,15 @@ import { useRef, useEffect, useState } from "react";
 import Plotly from "plotly.js-dist";
 import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { metricTypes } from "./metrics";
+import { metricTypes, metricNames } from "./metrics";
 import { getZoomIds } from "../../../../api";
 
 export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter, annotations }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
-        title: data.title,
+        // title: data.title,
+        title: metricNames[data.metric],
         width: 1000,
         height: 500,
         margin: {
@@ -233,15 +234,14 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
 
                 const params = JSON.parse(localStorage.getItem("graph-settings"));
                 if (metricTypes.bar.includes(data.metric)) {
-                    params.group_list = dataPoint.data.name;
-                    params.word_list = [dataPoint.x];
+                    params.group_list = dataPoint.x;
                 } else if (metricTypes.scatter.includes(data.metric)) {
                     params.word_list = [dataPoint.hovertext];
                 } else if (metricTypes.heatmap.includes(data.metric)) {
                     params.group_list = [dataPoint.x, dataPoint.y];
                 } else if (metricTypes.dotplot.includes(data.metric)) {
                     params.group_list = dataPoint.x;
-                    params.word_list = [dataPoint.text, data.titleList[0]];
+                    params.word_list = [dataPoint.text, params.word_list[0]];
                 } else if (metricTypes.multibar.includes(data.metric)) {
                     params.group_list = dataPoint.x;
                     params.word_list = [dataPoint.text];

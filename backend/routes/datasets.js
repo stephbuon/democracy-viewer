@@ -67,7 +67,7 @@ router.post('/like/:table', authenticateJWT, async(req, res, next) => {
         await control.addLike(req.knex, req.user.email, req.params.table);
         res.status(201).end();
     } catch (err) {
-        console.error('Failed to add dataset text column(s):', err);
+        console.error('Failed to like dataset:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

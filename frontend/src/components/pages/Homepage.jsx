@@ -56,9 +56,7 @@ export const Homepage = () => {
                     Dataset Search
                   </Typography>
                   <Typography align='center'>
-                    Browse Available Datasets,
-                    <br />
-                    Pinpoint Specific Columns and Sections
+                    Browse available datasets
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -76,9 +74,7 @@ export const Homepage = () => {
                     Subset Search
                   </Typography>
                   <Typography align='center'>
-                    Filter Records
-                    <br />
-                    in a Dataset
+                    Search within a dataset
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -96,9 +92,9 @@ export const Homepage = () => {
                     Visualize
                   </Typography>
                   <Typography align='center'>
-                    Customize and Interact with
+                    Customize and interact with
                     <br />
-                    Visualization of Analysis
+                    visualization of analysis
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -118,9 +114,9 @@ export const Homepage = () => {
                     Dataset Upload
                   </Typography>
                   <Typography align='center'>
-                    Upload a Dataset or
+                    Upload a dataset or
                     <br />
-                    Connect to API
+                    connect to API
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -129,23 +125,23 @@ export const Homepage = () => {
               </Card>
             </Grid>
 
-            {/* <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={4}>
               <Card
                 sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               >
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Create Distributed Connection
+                    Graph Search
                   </Typography>
                   <Typography align='center'>
-                    Create a Distributed Connection to Store Your Datasets in Your Own S3 Bucket
+                    Browse visualizations published by our users
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
-                  <Button onClick={() => navigate("/distributed")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
+                  <Button onClick={() => navigate("/graphs/search")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
                 </CardActions>
               </Card>
-            </Grid> */}
+            </Grid>
           </Grid>
         </Container>
       </main>
