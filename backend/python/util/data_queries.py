@@ -552,3 +552,18 @@ def metric_jsd(table_name: str, column: str, values: list[str], word_list: list[
     '''
     
     return query
+
+# Get to/from combos for networks
+def collect_networks(table_name: str, to_col: str, from_col: str, token: str):
+    dataset_table = f"datasets_{ table_name }"
+    
+    query = f'''
+        SELECT "{ to_col }" AS target, "{ from_col }" AS source, COUNT(*) AS count
+        FROM { dataset_table }
+        GROUP BY "{ to_col }", "{ from_col }"
+        ORDER BY COUNT(*) DESC
+    '''
+    
+    df = s3.download(query, token)
+    
+    return df

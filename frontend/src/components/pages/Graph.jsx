@@ -8,11 +8,13 @@ import { getGraph, getPublishedGraph } from "../../api";
 import { Settings, RotateLeft, Download, Upload } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";
+import { std } from "mathjs";
 
 export const Graph = (props) => {
   // useState definitions
   const [data, setData] = useState(undefined);
   const [graphData, setGraphData] = useState(undefined);
+  const [annotationData, setAnnotationData] = useState(undefined);
   const [settings, setSettings] = useState(true);
   const [newSettings, setNewSettings] = useState(false);
   const [graph, setGraph] = useState(false);
@@ -51,6 +53,8 @@ export const Graph = (props) => {
     setLoading(true);
 
     getGraph(data.dataset.table_name, params).then(async (res) => {
+      setAnnotationData(undefined);
+
       let tempData = {
         graph: [],
         table_name: data.dataset.table_name,
@@ -139,7 +143,7 @@ export const Graph = (props) => {
             tempData.graph[index].x.push(dataPoint.x);
             tempData.graph[index].y.push(dataPoint.y);
             tempData.graph[index].hovertext.push(dataPoint.word); // Show on hover
-          }  
+          }
 
           if (!overlap) {
             // If no overlap, display the text on the graph
@@ -152,14 +156,14 @@ export const Graph = (props) => {
         });
 
         // Sort for legend
-        tempData.graph.sort((a,b) => {
-            if (a.name < b.name) {
-              return -1;
-            } else if (a.name > b.name) {
-              return 1;
-            } else {
-              return 0;
-            }
+        tempData.graph.sort((a, b) => {
+          if (a.name < b.name) {
+            return -1;
+          } else if (a.name > b.name) {
+            return 1;
+          } else {
+            return 0;
+          }
         });
       } else if (metricTypes.heatmap.includes(params.metric)) {
         tempData.xLabel = "";
@@ -288,6 +292,226 @@ export const Graph = (props) => {
             })
           }
         });
+      } else if (metricTypes.directedGraph.includes(params.metric)) {
+        const annotations = [];
+      
+        // Get unique nodes
+        const nodes = [...new Set([...res.map(x => x.source), ...res.map(x => x.target)])];
+
+        const weights = res.map(x => x.count);
+        const weightStd = std(weights);
+
+        // Initialize nodes around the unit circle
+        const positions = {};
+        nodes.forEach((x, i) => {
+          const angle = (2 * Math.PI * i) / nodes.length;
+          positions[x] = {
+            x: Math.cos(angle),
+            y: Math.sin(angle)
+          }
+        });
+
+        // Use gradient descent to choose node locations
+        const iterations = 10; // Number of iterations to refine positions
+        const learning_rate = 0.01;
+
+        for (let it = 0; it < iterations; it++) {
+          res.forEach(edge => {
+            const sourcePos = positions[edge.source];
+            const targetPos = positions[edge.target];
+
+            const dx = (targetPos.x - sourcePos.x) * learning_rate;
+            const dy = (targetPos.y - sourcePos.y) * learning_rate;
+
+            // Move source slightly towards target
+            positions[edge.source] = {
+              x: sourcePos.x + dx,
+              y: sourcePos.y + dy
+            };
+
+            // Move target slightly towards source
+            positions[edge.target] = {
+              x: targetPos.x - dx,
+              y: targetPos.y - dy
+            };
+          });
+        }
+
+        const generateOffset = (x0, y0, x1, y1, direction = 1, strength = 0.2) => {
+          // Compute direction vector
+          const dx = x1 - x0;
+          const dy = y1 - y0;
+          const length = Math.sqrt(dx * dx + dy * dy);
+
+          // Normalize and rotate 90 degrees to get perpendicular vector
+          const normX = (-1 * direction) * dy / length;
+          const normY = direction * dx / length;
+
+          // Compute midpoint
+          const mx = (x0 + x1) / 2;
+          const my = (y0 + y1) / 2;
+
+          // Offset midpoint in the perpendicular direction
+          const cX = mx + normX * strength * length;
+          const cY = my + normY * strength * length;
+
+          return { cX, cY };
+        }
+
+        const generateCurve = (x0, y0, cx, cy, x1, y1, numPoints = 20) => {
+          let curveX = [];
+          let curveY = [];
+
+          for (let t = 0; t <= 1; t += 1 / numPoints) {
+            const xt = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * cx + t * t * x1;
+            const yt = (1 - t) * (1 - t) * y0 + 2 * (1 - t) * t * cy + t * t * y1;
+            curveX.push(xt);
+            curveY.push(yt);
+          }
+
+          return { x: curveX, y: curveY };
+        }
+
+        const placeArrow = (x, y, curveX, curveY, direction = "back") => {
+          const n = curveX.length;
+          if (n < 2) {
+            return {
+              ax: x, ay: y
+            }
+          }
+
+          // Get two points
+          let x0, x1, y0, y1;
+          if (direction == "front") {
+            x0 = curveX[1];
+            y0 = curveY[1];
+            x1 = curveX[0];
+            y1 = curveY[0];
+          } else if (direction == "back") {
+            x0 = curveX[n - 2];
+            y0 = curveY[n - 2];
+            x1 = curveX[n - 1];
+            y1 = curveY[n - 1];
+          } else {
+            throw new Error(`Unknown arrow direction: ${ direction }`)
+          }
+
+          // Compute the direction vector
+          const dx = x1 - x0;
+          const dy = y1 - y0;
+          const length = Math.sqrt(dx * dx + dy * dy);
+
+          // Normalize and move slightly back to align the arrow with the curve
+          const offset = 0.05; // Adjust as needed
+          const ax = x1 - (dx / length) * offset;
+          const ay = y1 - (dy / length) * offset;
+
+          return { ax, ay };
+        }
+
+        const visited = [];
+        const edgeTraces = [];
+        res.map((edge, idx) => {
+          if (!visited.includes(idx)) {
+            visited.push(idx);
+
+            let x0 = positions[edge.source]?.x
+            let y0 = positions[edge.source]?.y
+            let x1 = positions[edge.target]?.x
+            let y1 = positions[edge.target]?.y
+
+            const index = res.findIndex(x => x.source === edge.target && x.target === edge.source);
+            if (index !== -1) {
+              visited.push(index);
+              const edge2 = res[index];
+
+              const { cX, cY } = generateOffset(x0, y0, x1, y1, -1);
+              const curve = generateCurve(x0, y0, cX, cY, x1, y1);
+              const edgeWidth = edge2.count / weightStd;
+
+              edgeTraces.push({
+                x: curve.x,
+                y: curve.y,
+                hovertext: `${ edge2.source } -> ${ edge2.target }<br>Weight: ${ edge2.count }`,
+                hoverinfo: 'text',
+                mode: 'lines',
+                line: {
+                  color: "red",
+                  shape: "spline",
+                  width: edgeWidth
+                },
+                type: 'scatter'
+              });
+
+              const { ax, ay } = placeArrow(x0, y0, curve.x, curve.y, "front");
+              annotations.push({
+                x: x0,
+                y: y0,
+                ax: ax,
+                ay: ay,
+                xref: "x",
+                yref: "y",
+                axref: "x",
+                ayref: "y",
+                showarrow: true,
+                // arrowhead: 2,
+                // arrowsize: 1.2,
+                arrowwidth: edgeWidth,
+                arrowcolor: "red"
+              });
+            }
+
+            const { cX, cY } = generateOffset(x0, y0, x1, y1);
+            const curve = generateCurve(x0, y0, cX, cY, x1, y1);
+            const edgeWidth = edge.count / weightStd;
+
+            edgeTraces.push({
+              x: curve.x,
+              y: curve.y,
+              hovertext: `${ edge.source } -> ${ edge.target }<br>Weight: ${ edge.count }`,
+              hoverinfo: 'text',
+              mode: 'lines',
+              line: {
+                color: "red",
+                shape: "spline",
+                width: edgeWidth
+              },
+              type: 'scatter'
+            });
+
+            const { ax, ay } = placeArrow(x1, y1, curve.x, curve.y, "back");
+            annotations.push({
+              x: x1,
+              y: y1,
+              ax: ax,
+              ay: ay,
+              xref: "x",
+              yref: "y",
+              axref: "x",
+              ayref: "y",
+              showarrow: true,
+              // arrowhead: 2,
+              // arrowsize: 1.2,
+              arrowwidth: edgeWidth,
+              arrowcolor: "red"
+            });
+          }
+        });
+
+        const nodeTrace = {
+          x: Object.values(positions).map(pos => pos?.x),
+          y: Object.values(positions).map(pos => pos?.y),
+          text: Object.keys(positions),
+          mode: 'markers+text',
+          textposition: 'top center',
+          marker: { size: 10 },
+          type: 'scatter',
+          hovertext: Object.keys(positions),
+          hoverinfo: 'text',
+        };
+
+        tempData.graph = [nodeTrace, ...edgeTraces];
+        setAnnotationData(annotations);
       } else {
         throw new Error(`Metric '${params.metric}' not implimented`)
       }
@@ -495,9 +719,9 @@ export const Graph = (props) => {
                   height: "60vh"
                 }}>
                   <div class="spinner-border" style={{
-                      width: "5rem",
-                      height: "5rem"
-                    }} role="status">
+                    width: "5rem",
+                    height: "5rem"
+                  }} role="status">
                     <span class="sr-only"></span>
                   </div>
                 </div>
@@ -505,20 +729,22 @@ export const Graph = (props) => {
             )}
 
             {
-              graph === true && zoomLoading === false && 
-                <GraphComponent 
-                  border 
-                  data={graphData} 
-                  setZoomLoading={setZoomLoading} 
-                  isOverlappingScatter={isOverlappingScatter}
-                />
+              graph === true && zoomLoading === false &&
+              <GraphComponent
+                border
+                data={graphData}
+                setData={setData}
+                setZoomLoading={setZoomLoading}
+                isOverlappingScatter={isOverlappingScatter}
+                annotations={annotationData}
+              />
             }
 
             {
-              graph === false && settings === false && loading === false && 
-                <div id="test" style={{ textAlign: "center" }}>
-                  No Results Found
-                </div>
+              graph === false && settings === false && loading === false &&
+              <div id="test" style={{ textAlign: "center" }}>
+                No Results Found
+              </div>
             }
           </Grid>
         </Grid>

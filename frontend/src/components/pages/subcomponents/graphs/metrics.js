@@ -8,7 +8,8 @@ export const metricNames = {
     "embeddings-similar": "Word Embeddings Similarity",
     "embeddings-different": "Word Embeddings Difference",
     "embeddings-raw": "Word Embedding Vectors",
-    "embeddings-cluster":"Word Embedding K-Means Clustering"
+    "embeddings-cluster":"Word Embedding K-Means Clustering",
+    "network": "Network Analysis"
 };
 
 export const metricTypes = {
@@ -26,6 +27,9 @@ export const metricTypes = {
     ],
     "multibar": [
         "counts", "proportions", "tf-idf-bar"
+    ],
+    "directedGraph": [
+        "network"
     ]
 };
 
@@ -89,6 +93,14 @@ export const metricSettings = {
         values: false,
         words: 2,
         wordsOptional: true
+    },
+    "network": {
+        column: false,
+        values: false,
+        words: 0,
+        wordsOptional: true,
+        toCol: true,
+        fromCol: true
     }
 };
 
