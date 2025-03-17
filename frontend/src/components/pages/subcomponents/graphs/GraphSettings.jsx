@@ -146,7 +146,7 @@ export const GraphSettings = ( props ) => {
                 word_list: searchTerms.map(x => x.value),
                 pos_list: posList.map(x => x.value),
                 topn: parseInt(topn),
-                num_clusters: parseInt(numClusters)
+                num_clusters: parseInt(numClusters),
                 to_col: toCol,
                 from_col: fromCol
             };
