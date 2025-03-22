@@ -54,7 +54,7 @@ const subsetSearch = async(table_name, input, count = false, page = 1, pageLengt
             `
         } else {
             query = `
-                SELECT dataset.*
+                SELECT DISTINCT dataset.*
                 FROM (
                     SELECT record_id, word
                     FROM democracy_viewer_athena.tokens_${ table_name }
