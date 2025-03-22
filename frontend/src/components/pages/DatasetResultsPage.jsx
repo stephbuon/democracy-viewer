@@ -12,12 +12,12 @@ import { DatasetTable } from '../common/tables';
 const pageLength = 5;
 
 export const DatasetResultsPage = (props) => {
+    const [loggedIn, setLoggedIn] = useState(false);
     //temp values
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
-    const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
     const [alert, setAlert] = useState(1);
@@ -35,7 +35,7 @@ export const DatasetResultsPage = (props) => {
             pageLength
         }
         if (searchTerm) {
-            filter.__search__= searchTerm;
+            filter.__search__ = searchTerm;
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
@@ -80,30 +80,7 @@ export const DatasetResultsPage = (props) => {
             setLoadingResults(false);
         }
     };
-
-    const loggedIn = () => {
-        if(props.currUser) {
-            return true;
-          } else {
-            const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-            if (demoV && demoV.user) {
-              return true;
-            } else {
-              return false;
-            }
-          }
-    }
-    const openSnackbar = () => {
-        if (!loggedIn()) {
-            setSnackBarOpen(true)
-        }
-    }
-    const handleSnackBarClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setSnackBarOpen(false);
-    };
+    
     const openAdvancedFilter = () => {
         setAdvancedFilterOpen(true);
     }
@@ -127,12 +104,23 @@ export const DatasetResultsPage = (props) => {
     }
 
     useEffect(() => {
+        if (props.currUser) {
+            setLoggedIn(true);
+        } else {
+            const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+            if (demoV && demoV.user) {
+                setLoggedIn(true);
+            } else {
+                setLoggedIn(false);
+            }
+        }
+
         if (props.navigated) {
             props.setNavigated(false)
             setAlert(1);
             openSnackbar1()
         }
-        filterResults()
+        filterResults();
     }, []);
 
     useEffect(() => {
@@ -164,7 +152,7 @@ export const DatasetResultsPage = (props) => {
                                 alignItems: 'center',
                             }}
                         >
-                            <Typography component="h1" variant="h5" sx={{fontSize: '2.5rem'}}>Dataset Search</Typography>
+                            <Typography component="h1" variant="h5" sx={{ fontSize: '2.5rem' }}>Dataset Search</Typography>
                             <p style={{ fontSize: '1rem', marginTop: '10px' }}>Result Ranked by Number of Views</p>
                             <Box sx={{ m: 2 }}>
                                 <div align="center">
@@ -175,7 +163,10 @@ export const DatasetResultsPage = (props) => {
                                             onChange={event => setPublicPrivate(event.target.value)}
                                         >
                                             <MenuItem value={true}>Public</MenuItem>
-                                            <MenuItem value={false} onClick={() => !loggedIn() && openSnackbar()}>Private</MenuItem>
+                                            {
+                                                loggedIn === true &&
+                                                <MenuItem value={false}>Private</MenuItem>
+                                            }
                                         </Select>
                                     </FormControl>
                                 </div>
@@ -191,7 +182,7 @@ export const DatasetResultsPage = (props) => {
                                         focused
                                         value={searchTerm}
                                         onChange={event => { setSearchTerm(event.target.value) }}
-                                        onKeyDown = {onEnter}
+                                        onKeyDown={onEnter}
                                     />
                                 </div>
                             </Box>
@@ -213,22 +204,13 @@ export const DatasetResultsPage = (props) => {
                                 >
                                     Advanced Filter
                                 </Button>
-                                {(publicPrivate || (!publicPrivate && loggedIn())) && <Button
+                                <Button
                                     variant="outlined"
                                     onClick={() => filterResults()}
                                     sx={{ m: 2 }}
                                 >
                                     Apply Filters
-                                </Button>}
-                                {(!publicPrivate && !loggedIn()) &&
-                                    <Button
-                                        variant="contained"
-                                        sx={{ m: 2 }}
-                                        disabled
-                                    >
-                                        Apply Filters
-                                    </Button>
-                                }
+                                </Button>
                             </Box>
                         </Box>
                     </Stack>
@@ -248,7 +230,7 @@ export const DatasetResultsPage = (props) => {
                             my: 20,
                             width: "80%",
                             mx: "auto"
-                    }}>
+                        }}>
                         <DatasetTable
                             searchResults={searchResults}
                             loadingResults={loadingResults}
@@ -261,21 +243,7 @@ export const DatasetResultsPage = (props) => {
                     </Box>
                 </Grid>
             </Grid>
-                
-            {/* </Grid>
-        </Grid> */}
-        {/* SnackBar to display error if not logged in  */}
-        <Snackbar
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            open={snackBarOpen}
-            autoHideDuration={6000}
-            onClose={handleSnackBarClose}
-        >
-            <Alert onClose={handleSnackBarClose} severity="info">
-                You must be logged in to access private datasets.
-            </Alert>
-        </Snackbar>
 
-    </div>
+        </div>
     );
 }
