@@ -10,9 +10,9 @@ export const DownloadSubset = async (table, params) =>  {
     return await getRequest(endpoint, params);
 };
 
-export const DownloadIds = async (table, id) =>  {
-    const endpoint = `/datasets/download/ids/${table}`;
-    return await postRequest(endpoint, { id });
+export const DownloadIds = async (table, name) =>  {
+    const endpoint = `/datasets/download/ids/${table}/${ name }`;
+    return await getRequest(endpoint);
 };
 
 export const getRecordsByIds = async(table, ids) =>  {
@@ -21,5 +21,5 @@ export const getRecordsByIds = async(table, ids) =>  {
     //     endpoint += `id=${id}&`
     // })
     // endpoint = endpoint.slice(0, -1);
-    return await postRequest(endpoint, { id: ids });
+    return await getRequest(endpoint, { id: ids });
 };

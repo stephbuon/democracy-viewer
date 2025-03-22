@@ -261,7 +261,7 @@ export const GraphSettings = ( props ) => {
             padding: "16px", 
             position: "relative"}}>
                 {/* {"Title"} */}
-                <h2 id="child-modal-title">Graph Settings</h2>
+                <h2 id="child-modal-title">Graph Settings For "{ props.dataset.dataset.title }"</h2>
 
                 {/* Metric select dropdown */}
                 <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>

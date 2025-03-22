@@ -6,12 +6,12 @@ import { useNavigate } from "react-router-dom";
 import { metricTypes, metricNames } from "./metrics";
 import { getZoomIds } from "../../../../api";
 
-export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter, annotations }) => {
+export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter, annotations, dataset }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
     const [layout, setLayout] = useState({
         // title: data.title,
-        title: metricNames[data.metric],
+        title: `${ metricNames[data.metric] } For "${ dataset.title }"`,
         width: 1000,
         height: 500,
         margin: {
