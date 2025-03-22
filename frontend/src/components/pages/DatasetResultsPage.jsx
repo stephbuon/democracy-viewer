@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 
 //MUI Imports
 import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Snackbar, Alert, Grid, Typography } from '@mui/material';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
@@ -135,6 +134,10 @@ export const DatasetResultsPage = (props) => {
         }
         filterResults()
     }, []);
+
+    useEffect(() => {
+        filterResults();
+    }, [publicPrivate])
 
     return (
         <div className='blue' style={{ marginTop: "-1in", overflow: 'hidden' }}>
