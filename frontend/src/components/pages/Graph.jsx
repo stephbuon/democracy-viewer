@@ -670,14 +670,14 @@ export const Graph = (props) => {
               </Grid>
 
               {/* {"Reset graph button"} */}
-              <Grid item xs={12} sm={6} md={4}>
+              {/* <Grid item xs={12} sm={6} md={4}>
                 <Button variant="contained"
                   onClick={resetGraph}
                   className="mt-2"
                   sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
                   disabled={loading || zoomLoading}
                 ><RotateLeft sx={{ mr: "10px" }} />Reset</Button>
-              </Grid>
+              </Grid> */}
 
               {/* {"Download graph button"} */}
               <Grid item xs={12} sm={6} md={4}>
@@ -737,6 +737,7 @@ export const Graph = (props) => {
                 setZoomLoading={setZoomLoading}
                 isOverlappingScatter={isOverlappingScatter}
                 annotations={annotationData}
+                dataset={data.dataset}
               />
             }
 
