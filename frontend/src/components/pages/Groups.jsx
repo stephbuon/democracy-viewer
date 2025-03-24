@@ -132,7 +132,7 @@ export const Groups = (props) => {
                 </Grid>
 
                 {/* Right side: Groups List */}
-                <Grid item xs={12} sm={7} sx={{ backgroundColor: '#99ccff', p: 5 }}>
+                <Grid item xs={12} sm={7} sx={{ backgroundColor: 'cadetblue', p: 5 }}>
                     <Typography variant="h5" align="center" sx={{ mb: 3 }}>
                         Current Groups & Pending Invites
                     </Typography>

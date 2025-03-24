@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { 
     Paper, Grid, Container, Typography, 
-    Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
+    Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button, Modal
 } from '@mui/material';
 //import { getGroup, leaveGroup } from "../../api";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
@@ -29,6 +29,7 @@ export const GroupHome = (props) => {
     const [loadingResults, setLoadingResults] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [totalNumOfResults, setTotalNumOfResults] = useState(0);
+    //const [DatasetSelectionModal, setDataModal] = useState(false);
 
     // Function to fetch datasets for this group
     const GetNewPage = async (selectedPage) => {
@@ -39,6 +40,26 @@ export const GroupHome = (props) => {
         // setSearchResults(response.data);
         // setTotalNumOfResults(response.total);
         setLoadingResults(false);
+    };
+
+    const DatasetSelectionModal = ({ open, onClose}) => {
+        return (
+            <Modal open={open} onClose={onClose}>
+                <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, width: '400px', mx: 'auto', mt: 10 }}>
+                    <Typography variant="h6">Select a Dataset</Typography>
+                        <DatasetTable
+                            loadingResults={loadingResults}
+                            searchResults={searchResults}
+                            setDataset={props.setDataset}
+                            GetNewPage={GetNewPage}
+                            editable={editable}
+                            totalNumResults={totalNumOfResults}
+                            pageLength={pageLength}
+                            deleteCallback={() => GetNewPage(1)}
+                        />
+                </Box>
+            </Modal>
+        );
     };
 
     // Effect to load initial data
@@ -115,7 +136,7 @@ export const GroupHome = (props) => {
                                                     <Button
                                                         variant="contained"
                                                         component="label"
-                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+                                                        sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
                                                         onClick={() => setModalOpen(true)}
                                                     >
                                                         Group Members
@@ -126,7 +147,7 @@ export const GroupHome = (props) => {
                                                     <Button 
                                                         variant="contained"
                                                         component="label"
-                                                        sx={{ bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }} 
+                                                        sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }} 
                                                         onClick={() => setLeaveOpen(true)}
                                                     >
                                                         Leave Group
@@ -156,7 +177,17 @@ export const GroupHome = (props) => {
                                         width: '100%',
                                     }}
                                 >
-                                    <h1>My Datasets</h1>
+                                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+                                        <Button 
+                                            variant="contained"
+                                            component="label"
+                                            sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+                                            onClick={() => setModalOpen(true)} // Function to open dataset selection modal
+                                        >
+                                            Add Dataset
+                                        </Button>
+                                    </Box>
+                                    <h2>My Datasets</h2>
                                     <DatasetTable
                                         loadingResults={loadingResults}
                                         searchResults={searchResults}
