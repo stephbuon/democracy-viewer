@@ -91,6 +91,12 @@ CREATE TABLE tags (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
 );
 
+CREATE TABLE dataset_temp_cols (
+    table_name VARCHAR(100) NOT NULL,
+    col VARCHAR(50) NOT NULL,
+    PRIMARY KEY(table_name, col)
+);
+
 CREATE TABLE dataset_all_cols (
     table_name VARCHAR(100) NOT NULL,
     col VARCHAR(50) NOT NULL,

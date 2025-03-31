@@ -623,6 +623,24 @@ const getTopWords = async(table_name, search, column, values, page, pageLength) 
     return df.getColumn("word").toArray();
 }
 
+// Check for temporary columns
+const getTempCols = async(knex, table_name) => {
+    const model = new datasets(knex);
+
+    const maxAttempts = 15;
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+        const records = await model.getTempCols(table_name);
+
+        if (records.length > 0) {
+            return records;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        attempts += 1;
+    }
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -727,6 +745,7 @@ module.exports = {
     getSuggestionsFrom,
     getSuggestion,
     getTopWords,
+    getTempCols,
     deleteDataset,
     deleteTag,
     deleteLike,

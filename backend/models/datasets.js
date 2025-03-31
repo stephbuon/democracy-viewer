@@ -1,5 +1,6 @@
 const metadata_table = "dataset_metadata";
 const tag_table = "tags";
+const temp_col_table = "dataset_temp_cols";
 const all_col_table = "dataset_all_cols";
 const text_col_table = "dataset_text_cols";
 const embed_col_table = "dataset_embed_cols";
@@ -332,6 +333,15 @@ class datasets {
             .where(`${ suggestion_table }.id`, id);
 
         return record[0];
+    }
+
+    // Check for temporary columns for a dataset
+    async getTempCols(table_name) {
+        const records = await this.knex(temp_col_table)
+            .select("col")
+            .where({ table_name });
+
+        return records;
     }
 
     // Delete a dataset's metadata
