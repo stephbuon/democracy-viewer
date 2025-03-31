@@ -26,11 +26,11 @@ export const Layout = (props) => {
       case '/':
         return 'Home';
       case '/datasets/search':
-        return 'Search';
+        return 'Dataset Search';
       case '/graph':
         return 'Graphs';
       case '/graphs/search':
-        return 'Graph Search';
+        return 'Visualization Search';
       case '/login':
         return 'Login';
       case '/register':

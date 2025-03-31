@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 //MUI Imports
 import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Snackbar, Alert, Grid, Typography } from '@mui/material';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
@@ -12,12 +13,12 @@ import { DatasetTable } from '../common/tables';
 const pageLength = 5;
 
 export const DatasetResultsPage = (props) => {
-    const [loggedIn, setLoggedIn] = useState(false);
     //temp values
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
+    const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
     const [alert, setAlert] = useState(1);
@@ -35,7 +36,7 @@ export const DatasetResultsPage = (props) => {
             pageLength
         }
         if (searchTerm) {
-            filter.__search__ = searchTerm;
+            filter.__search__= searchTerm;
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
@@ -80,7 +81,30 @@ export const DatasetResultsPage = (props) => {
             setLoadingResults(false);
         }
     };
-    
+
+    const loggedIn = () => {
+        if(props.currUser) {
+            return true;
+          } else {
+            const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
+            if (demoV && demoV.user) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+    }
+    const openSnackbar = () => {
+        if (!loggedIn()) {
+            setSnackBarOpen(true)
+        }
+    }
+    const handleSnackBarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackBarOpen(false);
+    };
     const openAdvancedFilter = () => {
         setAdvancedFilterOpen(true);
     }
@@ -103,32 +127,28 @@ export const DatasetResultsPage = (props) => {
         }
     }
 
+    // Add a new useEffect to handle automatic filtering when searchTerm changes
     useEffect(() => {
-        if (props.currUser) {
-            setLoggedIn(true);
-        } else {
-            const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
-            if (demoV && demoV.user) {
-                setLoggedIn(true);
-            } else {
-                setLoggedIn(false);
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm.length > 0) {
+                filterResults();
             }
-        }
+        }, 500); // 500ms delay after the user stops typing
 
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
+    useEffect(() => {
         if (props.navigated) {
             props.setNavigated(false)
             setAlert(1);
             openSnackbar1()
         }
-        filterResults();
+        filterResults()
     }, []);
 
-    useEffect(() => {
-        filterResults();
-    }, [publicPrivate])
-
     return (
-        <div className='blue' style={{ marginTop: "-1in", overflow: 'hidden' }}>
+        <div className='blue' style={{ overflow: 'hidden' }}>
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={snackBarOpen1}
@@ -139,98 +159,74 @@ export const DatasetResultsPage = (props) => {
                     {alert === 1 && <>You must choose a dataset first</>}
                 </Alert>
             </Snackbar>
-            <Grid container component="main" sx={{ height: '100vh' }}>
-                <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square sx={{ pt: 25 }}>
-                    <Stack spacing={2}>
-                        <Box
-                            sx={{
-                                my: 10,
-                                mx: 2,
-                                ml: { xs: 4, sm: 6, md: 8 },
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <Typography component="h1" variant="h5" sx={{ fontSize: '2.5rem' }}>Dataset Search</Typography>
-                            <p style={{ fontSize: '1rem', marginTop: '10px' }}>Result Ranked by Number of Views</p>
-                            <Box sx={{ m: 2 }}>
-                                <div align="center">
-                                    <FormControl sx={{ color: "blue" }}>
-                                        <Select
-                                            sx={{ color: "primary" }}
-                                            value={publicPrivate}
-                                            onChange={event => setPublicPrivate(event.target.value)}
-                                        >
-                                            <MenuItem value={true}>Public</MenuItem>
-                                            {
-                                                loggedIn === true &&
-                                                <MenuItem value={false}>Private</MenuItem>
-                                            }
-                                        </Select>
-                                    </FormControl>
-                                </div>
-                            </Box>
-                            <Box>
-                                <div align="center">
-                                    <TextField
-                                        sx={{ width: "400px" }}
-                                        id="searchTerm"
-                                        label="Search"
-                                        variant="outlined"
-                                        color="primary"
-                                        focused
-                                        value={searchTerm}
-                                        onChange={event => { setSearchTerm(event.target.value) }}
-                                        onKeyDown={onEnter}
-                                    />
-                                </div>
-                            </Box>
-                            <Modal open={advancedFilterOpen} onClose={() => handleAdvancedFilterClose()}>
-                                <AdvancedFilter advancedFilterResults={(x) => advancedFilterResults(x)} />
-                            </Modal>
-                            <Box
-                                pt={2}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: 'stretch',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <Button
-                                    onClick={() => setAdvancedFilterOpen(true)}
-                                    variant="outlined"
-                                    sx={{ m: 2 }}
-                                >
-                                    Advanced Filter
-                                </Button>
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => filterResults()}
-                                    sx={{ m: 2 }}
-                                >
-                                    Apply Filters
-                                </Button>
-                            </Box>
-                        </Box>
-                    </Stack>
-                </Grid>
-                <Grid item xs={false} sm={3} md={6.5} sx={{
-                    backgroundImage: 'url(https://cdn.pixabay.com/photo/2016/01/20/11/54/book-wall-1151405_1280.jpg)',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundColor: (t) =>
-                        t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                }}>
+            
+            {/* Title Section */}
+            <Box sx={{ 
+                width: '100%', 
+                textAlign: 'center', 
+                mt: 4, 
+                mb: 2 
+            }}>
+                <Typography 
+                    component="h1" 
+                    variant="h3" 
+                    sx={{ 
+                        fontSize: '2.5rem', 
+                        color: 'Black'
+                    }}
+                >
+                    Find a Dataset
+                </Typography>
+            </Box>
+            
+            <Paper elevation={6} sx={{ maxWidth: '90%', margin: '0 auto', p: 4 }}>
+                <Stack spacing={3}>
+                    {/* Search Section */}
                     <Box
                         sx={{
                             display: 'flex',
-                            justifyContent: 'center',
-                            my: 20,
-                            width: "80%",
-                            mx: "auto"
-                        }}>
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            py: 3
+                        }}
+                    >
+                        <Box sx={{ mb: 3 }}>
+                            <TextField
+                                sx={{ width: { xs: "90%", sm: "400px" } }}
+                                id="searchTerm"
+                                label="Search"
+                                variant="outlined"
+                                color="primary"
+                                focused
+                                value={searchTerm}
+                                onChange={event => { setSearchTerm(event.target.value) }}
+                                onKeyDown={onEnter}
+                            />
+                        </Box>
+                        
+                        <Box
+                            sx={{
+                                display: "flex",
+                                width: "100%",
+                                justifyContent: "center"
+                            }}
+                        >
+                            <Button
+                                onClick={() => setAdvancedFilterOpen(true)}
+                                variant="outlined"
+                                sx={{ m: 2 }}
+                            >
+                                Advanced Filter
+                            </Button>
+                        </Box>
+                        
+                        <Modal open={advancedFilterOpen} onClose={() => handleAdvancedFilterClose()}>
+                            <AdvancedFilter advancedFilterResults={(x) => advancedFilterResults(x)} />
+                        </Modal>
+                    </Box>
+                    
+                    {/* Results Section */}
+                    <Box sx={{ width: '100%' }}>
                         <DatasetTable
                             searchResults={searchResults}
                             loadingResults={loadingResults}
@@ -241,9 +237,20 @@ export const DatasetResultsPage = (props) => {
                             totalNumResults={totalNumResults}
                         />
                     </Box>
-                </Grid>
-            </Grid>
-
+                </Stack>
+            </Paper>
+            
+            {/* SnackBar to display error if not logged in */}
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                open={snackBarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackBarClose}
+            >
+                <Alert onClose={handleSnackBarClose} severity="info">
+                    You must be logged in to access private datasets.
+                </Alert>
+            </Snackbar>
         </div>
     );
 }

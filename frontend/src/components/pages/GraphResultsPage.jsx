@@ -1,32 +1,30 @@
 import { useState, useEffect } from "react";
 
-//MUI Imports
+// MUI Imports
 import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Snackbar, Alert, Grid, Typography } from '@mui/material';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
 import { filterGraphs, filterGraphsCount } from '../../api';
-// import { AdvancedFilter } from './subcomponents/dataset-search';
 import { GraphTable } from "../common/tables";
+import { AdvancedFilter } from './subcomponents/dataset-search'; // Assuming this is the same component or you have an equivalent
 
 const pageLength = 5;
 
 export const GraphResultsPage = (props) => {
-    //temp values
-
+    // temp values
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [publicPrivate, setPublicPrivate] = useState(true);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
-
     const [alert, setAlert] = useState(1);
-
-    //pagination
+    
+    // pagination
     const [pageFilter, setPageFilter] = useState(null);
     const [totalNumResults, setTotalNumOfResults] = useState(0);
-
+    
     const [loadingResults, setLoadingResults] = useState(false);
     const [snackBarOpen1, setSnackBarOpen1] = useState(false);
 
@@ -34,9 +32,9 @@ export const GraphResultsPage = (props) => {
         const filter = {
             type: publicPrivate ? 'public' : 'private',
             pageLength
-        }
+        };
         if (searchTerm) {
-            filter.__search__= searchTerm;
+            filter.__search__ = searchTerm;
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
@@ -45,11 +43,12 @@ export const GraphResultsPage = (props) => {
 
             if (!res) { setSearchResults([]) }
             else { setSearchResults(res) }
-        })
+        });
         filterGraphsCount(filter).then(async (res) => {
             setTotalNumOfResults(res);
-        })
-    }
+        });
+    };
+
     const advancedFilterResults = (advancedFilter) => {
         advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
@@ -61,11 +60,11 @@ export const GraphResultsPage = (props) => {
             else { setSearchResults(res) }
 
             handleAdvancedFilterClose()
-        })
+        });
         filterGraphsCount(advancedFilter).then(async (res) => {
             setTotalNumOfResults(res);
-        })
-    }
+        });
+    };
 
     const GetNewPage = async (selectedPage) => {
         setLoadingResults(true);
@@ -83,37 +82,43 @@ export const GraphResultsPage = (props) => {
     };
 
     const loggedIn = () => {
-        if(props.currUser) {
+        if (props.currUser) {
             return true;
-          } else {
+        } else {
             const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
             if (demoV && demoV.user) {
-              return true;
+                return true;
             } else {
-              return false;
+                return false;
             }
-          }
-    }
+        }
+    };
+    
     const openSnackbar = () => {
         if (!loggedIn()) {
-            setSnackBarOpen(true)
+            setSnackBarOpen(true);
         }
-    }
+    };
+    
     const handleSnackBarClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
         setSnackBarOpen(false);
     };
+    
     const openAdvancedFilter = () => {
         setAdvancedFilterOpen(true);
-    }
+    };
+    
     const handleAdvancedFilterClose = () => {
         setAdvancedFilterOpen(false);
-    }
+    };
+    
     const openSnackbar1 = () => {
-        setSnackBarOpen1(true)
-    }
+        setSnackBarOpen1(true);
+    };
+    
     const handleSnackBarClose1 = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -125,7 +130,18 @@ export const GraphResultsPage = (props) => {
         if (event.key === "Enter") {
             filterResults();
         }
-    }
+    };
+
+    // Add a new useEffect to handle automatic filtering when searchTerm changes
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm.length > 0) {
+                filterResults();
+            }
+        }, 500); // 500ms delay after the user stops typing
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
 
     useEffect(() => {
         if (props.navigated) {
@@ -133,12 +149,12 @@ export const GraphResultsPage = (props) => {
             setAlert(1);
             openSnackbar1()
         }
-        filterResults()
+        filterResults();
     }, []);
 
     return (
-        <div className='blue' style={{ marginTop: "-1in", overflow: 'hidden' }}>
-            {/* <Snackbar
+        <div className='blue' style={{ overflow: 'hidden' }}>
+            <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={snackBarOpen1}
                 autoHideDuration={6000}
@@ -147,105 +163,75 @@ export const GraphResultsPage = (props) => {
                 <Alert onClose={handleSnackBarClose1} severity="error" sx={{ width: '100%' }}>
                     {alert === 1 && <>You must choose a dataset first</>}
                 </Alert>
-            </Snackbar> */}
-            <Grid container component="main" sx={{ height: '100vh' }}>
-                <Grid item xs={12} sm={9} md={5.5} component={Paper} elevation={6} square sx={{ pt: 25 }}>
-                    <Stack spacing={2}>
-                        <Box
-                            sx={{
-                                my: 10,
-                                mx: 2,
-                                ml: { xs: 4, sm: 6, md: 8 },
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <Typography component="h1" variant="h5" sx={{fontSize: '2.5rem'}}>Graph Search</Typography>
-                            <p style={{ fontSize: '1rem', marginTop: '10px' }}>Result Ranked by Number of Views</p>
-                            <Box sx={{ m: 2 }}>
-                                <div align="center">
-                                    <FormControl sx={{ color: "blue" }}>
-                                        <Select
-                                            sx={{ color: "primary" }}
-                                            value={publicPrivate}
-                                            onChange={event => setPublicPrivate(event.target.value)}
-                                        >
-                                            <MenuItem value={true}>Public</MenuItem>
-                                            <MenuItem value={false} onClick={() => !loggedIn() && openSnackbar()}>Private</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </div>
-                            </Box>
-                            <Box>
-                                <div align="center">
-                                    <TextField
-                                        sx={{ width: "400px" }}
-                                        id="searchTerm"
-                                        label="Search"
-                                        variant="outlined"
-                                        color="primary"
-                                        focused
-                                        value={searchTerm}
-                                        onChange={event => { setSearchTerm(event.target.value) }}
-                                        onKeyDown = {onEnter}
-                                    />
-                                </div>
-                            </Box>
-                            {/* <Modal open={advancedFilterOpen} onClose={() => handleAdvancedFilterClose()}>
-                                <AdvancedFilter advancedFilterResults={(x) => advancedFilterResults(x)} />
-                            </Modal> */}
-                            <Box
-                                pt={2}
-                                sx={{
-                                    display: "flex",
-                                    alignItems: 'stretch',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <Button
-                                    onClick={() => setAdvancedFilterOpen(true)}
-                                    variant="outlined"
-                                    sx={{ m: 2 }}
-                                >
-                                    Advanced Filter
-                                </Button>
-                                {(publicPrivate || (!publicPrivate && loggedIn())) && <Button
-                                    variant="outlined"
-                                    onClick={() => filterResults()}
-                                    sx={{ m: 2 }}
-                                >
-                                    Apply Filters
-                                </Button>}
-                                {(!publicPrivate && !loggedIn()) &&
-                                    <Button
-                                        variant="contained"
-                                        sx={{ m: 2 }}
-                                        disabled
-                                    >
-                                        Apply Filters
-                                    </Button>
-                                }
-                            </Box>
-                        </Box>
-                    </Stack>
-                </Grid>
-                <Grid item xs={false} sm={3} md={6.5} sx={{
-                    backgroundImage: 'url(https://cdn.pixabay.com/photo/2016/01/20/11/54/book-wall-1151405_1280.jpg)',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundColor: (t) =>
-                        t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                }}>
+            </Snackbar>
+            
+            {/* Title Section */}
+            <Box sx={{ 
+                width: '100%', 
+                textAlign: 'center', 
+                mt: 4, 
+                mb: 2 
+            }}>
+                <Typography 
+                    component="h1" 
+                    variant="h3" 
+                    sx={{ 
+                        fontSize: '2.5rem', 
+                        color: 'Black'
+                    }}
+                >
+                    Find a Visualization
+                </Typography>
+            </Box>
+            
+            <Paper elevation={6} sx={{ maxWidth: '90%', margin: '0 auto', p: 4 }}>
+                <Stack spacing={3}>
+                    {/* Search Section */}
                     <Box
                         sx={{
                             display: 'flex',
-                            justifyContent: 'center',
-                            my: 20,
-                            width: "80%",
-                            mx: "auto"
-                    }}>
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            py: 3
+                        }}
+                    >
+                        <Box sx={{ mb: 3 }}>
+                            <TextField
+                                sx={{ width: { xs: "90%", sm: "400px" } }}
+                                id="searchTerm"
+                                label="Search"
+                                variant="outlined"
+                                color="primary"
+                                focused
+                                value={searchTerm}
+                                onChange={event => { setSearchTerm(event.target.value) }}
+                                onKeyDown={onEnter}
+                            />
+                        </Box>
+                        
+                        <Box
+                            sx={{
+                                display: "flex",
+                                width: "100%",
+                                justifyContent: "center"
+                            }}
+                        >
+                            <Button
+                                onClick={() => setAdvancedFilterOpen(true)}
+                                variant="outlined"
+                                sx={{ m: 2 }}
+                            >
+                                Advanced Filter
+                            </Button>
+                        </Box>
+                        
+                        <Modal open={advancedFilterOpen} onClose={() => handleAdvancedFilterClose()}>
+                            <AdvancedFilter advancedFilterResults={(x) => advancedFilterResults(x)} />
+                        </Modal>
+                    </Box>
+                    
+                    {/* Results Section */}
+                    <Box sx={{ width: '100%' }}>
                         <GraphTable
                             searchResults={searchResults}
                             loadingResults={loadingResults}
@@ -256,23 +242,20 @@ export const GraphResultsPage = (props) => {
                             totalNumResults={totalNumResults}
                         />
                     </Box>
-                </Grid>
-            </Grid>
-                
-            {/* </Grid>
-        </Grid> */}
-        {/* SnackBar to display error if not logged in  */}
-        <Snackbar
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            open={snackBarOpen}
-            autoHideDuration={6000}
-            onClose={handleSnackBarClose}
-        >
-            <Alert onClose={handleSnackBarClose} severity="info">
-                You must be logged in to access private datasets.
-            </Alert>
-        </Snackbar>
-
-    </div>
+                </Stack>
+            </Paper>
+            
+            {/* SnackBar to display error if not logged in */}
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                open={snackBarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackBarClose}
+            >
+                <Alert onClose={handleSnackBarClose} severity="info">
+                    You must be logged in to access private datasets.
+                </Alert>
+            </Snackbar>
+        </div>
     );
 }
