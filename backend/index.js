@@ -47,7 +47,6 @@ app.get("/health", async(req, res, next) => {
 app.use("/datasets", datasets);
 app.use("/graphs", graphs);
 app.use("/groups", groups);
-// app.use("/preprocessing", preprocessing);
 app.use("/session", session);
 app.use("/users", users);
 
