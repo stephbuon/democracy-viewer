@@ -172,7 +172,7 @@ export const Homepage = () => {
                     }}
                   >
                     <Typography variant="h5" align='center'>
-                      Search Visualization
+                      Search Visualizations
                     </Typography>
                     {/* <Typography align='center'>
                       Customize and interact with

@@ -26,7 +26,7 @@ export const Layout = (props) => {
       case '/':
         return 'Home';
       case '/datasets/search':
-        return 'Dataset Search';
+        return 'Search Datasets';
       case '/graph':
         return 'Graphs';
       case '/graphs/search':
