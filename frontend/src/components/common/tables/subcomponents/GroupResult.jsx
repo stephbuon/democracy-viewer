@@ -34,7 +34,7 @@ export const GroupResult = (props) => {
                     }
                 }}
             >
-                {group.title}
+                {group.name}
             </Box>
 
             <GroupResultModal

@@ -56,15 +56,18 @@ class groups {
     }
 
     // Get groups that a user is in
-    async getGroupsByUser(member) {
-        const member_records = await this.knex(member_table).where({ member });
-        const group_ids = member_records.map(x => x.private_group);
+    async getGroupsByUser(member, currentPage = 1) {
+        const member_records = await this.knex(member_table).where({ member }).paginate({ currentPage, perPage: 5});
+        const group_ids = member_records.data.map(x => x.private_group);
         const groups = await this.knex(group_table).where(q => {
             for (let i = 0; i < group_ids.length; i++) {
                 q.orWhere({ id: group_ids[i] });
             }
         }); 
-        return groups;
+        return {
+            results: groups,
+            total: member_records.pagination.total
+        };
     }
 
     // Get members by group

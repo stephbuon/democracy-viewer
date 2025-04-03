@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -12,7 +12,7 @@ import {
   Modal
 } from "@mui/material";
 import { GroupTable } from '../common/tables';
-import { filterGroups } from "../../api";
+import { filterGroups, createGroup } from "../../api";
 import { useNavigate } from "react-router-dom";
 
 const pageLength = 5;
@@ -50,8 +50,9 @@ export const Groups = (props) => {
 
     const handleCreateGroup = () => {
         console.log("Creating group with name:", groupName);
-        handleClose();
-        navigate("/group-home", {state: {groupName, groupDescription}})
+        createGroup({ name: groupName, description: groupDescription })
+            .then(x => navigate(`/groups/home/${ x.id }`))
+            .finally(x => handleClose());
     };
 
     const GetNewPage = async (selectedPage) => {
@@ -76,6 +77,10 @@ export const Groups = (props) => {
             GetNewPage(1);
         }
     }
+
+    useEffect(() => {
+        GetNewPage(1);
+    }, [])
 
     return (
         <div className = 'blue' style={{ marginTop: "-1in", overflow: 'hidden' }}>
@@ -133,8 +138,8 @@ export const Groups = (props) => {
 
                 {/* Right side: Groups List */}
                 <Grid item xs={12} sm={7} sx={{ backgroundColor: 'cadetblue', p: 5 }}>
-                    <Typography variant="h5" align="center" sx={{ mb: 3 }}>
-                        Current Groups & Pending Invites
+                    <Typography variant="h3" align="center" sx={{ mt: 10 }}>
+                        My Groups
                     </Typography>
 
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>

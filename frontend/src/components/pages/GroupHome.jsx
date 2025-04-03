@@ -5,8 +5,9 @@ import {
 } from '@mui/material';
 //import { getGroup, leaveGroup } from "../../api";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { DatasetTable } from "../common/tables/DatasetTable";
+import { DatasetTable } from "../common/tables";
 import { AlertDialog } from "../common/AlertDialog";
+import { getGroup, getGroupMembers } from "../../api";
 
 const mdTheme = createTheme();
 
@@ -18,10 +19,8 @@ export const GroupHome = (props) => {
     const location = useLocation();
     
     // Get group data from location state (passed from Groups component)
-    const [group, setGroup] = useState({
-        groupName: location.state?.groupName || "Group Name",
-        groupDescription: location.state?.groupDescription || "Group Description"
-    });
+    const [group, setGroup] = useState(undefined);
+    const [members, setMembers] = useState([]);
     const [editable, setEditable] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [leaveOpen, setLeaveOpen] = useState(false);
@@ -85,10 +84,24 @@ export const GroupHome = (props) => {
         GetNewPage(1);
     }, [params.groupId, location.state]);
 
+    useEffect(() => {
+        getGroup(params.groupId).then(x => setGroup(x));
+    }, []);
+
+    useEffect(() => {
+        if (group) {
+            getGroupMembers(group.id).then(x => setMembers(x));
+        }
+    }, [group]);
+
     const onLeave = () => {
         //leaveGroup(group.id); // Assuming group ID is needed
         navigate("/groups");
     };
+
+    if (!group) {
+        return <></>
+    }
 
     return (
         <ThemeProvider theme={mdTheme}>
@@ -124,10 +137,10 @@ export const GroupHome = (props) => {
                                     }}
                                 >
                                     <Typography variant="h3" component="h4">
-                                        {group.groupName}
+                                        {group.name}
                                     </Typography>
                                     <Typography variant="h6" color="textSecondary" sx={{ mt: 1 }}>
-                                        {group.groupDescription}
+                                        {group.description}
                                     </Typography>
                                     {
                                         editable === true && <>
@@ -187,7 +200,7 @@ export const GroupHome = (props) => {
                                             Add Dataset
                                         </Button>
                                     </Box>
-                                    <h2>My Datasets</h2>
+                                    <h2>Group Datasets</h2>
                                     <DatasetTable
                                         loadingResults={loadingResults}
                                         searchResults={searchResults}

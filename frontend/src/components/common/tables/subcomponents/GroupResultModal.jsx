@@ -11,7 +11,7 @@ export const GroupResultModal = (props) => {
     const navigate = useNavigate();
 
     const [userName, setUserName] = useState(undefined);
-    const [groupId, setGroupId] = useState(props.groups.setGroupId);
+    const [groupId, setGroupId] = useState(undefined);
     // const [accessCode, setAccessCode] = useState("");
 
 
@@ -51,7 +51,7 @@ export const GroupResultModal = (props) => {
                 }}
             >
                 <Table sx={{ border: 'none' }}>
-                    <TableHead>
+                    {/* <TableHead>
                         <TableRow>
                             <TableCell
                                 sx={{
@@ -59,28 +59,20 @@ export const GroupResultModal = (props) => {
                                     align: 'center'
 
                                 }}>
-                                <b>{props.group.title}</b>
+                                <b>{props.group.name}</b>
                             </TableCell>
                         </TableRow>
-                    </TableHead>
+                    </TableHead> */}
                     <TableBody>
                         <TableRow>
                             <TableCell>
-                                <b> Owner </b>
+                                <b> Name </b>
                             </TableCell>
                             <TableCell sx={{ textAlign: "left" }}>
-                                <Link to={`/profile/${props.group.email}`}>
-                                    {
-                                        userName !== undefined && userName
-                                    }
-
-                                    {
-                                        userName === undefined && props.group.email
-                                    }
-                                </Link>
+                                {props.group.name}
                             </TableCell>
-
                         </TableRow>
+
                         <TableRow>
                             <TableCell>
                                 <b> Description </b>
@@ -89,29 +81,6 @@ export const GroupResultModal = (props) => {
                                 {props.group.description}
                             </TableCell>
                         </TableRow>
-
-
-                        <TableRow>
-                            <TableCell>
-                                <b> Member Count </b>
-                            </TableCell>
-                            <TableCell sx={{ textAlign: "left" }}>
-                                {props.group.clicks}
-                            </TableCell>
-                            <TableCell sx={{textAlign: "left"}}>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    width= '500px'
-                                    onClick={() => props.setOpen(true)}
-                                    sx={{ mb: 2 }}
-                                >
-                                Join Group
-                            </Button>
-                            </TableCell>
-
-                        </TableRow>
-
                     </TableBody>
                 </Table>
                 <Box
@@ -140,13 +109,13 @@ export const GroupResultModal = (props) => {
                                 color: 'white'
                             }}
                             onClick={() => {
-                                chooseGroup()
-                                navigate(`/groups/${ groupId }/home`); //going to specific group home
+                                // chooseGroup()
+                                navigate(`/groups/home/${ props.group.id }`); //going to specific group home
                             }}
                         >
-                            Visit Group
+                            Group Home
                         </Button>
-                        <Button
+                        {/* <Button
                             variant="contained"
                             primary
                             sx={{
@@ -160,7 +129,7 @@ export const GroupResultModal = (props) => {
                             }}
                         >
                             Leave Group
-                        </Button>
+                        </Button> */}
                 </Box>
             </Box>
         </Modal>
