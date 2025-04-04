@@ -8,6 +8,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { DatasetTable } from "../common/tables";
 import { AlertDialog } from "../common/AlertDialog";
 import { getGroup, getGroupMembers } from "../../api";
+import { GroupMembersModal } from "./subcomponents/groups";
 
 const mdTheme = createTheme();
 
@@ -20,9 +21,8 @@ export const GroupHome = (props) => {
     
     // Get group data from location state (passed from Groups component)
     const [group, setGroup] = useState(undefined);
-    const [members, setMembers] = useState([]);
     const [editable, setEditable] = useState(true);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [membersModalOpen, setMembersModalOpen] = useState(false);
     const [leaveOpen, setLeaveOpen] = useState(false);
 
     const [loadingResults, setLoadingResults] = useState(false);
@@ -90,7 +90,7 @@ export const GroupHome = (props) => {
 
     useEffect(() => {
         if (group) {
-            getGroupMembers(group.id).then(x => setMembers(x));
+            // getGroupMembers(group.id).then(x => setMembers(x));
         }
     }, [group]);
 
@@ -150,7 +150,7 @@ export const GroupHome = (props) => {
                                                         variant="contained"
                                                         component="label"
                                                         sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
-                                                        onClick={() => setModalOpen(true)}
+                                                        onClick={() => setMembersModalOpen(true)}
                                                     >
                                                         Group Members
                                                     </Button>
@@ -195,7 +195,7 @@ export const GroupHome = (props) => {
                                             variant="contained"
                                             component="label"
                                             sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-                                            onClick={() => setModalOpen(true)} // Function to open dataset selection modal
+                                            onClick={() => {}} // Function to open dataset selection modal
                                         >
                                             Add Dataset
                                         </Button>
@@ -220,6 +220,11 @@ export const GroupHome = (props) => {
 
             {/* Note: EditProfile component was using undefined "user" variable - removed for now */}
             {/* If you need member management, implement a separate MemberManagement component */}
+            <GroupMembersModal
+                open={membersModalOpen}
+                setOpen={setMembersModalOpen}
+                group={group}
+            />
         </ThemeProvider>
     );
 }

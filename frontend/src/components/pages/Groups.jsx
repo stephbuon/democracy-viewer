@@ -62,7 +62,9 @@ export const Groups = (props) => {
             // Implement your group fetching logic here
             const response = await filterGroups({ searchTerm }, selectedPage);
             setSearchResults(response.results || []);
-            setTotalNumResults(response.total || 0);
+            if (response.total) {
+                setTotalNumResults(response.total || 0);
+            }
         } catch (error) {
             console.error("Error fetching groups:", error);
         } finally {

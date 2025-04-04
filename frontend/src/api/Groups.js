@@ -1,7 +1,7 @@
 import { getRequest, postRequest } from "./util/requests";
 
-export const filterGroups = async(params) => {
-    const endpoint = `/groups/user`;
+export const filterGroups = async(params, page = 1) => {
+    const endpoint = `/groups/user/${ page }`;
     return await getRequest(endpoint, params);
 };
 
@@ -15,7 +15,7 @@ export const getGroup = async(id) => {
     return await getRequest(endpoint);
 }
 
-export const getGroupMembers = async(id) => {
-    const endpoint = `/groups/members/${ id }`;
+export const getGroupMembers = async(id, page = 1) => {
+    const endpoint = `/groups/members/${ id }/${ page }`;
     return await getRequest(endpoint);
 }

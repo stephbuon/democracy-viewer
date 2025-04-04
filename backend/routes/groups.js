@@ -76,9 +76,9 @@ router.get('/id/:group', async(req, res, next) => {
 });
 
 // Route to get the private groups a user is in
-router.get('/user', authenticateJWT, async(req, res, next) => {
+router.get('/user/:page', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.getGroupsByUser(req.knex, req.user.email);
+        const result = await control.getGroupsByUser(req.knex, req.user.email, req.params.page);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get private groups by user:', err);
@@ -88,9 +88,9 @@ router.get('/user', authenticateJWT, async(req, res, next) => {
 });
 
 // Route to get the members of a private group
-router.get('/members/:group', authenticateJWT, async(req, res, next) => {
+router.get('/members/:group/:page', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.getGroupMembers(req.knex, req.user.email, req.params.group);
+        const result = await control.getGroupMembers(req.knex, req.user.email, req.params.group, req.params.page);
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get private group members:', err);

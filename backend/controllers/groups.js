@@ -125,35 +125,34 @@ const getGroupById = async(knex, id) => {
 }
 
 // Get groups a user is in
-const getGroupsByUser = async(knex, email) => {
+const getGroupsByUser = async(knex, email, page) => {
     const model = new groups(knex);
 
-    const result = await model.getGroupsByUser(email);
+    const result = await model.getGroupsByUser(email, Number(page));
     return result;
 }
 
 // Get group members if user is in the group
-const getGroupMembers = async(knex, email, private_group) => {
+const getGroupMembers = async(knex, email, private_group, page) => {
     const model = new groups(knex);
 
     // Get all members of the private group
-    const records = await model.getMembersByGroup(private_group);
+    const records = await model.getMembersByGroup(private_group, Number(page));
     // Check if user is in group
-    const record = records.filter(x => x.member === email);
+    const record = records.results.filter(x => x.member === email);
     // If no record found, throw error
     if (record.length === 0) {
         throw new Error(`User ${ email } not a member of private group ${ private_group }`);
     }
     // Replace email with name
-    const finalRecords = [];
-    for (let i = 0; i < records.length; i++) {
-        finalRecords.push({
-            ...records[i],
-            name: await getName(knex, records[i].member)
-        });
+    for (let i = 0; i < records.results.length; i++) {
+        records.results[i] = {
+            ...records.results[i],
+            name: await getName(knex, records.results[i].member)
+        }
     }
 
-    return finalRecords;
+    return records;
 }
 
 // Get the group member record by group and user

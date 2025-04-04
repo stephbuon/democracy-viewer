@@ -71,9 +71,12 @@ class groups {
     }
 
     // Get members by group
-    async getMembersByGroup(private_group) {
-        const records = await this.knex(member_table).where({ private_group });
-        return records;
+    async getMembersByGroup(private_group, currentPage) {
+        const records = await this.knex(member_table).where({ private_group }).paginate({ currentPage, perPage: 10 });
+        return {
+            results: records.data,
+            total: records.pagination.total
+        };
     }
 
     // Get group member info by member and group
