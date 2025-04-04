@@ -1,5 +1,6 @@
 import {
-    Box, Modal
+    Box, Modal,
+    Typography
 } from '@mui/material';
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
@@ -56,7 +57,7 @@ export const GroupMembersModal = (props) => {
             <Box
                 sx={{
                     position: 'absolute',
-                    // top: '7.5%',
+                    top: '7.5%',
                     left: '15%',
                     height: "75%",
                     overflow: "scroll",
@@ -67,10 +68,11 @@ export const GroupMembersModal = (props) => {
                     // paddingBottom: "15px"
                 }}
             >
+                {/* <Typography variant = "h3">Group Members</Typography> */}
                 <DataTable
                     value={members}
                     scrollable
-                    scrollHeight="80vh"
+                    // scrollHeight="80vh"
                     showGridlines
                     stripedRows
                     lazy
@@ -80,9 +82,6 @@ export const GroupMembersModal = (props) => {
                     onPage={onPage}
                     first={first}
                     emptyMessage="No Members Found"
-                    style={{
-                        
-                    }}
                 >
                     <Column
                         key={"name"}
@@ -116,7 +115,7 @@ export const GroupMembersModal = (props) => {
                                     role = "Member"
                                     break;
                                 default:
-                                    role = "";
+                                    role = <>&nbsp;</>;
                             }
 
                             return role;

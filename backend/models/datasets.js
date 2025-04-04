@@ -255,16 +255,24 @@ class datasets {
                 }
             });
 
-        let results;
-        if (paginate) {
-            const perPage = params.pageLength ? params.pageLength : 10;
-            results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
-            results = results.data;
-        } else {
-            results = await query;
-        }
+        // let results;
+        // if (paginate) {
+        //     const perPage = params.pageLength ? params.pageLength : 10;
+        //     results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
+        //     results = results.data;
+        // } else {
+        //     results = await query;
+        // }
 
-        return results;
+        // return results;
+
+        const perPage = params.pageLength ? params.pageLength : 10;
+        const results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
+
+        return {
+            results: results.data,
+            total: results.pagination.total
+        }
     }
 
     // Get the number of datasets for a given set of filters

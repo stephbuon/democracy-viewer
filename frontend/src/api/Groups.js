@@ -19,3 +19,8 @@ export const getGroupMembers = async(id, page = 1) => {
     const endpoint = `/groups/members/${ id }/${ page }`;
     return await getRequest(endpoint);
 }
+
+export const getGroupMemberRecord = async(id, email) => {
+    const endpoint = `/groups/${ id }/member/${ email }`;
+    return await getRequest(endpoint);
+}

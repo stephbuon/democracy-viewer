@@ -7,8 +7,8 @@ import {
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { DatasetTable } from "../common/tables";
 import { AlertDialog } from "../common/AlertDialog";
-import { getGroup, getGroupMembers } from "../../api";
-import { GroupMembersModal } from "./subcomponents/groups";
+import { getGroup, getGroupMemberRecord } from "../../api";
+import { GroupMembersModal, GroupAddDatasetModal } from "./subcomponents/groups";
 
 const mdTheme = createTheme();
 
@@ -24,6 +24,8 @@ export const GroupHome = (props) => {
     const [editable, setEditable] = useState(true);
     const [membersModalOpen, setMembersModalOpen] = useState(false);
     const [leaveOpen, setLeaveOpen] = useState(false);
+    const [memberRecord, setMemberRecord] = useState(undefined);
+    const [addDatasetOpen, setAddDatasetOpen] = useState(false);
 
     const [loadingResults, setLoadingResults] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
@@ -41,25 +43,7 @@ export const GroupHome = (props) => {
         setLoadingResults(false);
     };
 
-    const DatasetSelectionModal = ({ open, onClose}) => {
-        return (
-            <Modal open={open} onClose={onClose}>
-                <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, width: '400px', mx: 'auto', mt: 10 }}>
-                    <Typography variant="h6">Select a Dataset</Typography>
-                        <DatasetTable
-                            loadingResults={loadingResults}
-                            searchResults={searchResults}
-                            setDataset={props.setDataset}
-                            GetNewPage={GetNewPage}
-                            editable={editable}
-                            totalNumResults={totalNumOfResults}
-                            pageLength={pageLength}
-                            deleteCallback={() => GetNewPage(1)}
-                        />
-                </Box>
-            </Modal>
-        );
-    };
+    
 
     // Effect to load initial data
     useEffect(() => {
@@ -86,6 +70,9 @@ export const GroupHome = (props) => {
 
     useEffect(() => {
         getGroup(params.groupId).then(x => setGroup(x));
+
+        const dv = JSON.parse(localStorage.getItem('democracy-viewer'));
+        getGroupMemberRecord(params.groupId, dv.user.email).then(x => setMemberRecord(x));
     }, []);
 
     useEffect(() => {
@@ -195,7 +182,7 @@ export const GroupHome = (props) => {
                                             variant="contained"
                                             component="label"
                                             sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
-                                            onClick={() => {}} // Function to open dataset selection modal
+                                            onClick={() => setAddDatasetOpen(true)} // Function to open dataset selection modal
                                         >
                                             Add Dataset
                                         </Button>
@@ -224,6 +211,12 @@ export const GroupHome = (props) => {
                 open={membersModalOpen}
                 setOpen={setMembersModalOpen}
                 group={group}
+            />
+            
+            <GroupAddDatasetModal
+                open={addDatasetOpen}
+                setOpen={setAddDatasetOpen}
+                memberRecord={memberRecord}
             />
         </ThemeProvider>
     );

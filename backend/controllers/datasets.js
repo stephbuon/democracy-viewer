@@ -390,16 +390,16 @@ const getColumnValues = async(knex, table, column, search = undefined, page = 1,
 const getFilteredDatasets = async(knex, query, email, page) => {
     const model = new datasets(knex);
 
-    const results = await model.getFilteredDatasets(query, email, true, page);
+    const results = await model.getFilteredDatasets(query, email, true, Number(page));
     // Get tags and likes for search results
-    for (let i = 0; i < results.length; i++) {
-        results[i].tags = await getTags(knex, results[i].table_name);
+    for (let i = 0; i < results.results.length; i++) {
+        results.results[i].tags = await getTags(knex, results.results[i].table_name);
         if (email) {
-            results[i].liked = await model.getLike(email, results[i].table_name);
+            results.results[i].liked = await model.getLike(email, results.results[i].table_name);
         } else {
-            results[i].liked = false;
+            results.results[i].liked = false;
         }
-        results[i].likes = await model.getLikeCount(results[i].table_name);
+        results.results[i].likes = await model.getLikeCount(results.results[i].table_name);
     }
 
     return results;
