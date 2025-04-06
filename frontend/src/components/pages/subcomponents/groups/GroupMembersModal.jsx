@@ -8,7 +8,7 @@ import { Column } from "primereact/column";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import { getGroupMembers } from '../../../../api';
 
-const pageLength = 10;
+const pageLength = 5;
 
 export const GroupMembersModal = (props) => {
     const [members, setMembers] = useState([]);
@@ -46,7 +46,9 @@ export const GroupMembersModal = (props) => {
     }
 
     useEffect(() => {
-        getNewPage(1);
+        if (props.open) {
+            getNewPage(1);
+        }
     }, [props.open]);
 
     return <>

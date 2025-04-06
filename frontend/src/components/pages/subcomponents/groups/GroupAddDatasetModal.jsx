@@ -5,7 +5,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 
-const pageLength = 10;
+const pageLength = 5;
 
 export const GroupAddDatasetModal = ({ open, setOpen, memberRecord }) => {
     const [searchResults, setSearchResults] = useState([]);
@@ -31,11 +31,11 @@ export const GroupAddDatasetModal = ({ open, setOpen, memberRecord }) => {
     }
 
     useEffect(() => {
-        if (memberRecord) {
+        if (memberRecord && open) {
             getNewPage(1);
         }
         
-    }, [memberRecord]);
+    }, [memberRecord, open]);
 
     return (
         <Modal open={open} onClose={onClose}>
