@@ -1,6 +1,5 @@
 import { getRequest, postRequest, signedURLPutRequest, deleteRequest, putRequest } from "./util/requests";
 
-// Graph generation APIs
 export const getGraph = async(dataset, params) => {
     const endpoint = `/graphs/${ dataset }`;
     return await getRequest(endpoint, params);

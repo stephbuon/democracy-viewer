@@ -1,21 +1,21 @@
-import { DatasetResultModal } from './DatasetResultModal';
+import { GroupResultModal } from './GroupResultModal';
 import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 
-export const DatasetResult = (props) => {
-    const [dataset, setDataset] = useState(props.result);
+export const GroupResult = (props) => {
+    const [group, setGroup] = useState(props.result);
     const [open, setOpen] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
 
     const handleOpen = () => setOpen(true);
 
-    const updateDataset = (ds) => {
-        setDataset(ds);
-        props.setDataset(ds);
+    const updateGroup = (ds) => {
+        setGroup(ds);
+        props.setGroup(ds);
     }
 
     useEffect(() => {
-        setDataset(props.result);
+        setGroup(props.result);
 
         const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (demoV && demoV.user) {
@@ -34,12 +34,12 @@ export const DatasetResult = (props) => {
                     }
                 }}
             >
-                {dataset.title}
+                {group.name}
             </Box>
 
-            <DatasetResultModal
-                dataset={dataset}
-                setDataset={updateDataset}
+            <GroupResultModal
+                group={group}
+                setGroup={updateGroup}
                 open={open}
                 setOpen={setOpen}
                 loggedIn={loggedIn}

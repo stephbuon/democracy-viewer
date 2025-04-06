@@ -4,7 +4,7 @@ import { getSuggestionsFor, getSuggestionsFrom, confirmSuggestion, deleteSuggest
 import { useState, useEffect } from 'react';
 import { Button } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
-import { ResultLink } from './ResultLink';
+import { DatasetResultLink } from './subcomponents';
 
 export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, setDataset }) => {
     const navigate = useNavigate();
@@ -112,7 +112,7 @@ export const SuggestChangesTable = ({ type, pageLength, refresh, setRefresh, set
                     <>
                         {
                             x.table_name !== undefined &&
-                            <ResultLink
+                            <DatasetResultLink
                                 table_name={x.table_name}
                                 setDataset={setDataset}
                             />

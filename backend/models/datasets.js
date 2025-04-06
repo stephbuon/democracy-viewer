@@ -5,6 +5,7 @@ const text_col_table = "dataset_text_cols";
 const embed_col_table = "dataset_embed_cols";
 const likes_table = "liked_datasets";
 const suggestion_table = "text_updates";
+const group_table = "group_datasets";
 
 class datasets {
     constructor(knex) {
@@ -164,10 +165,11 @@ class datasets {
     }
 
     // Filter datasets
-    async getFilteredDatasets(params, email, paginate = true, currentPage = 1) {
+    async getFilteredDatasets(params, email, currentPage = 1) {
         const query = this.knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             .leftJoin(tag_table, `${ metadata_table }.table_name`, `${ tag_table }.table_name`)
             .leftJoin(likes_table, `${ metadata_table }.table_name`, `${ likes_table }.table_name`)
+            .leftJoin(group_table, `${ metadata_table }.table_name`, `${ group_table }.table_name`)
             .where(q => {
                 // Filter by type (public/private)
                 const type = params.type;
@@ -253,24 +255,21 @@ class datasets {
                 if (liked) {
                     q.where(`${ likes_table }.email`, liked);
                 }
+
+                // Search for private group datasets
+                const group = params.group;
+                if (group) {;
+                    q.where(`${ group_table }.private_group`, group)
+                }
             });
 
-        let results;
-        if (paginate) {
-            const perPage = params.pageLength ? params.pageLength : 10;
-            results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
-            results = results.data;
-        } else {
-            results = await query;
+        const perPage = params.pageLength ? params.pageLength : 10;
+        const results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
+
+        return {
+            results: results.data,
+            total: results.pagination.total
         }
-
-        return results;
-    }
-
-    // Get the number of datasets for a given set of filters
-    async getFilteredDatasetsCount(params, email) {
-        const results = await this.getFilteredDatasets(params, email, false);
-        return results.length;
     }
 
     // Get the number of likes for this dataset

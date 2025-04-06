@@ -1,11 +1,11 @@
-import "../../../styles/Loading.css";
-import { DatasetResult } from "./subcomponents";
+import '../../../styles/Loading.css'
+import { GroupResult } from "./subcomponents";
 import { DataTable } from 'primereact/datatable';
 import { Column } from "primereact/column";
 import { useState, useEffect } from 'react';
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 
-export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNewPage, editable, pageLength, totalNumResults, deleteCallback }) => {
+export const GroupTable = ({ loadingResults, searchResults, setGroup, GetNewPage, deleteCallBack, editable, pageLength, totalNumResults}) => {
     const [formattedResults, setFormattedResults] = useState([...Array(pageLength).keys()]);
     const [first, setFirst] = useState(0);
 
@@ -20,11 +20,11 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
                 className = {`loadingData${ (result % 8) + 1 }`}
             >&nbsp;</div>
         } else if (typeof result === "object") {
-            return <DatasetResult
+            return <GroupResult
                 result = {result} 
-                setDataset={(x) => setDataset(x)} 
+                setGroup={(x) => setGroup(x)} 
                 editable={editable}
-                deleteCallback={deleteCallback}
+                deleteCallback={deleteCallBack}
             />
         } else {
             return <>&nbsp;</>
@@ -62,7 +62,7 @@ export const DatasetTable = ({ loadingResults, searchResults, setDataset, GetNew
             totalRecords={totalNumResults}
             onPage={onPage}
             first={first}
-            emptyMessage="No Datasets Found"
+            emptyMessage="No Groups Found"
         >
             <Column
                 header="Results"

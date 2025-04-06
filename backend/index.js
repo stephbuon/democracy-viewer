@@ -16,7 +16,7 @@ const { optAuthenticateJWT } = require("./middleware/authentication");
 // const databases = require("./routes/databases");
 const datasets = require("./routes/datasets");
 const graphs = require("./routes/graphs");
-// const groups = require("./routes/groups");
+const groups = require("./routes/groups");
 const session = require("./routes/session");
 const users = require('./routes/users');
 
@@ -50,12 +50,11 @@ app.get("/health", async(req, res, next) => {
 
 // Use routes
 // app.use("/distributed", databases);
-app.use(`${ apiPrefix }/datasets`, datasets);
-app.use(`${ apiPrefix }/graphs`, graphs);
-// app.use(`${ apiPrefix }/groups`, groups);
-// app.use(`${ apiPrefix }/preprocessing`, preprocessing);
-app.use(`${ apiPrefix }/session`, session);
-app.use(`${ apiPrefix }/users`, users);
+app.use("/datasets", datasets);
+app.use("/graphs", graphs);
+app.use("/groups", groups);
+app.use("/session", session);
+app.use("/users", users);
 
 // Delete knex connection
 app.use(deleteDatabaseConnection);

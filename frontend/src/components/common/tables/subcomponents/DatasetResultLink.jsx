@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { ResultModal } from "./DatasetResultModal";
+import { DatasetResultModal } from "./DatasetResultModal";
 import { useEffect, useState } from "react";
 import { getMetadata } from "../../../../api";
 
-export const ResultLink = ({ table_name, setDataset}) => {
+export const DatasetResultLink = ({ table_name, setDataset}) => {
     const [open, setOpen] = useState(false);
     const [data, setData] = useState(undefined);
     const [loggedIn, setLoggedIn] = useState(false);
@@ -33,7 +33,7 @@ export const ResultLink = ({ table_name, setDataset}) => {
     return <>
         <Link onClick={() => setOpen(true)}>{ data.title }</Link>
 
-        <ResultModal
+        <DatasetResultModal
             dataset={data}
             setDataset={updateDataset}
             open={open}

@@ -1,6 +1,7 @@
 export * from "./Datasets";
 export * from "./DatasetSearch";
 export * from "./Graphs";
+export * from "./Groups";
 export * from "./LoginRegister";
 export * from "./SubsetSearch";
 export * from "./TextSuggestions";

@@ -4,7 +4,7 @@ import {
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
-import { getUser, deleteAccount, FilterDatasets, FilterDatasetsCount, filterGraphs, filterGraphsCount } from "../../api";
+import { getUser, deleteAccount, FilterDatasets, filterGraphs, filterGraphsCount } from "../../api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./subcomponents/profile";
 import { AlertDialog } from "../common/AlertDialog";
@@ -39,6 +39,12 @@ export const Profile = (props) => {
     const [likeSearchResultsGraph, setLikeSearchResultsGraph] = useState([]);
     const [totalNumOfLikeResultsGraph, setTotalNumOfLikeResultsGraph] = useState(0);
 
+    const [loadingGroupResults, setLoadingGroupResults] = useState(false);
+    const [groupResults, setGroupResults] = useState([]);
+    const [totalNumOfGroupResults, setTotalNumOfGroupResults] = useState(0);
+
+    const [suggestionsFor, setSuggestionsFor] = useState([]);
+    const [suggestionsFrom, setSuggestionsFrom] = useState([]);
     const [refreshSuggestions, setRefreshSuggestions] = useState(false);
 
     const GetNewPage = (num) => {
@@ -50,12 +56,14 @@ export const Profile = (props) => {
         FilterDatasets(filter, num).then((res) => {
             setLoadingResults(false);
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
-        });
-
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfResults(res);
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
+            }
         });
     }
 
@@ -68,12 +76,14 @@ export const Profile = (props) => {
         FilterDatasets(filter, num).then((res) => {
             setLoadingLikeResults(false);
 
-            if (!res) { setLikeSearchResults([]) }
-            else { setLikeSearchResults(res) }
-        });
-
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfLikeResults(res);
+            if (!res) { 
+                setLikeSearchResults([]); 
+            } else { 
+                setLikeSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfLikeResults(res.total);
+                } 
+            }
         });
     }
 

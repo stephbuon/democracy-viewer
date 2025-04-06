@@ -6,7 +6,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
-import { FilterDatasets, FilterDatasetsCount } from '../../api';
+import { FilterDatasets } from '../../api';
 import { AdvancedFilter } from './subcomponents/dataset-search';
 import { DatasetTable } from '../common/tables';
 
@@ -43,11 +43,14 @@ export const DatasetResultsPage = (props) => {
         FilterDatasets(filter, 1).then((res) => {
             setLoadingResults(false);
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
-        })
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfResults(res);
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
+            }
         })
     }
     const advancedFilterResults = (advancedFilter) => {
@@ -57,13 +60,16 @@ export const DatasetResultsPage = (props) => {
         FilterDatasets(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
+            }
 
             handleAdvancedFilterClose()
-        })
-        FilterDatasetsCount(advancedFilter).then(async (res) => {
-            setTotalNumOfResults(res);
         })
     }
 
