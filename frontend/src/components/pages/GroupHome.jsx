@@ -5,10 +5,10 @@ import {
 } from '@mui/material';
 //import { getGroup, leaveGroup } from "../../api";
 import { useNavigate, useParams } from "react-router-dom";
-import { DatasetTable } from "../common/tables";
+import { DatasetTable, GraphTable } from "../common/tables";
 import { AlertDialog } from "../common/AlertDialog";
-import { getGroup, getGroupMemberRecord, removeMemberFromGroup, FilterDatasets } from "../../api";
-import { GroupMembersModal, GroupAddDatasetModal } from "./subcomponents/groups";
+import { getGroup, getGroupMemberRecord, removeMemberFromGroup, FilterDatasets, filterGraphs } from "../../api";
+import { GroupMembersModal, GroupAddDatasetModal, GroupAddGraphModal } from "./subcomponents/groups";
 
 const mdTheme = createTheme();
 
@@ -24,11 +24,17 @@ export const GroupHome = (props) => {
     const [leaveOpen, setLeaveOpen] = useState(false);
     const [memberRecord, setMemberRecord] = useState(undefined);
     const [addDatasetOpen, setAddDatasetOpen] = useState(false);
+    const [addGraphOpen, setAddGraphOpen] = useState(false);
 
+    // Datasets
     const [loadingResults, setLoadingResults] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [totalNumOfResults, setTotalNumOfResults] = useState(0);
-    //const [DatasetSelectionModal, setDataModal] = useState(false);
+
+    // Visualizations
+    const [loadingGraphResults, setLoadingGraphResults] = useState(false);
+    const [searchGraphResults, setSearchGraphResults] = useState([]);
+    const [totalNumOfGraphResults, setTotalNumOfGraphResults] = useState(0);
 
     // Function to fetch datasets for this group
     const GetNewPage = async (selectedPage) => {
@@ -48,6 +54,24 @@ export const GroupHome = (props) => {
         });
     };
 
+    // Function to fetch graphs for this group
+    const GetNewGraphPage = async (selectedPage) => {
+        setLoadingGraphResults(true);
+        
+        filterGraphs({ group: params.groupId }, selectedPage).then((res) => {
+            setLoadingGraphResults(false);
+
+            if (!res) { 
+                setSearchGraphResults([]); 
+            } else { 
+                setSearchGraphResults(res.results);
+                if (res.total) {
+                    setTotalNumOfGraphResults(res.total);
+                } 
+            }
+        });
+    };
+
     useEffect(() => {
         getGroup(params.groupId).then(x => setGroup(x));
 
@@ -57,17 +81,11 @@ export const GroupHome = (props) => {
         GetNewPage(1);
     }, [params.groupId]);
 
-    useEffect(() => {
-        if (group) {
-            // getGroupMembers(group.id).then(x => setMembers(x));
-        }
-    }, [group]);
-
     const onLeave = () => {
         removeMemberFromGroup(group.id, memberRecord.member).then(x => navigate("/groups"));
     };
 
-    if (!group) {
+    if (!group || !memberRecord) {
         return <></>
     }
 
@@ -174,7 +192,42 @@ export const GroupHome = (props) => {
                                         editable={false}
                                         totalNumResults={totalNumOfResults}
                                         pageLength={pageLength}
-                                        deleteCallback={() => GetNewPage(1)}
+                                    />
+                                </Paper>
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                                <Paper
+                                    elevation={12}
+                                    sx={{
+                                        p: 2,
+                                        m: 5,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+                                        <Button 
+                                            variant="contained"
+                                            component="label"
+                                            sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
+                                            onClick={() => setAddGraphOpen(true)} // Function to open dataset selection modal
+                                            disabled={memberRecord.rank > 3}
+                                        >
+                                            Add Visualization
+                                        </Button>
+                                    </Box>
+                                    <h2>Group Visualizations</h2>
+                                    <GraphTable
+                                        loadingResults={loadingGraphResults}
+                                        searchResults={searchGraphResults}
+                                        setDataset={props.setDataset}
+                                        GetNewPage={GetNewGraphPage}
+                                        editable={false}
+                                        totalNumResults={totalNumOfGraphResults}
+                                        pageLength={pageLength}
                                     />
                                 </Paper>
                             </Grid>
@@ -196,6 +249,13 @@ export const GroupHome = (props) => {
                 setOpen={setAddDatasetOpen}
                 memberRecord={memberRecord}
                 updateDatasets={() => GetNewPage(1)}
+            />
+            
+            <GroupAddGraphModal
+                open={addGraphOpen}
+                setOpen={setAddGraphOpen}
+                memberRecord={memberRecord}
+                updateGraphs={() => GetNewGraphPage(1)}
             />
         </ThemeProvider>
     );

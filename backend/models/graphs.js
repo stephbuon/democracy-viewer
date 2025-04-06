@@ -1,6 +1,7 @@
 const metadata_table = "graph_metadata";
 const tag_table = "graph_tags";
 const likes_table = "liked_graphs";
+const groups_table = "group_graphs";
 
 class graphs {
     constructor(knex) {
@@ -55,10 +56,11 @@ class graphs {
     }
 
     // Filter metadata
-    async getFilteredGraphs(params, email, paginate = true, currentPage = 1) {
+    async getFilteredGraphs(params, email, currentPage = 1) {
         const query = this.knex(metadata_table).select(`${ metadata_table }.*`).distinct()
             // .leftJoin(tag_table, `${ metadata_table }.id`, `${ tag_table }.graph_id`)
             .leftJoin(likes_table, `${ metadata_table }.id`, `${ likes_table }.graph_id`)
+            .leftJoin(groups_table, `${ metadata_table }.id`, `${ groups_table }.graph_id`)
             .where(q => {
                 // Filter by type (public/private)
                 const type = params.type;
@@ -144,24 +146,21 @@ class graphs {
                 if (liked) {
                     q.where(`${ likes_table }.email`, liked);
                 }
+
+                // Search for liked datasets
+                const group = params.group;
+                if (group) {
+                    q.where(`${ groups_table }.private_group`, group);
+                }
             });
 
-        let results;
-        if (paginate) {
-            const perPage = params.pageLength ? params.pageLength : 10;
-            results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
-            results = results.data;
-        } else {
-            results = await query;
+        const perPage = params.pageLength ? params.pageLength : 10;
+        const results = await query.orderBy("clicks", "desc").paginate({ perPage, currentPage });
+
+        return {
+            results: results.data,
+            total: results.pagination.total
         }
-
-        return results;
-    }
-
-    // Count the number of graphs that match filter parameters
-    async getFilteredGraphsCount(params, email) {
-        const results = await this.getFilteredGraphs(params, email, false);
-        return results.length;
     }
 
     // Get the number of likes for this graph

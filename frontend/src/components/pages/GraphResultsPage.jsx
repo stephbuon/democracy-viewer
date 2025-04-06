@@ -6,7 +6,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
-import { filterGraphs, filterGraphsCount } from '../../api';
+import { filterGraphs } from '../../api';
 import { GraphTable } from "../common/tables";
 import { AdvancedFilter } from './subcomponents/dataset-search'; // Assuming this is the same component or you have an equivalent
 
@@ -41,11 +41,14 @@ export const GraphResultsPage = (props) => {
         filterGraphs(filter, 1).then((res) => {
             setLoadingResults(false);
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
-        });
-        filterGraphsCount(filter).then(async (res) => {
-            setTotalNumOfResults(res);
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
+            }
         });
     };
 
@@ -56,13 +59,16 @@ export const GraphResultsPage = (props) => {
         filterGraphs(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
+            }
 
             handleAdvancedFilterClose()
-        });
-        filterGraphsCount(advancedFilter).then(async (res) => {
-            setTotalNumOfResults(res);
         });
     };
 
@@ -71,8 +77,14 @@ export const GraphResultsPage = (props) => {
 
         try {
             const res = await filterGraphs(pageFilter, selectedPage);
-            if (res) {
-                setSearchResults(res);
+
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
             }
         } catch (error) {
             console.error('Error fetching new page:', error);

@@ -103,6 +103,27 @@ const addDatasets = async(knex, private_group, tables, email) => {
     await model.addDatasets(records);
 }
 
+// Add a graph to a group
+const addGraphs = async(knex, private_group, ids, email) => {
+    const model = new groups(knex);
+
+    // Get user_from info
+    const member_record = await model.getMember(email, private_group);
+
+    // If user_from is not the admin of the group, throw error
+    if (!member_record || member_record.member_rank > 3) {
+        throw new Error(`User ${ email } does not have permission to add datasets to private group ${ private_group }`);
+    }
+
+    const records = ids.map(graph_id => {
+        return {
+            private_group,
+            graph_id
+        }
+    })
+    await model.addGraphs(records);
+}
+
 // Edit a group if the user is an admin
 const editGroup = async(knex, email, id, params) => {
     const model = new groups(knex);
@@ -236,7 +257,7 @@ const deleteGroupInvite = async(knex, admin, email, private_group) => {
     await model.deleteInvite(email, private_group);
 }
 
-// Delete a private group invite
+// Remove private group datasets
 const removeGroupDatasets = async(knex, private_group, tables, email) => {
     const model = new groups(knex);
 
@@ -251,11 +272,27 @@ const removeGroupDatasets = async(knex, private_group, tables, email) => {
     await model.removeDatasets(private_group, tables);
 }
 
+// Remove private group graphs
+const removeGroupGraphs = async(knex, private_group, ids, email) => {
+    const model = new groups(knex);
+
+    // Get user's group member record
+    const member_record = await model.getMember(email, private_group);
+    // If record not found or user not an admin, throw error
+    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank > 2)) {
+        throw new Error(`User ${ email } is not an admin in private group ${ private_group }`);
+    }
+
+    // Delete group invite
+    await model.removeGraphs(private_group, ids)
+}
+
 module.exports = {
     addGroup,
     sendInvite,
     addMember,
     addDatasets,
+    addGraphs,
     editGroup,
     editMember,
     getGroupById,
@@ -265,5 +302,6 @@ module.exports = {
     deleteGroup,
     deleteGroupMember,
     deleteGroupInvite,
-    removeGroupDatasets
+    removeGroupDatasets,
+    removeGroupGraphs
 };

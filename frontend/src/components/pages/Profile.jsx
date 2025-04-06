@@ -4,7 +4,7 @@ import {
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
-import { getUser, deleteAccount, FilterDatasets, filterGraphs, filterGraphsCount } from "../../api";
+import { getUser, deleteAccount, FilterDatasets, filterGraphs } from "../../api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./subcomponents/profile";
 import { AlertDialog } from "../common/AlertDialog";
@@ -96,12 +96,14 @@ export const Profile = (props) => {
         filterGraphs(filter, num).then((res) => {
             setLoadingResultsGraph(false);
 
-            if (!res) { setSearchResultsGraph([]) }
-            else { setSearchResultsGraph(res) }
-        });
-
-        filterGraphsCount(filter).then(async (res) => {
-            setTotalNumOfResultsGraph(res);
+            if (!res) { 
+                setSearchResultsGraph([]); 
+            } else { 
+                setSearchResultsGraph(res.results);
+                if (res.total) {
+                    setTotalNumOfResultsGraph(res.total);
+                } 
+            }
         });
     }
 
@@ -114,12 +116,14 @@ export const Profile = (props) => {
         filterGraphs(filter, num).then((res) => {
             setLoadingLikeResultsGraph(false);
 
-            if (!res) { setLikeSearchResultsGraph([]) }
-            else { setLikeSearchResultsGraph(res) }
-        });
-
-        filterGraphsCount(filter).then(async (res) => {
-            setTotalNumOfLikeResultsGraph(res);
+            if (!res) { 
+                setSearchResultsGraph([]); 
+            } else { 
+                setSearchResultsGraph(res.results);
+                if (res.total) {
+                    setTotalNumOfResultsGraph(res.total);
+                } 
+            }
         });
     }
 

@@ -39,3 +39,13 @@ export const removeDatasetsFromGroup = async(id, tables) => {
     const endpoint = `/groups/${ id }/datasets`;
     return await deleteRequest(endpoint, { tables });
 }
+
+export const addGraphsToGroup = async(id, graph_ids) => {
+    const endpoint = `/groups/graphs`;
+    return await postRequest(endpoint, { private_group: id, graph_ids });
+}
+
+export const removeGraphsFromGroup = async(id, graph_ids) => {
+    const endpoint = `/groups/${ id }/graphs`;
+    return await deleteRequest(endpoint, { graph_ids });
+}

@@ -170,3 +170,11 @@ CREATE TABLE liked_graphs (
     FOREIGN KEY(graph_id) REFERENCES graph_metadata(id) ON DELETE CASCADE,
     PRIMARY KEY(email, graph_id)
 );
+
+CREATE TABLE group_graphs (
+    private_group BIGINT UNSIGNED NOT NULL,
+    graph_id BIGINT UNSIGNED NOT NULL,
+    FOREIGN KEY(private_group) REFERENCES private_groups(id),
+    FOREIGN KEY(graph_id) REFERENCES graph_metadata(id),
+    PRIMARY KEY(private_group, graph_id)
+);

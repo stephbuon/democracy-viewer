@@ -4,6 +4,7 @@ const group_table = "private_groups";
 const member_table = "group_members";
 const invite_table = "group_invites";
 const datasets_table = "group_datasets";
+const graphs_table = "group_graphs";
 
 class groups {
     constructor(knex) {
@@ -35,9 +36,15 @@ class groups {
         return records[0];
     }
 
-    // Add a dataset to a group
+    // Add datasets to a group
     async addDatasets(records) {
         await this.knex(datasets_table).insert([ ...records ]);
+        return null;
+    }
+
+    // Add graphs to a group
+    async addGraphs(records) {
+        await this.knex(graphs_table).insert([ ...records ]);
         return null;
     }
 
@@ -142,6 +149,15 @@ class groups {
         await this.knex(datasets_table).delete().where(q => {
             q.where({ private_group });
             q.whereIn("table_name", tables);
+        });
+        return null;
+    }
+
+    // Remove graphs from a group
+    async removeGraphs(private_group, ids) {
+        await this.knex(graphs_table).delete().where(q => {
+            q.where({ private_group });
+            q.whereIn("graph_id", ids);
         });
         return null;
     }

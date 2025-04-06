@@ -119,23 +119,6 @@ router.get('/filter/:page', async(req, res, next) => {
     next();
 });
 
-// Route to get number of graph filter results
-router.get('/count/filter', async(req, res, next) => {
-    try {
-        let result;
-        if (req.user) {
-            result = await control.getFilteredGraphsCount(req.knex, req.query, req.user.email);
-        } else {
-            result = await control.getFilteredGraphsCount(req.knex, req.query, undefined);
-        }
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get filtered graphs count:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
 // Route to get a graph from a graph id
 router.get('/id/:id', async(req, res, next) => {
     try {

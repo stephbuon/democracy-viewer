@@ -74,11 +74,6 @@ export const filterGraphs = async(params, page) => {
     return await getRequest(endpoint, params);
 }
 
-export const filterGraphsCount = async(params) => {
-    const endpoint = `/graphs/count/filter`;
-    return await getRequest(endpoint, params);
-}
-
 export const getGraphImageUrl = async(id) => {
     const endpoint = `/graphs/image/${ id }`;
     return await getRequest(endpoint);

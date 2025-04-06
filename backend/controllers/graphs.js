@@ -47,8 +47,8 @@ const addMetadata = async(knex, params, user) => {
     }
 
     // Check if the user has already published this graph
-    const graphCount = await model_graphs.getFilteredGraphsCount({ s3_id: params.s3_id, user: user.email }, user.email);
-    if (graphCount > 0) {
+    const graph = await model_graphs.getFilteredGraphs({ s3_id: params.s3_id, user: user.email, pageLength: 1 }, user.email);
+    if (graph.total) {
         throw new Error(`User ${ user.email } has already published a graph with these parameters`);
     }
 
@@ -225,7 +225,7 @@ const getFullMetadata = async(knex, id, email) => {
 const getFilteredGraphs = async(knex, query, email, page) => {
     const model = new graphs(knex);
 
-    const results = await model.getFilteredGraphs(query, email, true, page);
+    const results = await model.getFilteredGraphs(query, email, Number(page));
     // Get tags and likes for search results
     for (let i = 0; i < results.length; i++) {
         // results[i].tags = await getTags(knex, results[i].id);
@@ -238,14 +238,6 @@ const getFilteredGraphs = async(knex, query, email, page) => {
     }
 
     return results;
-}
-
-// Get count of graph filter
-const getFilteredGraphsCount = async(knex, query, email) => {
-    const model = new graphs(knex);
-
-    const result = await model.getFilteredGraphsCount(query, email);
-    return result;
 }
 
 // Return the settings for a graph based on its id
@@ -331,7 +323,6 @@ module.exports = {
     getZoomRecords,
     getFullMetadata,
     getFilteredGraphs,
-    getFilteredGraphsCount,
     getGraphSettings,
     getGraphImage,
     deleteGraph,

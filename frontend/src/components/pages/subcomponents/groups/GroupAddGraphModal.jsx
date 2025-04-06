@@ -1,5 +1,5 @@
 import { Box, Button, Modal, Typography } from "@mui/material";
-import { FilterDatasets, addDatasetsToGroup, removeDatasetsFromGroup } from "../../../../api";
+import { filterGraphs, addGraphsToGroup, removeGraphsFromGroup } from "../../../../api";
 import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -7,19 +7,19 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 const pageLength = 5;
 
-export const GroupAddDatasetModal = ({ open, setOpen, memberRecord, updateDatasets }) => {
+export const GroupAddGraphModal = ({ open, setOpen, memberRecord, updateGraphs }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [totalNumOfResults, setTotalNumOfResults] = useState(0);
     const [first, setFirst] = useState(0);
     const [loading, setLoading] = useState(false);
-    const [memberDatasets, setMemberDatasets] = useState([]);
-    const [refreshDatasets, setRefreshDatasets] = useState(true);
-    const [selectedDatasets, setSelectedDatasets] = useState([]);
-    const [addedDatasets, setAddedDatasets] = useState([]);
-    const [removedDatasets, setRemovedDatasets] = useState([]);
+    const [memberGraphs, setMemberGraphs] = useState([]);
+    const [refreshGraphs, setRefreshGraphs] = useState(true);
+    const [selectedGraphs, setSelectedGraphs] = useState([]);
+    const [addedGraphs, setAddedGraphs] = useState([]);
+    const [removedGraphs, setRemovedGraphs] = useState([]);
 
     const getNewPage = async(page) => {
-        const res = await FilterDatasets({ user: memberRecord.member, pageLength }, page);
+        const res = await filterGraphs({ user: memberRecord.member, pageLength }, page);
         setSearchResults(res.results);
         if (res.total) {
             setTotalNumOfResults(res.total);
@@ -35,102 +35,102 @@ export const GroupAddDatasetModal = ({ open, setOpen, memberRecord, updateDatase
         setLoading(false);
     }
 
-    const getMemberDatasets = async() => {
-        let datasets = [];
+    const getMemberGraphs = async() => {
+        let graphs = [];
         let total = undefined;
         let page = 1;
 
-        const getMoreDatasets = async() => {
-            const res = await FilterDatasets({ user: memberRecord.member, group: memberRecord.private_group }, page);
+        const getMoreGraphs = async() => {
+            const res = await filterGraphs({ user: memberRecord.member, group: memberRecord.private_group }, page);
             if (page === 1) {
                 total = res.total;
-                datasets = res.results;
+                graphs = res.results;
             } else {
-                datasets = [ ...datasets, ...res.results ];
+                graphs = [ ...graphs, ...res.results ];
             }
 
             page += 1;
         }
         
-        while (total === undefined || datasets.length < total) {
-            await getMoreDatasets();
+        while (total === undefined || graphs.length < total) {
+            await getMoreGraphs();
         }
 
-        setMemberDatasets(datasets);
-        setRefreshDatasets(false);
+        setMemberGraphs(graphs);
+        setRefreshGraphs(false);
     }
 
     const onSelectChange = (event) => {
-        // setSelectedDatasets(event.value);
+        // setSelectedGraphs(event.value);
 
-        let selected = [ ...selectedDatasets ];
-        let additions = [ ...addedDatasets ];
-        let deletions = [ ...removedDatasets ];
+        let selected = [ ...selectedGraphs ];
+        let additions = [ ...addedGraphs ];
+        let deletions = [ ...removedGraphs ];
         searchResults.forEach(x => {
             // If selected
-            if (event.value.some(y => x.table_name === y.table_name)) {
+            if (event.value.some(y => x.id === y.id)) {
                 // Add to selected
-                if (selected.every(y => y.table_name !== x.table_name)) {
+                if (selected.every(y => y.id !== x.id)) {
                     selected.push(x);
                 }
 
                 // Add to additions
-                if (memberDatasets.every(y => y.table_name !== x.table_name) && !additions.includes(x.table_name)) {
-                    additions.push(x.table_name);
+                if (memberGraphs.every(y => y.id !== x.id) && !additions.includes(x.id)) {
+                    additions.push(x.id);
                 }
 
                 // Remove from deletions
-                if (deletions.includes(x.table_name)) {
-                    deletions = deletions.filter(y => y !== x.table_name);
+                if (deletions.includes(x.id)) {
+                    deletions = deletions.filter(y => y !== x.id);
                 }
             } else {
                 // Remove from selected
-                if (selected.some(y => y.table_name === x.table_name)) {
-                    selected = selected.filter(y => y.table_name !== x.table_name);
+                if (selected.some(y => y.id === x.id)) {
+                    selected = selected.filter(y => y.id !== x.id);
                 }
 
                 // Remove from additions
-                if (additions.includes(x.table_name)) {
-                    additions = additions.filter(y => y !== x.table_name);
+                if (additions.includes(x.id)) {
+                    additions = additions.filter(y => y !== x.id);
                 }
 
                 // Add to deletions
-                if (memberDatasets.some(y => y.table_name === x.table_name) && !deletions.includes(x.table_name)) {
-                    deletions.push(x.table_name);
+                if (memberGraphs.some(y => y.id === x.id) && !deletions.includes(x.id)) {
+                    deletions.push(x.id);
                 }
             }
         });
 
-        setSelectedDatasets(selected);
-        setAddedDatasets(additions);
-        setRemovedDatasets(deletions);
+        setSelectedGraphs(selected);
+        setAddedGraphs(additions);
+        setRemovedGraphs(deletions);
     }
 
     const onSubmit = async() => {
-        if (addedDatasets.length > 0) {
-            await addDatasetsToGroup(memberRecord.private_group, addedDatasets);
+        if (addedGraphs.length > 0) {
+            await addGraphsToGroup(memberRecord.private_group, addedGraphs);
         }
         
-        if (removedDatasets.length > 0) {
-            await removeDatasetsFromGroup(memberRecord.private_group, removedDatasets);
+        if (removedGraphs.length > 0) {
+            await removeGraphsFromGroup(memberRecord.private_group, removedGraphs);
         }
 
-        setRefreshDatasets(true);
-        updateDatasets();
+        setRefreshGraphs(true);
+        updateGraphs();
         onClose();
     }
 
     useEffect(() => {
         if (memberRecord) {
-            if (refreshDatasets) {
-                getMemberDatasets();
+            if (refreshGraphs) {
+                getMemberGraphs();
             }
             
             if (open) {
                 getNewPage(1);
-                setSelectedDatasets([ ...memberDatasets ]);
-                setAddedDatasets([]);
-                setRemovedDatasets([]);
+                setSelectedGraphs([ ...memberGraphs ]);
+                setAddedGraphs([]);
+                setRemovedGraphs([]);
             }
         }
         
@@ -153,7 +153,7 @@ export const GroupAddDatasetModal = ({ open, setOpen, memberRecord, updateDatase
                     textAlign: "center"
                 }}
             >
-                {/* <Typography variant="h6">Add Datasets to Group</Typography> */}
+                {/* <Typography variant="h6">Add Graphs to Group</Typography> */}
                 <DataTable
                     value={searchResults}
                     scrollable
@@ -166,9 +166,9 @@ export const GroupAddDatasetModal = ({ open, setOpen, memberRecord, updateDatase
                     totalRecords={totalNumOfResults}
                     onPage={onPage}
                     first={first}
-                    emptyMessage="No Datasets Found"
+                    emptyMessage="No Graphs Found"
                     selectionMode="checkbox"
-                    selection={selectedDatasets}
+                    selection={selectedGraphs}
                     onSelectionChange={onSelectChange}
                     // dataKey="table_name"
                 >
@@ -206,9 +206,9 @@ export const GroupAddDatasetModal = ({ open, setOpen, memberRecord, updateDatase
                         background: 'black'
                     }}
                     onClick={() => onSubmit()}
-                    disabled={addedDatasets.length === 0 && removedDatasets.length === 0}
+                    disabled={addedGraphs.length === 0 && removedGraphs.length === 0}
                 >
-                    Update Datasets
+                    Update Graphs
                 </Button>
             </Box>
         </Modal>
