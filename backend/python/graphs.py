@@ -57,6 +57,8 @@ elif params["metric"] == "ll":
     output = metrics.log_likelihood(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), TOKEN)
 elif params["metric"] == "jsd":
     output = metrics.jsd(params["table_name"], params.get("group_name", None), params.get("group_list", []), params.get("word_list", []), params.get("pos_list", []), TOKEN)
+elif params["metric"] == "network":
+    output = metrics.network_analysis(params["table_name"], params["to_col"], params["from_col"], TOKEN)
 elif params["metric"] == "embeddings-similar":
     output = embed.get_similar_words(params["table_name"], params["word_list"][0], params.get("group_name", None), params.get("group_list", []), params.get("topn", 5), TOKEN)
 elif params["metric"] == "embeddings-different":
@@ -64,7 +66,7 @@ elif params["metric"] == "embeddings-different":
 elif params["metric"] == "embeddings-raw":
     output = embed.get_word_vectors(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), TOKEN)
 elif params["metric"] == "embeddings-cluster":
-    output = embed.get_word_clusters(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), params.get("k", 5), TOKEN)
+    output = embed.get_word_clusters(params["table_name"], params["word_list"], params.get("group_name", None), params.get("group_list", []), params.get("num_clusters", 5), TOKEN)
 else:
     exit("Invalid metric: " + params["metric"])
 print("Computation time: {}".format(humanize.precisedelta(dt.timedelta(seconds = time() - start_time))))

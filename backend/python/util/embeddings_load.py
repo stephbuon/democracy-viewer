@@ -245,7 +245,7 @@ def get_vector_clusters(table_name: str, keywords: list[str], k: int = 5, token:
     
     model = load_data_from_pkl(table_name, "model", token)
     pca = PCA(2)
-    kmeans = KMeans(k)
+    kmeans = KMeans(int(k))
     all_vectors = []
     all_used_words = []
     if len(keywords) > 0:
@@ -294,7 +294,7 @@ def get_vector_clusters_over_group(table_name: str, keywords: list[str], group_c
     pkl_name = "model_{}_{}".format(group_col, time_value)
     model = load_data_from_pkl(table_name, pkl_name, token)
     pca = PCA(2)
-    kmeans = KMeans(k)
+    kmeans = KMeans(int(k))
     all_vectors = []
     all_used_words = []
     if len(keywords) > 0:

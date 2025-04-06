@@ -34,6 +34,12 @@ app.use(createDatabaseConnection);
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 
+// Define api prefix if necessary
+let apiPrefix = "";
+if (process.env.API_PREFIX) {
+    apiPrefix = process.env.API_PREFIX;
+}
+
 // Testing health route
 app.get("/health", async(req, res, next) => {
     await req.knex.raw("SELECT 1");

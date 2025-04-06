@@ -21,7 +21,7 @@ export const DownloadStarted = () => {
             } else if (params.type === "ids") {
                 const data = JSON.parse(localStorage.getItem("selected"));
 
-                DownloadIds(data.dataset, data.ids).then(res => window.open(res.url));;
+                DownloadIds(data.dataset, data.name).then(res => window.open(res.url));;
             } else {
                 setMessage(`Unrecognized download type: ${ params.type }.`);
             }
@@ -32,10 +32,10 @@ export const DownloadStarted = () => {
     }, []);
 
     return <>
-        <Container maxWidth="sm" sx = {{"mt": "100px"}}>
+        <Container maxWidth="sm" sx = {{"mt": "100px", textAlign: "center"}}>
             {
                 message === undefined && (
-                    <p>
+                    <p style={{ fontSize: "16px"}}>
                         Your download has started! Depending on the size of the dataset, this may take a few minutes. Please leave this tab open until your file has been downloaded.
                     </p>
                 )
@@ -43,7 +43,7 @@ export const DownloadStarted = () => {
             
             {
                 message !== undefined && (
-                    <p>
+                    <p style={{fontSize: "16px"}}>
                         { message }
                     </p>
                 )

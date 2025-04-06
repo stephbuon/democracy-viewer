@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Box, TextField } from '@mui/material';
 //Other Imports
 import { GetSubsetOfDataByPage } from '../../api';
-import { PaginatedDataTable } from '../common/tables/PaginatedDataTable';
+import { PaginatedDataTable } from '../common/tables';
 import Highlighter from "react-highlight-words";
 
 const pageLength = 10;
@@ -131,7 +131,7 @@ export const SubsetResultsPage = (props) => {
                             flexDirection: 'column'
                         }}
                     >
-                        <h1 style={{ fontSize: '3rem' }}>Subset Search</h1>
+                        <h1 style={{ fontSize: '3rem' }}>Subset Search For "{ props.dataset.title }"</h1>
                     </Box>
 
                     <Box

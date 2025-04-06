@@ -472,7 +472,7 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
 }
 
 // Get dataset records by ids
-const downloadIds = async(knex, table, ids, user = undefined) => {
+const downloadIds = async(knex, table, name, user = undefined) => {
     const model = new datasets(knex);
 
     // Get the current metadata for this table
@@ -483,7 +483,13 @@ const downloadIds = async(knex, table, ids, user = undefined) => {
         throw new Error(`User ${ user } is not the owner of this dataset`);
     }
 
-    return await dataQueries.downloadRecordsByIds(table, ids);
+    const fileName = `files/zoom/${ name }.json`
+    if (util.fileExists(fileName)) {
+        const ids = util.readJSON(fileName, false);
+        return await dataQueries.downloadRecordsByIds(table, ids);
+    } else {
+        throw new Error(`Graph zoom file not found: ${ fileName }`);
+    }
 }
 
 // Get text suggestions from a given user

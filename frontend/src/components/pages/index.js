@@ -5,6 +5,7 @@ export * from "./DownloadStarted";
 export * from "./GroupHome";
 export * from "./Groups";
 export * from "./Graph";
+export * from "./GraphResultsPage"
 export * from "./Homepage";
 export * from "./Layout";
 export * from "./Login";

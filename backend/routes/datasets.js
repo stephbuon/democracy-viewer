@@ -67,7 +67,7 @@ router.post('/like/:table', authenticateJWT, async(req, res, next) => {
         await control.addLike(req.knex, req.user.email, req.params.table);
         res.status(201).end();
     } catch (err) {
-        console.error('Failed to add dataset text column(s):', err);
+        console.error('Failed to like dataset:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -272,7 +272,7 @@ router.get('/words/top/:table_name', async(req, res, next) => {
 });
 
 // Route to download a subset of a dataset
-router.post('/download/subset/:table', async(req, res, next) => {
+router.get('/download/subset/:table', async(req, res, next) => {
     try {
         // Generate file
         const url = await control.downloadSubset(req.knex, req.params.table, req.body, req.user);
@@ -298,10 +298,10 @@ router.get('/ids/:table', async(req, res, next) => {
 });
 
 // Route to download a subset of a dataset by ids
-router.post('/download/ids/:table', async(req, res, next) => {
+router.get('/download/ids/:table/:name', async(req, res, next) => {
     try {
         // Generate file
-        const url = await control.downloadIds(req.knex, req.params.table, Array.isArray(req.body.id) ? req.body.id : [ req.body.id ], req.user);
+        const url = await control.downloadIds(req.knex, req.params.table, req.params.name, req.user);
         // Download file
         res.status(200).json({ url });
     } catch (err) {

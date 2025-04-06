@@ -82,11 +82,12 @@ export const Acknowledgements = () => {
                 <List>
                   <ListItemText><Link to = "https://www.linkedin.com/in/wes-anderson-47552220a/" target="_blank" rel="noopener noreferrer">Wes Anderson</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/hailey-demark-3708a0289/" target="_blank" rel="noopener noreferrer">Hailey DeMark</Link></ListItemText>
+                  <ListItemText><Link to = "https://www.linkedin.com/in/serena-di-martino-87268a299/" target="_blank" rel="noopener noreferrer">Serena Di Martino</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/francesca-la-marca-a10706208/" target="_blank" rel="noopener noreferrer">Francesca La Marca</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/christophermiller222/" target="_blank" rel="noopener noreferrer">Chris Miller</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/grace-schultz44/" target="_blank" rel="noopener noreferrer">Grace Schultz</Link></ListItemText>
                   <ListItemText><Link to = "https://www.linkedin.com/in/matthew-swigart-11bb1721b/" target="_blank" rel="noopener noreferrer">Matthew Swigart</Link></ListItemText>
-                  {/* <ListItemText><Link to = "https://www.linkedin.com/in/latifaaiyoutan/" target="_blank" rel="noopener noreferrer">Latifa Tan</Link></ListItemText> */}
+                  
                 </List>
               </ListItemText>
             </List>

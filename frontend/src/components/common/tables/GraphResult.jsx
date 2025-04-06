@@ -1,21 +1,17 @@
-import { DatasetResultModal } from './DatasetResultModal';
+
+import { GraphResultModal } from './GraphResultModal';
 import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 
-export const DatasetResult = (props) => {
-    const [dataset, setDataset] = useState(props.result);
+export const GraphResult = (props) => {
+    const [graph, setGraph] = useState(props.result);
     const [open, setOpen] = useState(false);
     const [loggedIn, setLoggedIn] = useState(false);
 
     const handleOpen = () => setOpen(true);
 
-    const updateDataset = (ds) => {
-        setDataset(ds);
-        props.setDataset(ds);
-    }
-
     useEffect(() => {
-        setDataset(props.result);
+        setGraph(props.result);
 
         const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (demoV && demoV.user) {
@@ -34,12 +30,12 @@ export const DatasetResult = (props) => {
                     }
                 }}
             >
-                {dataset.title}
+                {graph.title}
             </Box>
-
-            <DatasetResultModal
-                dataset={dataset}
-                setDataset={updateDataset}
+            
+            <GraphResultModal
+                graph={graph}
+                setGraph={x => setGraph(x)}
                 open={open}
                 setOpen={setOpen}
                 loggedIn={loggedIn}

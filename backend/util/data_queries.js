@@ -54,7 +54,7 @@ const subsetSearch = async(table_name, input, count = false, page = 1, pageLengt
             `
         } else {
             query = `
-                SELECT dataset.*
+                SELECT DISTINCT dataset.*
                 FROM (
                     SELECT record_id, word
                     FROM democracy_viewer_athena.tokens_${ table_name }
@@ -140,12 +140,32 @@ const getZoomIds = async(table_name, params) => {
     let tokenQuery;
 
     if (params.group_name && params.group_list.length > 0) {
-        datasetQuery = `
-            SELECT record_id
-            FROM democracy_viewer_athena.datasets_${ table_name }
-            WHERE "${ params.group_name }" IN (${ params.group_list.map(x => `'${ x }'`).join(", ") })
-            ORDER BY record_id
-        `;
+        if (Array.isArray(params.group_name)) {
+            if (params.group_name.length == 2 && params.group_list.length == 2) {
+                datasetQuery = `
+                    SELECT record_id
+                    FROM democracy_viewer_athena.datasets_${ table_name }
+                    WHERE "${ params.group_name[0] }" = '${ params.group_list[0] }'
+                        AND "${ params.group_name[1] }" = '${ params.group_list[1] }'
+                    ORDER BY record_id
+                `;
+            } else if (params.group_name.length == 2 && params.group_list.length == 1) {
+                datasetQuery = `
+                    SELECT record_id
+                    FROM democracy_viewer_athena.datasets_${ table_name }
+                    WHERE "${ params.group_name[0] }" = '${ params.group_list[0] }'
+                        OR "${ params.group_name[1] }" = '${ params.group_list[0] }'
+                    ORDER BY record_id
+                `;
+            }
+        } else {
+            datasetQuery = `
+                SELECT record_id
+                FROM democracy_viewer_athena.datasets_${ table_name }
+                WHERE "${ params.group_name }" IN (${ params.group_list.map(x => `'${ x }'`).join(", ") })
+                ORDER BY record_id
+            `;
+        }
     }
 
     if (params.word_list.length > 0) {
