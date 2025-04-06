@@ -412,7 +412,7 @@ export const Graph = (props) => {
         const visited = [];
         const edgeTraces = [];
         res.map((edge, idx) => {
-          if (!visited.includes(idx)) {
+          if (edge.source !== edge.target && !visited.includes(idx)) {
             visited.push(idx);
 
             let x0 = positions[edge.source]?.x
