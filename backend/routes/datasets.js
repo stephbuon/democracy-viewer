@@ -243,23 +243,6 @@ router.get('/filter/:page', async(req, res, next) => {
     next();
 });
 
-// Route to get number of dataset filter results
-router.get('/count/filter', async(req, res, next) => {
-    try {
-        let result;
-        if (req.user) {
-            result = await control.getFilteredDatasetsCount(req.knex, req.query, req.user.email);
-        } else {
-            result = await control.getFilteredDatasetsCount(req.knex, req.query, undefined);
-        }
-        res.status(200).json(result);
-    } catch (err) {
-        console.error('Failed to get filtered datasets count:', err);
-        res.status(500).json({ message: err.toString() });
-    }
-    next();
-});
-
 // Route to subset a dataset
 router.get('/subset/:table/:page/:pageLength', async(req, res, next) => {
     try {

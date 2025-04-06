@@ -4,10 +4,10 @@ import {
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button, Modal
 } from '@mui/material';
 //import { getGroup, leaveGroup } from "../../api";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { DatasetTable } from "../common/tables";
 import { AlertDialog } from "../common/AlertDialog";
-import { getGroup, getGroupMemberRecord, removeMemberFromGroup } from "../../api";
+import { getGroup, getGroupMemberRecord, removeMemberFromGroup, FilterDatasets } from "../../api";
 import { GroupMembersModal, GroupAddDatasetModal } from "./subcomponents/groups";
 
 const mdTheme = createTheme();
@@ -17,11 +17,9 @@ const pageLength = 5;
 export const GroupHome = (props) => {
     const navigate = useNavigate();
     const params = useParams();
-    const location = useLocation();
     
     // Get group data from location state (passed from Groups component)
     const [group, setGroup] = useState(undefined);
-    const [editable, setEditable] = useState(true);
     const [membersModalOpen, setMembersModalOpen] = useState(false);
     const [leaveOpen, setLeaveOpen] = useState(false);
     const [memberRecord, setMemberRecord] = useState(undefined);
@@ -35,45 +33,29 @@ export const GroupHome = (props) => {
     // Function to fetch datasets for this group
     const GetNewPage = async (selectedPage) => {
         setLoadingResults(true);
-        // Fetch datasets logic here
-        // Example:
-        // const response = await getGroupDatasets(group.id, selectedPage, pageLength);
-        // setSearchResults(response.data);
-        // setTotalNumOfResults(response.total);
-        setLoadingResults(false);
-    };
-
-    
-
-    // Effect to load initial data
-    useEffect(() => {
-        if (location.state?.groupName) {
-            // If coming from group creation, we already have the data
-            setEditable(true);
-        } else if (params.groupId) {
-            // If accessing directly with URL parameter, fetch group data
-            const fetchGroup = async () => {
-                try {
-                    //const response = await getGroup(params.groupId);
-                    //setGroup(response);
-                    setEditable(true); // Set based on user permissions
-                } catch (error) {
-                    console.error("Error fetching group:", error);
-                }
-            };
-            fetchGroup();
-        }
         
-        // Load initial datasets
-        GetNewPage(1);
-    }, [params.groupId, location.state]);
+        FilterDatasets({ group: params.groupId }, selectedPage).then((res) => {
+            setLoadingResults(false);
+
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
+            }
+        });
+    };
 
     useEffect(() => {
         getGroup(params.groupId).then(x => setGroup(x));
 
         const dv = JSON.parse(localStorage.getItem('democracy-viewer'));
         getGroupMemberRecord(params.groupId, dv.user.email).then(x => setMemberRecord(x));
-    }, []);
+
+        GetNewPage(1);
+    }, [params.groupId]);
 
     useEffect(() => {
         if (group) {
@@ -128,40 +110,36 @@ export const GroupHome = (props) => {
                                     <Typography variant="h6" color="textSecondary" sx={{ mt: 1 }}>
                                         {group.description}
                                     </Typography>
-                                    {
-                                        editable === true && <>
-                                            <Grid container justifyContent="center" sx={{ mb: 3, mt: 2 }}>
-                                                <Grid item xs={12} sm={6} md={4}>
-                                                    <Button
-                                                        variant="contained"
-                                                        component="label"
-                                                        sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
-                                                        onClick={() => setMembersModalOpen(true)}
-                                                    >
-                                                        Group Members
-                                                    </Button>
-                                                </Grid>
+                                    <Grid container justifyContent="center" sx={{ mb: 3, mt: 2 }}>
+                                        <Grid item xs={12} sm={6} md={4}>
+                                            <Button
+                                                variant="contained"
+                                                component="label"
+                                                sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+                                                onClick={() => setMembersModalOpen(true)}
+                                            >
+                                                Group Members
+                                            </Button>
+                                        </Grid>
 
-                                                <Grid item xs={12} sm={6} md={4}>
-                                                    <Button 
-                                                        variant="contained"
-                                                        component="label"
-                                                        sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }} 
-                                                        onClick={() => setLeaveOpen(true)}
-                                                    >
-                                                        Leave Group
-                                                    </Button>
-                                                    <AlertDialog
-                                                        open={leaveOpen}
-                                                        setOpen={setLeaveOpen}
-                                                        titleText={`Are you sure you want to leave this group?`}
-                                                        bodyText={"This action cannot be undone."}
-                                                        action={onLeave}
-                                                    />
-                                                </Grid>
-                                            </Grid>
-                                        </>
-                                    }
+                                        <Grid item xs={12} sm={6} md={4}>
+                                            <Button 
+                                                variant="contained"
+                                                component="label"
+                                                sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }} 
+                                                onClick={() => setLeaveOpen(true)}
+                                            >
+                                                Leave Group
+                                            </Button>
+                                            <AlertDialog
+                                                open={leaveOpen}
+                                                setOpen={setLeaveOpen}
+                                                titleText={`Are you sure you want to leave this group?`}
+                                                bodyText={"This action cannot be undone."}
+                                                action={onLeave}
+                                            />
+                                        </Grid>
+                                    </Grid>
                                 </Paper>
                             </Grid>
                             <Grid item xs={12} md={6}>
@@ -182,6 +160,7 @@ export const GroupHome = (props) => {
                                             component="label"
                                             sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
                                             onClick={() => setAddDatasetOpen(true)} // Function to open dataset selection modal
+                                            disabled={memberRecord.rank > 3}
                                         >
                                             Add Dataset
                                         </Button>
@@ -192,7 +171,7 @@ export const GroupHome = (props) => {
                                         searchResults={searchResults}
                                         setDataset={props.setDataset}
                                         GetNewPage={GetNewPage}
-                                        editable={editable}
+                                        editable={false}
                                         totalNumResults={totalNumOfResults}
                                         pageLength={pageLength}
                                         deleteCallback={() => GetNewPage(1)}
@@ -216,6 +195,7 @@ export const GroupHome = (props) => {
                 open={addDatasetOpen}
                 setOpen={setAddDatasetOpen}
                 memberRecord={memberRecord}
+                updateDatasets={() => GetNewPage(1)}
             />
         </ThemeProvider>
     );

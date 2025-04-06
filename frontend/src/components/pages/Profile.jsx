@@ -4,7 +4,7 @@ import {
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
-import { getUser, deleteAccount, FilterDatasets, FilterDatasetsCount } from "../../api";
+import { getUser, deleteAccount, FilterDatasets } from "../../api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./subcomponents/profile";
 import { DatasetTable } from "../common/tables/DatasetTable";
@@ -49,12 +49,14 @@ export const Profile = (props) => {
         FilterDatasets(filter, num).then((res) => {
             setLoadingResults(false);
 
-            if (!res) { setSearchResults([]) }
-            else { setSearchResults(res) }
-        });
-
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfResults(res);
+            if (!res) { 
+                setSearchResults([]); 
+            } else { 
+                setSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfResults(res.total);
+                } 
+            }
         });
     }
 
@@ -67,33 +69,35 @@ export const Profile = (props) => {
         FilterDatasets(filter, num).then((res) => {
             setLoadingLikeResults(false);
 
-            if (!res) { setLikeSearchResults([]) }
-            else { setLikeSearchResults(res) }
-        });
-
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfLikeResults(res);
+            if (!res) { 
+                setLikeSearchResults([]); 
+            } else { 
+                setLikeSearchResults(res.results);
+                if (res.total) {
+                    setTotalNumOfLikeResults(res.total);
+                } 
+            }
         });
     }
 
     //get groups page
-    const getGroupsPage = (num) => {
-        const filter = {
-            invited: params.email,
-            pageLength
-        };
-        setLoadingGroupResults(false);
-        FilterDatasets(filter, num).then((res) => {
-            setLoadingGroupResults(false);
+    // const getGroupsPage = (num) => {
+    //     const filter = {
+    //         invited: params.email,
+    //         pageLength
+    //     };
+    //     setLoadingGroupResults(false);
+    //     FilterDatasets(filter, num).then((res) => {
+    //         setLoadingGroupResults(false);
 
-            if (!res) { setGroupResults([]) }
-            else { setGroupResults(res) }
-        });
+    //         if (!res) { setGroupResults([]) }
+    //         else { setGroupResults(res) }
+    //     });
 
-        FilterDatasetsCount(filter).then(async (res) => {
-            setTotalNumOfGroupResults(res);
-        });
-    }
+    //     FilterDatasetsCount(filter).then(async (res) => {
+    //         setTotalNumOfGroupResults(res);
+    //     });
+    // }
 
     const onDelete = () => {
         deleteAccount();

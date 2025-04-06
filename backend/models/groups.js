@@ -35,6 +35,12 @@ class groups {
         return records[0];
     }
 
+    // Add a dataset to a group
+    async addDatasets(records) {
+        await this.knex(datasets_table).insert([ ...records ]);
+        return null;
+    }
+
     // Edit a group's information
     async editGroup(id, params) {
         await this.knex(group_table).where({ id }).update({ ...params });
@@ -128,6 +134,15 @@ class groups {
     // Delete a group invite
     async deleteInvite(email, private_group) {
         await this.knex(invite_table).delete().where({ email, private_group });
+        return null;
+    }
+
+    // Remove a dataset from a group
+    async removeDatasets(private_group, tables) {
+        await this.knex(datasets_table).delete().where(q => {
+            q.where({ private_group });
+            q.whereIn("table_name", tables);
+        });
         return null;
     }
 }

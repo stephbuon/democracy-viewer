@@ -29,3 +29,13 @@ export const removeMemberFromGroup = async(id, email) => {
     const endpoint = `/groups/${ id }/member/${ email }`;
     return await deleteRequest(endpoint);
 } 
+
+export const addDatasetsToGroup = async(id, tables) => {
+    const endpoint = `/groups/datasets`;
+    return await postRequest(endpoint, { private_group: id, tables });
+}
+
+export const removeDatasetsFromGroup = async(id, tables) => {
+    const endpoint = `/groups/${ id }/datasets`;
+    return await deleteRequest(endpoint, { tables });
+}

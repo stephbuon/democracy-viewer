@@ -60,10 +60,11 @@ export const getRequest = async(endpoint, query = {}, settings = {}) => {
     return res.data;
 }
 
-export const deleteRequest = async(endpoint = {}, settings = {}) => {
+export const deleteRequest = async(endpoint = {}, data = {}, settings = {}) => {
     // Make API call
     const fullURL = baseURL + endpoint;
     const config = {
+        data,
         ...settings,
         ...apiConfig()
     };

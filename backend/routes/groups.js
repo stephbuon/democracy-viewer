@@ -39,6 +39,18 @@ router.post('/invite/accept', authenticateJWT, async(req, res, next) => {
     next();
 });
 
+// Route to add a dataset to a private group
+router.post('/datasets', authenticateJWT, async(req, res, next) => {
+    try {
+        const result = await control.addDatasets(req.knex, req.body.private_group, req.body.tables, req.user.email);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to add dataset to group:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to edit a private group
 router.put('/:group', authenticateJWT, async(req, res, next) => {
     try {
@@ -142,6 +154,18 @@ router.delete('/invite/:group/member/:member', authenticateJWT, async(req, res, 
         res.status(204).end();
     } catch (err) {
         console.error('Failed to delete private group invite:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to delete a private group dataset
+router.delete('/:group/datasets', authenticateJWT, async(req, res, next) => {
+    try {
+        await control.removeGroupDatasets(req.knex, req.params.group, req.body.tables, req.user.email);
+        res.status(204).end();
+    } catch (err) {
+        console.error('Failed to delete private group datasets:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

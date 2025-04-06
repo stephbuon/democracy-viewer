@@ -82,6 +82,27 @@ const addMember = async(knex, private_group, email, code) => {
     return record;
 }
 
+// Add a dataset to a group
+const addDatasets = async(knex, private_group, tables, email) => {
+    const model = new groups(knex);
+
+    // Get user_from info
+    const member_record = await model.getMember(email, private_group);
+
+    // If user_from is not the admin of the group, throw error
+    if (!member_record || member_record.member_rank > 3) {
+        throw new Error(`User ${ email } does not have permission to add datasets to private group ${ private_group }`);
+    }
+
+    const records = tables.map(table_name => {
+        return {
+            private_group,
+            table_name
+        }
+    })
+    await model.addDatasets(records);
+}
+
 // Edit a group if the user is an admin
 const editGroup = async(knex, email, id, params) => {
     const model = new groups(knex);
@@ -215,10 +236,26 @@ const deleteGroupInvite = async(knex, admin, email, private_group) => {
     await model.deleteInvite(email, private_group);
 }
 
+// Delete a private group invite
+const removeGroupDatasets = async(knex, private_group, tables, email) => {
+    const model = new groups(knex);
+
+    // Get user's group member record
+    const member_record = await model.getMember(email, private_group);
+    // If record not found or user not an admin, throw error
+    if (!member_record || (typeof member_record.member_rank === "number" && member_record.member_rank > 2)) {
+        throw new Error(`User ${ email } is not an admin in private group ${ private_group }`);
+    }
+
+    // Delete group invite
+    await model.removeDatasets(private_group, tables);
+}
+
 module.exports = {
     addGroup,
     sendInvite,
     addMember,
+    addDatasets,
     editGroup,
     editMember,
     getGroupById,
@@ -227,5 +264,6 @@ module.exports = {
     getMember,
     deleteGroup,
     deleteGroupMember,
-    deleteGroupInvite
+    deleteGroupInvite,
+    removeGroupDatasets
 };

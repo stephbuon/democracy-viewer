@@ -390,7 +390,7 @@ const getColumnValues = async(knex, table, column, search = undefined, page = 1,
 const getFilteredDatasets = async(knex, query, email, page) => {
     const model = new datasets(knex);
 
-    const results = await model.getFilteredDatasets(query, email, true, Number(page));
+    const results = await model.getFilteredDatasets(query, email, Number(page));
     // Get tags and likes for search results
     for (let i = 0; i < results.results.length; i++) {
         results.results[i].tags = await getTags(knex, results.results[i].table_name);
@@ -403,14 +403,6 @@ const getFilteredDatasets = async(knex, query, email, page) => {
     }
 
     return results;
-}
-
-// Get count of dataset filter
-const getFilteredDatasetsCount = async(knex, query, email) => {
-    const model = new datasets(knex);
-
-    const result = await model.getFilteredDatasetsCount(query, email);
-    return result;
 }
 
 // Get a subset of a table
@@ -687,7 +679,6 @@ module.exports = {
     getColumnNames,
     getColumnValues,
     getFilteredDatasets,
-    getFilteredDatasetsCount,
     getRecordsByIds,
     downloadIds,
     getSuggestionsFor,
