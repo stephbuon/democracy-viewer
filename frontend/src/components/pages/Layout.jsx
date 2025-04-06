@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItemIcon,ListItemText,Box,Tooltip} from '@mui/material';
-import {Menu as MenuIcon, Person, Home, Search, MilitaryTech, ScreenSearchDesktop, Cable, ImageSearch} from '@mui/icons-material';
+import {Menu as MenuIcon, Person, Home, Search, MilitaryTech, ScreenSearchDesktop, Cable, ImageSearch, Groups} from '@mui/icons-material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import UploadIcon from '@mui/icons-material/Upload';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -39,8 +39,6 @@ export const Layout = (props) => {
         return 'Subset Search';
       case '/acknowledgements':
         return "Acknowledgements";
-      // case "/distributed":
-      //   return "Distributed Connection";
       case "/graph/zoom":
         return "Graph Zoom";
       default:
@@ -50,6 +48,8 @@ export const Layout = (props) => {
           return "Upload";
         } else if (location.pathname.includes("/graph/published/")) {
           return "Graphs";
+        } else if (location.pathname.includes("/groups")) {
+          return "Private Groups";
         } else {
           return 'Home';
         }
@@ -104,82 +104,97 @@ export const Layout = (props) => {
         >
           <List component="nav">
             <ListItemButton component={Link} to="/" sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <Home />
-              </ListItemIcon>
+              <Tooltip title = "Home" arrow>
+                <ListItemIcon>
+                  <Home />
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="Home" />
             </ListItemButton>
 
             <ListItemButton component={Link} to="/datasets/search" sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <Search />
-              </ListItemIcon>
+              <Tooltip title = "Dataset Search" arrow>
+                <ListItemIcon>
+                  <Search />
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="Dataset Search" />
             </ListItemButton>
 
             <ListItemButton component={Link} to="/datasets/subsets/search" sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <ScreenSearchDesktop />
-              </ListItemIcon>
+              <Tooltip title = "Subset Search" arrow>
+                <ListItemIcon>
+                  <ScreenSearchDesktop />
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="Subset Search" />
             </ListItemButton>
 
             <ListItemButton component={Link} to='/graph' sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <ShowChartIcon/>
-              </ListItemIcon>
+              <Tooltip title = "Visualize" arrow>
+                <ListItemIcon>
+                  <ShowChartIcon/>
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="Visualize" />
             </ListItemButton>
 
             <ListItemButton component={Link} to="/graphs/search" sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <ImageSearch />
-              </ListItemIcon>
+              <Tooltip title = "Graph Search" arrow>
+                <ListItemIcon>
+                  <ImageSearch />
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="Graph Search" />
             </ListItemButton>
 
             <ListItemButton component={Link} to='/upload' sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <UploadIcon />
-              </ListItemIcon>
+              <Tooltip title = "Dataset Upload" arrow>
+                <ListItemIcon>
+                  <UploadIcon />
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="Dataset Upload" />
             </ListItemButton>
 
-            <Tooltip title = "This page has been temporarily disabled" arrow>
-              <div>
-                <ListItemButton component={Link} to='/distributed' sx = {{ height: "50px" }} disabled>
-                  <ListItemIcon>
-                    <Cable />
-                  </ListItemIcon>
-                  <ListItemText primary="Create Distributed Connection" />
-                </ListItemButton>
-              </div>
-            </Tooltip>
-            
+            <ListItemButton component={Link} to='/groups' sx = {{ height: "50px" }}>
+              <Tooltip title = "Private Groups" arrow>
+                <ListItemIcon>
+                  <Groups />
+                </ListItemIcon>
+              </Tooltip>
+              <ListItemText primary="Private Groups" />
+            </ListItemButton>
 
             {
               props.user !== undefined && 
               <ListItemButton component={Link} to={`/profile/${ props.user.email }`} sx = {{ height: "50px" }}>
-                <ListItemIcon>
-                  <Person />
-                </ListItemIcon>
+                <Tooltip title = "Profile" arrow>
+                  <ListItemIcon>
+                    <Person />
+                  </ListItemIcon>
+                </Tooltip>
                 <ListItemText primary="Profile" />
               </ListItemButton>
             }
             {
               props.user === undefined && 
               <ListItemButton component={Link} to={`/login`} sx = {{ height: "50px" }}>
-                <ListItemIcon>
-                  <Person />
-                </ListItemIcon>
+                <Tooltip title = "Profile" arrow>
+                  <ListItemIcon>
+                    <Person />
+                  </ListItemIcon>
+                </Tooltip>
                 <ListItemText primary="Profile" />
               </ListItemButton>
             }
 
             <ListItemButton component={Link} to='/acknowledgements' sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <MilitaryTech />
-              </ListItemIcon>
+              <Tooltip title = "Acknowledgements" arrow>
+                <ListItemIcon>
+                  <MilitaryTech />
+                </ListItemIcon>
+              </Tooltip>
               <ListItemText primary="Acknowledgements" />
             </ListItemButton>
             
