@@ -202,6 +202,9 @@ const getMember = async(knex, email, group) => {
     const model = new groups(knex);
 
     const result = await model.getMember(email, group);
+    if (!result) {
+        throw new Error(`Failed to find record of user ${ email } in private group ${ group }`);
+    }
     return result;
 }
 

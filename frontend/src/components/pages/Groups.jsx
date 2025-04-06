@@ -29,6 +29,7 @@ export const Groups = (props) => {
     const [loadingResults, setLoadingResults] = useState(false);
     const [totalNumResults, setTotalNumResults] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
+    const [alert, setAlert] = useState(0)
 
     const navigate = useNavigate();
 
@@ -80,8 +81,31 @@ export const Groups = (props) => {
         }
     }
 
+    const loggedIn = () => {
+        if (props.currUser) {
+            return true;
+        } else {
+            const demoV = JSON.parse(localStorage.getItem("democracy-viewer"));
+            if (demoV && demoV.user) {
+            return true;
+            } else {
+            return false;
+            }
+        }
+    };
+
     useEffect(() => {
-        GetNewPage(1);
+        if (!loggedIn()) {
+            props.setNavigated(true);
+            navigate("/login");
+        } else {
+            if (props.navigated) {
+                props.setNavigated(false)
+                setAlert(1);
+            }
+
+            GetNewPage(1);
+        }
     }, [])
 
     return (
@@ -233,11 +257,16 @@ export const Groups = (props) => {
             {/* Snackbar for notifications */}
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-                open={snackBarOpen}
+                open={alert !== 0}
                 autoHideDuration={6000}
-                onClose={() => setSnackBarOpen(false)}
             >
-                <Alert severity="info">You must be logged in to see groups.</Alert>
+                <Alert 
+                    onClose={() => setAlert(0)} 
+                    severity="error"
+                    sx={{ width: '100%' }}
+                >
+                    {alert === 1 && <>Failed to load group. It may not exist or you may not be a member.</>}
+                </Alert>
             </Snackbar>
         </div>
     );

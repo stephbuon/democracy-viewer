@@ -72,13 +72,40 @@ export const GroupHome = (props) => {
         });
     };
 
+    const loggedIn = () => {
+        if (props.currUser) {
+            return true;
+        } else {
+            const demoV = JSON.parse(localStorage.getItem("democracy-viewer"));
+            if (demoV && demoV.user) {
+            return true;
+            } else {
+            return false;
+            }
+        }
+    };
+
     useEffect(() => {
-        getGroup(params.groupId).then(x => setGroup(x));
+        if (!loggedIn()) {
+            props.setNavigated(true);
+            navigate("/login");
+        } else {
+            getGroup(params.groupId).then(x => {
+                setGroup(x);
+            });
 
-        const dv = JSON.parse(localStorage.getItem('democracy-viewer'));
-        getGroupMemberRecord(params.groupId, dv.user.email).then(x => setMemberRecord(x));
-
-        GetNewPage(1);
+            const dv = JSON.parse(localStorage.getItem('democracy-viewer'));
+            getGroupMemberRecord(params.groupId, dv.user.email)
+                .then(x => {
+                    setMemberRecord(x);
+                    GetNewPage(1);
+                    GetNewGraphPage(1);
+                })
+                .catch(x => {
+                    props.setNavigated(true);
+                    navigate("/groups");
+                });
+        }
     }, [params.groupId]);
 
     const onLeave = () => {

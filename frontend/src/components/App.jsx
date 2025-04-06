@@ -70,8 +70,8 @@ export const App = () => {
             <Route path="/graph" element={<Graph navigated={navigated} setNavigated={setNavigated} />} />
             <Route path="/graph/published/:id" element={<Graph navigated={navigated} setNavigated={setNavigated} setDataset={setDataset} />} />
             <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={setNavigated} />} />
-            <Route path="/groups" element={<Groups setDataset={chooseDataset}/>}/>
-            <Route path="/groups/home/:groupId" element={<GroupHome setDataset={chooseDataset}/>} />
+            <Route path="/groups" element={<Groups setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated}/>}/>
+            <Route path="/groups/home/:groupId" element={<GroupHome setDataset={chooseDataset} setNavigated={setNavigated}/>} />
             <Route path="/graphs/search" element={<GraphResultsPage login={login} currUser={user} setUser={setUser} setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated} />} />
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={setNavigated} />} />
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout} />} />
