@@ -1,4 +1,4 @@
-import { getRequest, postRequest } from "./util/requests";
+import { deleteRequest, getRequest, postRequest } from "./util/requests";
 
 export const filterGroups = async(params, page = 1) => {
     const endpoint = `/groups/user/${ page }`;
@@ -24,3 +24,8 @@ export const getGroupMemberRecord = async(id, email) => {
     const endpoint = `/groups/${ id }/member/${ email }`;
     return await getRequest(endpoint);
 }
+
+export const removeMemberFromGroup = async(id, email) => {
+    const endpoint = `/groups/${ id }/member/${ email }`;
+    return await deleteRequest(endpoint);
+} 

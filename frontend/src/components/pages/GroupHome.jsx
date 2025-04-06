@@ -7,7 +7,7 @@ import {
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { DatasetTable } from "../common/tables";
 import { AlertDialog } from "../common/AlertDialog";
-import { getGroup, getGroupMemberRecord } from "../../api";
+import { getGroup, getGroupMemberRecord, removeMemberFromGroup } from "../../api";
 import { GroupMembersModal, GroupAddDatasetModal } from "./subcomponents/groups";
 
 const mdTheme = createTheme();
@@ -82,8 +82,7 @@ export const GroupHome = (props) => {
     }, [group]);
 
     const onLeave = () => {
-        //leaveGroup(group.id); // Assuming group ID is needed
-        navigate("/groups");
+        removeMemberFromGroup(group.id, memberRecord.member).then(x => navigate("/groups"));
     };
 
     if (!group) {
