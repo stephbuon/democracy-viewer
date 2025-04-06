@@ -1,5 +1,5 @@
 
-import { ResultModal } from './ResultModal';
+import { ResultModal } from '../ResultModal';
 import { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 

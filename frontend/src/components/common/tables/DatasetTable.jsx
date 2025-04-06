@@ -1,5 +1,5 @@
 import "../../../styles/Loading.css";
-import { Result } from "./Result";
+import { Result } from "./subcomponents/DatasetResult";
 import { DataTable } from 'primereact/datatable';
 import { Column } from "primereact/column";
 import { useState, useEffect } from 'react';
