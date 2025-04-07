@@ -56,9 +56,7 @@ export const Homepage = () => {
                     Dataset Search
                   </Typography>
                   <Typography align='center'>
-                    Browse Available Datasets,
-                    <br />
-                    Pinpoint Specific Columns and Sections
+                    Browse available datasets
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -76,9 +74,7 @@ export const Homepage = () => {
                     Subset Search
                   </Typography>
                   <Typography align='center'>
-                    Filter Records
-                    <br />
-                    in a Dataset
+                    Search within a dataset
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -96,9 +92,9 @@ export const Homepage = () => {
                     Visualize
                   </Typography>
                   <Typography align='center'>
-                    Customize and Interact with
+                    Customize and interact with
                     <br />
-                    Visualization of Analysis
+                    visualization of analysis
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>
@@ -118,9 +114,9 @@ export const Homepage = () => {
                     Dataset Upload
                   </Typography>
                   <Typography align='center'>
-                    Upload a Dataset or
+                    Upload a dataset or
                     <br />
-                    Connect to API
+                    connect to API
                   </Typography>
                 </CardContent>
                 <CardActions style={{ justifyContent: 'center' }}>

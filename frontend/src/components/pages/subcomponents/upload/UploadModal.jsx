@@ -405,7 +405,7 @@ export const UploadModal = (props) => {
                 <Box sx={{ padding: 2 }}>
                     <Typography variant="h5" align="center" gutterBottom>
                         Preprocessing Settings
-                        <Tooltip title="Provide details on how you would like your dataset to be preprocessed.">
+                        <Tooltip title="Provide details on how you would like your dataset to be preprocessed. Starred fields must be filled.">
                             <IconButton size="small">
                                 <HelpOutlineIcon fontSize="small" />
                             </IconButton>
@@ -442,7 +442,7 @@ export const UploadModal = (props) => {
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)', zIndex: 50 }}>
                                 {/* <Typography>Text Columns</Typography> */}
                                 <FormattedMultiSelectField
-                                    label="Text Columns"
+                                    label="Text Columns*"
                                     selectedOptions={textCols}
                                     setSelectedOptions={setTextCols}
                                     getData={textColOptions}
@@ -452,10 +452,10 @@ export const UploadModal = (props) => {
                             </FormControl>
                         </Tooltip>
 
-                        <Tooltip arrow title = "The language the text column(s) are written in. If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
+                        <Tooltip arrow title = "If we do not currently offer the language you are looking for, reach out to us to see if we can offer it in the future.">
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                                 
-                                <InputLabel>Language</InputLabel>
+                                <InputLabel>Language*</InputLabel>
                                 
                                 <Select
                                     value={language}
@@ -476,39 +476,9 @@ export const UploadModal = (props) => {
                             </FormControl>
                         </Tooltip>
 
-                        <Typography>Custom Stopwords TXT</Typography>
-                        {
-                            stopwordsFile === undefined &&
-                            <Button
-                                variant="contained"
-                                component="label"
-                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
-                                >
-                                Upload Stopwords List
-                                <input
-                                    type="file"
-                                    accept=".txt"
-                                    hidden
-                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
-                                />
-                            </Button>
-                        }
-                        
-                        {
-                            stopwordsFile !== undefined &&
-                            <Button
-                                variant="contained"
-                                component="label"
-                                sx={{ mb: 5, bgcolor: "black", color: "white", borderRadius: "50px", px: 4, py: 1 }}
-                                onClick={() => setStopwordsFile(undefined)}
-                            >
-                                Remove Stopwords List
-                            </Button>
-                        }
-
                         <Tooltip arrow title = {(
                             <div>
-                                How to handle word morphology in the text. The options are in order of shortest to longest preprocessing time.
+                                Select how you wish to handle word morphology.
 
                                 <ul>
                                     <li>No Processing: Words will be stored as they are found in the text. E.g. achieve and achieving will be stored as achieve and achieving, meaning they will not be viewed as equivalent.</li>
@@ -521,7 +491,7 @@ export const UploadModal = (props) => {
                             </div>
                         )}>
                             <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                                <InputLabel>Tokenization</InputLabel>
+                                <InputLabel>Tokenization*</InputLabel>
                                 <Select
                                     value={tokenization}
                                     onChange={event => setTokenization(event.target.value)}
@@ -538,7 +508,7 @@ export const UploadModal = (props) => {
 
                         <FormGroup>
                             <Tooltip arrow title = {(
-                                <p>Word embeddings use cosine similarity to identify the most similar or dissimilar words in a dataset. They are disabled by default due to their slow processing time on large datasets.</p>
+                                <p>Word embeddings use cosine similarity to identify the most similar or dissimilar words in a dataset.</p>
                             )}>
                                 <FormControlLabel control={<Checkbox defaultChecked = {embeddings}/>} label="Compute Word Embeddings" onChange={event => setEmbeddings(!embeddings)}/>
                             </Tooltip>
@@ -559,6 +529,39 @@ export const UploadModal = (props) => {
                                 </Tooltip>
                             }
                         </FormGroup>
+
+
+                        <Typography color="darkslategrey"></Typography>
+                        {
+                            stopwordsFile === undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                //cornflowerblue, darkslategrey, borderRadius: "50px"
+                                sx={{ mb: .5, bgcolor: "royalblue", color: "white", px: 2, py: 1, width: 355}}
+                                >
+                                Upload Stopwords List (optional)
+                                <input
+                                    type="file"
+                                    accept=".txt"
+                                    hidden
+                                    onChange={(x) => setStopwordsFile(x.target.files[0])}
+                                />
+                            </Button>
+                        }
+
+                        {
+                            stopwordsFile !== undefined &&
+                            <Button
+                                variant="contained"
+                                component="label"
+                                sx={{ mb: .5, bgcolor: "red", color: "white", px: 2, py: 1, width: 355,':hover': { bgcolor: "darkred" } }}
+                                onClick={() => setStopwordsFile(undefined)}
+                            >
+                                Remove Stopwords List
+                            </Button>
+                        }
+
                     </Box>
                 </Box>
             )}
