@@ -275,7 +275,7 @@ export const GraphResultModal = (props) => {
                         }}
                         onClick={() => openGraph()}
                     >
-                        Visualize
+                        Visualize Dataset
                     </Button>
                 </Box>
 

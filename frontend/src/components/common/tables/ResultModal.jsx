@@ -294,7 +294,7 @@ export const ResultModal = (props) => {
                                     navigate('/datasets/subsets/search');
                                 }}
                             >
-                                Subset Search
+                                View Dataset
                             </Button>
                         </div>
 
@@ -338,7 +338,7 @@ export const ResultModal = (props) => {
                                     navigate('/graph');
                                 }}
                             >
-                                Visualize
+                                Visualize Dataset
                             </Button>
                         </div>
                     }

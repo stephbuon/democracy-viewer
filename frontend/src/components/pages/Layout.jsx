@@ -26,11 +26,11 @@ export const Layout = (props) => {
       case '/':
         return 'Home';
       case '/datasets/search':
-        return 'Dataset Search';
+        return 'Search Datasets';
       case '/graph':
         return 'Graphs';
       case '/graphs/search':
-        return 'Visualization Search';
+        return 'Search Visualizations';
       case '/login':
         return 'Login';
       case '/register':
@@ -47,7 +47,7 @@ export const Layout = (props) => {
         if (location.pathname.includes("/profile/")) {
           return "Profile";
         } else if (location.pathname.includes("/upload")) {
-          return "Upload";
+          return "Upload Dataset";
         } else if (location.pathname.includes("/graph/published/")) {
           return "Graphs";
         } else {
@@ -114,21 +114,21 @@ export const Layout = (props) => {
               <ListItemIcon>
                 <Search />
               </ListItemIcon>
-              <ListItemText primary="Dataset Search" />
+              <ListItemText primary="Search Datasets" />
             </ListItemButton>
 
             <ListItemButton component={Link} to="/datasets/subsets/search" sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <ScreenSearchDesktop />
               </ListItemIcon>
-              <ListItemText primary="Subset Search" />
+              <ListItemText primary="View Dataset" />
             </ListItemButton>
 
             <ListItemButton component={Link} to='/graph' sx = {{ height: "50px" }}>
               <ListItemIcon>
                 <ShowChartIcon/>
               </ListItemIcon>
-              <ListItemText primary="Visualize" />
+              <ListItemText primary="Search Visualizations" />
             </ListItemButton>
 
             <ListItemButton component={Link} to="/graphs/search" sx = {{ height: "50px" }}>
@@ -142,7 +142,7 @@ export const Layout = (props) => {
               <ListItemIcon>
                 <UploadIcon />
               </ListItemIcon>
-              <ListItemText primary="Dataset Upload" />
+              <ListItemText primary="Upload Dataset" />
             </ListItemButton>
 
             <Tooltip title = "This page has been temporarily disabled" arrow>

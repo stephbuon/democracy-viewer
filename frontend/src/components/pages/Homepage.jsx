@@ -172,7 +172,7 @@ export const Homepage = () => {
                     }}
                   >
                     <Typography variant="h5" align='center'>
-                      Search Visualization
+                      Search Visualizations
                     </Typography>
                     {/* <Typography align='center'>
                       Customize and interact with
@@ -251,10 +251,7 @@ export const Homepage = () => {
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <Typography variant="subtitle1">
-                    Search Within Dataset
-                  </Typography>
-                  <Typography variant="caption" align="center">
-                    Find specific text and patterns in dataset
+                    View Dataset
                   </Typography>
                 </Box>
               </Button>
@@ -277,9 +274,6 @@ export const Homepage = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <Typography variant="subtitle1">
                     Visualize Dataset
-                  </Typography>
-                  <Typography variant="caption" align="center">
-                    Create interactive charts and visualizations
                   </Typography>
                 </Box>
               </Button>
