@@ -365,6 +365,11 @@ class datasets {
     async deleteSuggestionById(id) {
         await this.knex(suggestion_table).where({ id }).delete();
     }
+
+    // Delete temporary columns for a dataset
+    async deleteTempCols(table_name) {
+        await this.knex(temp_col_table).where({ table_name }).delete();
+    }
 }
 
 module.exports = datasets;

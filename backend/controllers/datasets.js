@@ -8,22 +8,15 @@ const dataQueries = require("../util/data_queries");
 const aws = require("../util/aws");
 
 // Upload a new dataset from a csv file
-const createDataset = async(path, email) => {
-    // Get the file name from the file path
-    let filepath = path.split("/");
-    const extension = filepath.pop().split(".").pop();
-    filepath = filepath.join("/");
+const createDataset = async(email) => {
+    // Get the file name from the user's email and a time stamp
     const table_name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
-    const newName = `${ filepath }/${ table_name }.${ extension }`;
-    // Rename file
-    util.renameFile(path, newName);
-
-    // Get column names
-    const headers = await util.getCsvHeaders(newName);
+    // Get a signed url to upload the file
+    const url = await aws.uploadFileDirect(table_name)
 
     return {
         table_name,
-        headers
+        url
     };
 }
 
@@ -102,8 +95,7 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     // Upload metadata
     await model.createMetadata(name, email, metadata);
     // Upload all columns
-    const path = `files/uploads/${ name }.csv`;
-    const headers = await util.getCsvHeaders(path);
+    const headers = await model.getTempCols(name);
     await model.addCols(name, headers);
     // Upload text columns
     await model.addTextCols(name, textCols);
@@ -115,9 +107,9 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     if (tags && tags.length > 0) {
         await model.addTag(name, tags);
     }
-    
-    // Upload raw data to s3
-    await runPython("upload_dataset", [ name, path ], metadata.distributed);
+
+    // Delete temp columns
+    await model.deleteTempCols(name);
 
     // Start batch preprocessing
     await aws.submitBatchJob(name);
@@ -633,12 +625,14 @@ const getTempCols = async(knex, table_name) => {
         const records = await model.getTempCols(table_name);
 
         if (records.length > 0) {
-            return records;
+            return records.map(x => x.col);
         }
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         attempts += 1;
     }
+
+    throw new Error(`Failed to find temporary columns after ${ maxAttempts } attempts`);
 }
 
 // Delete a dataset and its metadata

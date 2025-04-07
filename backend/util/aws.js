@@ -3,7 +3,7 @@ const pl = require("nodejs-polars");
 const { Upload } = require("@aws-sdk/lib-storage");
 const { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand } = require("@aws-sdk/client-athena");
 const { BatchClient, SubmitJobCommand } = require("@aws-sdk/client-batch");
-const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand, HeadObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const crypto = require('crypto');
 const humanize = require('humanize-duration');
@@ -215,6 +215,16 @@ const downloadFileDirect = async(query) => {
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
+const uploadFileDirect = async(table_name) => {
+    const command = new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: `temp_uploads/${ table_name }.csv`,
+        ContentType: "text/csv"
+    });
+
+    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+}
+
 const uploadFile = async(localFile, s3File) => {
     await new Upload({
         client: s3Client,
@@ -232,5 +242,6 @@ module.exports = {
     downloadFile,
     submitBatchJob,
     downloadFileDirect,
+    uploadFileDirect,
     uploadFile
 }
