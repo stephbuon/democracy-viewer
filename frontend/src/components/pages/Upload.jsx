@@ -73,7 +73,8 @@ export const Upload = (props) => {
           color="text.primary"
           gutterBottom
         >
-          Upload either a CSV file or an API of your text-based dataset to use it on Democracy Viewer. 
+          {/* Upload either a CSV file or an API of your text-based dataset to use it on Democracy Viewer.  */}
+          Dataset uploads have been temporarily disabled due to a technical issue. We apologize for the inconvenience and we hope to enable this feature again soon.
         </Typography>
       </Container>
       
@@ -86,6 +87,7 @@ export const Upload = (props) => {
               variant="contained"
               sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }}
               onClick={() => OpenModal("csv")}
+              disabled
           >
               CSV File
           </Button>
@@ -93,6 +95,7 @@ export const Upload = (props) => {
               variant="contained"
               sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }} 
               onClick={() => OpenModal("api")}
+              disabled
           >
               API
           </Button>
