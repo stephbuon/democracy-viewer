@@ -21,6 +21,10 @@ start_time = time()
 
 # Read file and add record id columns
 df = pl.read_csv(FILE_NAME, infer_schema=False)
+# Replace spaces in column names with an underscore
+cols = df.columns
+new_cols = { col: col.replace(" ", "_") for col in cols if " " in col}
+df = df.rename(new_cols)
 # Rename any column called "record_id"
 if "record_id" in df.columns:
     df = df.rename({ "record_id": "record_id_" })
