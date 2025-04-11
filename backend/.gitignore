@@ -36,7 +36,7 @@ files/*/*/*.csv
 *.pkl
 *.xls
 *.xlsx
-*.txt
+files/*/*.txt
 
 # python
 *__pycache__

@@ -18,7 +18,7 @@ router.post('/', authenticateJWT, async(req, res, next) => {
 // Route to send an invite to a user to join a private group
 router.post('/invite', authenticateJWT, async(req, res, next) => {
     try {
-        const result = await control.sendInvite(req.knex, req.user.email, req.body.email, req.body.private_group);
+        const result = await control.sendInvites(req.knex, req.user.email, req.body.emails, req.body.private_group);
         res.status(201).json(result);
     } catch (err) {
         console.error('Failed to send private group invite:', err);

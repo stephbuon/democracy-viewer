@@ -103,8 +103,25 @@ const invitePrivateGroup = async(knex, email, group_name, from_email, code) => {
     await sendEmail(knex, template, params, subject, email);
 }
 
+const invitePrivateGroupReport = async(knex, email, group_name, successes = [], failures = []) => {
+    const success = successes.length === 0 ? "None" : successes.join("<br>");
+    const fail = failures.length === 0 ? "None" : failures.join("<br>");
+
+    const params = {
+        group_name,
+        success,
+        fail
+    }
+
+    const subject = "Private Group Invite Report";
+    const template = "invite_group_report";
+
+    await sendEmail(knex, template, params, subject, email);
+}
+
 module.exports = {
     suggestionEmail,
     resetPasswordEmail,
-    invitePrivateGroup
+    invitePrivateGroup,
+    invitePrivateGroupReport
 };

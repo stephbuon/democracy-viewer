@@ -49,3 +49,8 @@ export const removeGraphsFromGroup = async(id, graph_ids) => {
     const endpoint = `/groups/${ id }/graphs`;
     return await deleteRequest(endpoint, { graph_ids });
 }
+
+export const sendGroupInvites = async(id, emails) => {
+    const endpoint = `/groups/invite`;
+    return await postRequest(endpoint, { private_group: id, emails });
+}

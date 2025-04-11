@@ -23,7 +23,7 @@ const addGroup = async(knex, email, params) => {
 }
 
 // Send an invite to a private group
-const sendInvite = async(knex, user_from, user_to, private_group) => {
+const sendInvites = async(knex, user_from, invite_emails, private_group) => {
     const model = new groups(knex);
 
     // Get user_from info
@@ -37,23 +37,43 @@ const sendInvite = async(knex, user_from, user_to, private_group) => {
     // Get private group info
     const group_record = await model.getGroupById(private_group);
 
-    // Generate code
-    const code = chance.string({ length: 8, casing: 'upper', alpha: true, numeric: true });
-    // Hash generated code
-    const hashedCode = bcrypt.hashSync(code, 10);
-    // Delete old code
-    await model.deleteInvite(user_to, private_group);
-    // Add invite to database
-    const record = await model.addInvite({
-        private_group,
-        email: user_to,
-        code: hashedCode
-    });
+    // Convert invite emails to an array if it isn't one already
+    invite_emails = Array.isArray(invite_emails) ? invite_emails : [invite_emails];
 
-    // Send invite email
-    await emailUtil.invitePrivateGroup(knex, user_to, group_record.name, user_from, code)
+    // Attempt to send an invite to each email in invite emails
+    const invite_records = [];
+    const success_emails = [];
+    const fail_emails = []
+    for (let i = 0; i < invite_emails.length; i++) {
+        const email = invite_emails[i];
+        try {
+            // Generate code
+            const code = chance.string({ length: 8, casing: 'upper', alpha: true, numeric: true });
+            // Hash generated code
+            const hashedCode = bcrypt.hashSync(code, 10);
+            // Delete old code
+            await model.deleteInvite(email, private_group);
+            // Add invite to database
+            const record = await model.addInvite({
+                private_group,
+                email,
+                code: hashedCode
+            });
+            // Send invite email
+            await emailUtil.invitePrivateGroup(knex, email, group_record.name, user_from, code);
+            success_emails.push(email);
+            delete record.code;
+            invite_records.push(record);
+        } catch (err) {
+            fail_emails.push(email);
+            console.error(err);
+        }
+    }
 
-    return record;
+    // Send report to invite sender on successes and failures
+    await emailUtil.invitePrivateGroupReport(knex, user_from, group_record.name, success_emails, fail_emails);
+
+    return invite_records;
 }
 
 // Add a user as a member to a group from an invite
@@ -292,7 +312,7 @@ const removeGroupGraphs = async(knex, private_group, ids, email) => {
 
 module.exports = {
     addGroup,
-    sendInvite,
+    sendInvites,
     addMember,
     addDatasets,
     addGraphs,

@@ -9,6 +9,20 @@ export const FormattedMultiTextField = (props) => {
     const [suggestionLockout, setSuggestionLockout] = useState(false);
     const [filteredOptions, setFilteredOptions] = useState([]);
     const [isFocused, setIsFocused] = useState(false);
+    const [disabled, setDisabled] = useState(false);
+
+    const setValid = (val) => {
+        if (!disabled) {
+            if (!val) {
+                setDisabled(true);
+            }
+        } else if (val) {
+            const errors = document.querySelectorAll("p.Mui-error");
+            if (errors.length === 0) {
+                setDisabled(false);
+            }
+        }
+    }
 
     const addWord = (selectedWord = null) => {
         let currWord;
@@ -78,8 +92,9 @@ export const FormattedMultiTextField = (props) => {
                     onKeyDown = {onEnter}
                     onFocus={handleFocus}      // Show options when focused
                     onBlur={handleBlur}        // Hide options when not focused
+                    setValid={setValid}
                 />
-                <IconButton onClick={() => addWord()} disabled={props.disabled}>
+                <IconButton onClick={() => addWord()} disabled={props.disabled || disabled}>
                     <AddIcon />
                 </IconButton>
 

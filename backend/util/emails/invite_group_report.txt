@@ -1,0 +1,15 @@
+Dear [[name]],
+
+Your invites to the private group [[group_name]] have been sent. The invitees will have 24 hours to accept the invite before it expires.
+
+The invites to the following email addresses were successfully sent:
+
+[[success]]
+
+The invites to the following email addresses failed to send:
+
+[[fail]]
+
+If any invites failed to send, it is likely because there is no Democracy Viewer account with the given email address.
+
+- Democracy Viewer Team

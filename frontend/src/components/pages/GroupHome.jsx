@@ -9,6 +9,7 @@ import { DatasetTable, GraphTable } from "../common/tables";
 import { AlertDialog } from "../common/AlertDialog";
 import { getGroup, getGroupMemberRecord, removeMemberFromGroup, FilterDatasets, filterGraphs } from "../../api";
 import { GroupMembersModal, GroupAddDatasetModal, GroupAddGraphModal } from "./subcomponents/groups";
+import { GroupSendInviteModal } from "./subcomponents/groups/GroupSendInviteModal";
 
 const mdTheme = createTheme();
 
@@ -20,11 +21,7 @@ export const GroupHome = (props) => {
     
     // Get group data from location state (passed from Groups component)
     const [group, setGroup] = useState(undefined);
-    const [membersModalOpen, setMembersModalOpen] = useState(false);
-    const [leaveOpen, setLeaveOpen] = useState(false);
     const [memberRecord, setMemberRecord] = useState(undefined);
-    const [addDatasetOpen, setAddDatasetOpen] = useState(false);
-    const [addGraphOpen, setAddGraphOpen] = useState(false);
 
     // Datasets
     const [loadingResults, setLoadingResults] = useState(false);
@@ -35,6 +32,13 @@ export const GroupHome = (props) => {
     const [loadingGraphResults, setLoadingGraphResults] = useState(false);
     const [searchGraphResults, setSearchGraphResults] = useState([]);
     const [totalNumOfGraphResults, setTotalNumOfGraphResults] = useState(0);
+
+    // Open/close modals
+    const [addDatasetOpen, setAddDatasetOpen] = useState(false);
+    const [addGraphOpen, setAddGraphOpen] = useState(false);
+    const [membersModalOpen, setMembersModalOpen] = useState(false);
+    const [leaveOpen, setLeaveOpen] = useState(false);
+    const [inviteOpen, setInviteOpen] = useState(false);
 
     // Function to fetch datasets for this group
     const GetNewPage = async (selectedPage) => {
@@ -156,6 +160,20 @@ export const GroupHome = (props) => {
                                         {group.description}
                                     </Typography>
                                     <Grid container justifyContent="center" sx={{ mb: 3, mt: 2 }}>
+                                        {
+                                            memberRecord.member_rank < 3 &&
+                                            <Grid item xs={12} sm={6} md={4}>
+                                                <Button
+                                                    variant="contained"
+                                                    component="label"
+                                                    sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+                                                    onClick={() => setInviteOpen(true)}
+                                                >
+                                                    Invite Members
+                                                </Button>
+                                            </Grid>
+                                        }
+
                                         <Grid item xs={12} sm={6} md={4}>
                                             <Button
                                                 variant="contained"
@@ -205,7 +223,7 @@ export const GroupHome = (props) => {
                                             component="label"
                                             sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
                                             onClick={() => setAddDatasetOpen(true)} // Function to open dataset selection modal
-                                            disabled={memberRecord.rank > 3}
+                                            disabled={memberRecord.member_rank > 3}
                                         >
                                             Add Dataset
                                         </Button>
@@ -283,6 +301,12 @@ export const GroupHome = (props) => {
                 setOpen={setAddGraphOpen}
                 memberRecord={memberRecord}
                 updateGraphs={() => GetNewGraphPage(1)}
+            />
+
+            <GroupSendInviteModal
+                open={inviteOpen}
+                setOpen={setInviteOpen}
+                group={group}
             />
         </ThemeProvider>
     );
