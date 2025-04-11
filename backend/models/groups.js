@@ -123,7 +123,7 @@ class groups {
     // Get all group invites with the given parameters
     async getInvites(params, currentPage = 1) {
         // Delete all expired records
-        await this.knex(invite_table).where("expires", "<", this.knex.raw("NOW()"));
+        await this.knex(invite_table).delete().where("expires", "<", this.knex.raw("NOW()"));
         // Get paginated invites that match given parameters
         const perPage = params.pageLength ? params.pageLength : 10;
         const results = await this.knex(invite_table)
