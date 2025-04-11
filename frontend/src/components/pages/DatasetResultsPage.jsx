@@ -17,7 +17,6 @@ export const DatasetResultsPage = (props) => {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [publicPrivate, setPublicPrivate] = useState(true);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
 
@@ -32,7 +31,6 @@ export const DatasetResultsPage = (props) => {
 
     const filterResults = () => {
         const filter = {
-            type: publicPrivate ? 'public' : 'private',
             pageLength
         }
         if (searchTerm) {
