@@ -127,7 +127,7 @@ const getZoomIds = async(knex, table, params, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if ((!metadata || !metadata.is_public) && (!user || metadata.email !== user.email)) {
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
         throw new Error(`User is not the owner of this dataset`);
     }
     
@@ -176,7 +176,7 @@ const getZoomRecords = async(knex, table, params, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if ((!metadata || !metadata.is_public) && (!user || metadata.email !== user.email)) {
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
         throw new Error(`User is not the owner of this dataset`);
     }
 
@@ -246,7 +246,7 @@ const getGraphSettings = async(knex, id, user = null) => {
 
     // Check if user has permission to view this graph
     const metadata = await model.getMetadataById(id);
-    if (!metadata.is_public && metadata.email !== user.email) {
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
         throw new Error(`User ${ user.email } does not have permission to view this graph`);
     }
 
@@ -270,7 +270,7 @@ const getGraphImage = async(knex, id, user = null) => {
 
     // Check if user has permission to view this graph
     const metadata = await model.getMetadataById(id);
-    if (!metadata.is_public && metadata.email !== user.email) {
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
         throw new Error(`User ${ user.email } does not have permission to view this graph`);
     }
 
