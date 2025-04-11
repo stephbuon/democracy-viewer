@@ -135,6 +135,18 @@ router.get('/:group/member/:member', async(req, res, next) => {
     next();
 });
 
+// Route to get group invites
+router.get('/invites/:page', async(req, res, next) => {
+    try {
+        const result = await control.getInvites(req.knex, req.query, req.params.page);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get private group invites:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to delete a private group
 router.delete('/:group', authenticateJWT, async(req, res, next) => {
     try {
@@ -159,7 +171,7 @@ router.delete('/:group/member/:member', authenticateJWT, async(req, res, next) =
     next();
 });
 
-// Route to delete a private group member
+// Route to delete a private group member invite
 router.delete('/invite/:group/member/:member', authenticateJWT, async(req, res, next) => {
     try {
         await control.deleteGroupInvite(req.knex, req.user.email, req.params.member, req.params.group);

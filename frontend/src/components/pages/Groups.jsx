@@ -158,6 +158,15 @@ export const Groups = (props) => {
                                 Create Group
                             </Button>
                             <br />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                width= '200px'
+                                onClick={() => navigate("/groups/join")}
+                                sx={{ mb: 2 }}
+                            >
+                                View Pending Invites
+                            </Button>
                         </Box>
                     </Stack>
                 </Grid>
@@ -199,58 +208,32 @@ export const Groups = (props) => {
                         borderRadius: 2,
                     }}
                 >
-                    {modalType === "create" ? (
-                        <>
-                            <Typography variant="h6" gutterBottom>
-                                Create Group
-                            </Typography>
-                            <TextField
-                                fullWidth
-                                label="Group Name"
-                                variant="outlined"
-                                value={groupName}
-                                onChange={(e) => setGroupName(e.target.value)}
-                                sx={{ mb: 2 }}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Group Description"
-                                variant="outlined"
-                                value={groupDescription}
-                                onChange={(e) => setGroupDescription(e.target.value)}
-                            />
-                            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={3}>
-                                <Button variant="contained" onClick={handleCreateGroup}>
-                                    Create
-                                </Button>
-                                <Button variant="outlined" onClick={handleClose}>
-                                    Cancel
-                                </Button>
-                            </Stack>
-                        </>
-                    ) : (
-                        <>
-                            <Typography variant="h6" gutterBottom>
-                                Join Group
-                            </Typography>
-                            <TextField
-                                fullWidth
-                                label="Access Code"
-                                variant="outlined"
-                                value={accessCode}
-                                onChange={(e) => setAccessCode(e.target.value)}
-                                sx={{ mb: 2 }}
-                            />
-                            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={3}>
-                                <Button variant="contained" onClick={handleJoinGroup}>
-                                    Request
-                                </Button>
-                                <Button variant="outlined" onClick={handleClose}>
-                                    Cancel
-                                </Button>
-                            </Stack>
-                        </>
-                    )}
+                    <Typography variant="h6" gutterBottom>
+                        Create Group
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        label="Group Name"
+                        variant="outlined"
+                        value={groupName}
+                        onChange={(e) => setGroupName(e.target.value)}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Group Description"
+                        variant="outlined"
+                        value={groupDescription}
+                        onChange={(e) => setGroupDescription(e.target.value)}
+                    />
+                    <Stack direction="row" spacing={2} justifyContent="flex-end" mt={3}>
+                        <Button variant="contained" onClick={handleCreateGroup}>
+                            Create
+                        </Button>
+                        <Button variant="outlined" onClick={handleClose}>
+                            Cancel
+                        </Button>
+                    </Stack>
                 </Box>
             </Modal>
 

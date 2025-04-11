@@ -121,9 +121,30 @@ class groups {
     }
 
     // Get all group invites with the given parameters
-    async getInvites(params) {
-        const records = await this.knex(invite_table).where({ ...params });
-        return records;
+    async getInvites(params, currentPage = 1) {
+        // Delete all expired records
+        await this.knex(invite_table).where("expires", "<", this.knex.raw("NOW()"));
+        // Get paginated invites that match given parameters
+        const perPage = params.pageLength ? params.pageLength : 10;
+        const results = await this.knex(invite_table)
+            .where(q => {
+                const email = params.email;
+                if (email) {
+                    q.where({ email });
+                }
+
+                const private_group = params.private_group;
+                if (private_group) {
+                    q.where({ private_group });
+                }
+            })
+            .orderBy("expires", "desc")
+            .paginate({ perPage, currentPage });
+
+        return {
+            results: results.data,
+            total: results.pagination.total
+        };
     }
 
     // Delete a private group

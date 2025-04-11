@@ -6,7 +6,7 @@ import {
   Acknowledgements, DatasetResultsPage, 
   DownloadStarted, Graph, GraphResultsPage, Homepage, Layout, Login, Profile, Register, 
   SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom, 
-  SelectedDataSet, GroupHome, Groups
+  GroupHome, Groups, GroupJoin
 } from "./pages";
 
 
@@ -72,6 +72,7 @@ export const App = () => {
             <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={setNavigated} />} />
             <Route path="/groups" element={<Groups setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated}/>}/>
             <Route path="/groups/home/:groupId" element={<GroupHome setDataset={chooseDataset} setNavigated={setNavigated}/>} />
+            <Route path="/groups/join" element={<GroupJoin currUser={user} setNavigated={setNavigated}/>} />
             <Route path="/graphs/search" element={<GraphResultsPage login={login} currUser={user} setUser={setUser} setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated} />} />
             <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={setNavigated} />} />
             <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout} />} />

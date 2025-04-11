@@ -31,7 +31,7 @@ export const GroupMembersModal = (props) => {
     const getNewPage = async(newPage) => {
         const res = await getGroupMembers(props.memberRecord.private_group, newPage);
 
-        if (res.results.length < pageLength) {
+        if (res.results.length > 0 && res.results.length < pageLength) {
             const tempMembers = [ ...res.results ];
             while (tempMembers.length < pageLength) {
                 tempMembers.push({
@@ -131,6 +131,28 @@ export const GroupMembersModal = (props) => {
                     first={first}
                     emptyMessage="No Members Found"
                 >
+                    {
+                        props.memberRecord.member_rank < 3 &&
+                        <Column
+                            key="edit"
+                            header="Edit"
+                            body={x => {
+                                if (x.member_rank > props.memberRecord.member_rank) {
+                                    return <Button
+                                        variant="contained"
+                                        component="label"
+                                        sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+                                        onClick={() => clickEditMember(x)}
+                                    >
+                                        Edit
+                                    </Button>
+                                } else {
+                                    return <></>
+                                }
+                            }}
+                        />
+                    }
+                    
                     <Column
                         key={"name"}
                         field={"name"}
@@ -155,28 +177,6 @@ export const GroupMembersModal = (props) => {
                             }
                         }}
                     />
-
-                    {
-                        props.memberRecord.member_rank < 3 &&
-                        <Column
-                            key="edit"
-                            header="Edit"
-                            body={x => {
-                                if (x.member_rank > props.memberRecord.member_rank) {
-                                    return <Button
-                                        variant="contained"
-                                        component="label"
-                                        sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
-                                        onClick={() => clickEditMember(x)}
-                                    >
-                                        Edit
-                                    </Button>
-                                } else {
-                                    return <></>
-                                }
-                            }}
-                        />
-                    }
                 </DataTable>
             </Box>
         </Modal>

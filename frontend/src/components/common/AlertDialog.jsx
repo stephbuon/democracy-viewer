@@ -7,14 +7,16 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-export const AlertDialog = ({ open, setOpen, titleText, bodyText, action, disabled }) => {
+export const AlertDialog = ({ open, setOpen, titleText, bodyText, action, disabled, delayClose }) => {
   const handleClose = () => {
     setOpen(false);
   };
 
   const confirmAction = () => {
     action();
-    handleClose();
+    if (!delayClose) {
+      handleClose();
+    }
   };
 
   return (

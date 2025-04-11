@@ -3,6 +3,7 @@ export * from "./Acknowledgements";
 export * from "./DatasetResultsPage";
 export * from "./DownloadStarted";
 export * from "./GroupHome";
+export * from "./GroupJoin";
 export * from "./Groups";
 export * from "./Graph";
 export * from "./GraphResultsPage"

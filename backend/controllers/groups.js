@@ -83,11 +83,11 @@ const addMember = async(knex, private_group, email, code) => {
     // Get the invite record
     const invite_records = await model.getInvites({ private_group, email });
     // If no record found, throw error
-    if (invite_records.length === 0) {
+    if (invite_records.results.length === 0) {
         throw new Error(`No private group invitation was found for user ${ email } for group ${ private_group }`);
     }
 
-    const invite_record = invite_records[0];
+    const invite_record = invite_records.results[0];
     const result = await bcrypt.compare(code, invite_record.code);
     if(!result){
         throw new Error ("This invite code is not correct.");
@@ -97,7 +97,7 @@ const addMember = async(knex, private_group, email, code) => {
     await model.deleteInvite(email, private_group);
 
     // Add member record
-    record = await model.addMember({ private_group, member: email });
+    const record = await model.addMember({ private_group, member: email });
 
     return record;
 }
@@ -228,6 +228,28 @@ const getMember = async(knex, email, group) => {
     return result;
 }
 
+// Get the group invites by the given filter parameters
+const getInvites = async(knex, params, page) => {
+    const model = new groups(knex);
+
+    const invites = await model.getInvites(params, Number(page));
+    const results = [];
+    for (let i = 0; i < invites.results.length; i++) {
+        const temp = invites.results[i];
+        delete temp.code;
+        const group = await model.getGroupById(temp.private_group);
+        results.push({
+            ...temp,
+            ...group
+        });
+    }
+
+    return {
+        results,
+        total: invites.total
+    };
+}
+
 // Delete a private group
 const deleteGroup = async(knex, email, private_group) => {
     const model = new groups(knex);
@@ -322,6 +344,7 @@ module.exports = {
     getGroupsByUser,
     getGroupMembers,
     getMember,
+    getInvites,
     deleteGroup,
     deleteGroupMember,
     deleteGroupInvite,

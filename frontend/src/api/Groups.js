@@ -54,3 +54,13 @@ export const sendGroupInvites = async(id, emails) => {
     const endpoint = `/groups/invite`;
     return await postRequest(endpoint, { private_group: id, emails });
 }
+
+export const getGroupInvites = async(params, page) => {
+    const endpoint = `/groups/invites/${ page }`;
+    return await getRequest(endpoint, params);
+}
+
+export const acceptGroupInvite = async(id, code) => {
+    const endpoint = `/groups/invite/accept`;
+    return await postRequest(endpoint, { private_group: id, code });
+}
