@@ -1,5 +1,5 @@
 import {
-    Box, Modal,
+    Box, Button, Modal,
     Typography
 } from '@mui/material';
 import { useEffect, useState } from "react";
@@ -7,6 +7,9 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import { getGroupMembers } from '../../../../api';
+import { AlertDialog } from '../../../common';
+import { GroupMemberEdit } from './GroupMemberEdit';
+import { member_ranks } from './member_ranks';
 
 const pageLength = 5;
 
@@ -16,10 +19,17 @@ export const GroupMembersModal = (props) => {
     const [first, setFirst] = useState(0);
     const [loading, setLoading] = useState(false);
 
+    // Editing a record
+    const [editOpen, setEditOpen] = useState(false);
+    const [editMember, setEditMember] = useState(undefined);
+    const [editRank, setEditRank] = useState(4);
+    const [editDisabled, setEditDisabled] = useState(false);
+    const [editRefresh, setEditRefresh] = useState(true);
+
     const handleClose = () => props.setOpen(false);
 
     const getNewPage = async(newPage) => {
-        const res = await getGroupMembers(props.group.id, newPage);
+        const res = await getGroupMembers(props.memberRecord.private_group, newPage);
 
         if (res.results.length < pageLength) {
             const tempMembers = [ ...res.results ];
@@ -45,13 +55,49 @@ export const GroupMembersModal = (props) => {
         setLoading(false);
     }
 
+    const clickEditMember = (x) => {
+        setEditMember(x);
+        setEditRank(x.member_rank);
+        setEditOpen(true);
+    }
+
+    const submitEditMember = async() => {
+        setEditRefresh(true);
+    }
+
     useEffect(() => {
-        if (props.open) {
+        if (props.open && editRefresh) {
             getNewPage(1);
+            setEditRefresh(false);
+        } else if (!props.open && !editRefresh) {
+            setEditRefresh(true);
         }
-    }, [props.open]);
+    }, [props.open, editRefresh]);
+
+    useEffect(() => {
+        if (editMember) {
+            setEditDisabled(editMember.member_rank === editRank);
+        }
+    }, [editMember, editRank]);
 
     return <>
+        <AlertDialog
+            open={editOpen}
+            setOpen={setEditOpen}
+            titleText={`Edit Member "${ editMember ? editMember.name : "" }"`}
+            bodyText={
+                <GroupMemberEdit
+                    adminRecord={props.memberRecord}
+                    newRank={editRank}
+                    setNewRank={setEditRank}
+                    setOpen={setEditOpen}
+                    setRefresh={setEditRefresh}
+                />
+            }
+            action={() => submitEditMember()}
+            disabled={editDisabled}
+        />
+
         <Modal
             open={props.open}
             onClose={() => handleClose()}
@@ -102,27 +148,35 @@ export const GroupMembersModal = (props) => {
                         field={"member_rank"}
                         header={"Role"}
                         body={x => {
-                            let role = "";
-                            switch (x.member_rank) {
-                                case 1:
-                                    role = "Owner";
-                                    break;
-                                case 2:
-                                    role = "Admin";
-                                    break;
-                                case 3:
-                                    role = "Editor";
-                                    break;
-                                case 4:
-                                    role = "Member"
-                                    break;
-                                default:
-                                    role = <>&nbsp;</>;
+                            if (Object.keys(member_ranks).includes(String(x.member_rank))) {
+                                return member_ranks[x.member_rank];
+                            } else {
+                                return <>&nbsp;</>;
                             }
-
-                            return role;
                         }}
                     />
+
+                    {
+                        props.memberRecord.member_rank < 3 &&
+                        <Column
+                            key="edit"
+                            header="Edit"
+                            body={x => {
+                                if (x.member_rank > props.memberRecord.member_rank) {
+                                    return <Button
+                                        variant="contained"
+                                        component="label"
+                                        sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center' }}
+                                        onClick={() => clickEditMember(x)}
+                                    >
+                                        Edit
+                                    </Button>
+                                } else {
+                                    return <></>
+                                }
+                            }}
+                        />
+                    }
                 </DataTable>
             </Box>
         </Modal>

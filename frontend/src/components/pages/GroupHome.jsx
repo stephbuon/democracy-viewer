@@ -286,7 +286,7 @@ export const GroupHome = (props) => {
             <GroupMembersModal
                 open={membersModalOpen}
                 setOpen={setMembersModalOpen}
-                group={group}
+                memberRecord={memberRecord}
             />
             
             <GroupAddDatasetModal
