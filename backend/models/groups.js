@@ -57,7 +57,11 @@ class groups {
 
     // Edit a group member
     async editMember(private_group, member, params) {
-        await this.knex(member_table).where({ private_group, member }).update({ ...params });
+        if (!params.member_rank || params.member_rank < 1 || params.member_rank > 4) {
+            throw new Error("No valid update parameters provided")
+        }
+        const newParams = { member_rank: params.member_rank };
+        await this.knex(member_table).where({ private_group, member }).update({ ...newParams });
         const record = await this.knex(member_table).where({ private_group, member });
         return record[0];
     }

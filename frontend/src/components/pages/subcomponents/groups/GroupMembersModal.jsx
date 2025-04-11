@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
-import { getGroupMembers } from '../../../../api';
+import { editGroupMember, getGroupMembers } from '../../../../api';
 import { AlertDialog } from '../../../common';
 import { GroupMemberEdit } from './GroupMemberEdit';
 import { member_ranks } from './member_ranks';
@@ -62,6 +62,7 @@ export const GroupMembersModal = (props) => {
     }
 
     const submitEditMember = async() => {
+        await editGroupMember(editMember.private_group, editMember.member, { member_rank: editRank });
         setEditRefresh(true);
     }
 
@@ -88,13 +89,14 @@ export const GroupMembersModal = (props) => {
             bodyText={
                 <GroupMemberEdit
                     adminRecord={props.memberRecord}
+                    memberRecord={editMember}
                     newRank={editRank}
                     setNewRank={setEditRank}
                     setOpen={setEditOpen}
                     setRefresh={setEditRefresh}
                 />
             }
-            action={() => submitEditMember()}
+            action={submitEditMember}
             disabled={editDisabled}
         />
 

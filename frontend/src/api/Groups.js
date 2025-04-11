@@ -1,4 +1,4 @@
-import { deleteRequest, getRequest, postRequest } from "./util/requests";
+import { deleteRequest, getRequest, postRequest, putRequest } from "./util/requests";
 
 export const filterGroups = async(params, page = 1) => {
     const endpoint = `/groups/user/${ page }`;
@@ -63,4 +63,9 @@ export const getGroupInvites = async(params, page) => {
 export const acceptGroupInvite = async(id, code) => {
     const endpoint = `/groups/invite/accept`;
     return await postRequest(endpoint, { private_group: id, code });
+}
+
+export const editGroupMember = async(id, member, params) => {
+    const endpoint = `/groups/${ id }/member/${ member}`;
+    return await putRequest(endpoint, params);
 }

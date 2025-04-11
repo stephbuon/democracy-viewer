@@ -259,7 +259,7 @@ export const GroupHome = (props) => {
                                             component="label"
                                             sx={{ bgcolor: 'cadetblue', color: 'white', borderRadius: '50px', px: 4, py: 1 }}
                                             onClick={() => setAddGraphOpen(true)} // Function to open dataset selection modal
-                                            disabled={memberRecord.rank > 3}
+                                            disabled={memberRecord.member_rank > 3}
                                         >
                                             Add Visualization
                                         </Button>

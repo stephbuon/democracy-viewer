@@ -269,11 +269,24 @@ const deleteGroup = async(knex, email, private_group) => {
 const deleteGroupMember = async(knex, admin, email, private_group) => {
     const model = new groups(knex);
 
-    // Get user's group member record
-    const member_record = await model.getMember(admin, private_group);
-    // If record not found or user not an admin, throw error
-    if (admin !== email && !member_record || (typeof member_record.member_rank === "number" && member_record.member_rank > 2)) {
-        throw new Error(`User ${ admin } is not an admin in private group ${ private_group }`);
+    
+    if (admin !== email) {
+        // Get user's group member record
+        const admin_record = await model.getMember(admin, private_group);
+        const member_record = await model.getMember(email, private_group);
+        // Throw error if admin or member not found
+        if (!admin_record) {
+            throw new Error(`User ${ admin } is not a member of this group`);
+        } else if (!member_record) {
+            throw new Error(`User ${ email } is not a member of this group`);
+        } else {
+            // Throw error if admin is not a high enough rank
+            const admin_rank = Number(admin_record.member_rank);
+            const member_rank = Number(member_record.member_rank);
+            if (admin_rank > 2 || admin_rank > member_rank) {
+                throw new Error(`User ${ admin } is not a high enough rank to perform this action`);
+            }
+        }
     }
 
     // Check if this is the last member of this group

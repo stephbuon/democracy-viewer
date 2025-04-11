@@ -4,11 +4,13 @@ import {
     Box, Button, FormControl, InputLabel,
     MenuItem, Select
  } from "@mui/material";
+ import { removeMemberFromGroup } from "../../../../api";
 
-export const GroupMemberEdit = ({ adminRecord, newRank, setNewRank, setOpen, setRefresh }) => {
+export const GroupMemberEdit = ({ adminRecord, memberRecord, newRank, setNewRank, setOpen, setRefresh }) => {
     const [validRanks, setValidRanks] = useState([]);
 
     const kickMember = async() => {
+        await removeMemberFromGroup(memberRecord.private_group, memberRecord.member);
         setRefresh(true);
         setOpen(false);
     }
@@ -18,7 +20,7 @@ export const GroupMemberEdit = ({ adminRecord, newRank, setNewRank, setOpen, set
 
         Object.keys(member_ranks).forEach(rankStr => {
             const rank = Number(rankStr);
-            if (rank < adminRecord.member_rank) {
+            if (rank > adminRecord.member_rank) {
                 tempRanks.push({
                     value: rank,
                     label: member_ranks[rank]
@@ -44,12 +46,12 @@ export const GroupMemberEdit = ({ adminRecord, newRank, setNewRank, setOpen, set
             >
                 Kick Member
             </Button>
-
+            <br />
             <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                 <InputLabel>Set Rank</InputLabel>
                 <Select
                     value = {newRank}
-                    onChange = {event => setNewRank(event.target.value)}
+                    onChange = {event => setNewRank(Number(event.target.value))}
                 >
                     {
                         validRanks.map(option => (
