@@ -6,6 +6,7 @@ const embed_col_table = "dataset_embed_cols";
 const likes_table = "liked_datasets";
 const suggestion_table = "text_updates";
 const group_table = "group_datasets";
+const group_members_table = "group_members";
 
 class datasets {
     constructor(knex) {
@@ -191,6 +192,10 @@ class datasets {
                         q.orWhere({ is_public: true });
                         if (email) {
                             q.orWhere({ is_public: false, "dataset_metadata.email": email });
+
+                            if (params.group) {
+                                q.orWhere(`${ group_table }.private_group`, params.group);
+                            }
                         }
                     });
                 }
@@ -259,7 +264,7 @@ class datasets {
                 // Search for private group datasets
                 const group = params.group;
                 if (group) {;
-                    q.where(`${ group_table }.private_group`, group)
+                    q.where(`${ group_table }.private_group`, group);
                 }
             });
 
@@ -331,6 +336,17 @@ class datasets {
             .where(`${ suggestion_table }.id`, id);
 
         return record[0];
+    }
+
+    // Check if a user has access to a dataset via a private group
+    async hasDatasetAccessGroup(table_name, member) {
+        const result = await this.knex(group_table)
+            .select(`${ group_table }.*`)
+            .join(group_members_table, `${ group_table }.private_group`, `${ group_members_table }.private_group`)
+            .where({ table_name, member })
+            .paginate({ currentPage: 1, pageLength: 1 });
+
+        return result.pagination.total > 0;
     }
 
     // Delete a dataset's metadata

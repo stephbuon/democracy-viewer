@@ -413,8 +413,8 @@ const getSubset = async(knex, table, query, user = undefined, page = 1, pageLeng
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
+        throw new Error(`User ${ user } does not have access this dataset`);
     }
     
     const cols = await model.getColumnNames(metadata.table_name);
@@ -444,8 +444,8 @@ const downloadSubset = async(knex, table, query, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
+        throw new Error(`User ${ user } does not have access this dataset`);
     }
 
     return await dataQueries.downloadSubset(table, query);
@@ -459,8 +459,8 @@ const getRecordsByIds = async(knex, table, ids, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
+        throw new Error(`User ${ user } does not have access this dataset`);
     }
 
     const scan = await dataQueries.getRecordsByIds(metadata.table_name, ids);
@@ -479,8 +479,8 @@ const downloadIds = async(knex, table, name, user = undefined) => {
     const metadata = await model.getMetadata(table);
 
     // If the user of this table does not match the user, throw error
-    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
-        throw new Error(`User ${ user } is not the owner of this dataset`);
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(table, user.email))))) {
+        throw new Error(`User ${ user } does not have access this dataset`);
     }
 
     const fileName = `files/zoom/${ name }.json`

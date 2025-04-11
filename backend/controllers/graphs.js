@@ -69,7 +69,7 @@ const createGraph = async(knex, dataset, params, user = null) => {
 
     // Check dataset metadata to make sure user has access to this dataset
     const metadata = await model.getMetadata(dataset);
-    if (!metadata.is_public && (!user || metadata.email !== user.email)) {
+    if (!metadata.is_public && (!user || (metadata.email !== user.email && !(await model.hasDatasetAccessGroup(dataset, user.email))))) {
         throw new Error(`User ${ user.email } does not have access to the dataset ${ dataset }`);
     }
 
