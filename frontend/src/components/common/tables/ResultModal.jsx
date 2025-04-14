@@ -102,7 +102,7 @@ export const ResultModal = (props) => {
     useEffect(() => {
         if (infoDisabled && (title !== props.dataset.title || publicPrivate != props.dataset.is_public || description !== props.dataset.description || author !== props.dataset.author || date !== props.dataset.date)) {
             setInfoDisabled(false);
-        } else if (!infoDisabled && title === props.dataset.title && publicPrivate == props.dataset.is_public && description === props.dataset.description && author === props.dataset.author && date === props.dataset.date) {
+        } else if (!infoDisabled && title === props.dataset.title && publicPrivate == props.dataset.is_public && description === props.dataset.description && (!props.dataset.author || author === props.dataset.author) && (!date === props.dataset.date || date === props.dataset.date)) {
             setInfoDisabled(true);
         }
     }, [title, publicPrivate, description, author, date]);
@@ -182,6 +182,7 @@ export const ResultModal = (props) => {
                                     />
                                 }
                                 action={() => updateInfo()}
+                                disabled={disabled || infoDisabled}
                             />
                             <Button
                                 variant="contained"

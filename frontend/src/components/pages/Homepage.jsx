@@ -1,198 +1,354 @@
-
 import { 
-  Box, Button, Card, CardActions, CardContent, Container, CssBaseline, Grid, Stack, Typography,
-  createTheme, ThemeProvider
+  Box, Button, Card, Container, CssBaseline, Grid, Typography,
+  createTheme, ThemeProvider, Modal, Divider
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const theme = createTheme();
 
+// Modal style
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2
+};
+
 export const Homepage = () => {
   const navigate = useNavigate();
+  // State to control modal visibility
+  const [openModal, setOpenModal] = useState(false);
+
+  // Modal handlers
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => setOpenModal(false);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <main>
-        {/* Hero unit */}
-        <Box
-          sx={{
-            bgcolor: 'background.paper',
-            pt: 5,
-            pb: 3,
-            flexGrow: 1
-          }}
-        >
-          <Container sx={{ py: 4, maxWidth: '45%' }} maxWidth={false}>
-            <Typography
-              component="h1"
-              variant="h2"
-              align="center"
-              color="text.primary"
-              gutterBottom
-            >
-              Democracy Viewer
-            </Typography>
-            <Typography variant="h5" align="center" color="text.secondary" paragraph>
-              Democratizing text-based data analytics and data sharing across the humanities and social sciences
-            </Typography>
-            <Stack
-              sx={{ pt: 4 }}
-              direction="row"
-              spacing={2}
-              justifyContent="center"
-            >
-            </Stack>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+        }}
+      >
+        <main style={{ flexGrow: 1 }}>
+          {/* Hero unit - REDUCED PADDING */}
+          <Box
+            sx={{
+              bgcolor: 'background.paper',
+              pt: 3,
+              pb: 1
+            }}
+          >
+            <Container sx={{ py: 2, maxWidth: '45%' }} maxWidth={false}>
+              <Typography
+                component="h1"
+                variant="h2"
+                align="center"
+                color="text.primary"
+                gutterBottom
+              >
+                Democracy Viewer
+              </Typography>
+              <Typography variant="h5" align="center" color="text.secondary" paragraph>
+                Democratizing text-based data analytics and data sharing across the humanities and social sciences
+              </Typography>
+            </Container>
+          </Box>
+
+          {/* Main content with updated responsive grid - REDUCED SPACING */}
+          <Container sx={{ pt: 0, pb: 0, maxWidth: '75%' }} maxWidth={false}> 
+            {/* First row - 2 boxes - REDUCED SPACING */}
+            <Grid container spacing={1} justifyContent="center" sx={{ mb: 1 }}>
+              <Grid item xs={12} sm={6} md={5}>
+                <Card
+                  sx={{ 
+                    height: 100,
+                    width: 350, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    mx: 'auto'
+                  }}
+                >
+                  <Button
+                    onClick={() => navigate("/datasets/search")}
+                    variant="contained"
+                    sx={{
+                      height: '100%',
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderRadius: 0,
+                      bgcolor: 'rgb(48,48,48)',
+                      color: 'white',
+                      textTransform: 'none'
+                    }}
+                  >
+                    <Typography variant="h5" align='center'>
+                      Search Datasets
+                    </Typography>
+                    {/* <Typography align='center'>
+                      Browse available datasets
+                    </Typography> */}
+                  </Button>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={5}>
+                <Card
+                  sx={{ 
+                    height: 100,
+                    width: 350, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    mx: 'auto'
+                  }}
+                >
+                  <Button
+                    onClick={() => navigate("/upload")}
+                    variant="contained"
+                    sx={{
+                      height: '100%',
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderRadius: 0,
+                      bgcolor: 'rgb(48,48,48)',
+                      color: 'white',
+                      textTransform: 'none'
+                    }}
+                  >
+                    <Typography variant="h5" align='center'>
+                      Upload Dataset
+                    </Typography>
+                    {/* <Typography align='center'>
+                      Upload a dataset or
+                      <br />
+                      connect to API
+                    </Typography> */}
+                  </Button>
+                </Card>
+              </Grid>
+            </Grid>
+
+            {/* Second row - 2 boxes - REDUCED SPACING */}
+            <Grid container spacing={1} justifyContent="center">
+              <Grid item xs={12} sm={6} md={5}>
+                <Card
+                  sx={{
+                    height: 100,
+                    width: 350,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    mx: 'auto'
+                  }}
+                >
+                  <Button
+                    onClick={() => navigate("/graphs/search")}
+                    variant="contained"
+                    sx={{
+                      height: '100%',
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderRadius: 0,
+                      bgcolor: 'rgb(48,48,48)',
+                      color: 'white',
+                      textTransform: 'none'
+                    }}
+                  >
+                    <Typography variant="h5" align='center'>
+                      Search Visualizations
+                    </Typography>
+                    {/* <Typography align='center'>
+                      Customize and interact with
+                      <br />
+                      visualization of analysis
+                    </Typography> */}
+                  </Button>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={5}>
+                <Card
+                  sx={{
+                    width: 350,
+                    height: 100,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    mx: 'auto'
+                  }}
+                >
+                  <Button
+                    onClick={handleOpenModal} // Open modal instead of direct navigation
+                    variant="contained"
+                    sx={{
+                      height: '100%',
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderRadius: 0,
+                      bgcolor: 'rgb(48,48,48)',
+                      color: 'white',
+                      textTransform: 'none'
+                    }}
+                  >
+                    <Typography variant="h5" align='center'>
+                      Use Selected Dataset
+                    </Typography>
+                    {/* <Typography align='center'>
+                      Search within a dataset
+                    </Typography> */}
+                  </Button>
+                </Card>
+              </Grid>
+            </Grid>
           </Container>
-        </Box>
-        <Container sx={{ py: 4, maxWidth: '90%' }} maxWidth={false}>
-          <Grid container spacing={4} justifyContent="center">
-            <Grid item xs={12} sm={6} md={4}>
-              <Card
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Dataset Search
-                  </Typography>
-                  <Typography align='center'>
-                    Browse available datasets
-                  </Typography>
-                </CardContent>
-                <CardActions style={{ justifyContent: 'center' }}>
-                  <Button onClick={() => navigate("/datasets/search")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
-                </CardActions>
-              </Card>
-            </Grid>
+        </main>
 
-            <Grid item xs={12} sm={6} md={4}>
-              <Card
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+        {/* Dataset Options Modal */}
+        <Modal
+          open={openModal}
+          onClose={handleCloseModal}
+          aria-labelledby="dataset-options-modal"
+        >
+          <Box sx={modalStyle}>
+            <Typography id="dataset-options-modal" variant="h6" component="h2" mb={3}>
+              What would you like to do?
+            </Typography>
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Button 
+                onClick={() => {
+                  navigate("/datasets/subsets/search");
+                  handleCloseModal();
+                }}
+                variant="contained" 
+                fullWidth
+                sx={{
+                  bgcolor: 'rgb(48,48,48)',
+                  '&:hover': {
+                    bgcolor: '#0099FF', // Blue color on hover
+                  },
+                  p: 2
+                }}
               >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Subset Search
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <Typography variant="subtitle1">
+                    Search Within Dataset
                   </Typography>
-                  <Typography align='center'>
-                    Search within a dataset
+                  <Typography variant="caption" align="center">
+                    Find specific text and patterns in dataset
                   </Typography>
-                </CardContent>
-                <CardActions style={{ justifyContent: 'center' }}>
-                  <Button onClick={() => navigate("/datasets/subsets/search")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
-                </CardActions>
-              </Card>
-            </Grid>
+                </Box>
+              </Button>
+              
+              <Button 
+                onClick={() => {
+                  navigate("/graph");
+                  handleCloseModal();
+                }}
+                variant="contained" 
+                fullWidth
+                sx={{
+                  bgcolor: 'rgb(48,48,48)',
+                  '&:hover': {
+                    bgcolor: '#0099FF', // Blue color on hover
+                  },
+                  p: 2
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <Typography variant="subtitle1">
+                    Visualize Dataset
+                  </Typography>
+                  <Typography variant="caption" align="center">
+                    Create interactive charts and visualizations
+                  </Typography>
+                </Box>
+              </Button>
+            </Box>
+            
+            <Divider sx={{ my: 3 }} />
+            
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button 
+                onClick={handleCloseModal} 
+                variant="outlined"
+              >
+                Cancel
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
 
-            <Grid item xs={12} sm={6} md={4}>
-              <Card
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+        <footer style={{ backgroundColor: 'white', padding: '10px 0', color: 'black' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button style={{ flex: 1, backgroundColor: 'white', color: 'black', border: 'none', padding: '10px', textAlign: 'center' }}>
+              <a
+                href="mailto:sbuongiorno@smu.edu"
+                style={{
+                  color: 'black',
+                  textDecoration: 'none',
+                  transition: 'color 0.3s ease',
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#0099FF'}
+                onMouseLeave={(e) => e.target.style.color = 'black'}
               >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Visualize
-                  </Typography>
-                  <Typography align='center'>
-                    Customize and interact with
-                    <br />
-                    visualization of analysis
-                  </Typography>
-                </CardContent>
-                <CardActions style={{ justifyContent: 'center' }}>
-                  <Button onClick={() => navigate("/graph")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          </Grid>
+                Contact Us
+              </a>
+            </button>
 
-          <Grid container spacing={4} justifyContent="center" sx={{ mt: "25px" }}>
-            <Grid item xs={12} sm={6} md={4}>
-              <Card
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            <button style={{ flex: 1, backgroundColor: 'white', color: 'black', border: 'none', padding: '10px', textAlign: 'center' }}>
+              <a
+                href="https://github.com/stephbuon/democracy-viewer-demo/tree/main"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: 'black',
+                  textDecoration: 'none',
+                  transition: 'color 0.3s ease',
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#0099FF'}
+                onMouseLeave={(e) => e.target.style.color = 'black'}
               >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Dataset Upload
-                  </Typography>
-                  <Typography align='center'>
-                    Upload a dataset or
-                    <br />
-                    connect to API
-                  </Typography>
-                </CardContent>
-                <CardActions style={{ justifyContent: 'center' }}>
-                  <Button onClick={() => navigate("/upload")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
-                </CardActions>
-              </Card>
-            </Grid>
+                Visit our GitHub Page
+              </a>
+            </button>
 
-            {/* <Grid item xs={12} sm={6} md={4}>
-              <Card
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            <button style={{ flex: 1, backgroundColor: 'white', color: 'black', border: 'none', padding: '10px', textAlign: 'center' }}>
+              <a
+                href="/acknowledgements"
+                style={{
+                  color: 'black',
+                  textDecoration: 'none',
+                  transition: 'color 0.3s ease',
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#0099FF'}
+                onMouseLeave={(e) => e.target.style.color = 'black'}
               >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h5" component="h2" align='center'>
-                    Create Distributed Connection
-                  </Typography>
-                  <Typography align='center'>
-                    Create a Distributed Connection to Store Your Datasets in Your Own S3 Bucket
-                  </Typography>
-                </CardContent>
-                <CardActions style={{ justifyContent: 'center' }}>
-                  <Button onClick={() => navigate("/distributed")} variant="contained" sx={{ borderRadius: 50, bgcolor: 'black', color: 'white' }}>SELECT</Button>
-                </CardActions>
-              </Card>
-            </Grid> */}
-          </Grid>
-        </Container>
-      </main>
-
-      <footer>
-        <Container sx={{ py: 4, maxWidth: '70%' }} maxWidth={false}>
-          <Grid container spacing={4} justifyContent="center">
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography
-                variant="subtitle1"
-                align="center"
-                color="text.secondary"
-                component="div"
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-              >
-                <Link to="mailto:sbuongiorno@smu.edu">
-                  Contact Us
-                </Link>
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography
-                variant="subtitle1"
-                align="center"
-                color="text.secondary"
-                component="div"
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-              >
-                <Link to="https://github.com/stephbuon/democracy-viewer-demo/tree/main" target="_blank" rel="noopener noreferrer">
-                  Visit our GitHub Page
-                </Link>
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography
-                variant="subtitle1"
-                align="center"
-                color="text.secondary"
-                component="div"
-                sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-              >
-                <Link to="/acknowledgements">
-                  Acknowledgements
-                </Link>
-              </Typography>
-            </Grid>
-          </Grid>
-        </Container>
-      </footer>
+                Acknowledgements
+              </a>
+            </button>
+          </div>
+        </footer>
+      </Box>
     </ThemeProvider>
   );
 }

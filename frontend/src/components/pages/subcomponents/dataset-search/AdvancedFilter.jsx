@@ -19,7 +19,7 @@ export const AdvancedFilter = (props) => {
     //values
     const [title, setTitle] = useState('');
     const [email, setEmail] = useState('');
-    const [publicPrivate, setPublicPrivate] = useState(true);
+    // const [publicPrivate, setPublicPrivate] = useState(true);
     const [selectedTags, setSelectedTags] = useState([]);
     const [description, setDescription] = useState('');
 
@@ -28,7 +28,7 @@ export const AdvancedFilter = (props) => {
             title: title ? title : null,
             description: description ? description : null,
             email: email ? email : null,
-            type: publicPrivate ? 'public' : 'private',
+            // type: publicPrivate ? 'public' : 'private',
             tag: selectedTags.length > 0 ? selectedTags.map(x => x.value) : null,
             advanced: true
         };
@@ -113,7 +113,7 @@ export const AdvancedFilter = (props) => {
                     />
                 </Box>
 
-                <Box sx={{ mb: 2 }}>
+                {/* <Box sx={{ mb: 2 }}>
                     <FormControl
                         fullWidth
                         variant="filled" 
@@ -129,7 +129,7 @@ export const AdvancedFilter = (props) => {
                             <MenuItem value={false}>Private</MenuItem>
                         </Select>
                     </FormControl>
-                </Box>
+                </Box> */}
 
                 <Box sx={{ mb: 2 }}>
                     <FormattedMultiSelectField

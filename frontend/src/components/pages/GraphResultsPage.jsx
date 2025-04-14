@@ -1,75 +1,76 @@
 import { useState, useEffect } from "react";
 
-//MUI Imports
+// MUI Imports
 import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Snackbar, Alert, Grid, Typography } from '@mui/material';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import { Stack } from '@mui/system';
 
 // Other Imports
-import { FilterDatasets, FilterDatasetsCount } from '../../api';
-import { AdvancedFilter } from './subcomponents/dataset-search';
-import { DatasetTable } from '../common/tables';
+import { filterGraphs, filterGraphsCount } from '../../api';
+import { GraphTable } from "../common/tables";
+import { AdvancedFilter } from './subcomponents/dataset-search'; // Assuming this is the same component or you have an equivalent
 
 const pageLength = 5;
 
-export const DatasetResultsPage = (props) => {
-    //temp values
-
+export const GraphResultsPage = (props) => {
+    // temp values
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [publicPrivate, setPublicPrivate] = useState(true);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
-
     const [alert, setAlert] = useState(1);
-
-    //pagination
+    
+    // pagination
     const [pageFilter, setPageFilter] = useState(null);
     const [totalNumResults, setTotalNumOfResults] = useState(0);
-
+    
     const [loadingResults, setLoadingResults] = useState(false);
     const [snackBarOpen1, setSnackBarOpen1] = useState(false);
 
     const filterResults = () => {
         const filter = {
+            type: publicPrivate ? 'public' : 'private',
             pageLength
-        }
+        };
         if (searchTerm) {
-            filter.__search__= searchTerm;
+            filter.__search__ = searchTerm;
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
-        FilterDatasets(filter, 1).then((res) => {
+        filterGraphs(filter, 1).then((res) => {
             setLoadingResults(false);
 
             if (!res) { setSearchResults([]) }
             else { setSearchResults(res) }
-        })
-        FilterDatasetsCount(filter).then(async (res) => {
+        });
+        filterGraphsCount(filter).then(async (res) => {
             setTotalNumOfResults(res);
-        })
-    }
+        });
+    };
+
     const advancedFilterResults = (advancedFilter) => {
         advancedFilter = { ...advancedFilter, pageLength };
         setPageFilter({ ...advancedFilter });
         setLoadingResults(true);
-        FilterDatasets(advancedFilter, 1).then(async res => {
+        filterGraphs(advancedFilter, 1).then(async res => {
             setLoadingResults(false);
 
             if (!res) { setSearchResults([]) }
             else { setSearchResults(res) }
 
             handleAdvancedFilterClose()
-        })
-        FilterDatasetsCount(advancedFilter).then(async (res) => {
+        });
+        filterGraphsCount(advancedFilter).then(async (res) => {
             setTotalNumOfResults(res);
-        })
-    }
+        });
+    };
 
     const GetNewPage = async (selectedPage) => {
         setLoadingResults(true);
 
         try {
-            const res = await FilterDatasets(pageFilter, selectedPage);
+            const res = await filterGraphs(pageFilter, selectedPage);
             if (res) {
                 setSearchResults(res);
             }
@@ -81,37 +82,43 @@ export const DatasetResultsPage = (props) => {
     };
 
     const loggedIn = () => {
-        if(props.currUser) {
+        if (props.currUser) {
             return true;
-          } else {
+        } else {
             const demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
             if (demoV && demoV.user) {
-              return true;
+                return true;
             } else {
-              return false;
+                return false;
             }
-          }
-    }
+        }
+    };
+    
     const openSnackbar = () => {
         if (!loggedIn()) {
-            setSnackBarOpen(true)
+            setSnackBarOpen(true);
         }
-    }
+    };
+    
     const handleSnackBarClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
         setSnackBarOpen(false);
     };
+    
     const openAdvancedFilter = () => {
         setAdvancedFilterOpen(true);
-    }
+    };
+    
     const handleAdvancedFilterClose = () => {
         setAdvancedFilterOpen(false);
-    }
+    };
+    
     const openSnackbar1 = () => {
-        setSnackBarOpen1(true)
-    }
+        setSnackBarOpen1(true);
+    };
+    
     const handleSnackBarClose1 = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -123,7 +130,7 @@ export const DatasetResultsPage = (props) => {
         if (event.key === "Enter") {
             filterResults();
         }
-    }
+    };
 
     // Add a new useEffect to handle automatic filtering when searchTerm changes
     useEffect(() => {
@@ -142,7 +149,7 @@ export const DatasetResultsPage = (props) => {
             setAlert(1);
             openSnackbar1()
         }
-        filterResults()
+        filterResults();
     }, []);
 
     return (
@@ -173,7 +180,7 @@ export const DatasetResultsPage = (props) => {
                         color: 'Black'
                     }}
                 >
-                    Search Datasets
+                    Find a Visualization
                 </Typography>
             </Box>
             
@@ -225,7 +232,7 @@ export const DatasetResultsPage = (props) => {
                     
                     {/* Results Section */}
                     <Box sx={{ width: '100%' }}>
-                        <DatasetTable
+                        <GraphTable
                             searchResults={searchResults}
                             loadingResults={loadingResults}
                             setDataset={props.setDataset}

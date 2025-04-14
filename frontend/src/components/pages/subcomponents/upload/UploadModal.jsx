@@ -40,7 +40,7 @@ export const UploadModal = (props) => {
 
     const [license, setLicense] = useState("");
     const [title, setTitle] = useState('');
-    const [publicPrivate, setPublicPrivate] = useState(false);
+    const [publicPrivate, setPublicPrivate] = useState(0);
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState([]);
    

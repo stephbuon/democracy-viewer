@@ -4,12 +4,11 @@ import {
     Toolbar, Box, CssBaseline, createTheme, ThemeProvider, Button
 } from '@mui/material';
 import { LinkedIn, Email, PermIdentity, Person, Work, Language } from '@mui/icons-material';
-import { getUser, deleteAccount, FilterDatasets, FilterDatasetsCount } from "../../api";
+import { getUser, deleteAccount, FilterDatasets, FilterDatasetsCount, filterGraphs, filterGraphsCount } from "../../api";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { EditProfile } from "./subcomponents/profile";
-import { DatasetTable } from "../common/tables/DatasetTable";
 import { AlertDialog } from "../common/AlertDialog";
-import { SuggestChangesTable } from "../common/tables/SuggestChangesTable";
+import { SuggestChangesTable, DatasetTable, GraphTable } from "../common/tables";
 
 const mdTheme = createTheme();
 
@@ -32,8 +31,14 @@ export const Profile = (props) => {
     const [likeSearchResults, setLikeSearchResults] = useState([]);
     const [totalNumOfLikeResults, setTotalNumOfLikeResults] = useState(0);
 
-    const [suggestionsFor, setSuggestionsFor] = useState([]);
-    const [suggestionsFrom, setSuggestionsFrom] = useState([]);
+    const [loadingResultsGraph, setLoadingResultsGraph] = useState(false);
+    const [searchResultsGraph, setSearchResultsGraph] = useState([]);
+    const [totalNumOfResultsGraph, setTotalNumOfResultsGraph] = useState(0);
+
+    const [loadingLikeResultsGraph, setLoadingLikeResultsGraph] = useState(false);
+    const [likeSearchResultsGraph, setLikeSearchResultsGraph] = useState([]);
+    const [totalNumOfLikeResultsGraph, setTotalNumOfLikeResultsGraph] = useState(0);
+
     const [refreshSuggestions, setRefreshSuggestions] = useState(false);
 
     const GetNewPage = (num) => {
@@ -72,6 +77,42 @@ export const Profile = (props) => {
         });
     }
 
+    const GetNewPageGraph = (num) => {
+        const filter = {
+            user: params.email,
+            pageLength
+        };
+        setLoadingResultsGraph(true);
+        filterGraphs(filter, num).then((res) => {
+            setLoadingResultsGraph(false);
+
+            if (!res) { setSearchResultsGraph([]) }
+            else { setSearchResultsGraph(res) }
+        });
+
+        filterGraphsCount(filter).then(async (res) => {
+            setTotalNumOfResultsGraph(res);
+        });
+    }
+
+    const getNewLikePageGraph = (num) => {
+        const filter = {
+            liked: params.email,
+            pageLength
+        };
+        setLoadingLikeResults(true);
+        filterGraphs(filter, num).then((res) => {
+            setLoadingLikeResultsGraph(false);
+
+            if (!res) { setLikeSearchResultsGraph([]) }
+            else { setLikeSearchResultsGraph(res) }
+        });
+
+        filterGraphsCount(filter).then(async (res) => {
+            setTotalNumOfLikeResultsGraph(res);
+        });
+    }
+
     const onDelete = () => {
         deleteAccount();
         props.logout();
@@ -96,6 +137,9 @@ export const Profile = (props) => {
 
         GetNewPage(1);
         getNewLikePage(1);
+
+        GetNewPageGraph(1);
+        getNewLikePageGraph(1);
     }, [params.email, props.currUser]);
 
     if (!user) {
@@ -206,6 +250,8 @@ export const Profile = (props) => {
                                     }
                                 </Paper>
                             </Grid>
+
+                            {/* View datasets */}
                             <Grid item xs={12} md={6}>
                                 <Paper
                                     elevation={12}
@@ -251,6 +297,57 @@ export const Profile = (props) => {
                                         GetNewPage={getNewLikePage}
                                         editable={false}
                                         totalNumResults={totalNumOfLikeResults}
+                                        pageLength={pageLength}
+                                    />
+                                </Paper>
+                            </Grid>
+
+                            {/* View published graphs */}
+                            <Grid item xs={12} md={6}>
+                                <Paper
+                                    elevation={12}
+                                    sx={{
+                                        p: 2,
+                                        m: 5,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <h1>My Graphs</h1>
+                                    <GraphTable
+                                        loadingResults={loadingResultsGraph}
+                                        searchResults={searchResultsGraph}
+                                        setDataset={props.setDataset}
+                                        GetNewPage={GetNewPageGraph}
+                                        editable={editable}
+                                        totalNumResults={totalNumOfResultsGraph}
+                                        pageLength={pageLength}
+                                        deleteCallback={() => GetNewPageGraph(1)}
+                                    />
+                                </Paper>
+                            </Grid>
+                            <Grid  item xs={12} md={6}>
+                                <Paper
+                                    elevation={12}
+                                    sx={{
+                                        p: 2,
+                                        m: 5,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        width: '100%',
+                                    }}
+                                >
+                                    <h1>Bookmarked Graphs</h1>
+                                    <GraphTable
+                                        loadingResults={loadingLikeResultsGraph}
+                                        searchResults={likeSearchResultsGraph}
+                                        setDataset={props.setDataset}
+                                        GetNewPage={getNewLikePageGraph}
+                                        editable={false}
+                                        totalNumResults={totalNumOfLikeResultsGraph}
                                         pageLength={pageLength}
                                     />
                                 </Paper>

@@ -21,7 +21,7 @@ export const DownloadStarted = () => {
             } else if (params.type === "ids") {
                 const data = JSON.parse(localStorage.getItem("selected"));
 
-                DownloadIds(data.dataset, data.ids).then(res => window.open(res.url));;
+                DownloadIds(data.dataset, data.name).then(res => window.open(res.url));;
             } else {
                 setMessage(`Unrecognized download type: ${ params.type }.`);
             }

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../../../../api"
 import { Paper, Button, FormControl, InputLabel, MenuItem, Modal, Select, Tooltip, Typography } from "@mui/material";
-import { metricNames, metricSettings, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes } from "./metrics.js";
+import { metricNames, metricSettings, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes, clusteringMetrics } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "../../../common";
 import "../../../../styles/List.css";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,9 @@ export const GraphSettings = ( props ) => {
     const [checkGroupOptions, setCheckGroupOptions] = useState(false);
     const [groupOptions, setGroupOptions] = useState([]);
     const [groupList, setGroupList] = useState([]);
+    const [networkValid, setNetworkValid] = useState(false);
+    const [toCol, setToCol] = useState("");
+    const [fromCol, setFromCol] = useState("");
     const [refreshGroupOptions, setRefreshGroupOptions] = useState(true);
     const [group, setGroup] = useState("");
     const [metric, setMetric] = useState("counts");
@@ -30,6 +33,7 @@ export const GraphSettings = ( props ) => {
     const [posValid, setPosValid] = useState(false);
     const [posList, setPosList] = useState([]);
     const [topn, setTopn] = useState("5");
+    const [numClusters, setNumClusters] = useState("5");
     const [savedSettings, setSavedSettings] = useState(undefined);
     const [firstUpdate, setFirstUpdate] = useState(true);
     const [embedCols, setEmbedCols] = useState([]);
@@ -47,6 +51,9 @@ export const GraphSettings = ( props ) => {
             setLastMetric(settings.metric);
             setGroup(settings.group_name);
             setTopn(String(settings.topn));
+            setNumClusters(String(settings.num_clusters));
+            setToCol(settings.to_col);
+            setFromCol(settings.from_col);
 
             let searchList = []
             settings.group_list.forEach(x => {
@@ -85,7 +92,7 @@ export const GraphSettings = ( props ) => {
                 }
             })
         }
-    }, []);
+    }, [props.newSettings]);
 
     useEffect(() => {
         if (posOptionalMetrics.includes(metric) && props.dataset.dataset.preprocessing_type === "lemma") {
@@ -119,6 +126,12 @@ export const GraphSettings = ( props ) => {
             updateGroupNames();
         }
 
+        if (metricTypes.directedGraph.includes(metric)) {
+            setNetworkValid(true);
+        } else {
+            setNetworkValid(false);
+        }
+
         setLastMetric(metric);
     }, [metric, embedCols]);
 
@@ -132,7 +145,10 @@ export const GraphSettings = ( props ) => {
                 metric: metric,
                 word_list: searchTerms.map(x => x.value),
                 pos_list: posList.map(x => x.value),
-                topn: parseInt(topn)
+                topn: parseInt(topn),
+                num_clusters: parseInt(numClusters),
+                to_col: toCol,
+                from_col: fromCol
             };
             props.updateGraph(params);
             localStorage.setItem('graph-settings', JSON.stringify(params));
@@ -205,6 +221,12 @@ export const GraphSettings = ( props ) => {
         if (settings.column !== false && !group) {
             setDisabled(true);
             setDisabledMessage("You must select a column to group by for this metric");
+        } else if (
+            (settings.toCol && !toCol) ||
+            (settings.fromCol && !fromCol)
+        ) {
+            setDisabled(true);
+            setDisabledMessage(`You must select a to column and a from column`);
         } else if (settings.values !== false && groupList.length !== settings.values) {
             setDisabled(true);
             setDisabledMessage(`You must select ${ settings.values } column value(s) for this metric`);
@@ -218,7 +240,7 @@ export const GraphSettings = ( props ) => {
             setDisabled(false);
             setDisabledMessage("");
         }
-    }, [metric, group, searchTerms, groupList]);
+    }, [metric, group, searchTerms, groupList, toCol, fromCol]);
 
     return <>
         <Modal open={props.show}
@@ -239,7 +261,7 @@ export const GraphSettings = ( props ) => {
             padding: "16px", 
             position: "relative"}}>
                 {/* {"Title"} */}
-                <h2 id="child-modal-title">Graph Settings</h2>
+                <h2 id="child-modal-title">Graph Settings For "{ props.dataset.dataset.title }"</h2>
 
                 {/* Metric select dropdown */}
                 <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
@@ -274,53 +296,104 @@ export const GraphSettings = ( props ) => {
                     </>
                 }
 
-                {/* Column select dropdown */}
-                <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
-                    <InputLabel>Group By</InputLabel>
-                    <Select
-                        value = {group}
-                        onChange = {event => {
-                            setCheckGroupOptions(true);
-                            setGroup(event.target.value);
-                        }}
-                    >
-                        {
-                            embeddingMetrics.includes(metric) === false &&
-                            <MenuItem value = ""> &nbsp;</MenuItem>
-                        }
-                        {
-                            groupOptions.map(option => (
-                                <MenuItem value = { option.value }>
-                                    { option.label }
-                                </MenuItem>
-                            ))
-                        }
-                    </Select>
-                </FormControl>
+                {
+                    networkValid === false &&
+                    <>
+                        {/* Column select dropdown */}
+                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                            <InputLabel>Group By</InputLabel>
+                            <Select
+                                value = {group}
+                                onChange = {event => {
+                                    setCheckGroupOptions(true);
+                                    setGroup(event.target.value);
+                                }}
+                            >
+                                {
+                                    embeddingMetrics.includes(metric) === false &&
+                                    <MenuItem value = ""> &nbsp;</MenuItem>
+                                }
+                                {
+                                    groupOptions.map(option => (
+                                        <MenuItem value = { option.value }>
+                                            { option.label }
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
 
-                <FormattedMultiSelectField
-                    label = "Filter For"
-                    selectedOptions={groupList}
-                    setSelectedOptions={setGroupList}
-                    getData={params => getGroupSuggestions(params)}
-                    id="valueSelect"
-                    isDisabled={selectToggle}
-                    className="mb-3"
-                    closeMenuOnSelect={false}
-                    refresh={refreshGroupOptions}
-                />
+                        <FormattedMultiSelectField
+                            label = "Filter For"
+                            selectedOptions={groupList}
+                            setSelectedOptions={setGroupList}
+                            getData={params => getGroupSuggestions(params)}
+                            id="valueSelect"
+                            isDisabled={selectToggle}
+                            className="mb-3"
+                            closeMenuOnSelect={false}
+                            refresh={refreshGroupOptions}
+                        />
 
-                {/* Custom search + terms list */}
-                <FormattedMultiSelectField
-                    label = "Custom Search"
-                    selectedOptions={searchTerms}
-                    setSelectedOptions={setSearchTerms}
-                    // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
-                    getData={getWordSuggestions}
-                    id="customSearchSelect"
-                    className="mb-3"
-                    closeMenuOnSelect={false}
-                />
+                        {/* Custom search + terms list */}
+                        <FormattedMultiSelectField
+                            label = "Custom Search"
+                            selectedOptions={searchTerms}
+                            setSelectedOptions={setSearchTerms}
+                            // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
+                            getData={getWordSuggestions}
+                            id="customSearchSelect"
+                            className="mb-3"
+                            closeMenuOnSelect={false}
+                        />
+                    </>
+                }
+
+                {
+                    networkValid === true &&
+                    <>
+                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                            <InputLabel>To Column</InputLabel>
+                            <Select
+                                value = {toCol}
+                                onChange = {event => {
+                                    setToCol(event.target.value);
+                                }}
+                            >
+                                <MenuItem value = ""> &nbsp;</MenuItem>
+                                {
+                                    groupOptions.map(option => (
+                                        <MenuItem value = { option.value }>
+                                            { option.label }
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
+
+                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                            <InputLabel>From Column</InputLabel>
+                            <Select
+                                value = {fromCol}
+                                onChange = {event => {
+                                    setFromCol(event.target.value);
+                                }}
+                            >
+                                {
+                                    embeddingMetrics.includes(metric) === false &&
+                                    <MenuItem value = ""> &nbsp;</MenuItem>
+                                }
+                                {
+                                    groupOptions.map(option => (
+                                        <MenuItem value = { option.value }>
+                                            { option.label }
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
+                    </>
+                }
 
                 {
                     (
@@ -334,6 +407,20 @@ export const GraphSettings = ( props ) => {
                             fullWidth
                             defaultValue={topn}
                             setValue={setTopn}
+                            numeric
+                            sx={{ zIndex: 0, marginTop: "10px" }}
+                        />
+                    )
+                }
+
+                {
+                    clusteringMetrics.includes(metric) && (
+                        <FormattedTextField
+                            id="num-clusters"
+                            label="Number of Clusters"
+                            fullWidth
+                            defaultValue={numClusters}
+                            setValue={setNumClusters}
                             numeric
                             sx={{ zIndex: 0, marginTop: "10px" }}
                         />

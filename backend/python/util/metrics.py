@@ -93,7 +93,7 @@ def tf_idf_bar(table_name: str, column: str, values: list[str], word_list: list[
         values = data.get_column_values(table_name, column, 10, token)
     
     # Generate query for metric calculations
-    query = data.metric_tf_idf_bar(table_name, column, values, word_list, pos_list)
+    query = data.metric_tf_idf_bar(table_name, column, values, word_list, pos_list, topn)
     # Run query
     df = data.run_query(query, token)
     
@@ -128,3 +128,8 @@ def jsd(table_name: str, column: str, values: list[str], word_list: list[str], p
     
     return df
     
+def network_analysis(table_name: str, to_col: str, from_col: str, token: str) -> pl.DataFrame:
+    query = data.metric_networks(table_name, to_col, from_col)
+    df = data.run_query(query, token)
+    
+    return df.collect()

@@ -73,6 +73,14 @@ const waitAthenaQuery = async(queryId) => {
     }
 }
 
+const deleteFile = async(file) => {
+    const deleteCommand = new DeleteObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: file
+    });
+    await s3Client.send(deleteCommand);
+}
+
 const renameFile = async(oldFile, newFile) => {
     const copyCommand = new CopyObjectCommand({
         CopySource: `${ process.env.S3_BUCKET }/${ oldFile }`,
@@ -81,11 +89,7 @@ const renameFile = async(oldFile, newFile) => {
     });
     await s3Client.send(copyCommand);
 
-    const deleteCommand = new DeleteObjectCommand({
-        Bucket: process.env.S3_BUCKET,
-        Key: oldFile
-    });
-    await s3Client.send(deleteCommand);
+   await deleteFile(oldFile);
 }
 
 const checkFileExists = async(filePath) => {
@@ -215,6 +219,40 @@ const downloadFileDirect = async(query) => {
     return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
+const downloadGraph = async(name) => {
+    // Specify file to download
+    const command = new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: `graphs/${ name }/graph.png`
+    });
+
+    // Return signed url
+    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+}
+
+const uploadGraph = async(name) => {
+    // Generate file path for this graph and its settings
+    const graphPath = `graphs/${ name }/graph.png`;
+
+    // Check if this graph has already been uploaded
+    const graphExists = await checkFileExists(graphPath);
+
+    if (graphExists ) {
+        // Return placeholder if this graph has already been uploaded
+        return "Already uploaded";
+    }
+
+    // Specify file upload command for an image
+    const uploadCommand = new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: graphPath,
+        ContentType: "image/png"
+    });
+
+    // Get upload API URL
+    return await getSignedUrl(s3Client, uploadCommand, { expiresIn: 3600 });
+}
+
 const uploadFileDirect = async(table_name) => {
     const command = new PutObjectCommand({
         Bucket: process.env.S3_BUCKET,
@@ -238,10 +276,14 @@ const uploadFile = async(localFile, s3File) => {
 }
 
 module.exports = {
+    checkFileExists,
     download,
     downloadFile,
     submitBatchJob,
     downloadFileDirect,
+    uploadGraph,
+    uploadFile,
+    deleteFile,
+    downloadGraph
     uploadFileDirect,
-    uploadFile
 }

@@ -141,3 +141,26 @@ CREATE TABLE text_updates (
     FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE,
     FOREIGN KEY(table_name, col) REFERENCES dataset_all_cols(table_name, col) ON DELETE CASCADE
 );
+
+CREATE TABLE graph_metadata (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(30) NOT NULL,
+    s3_id VARCHAR(50) NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    description VARCHAR(500),
+    is_public BOOLEAN DEFAULT FALSE NOT NULL,
+    clicks INT DEFAULT 0 NOT NULL,
+    date_posted DATE NOT NULL,
+    likes INT DEFAULT 0 NOT NULL,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
+    FOREIGN KEY(table_name) REFERENCES dataset_metadata(table_name) ON DELETE CASCADE
+);
+
+CREATE TABLE liked_graphs (
+    email VARCHAR(30) NOT NULL,
+    graph_id BIGINT UNSIGNED NOT NULL,
+    FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
+    FOREIGN KEY(graph_id) REFERENCES graph_metadata(id) ON DELETE CASCADE,
+    PRIMARY KEY(email, graph_id)
+);
