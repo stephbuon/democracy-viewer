@@ -153,8 +153,8 @@ const createBatch = async(knex, table, email) => {
     }
 
     // Get a signed url to upload the file
-    const batch = metadata.batch_num + 1;
-    const url = await aws.uploadFileDirect(table_name, batch)
+    const batch = metadata.num_batches + 1;
+    const url = await aws.uploadFileDirect(table, batch)
 
     return {
         batch,
@@ -178,7 +178,7 @@ const uploadBatch = async(knex, table, batch, email) => {
     let oldCols = await model.getColumnNames(table);
     oldCols = oldCols.map(x => x.col);
     // Get the new column names from the temp cols table
-    const newCols = await getTempCols(table);
+    const newCols = await getTempCols(knex, table);
 
     // Delete temp columns as they are no longer needed
     await model.deleteTempCols(table);

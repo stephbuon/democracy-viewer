@@ -98,6 +98,32 @@ router.post('/upload/stopwords/:table', authenticateJWT, async(req, res, next) =
     next();
 });
 
+// Route to create a batch
+router.post('/batch/:table_name', authenticateJWT, async(req, res, next) => {
+    try {
+        // Create dataset in database from file
+        const result = await control.createBatch(req.knex, req.params.table_name, req.user.email);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to create batch:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to upload a batch
+router.post('/batch/:table_name/upload/:batch', authenticateJWT, async(req, res, next) => {
+    try {
+        // Create dataset in database from file
+        const result = await control.uploadBatch(req.knex, req.params.table_name, req.params.batch, req.user.email);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to upload batch:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
 // Route to reprocess a dataset
 router.put('/reprocess/:table', authenticateJWT, async(req, res, next) => {
     try {
