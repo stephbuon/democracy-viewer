@@ -1,12 +1,21 @@
-import { postRequest, deleteRequest, putRequest } from "./util";
+import { postRequest, deleteRequest, putRequest, getRequest, signedURLPutRequest } from "./util";
+
+export const getTempCols = async(table_name) => {
+    const endpoint = `/datasets/columns/${ table_name }/temp`;
+    return await getRequest(endpoint);
+}
 
 export const CreateDataset = async(dataset, setProgress) => {
-    const formData = new FormData();
-    formData.append("file", dataset);
+    // Create dataset to get signed url and table name
+    const { table_name, url } = await postRequest(`/datasets`);
 
     const settings = {
-        isFileUpload: true
+        headers: {
+            "Content-Type": "text/csv"
+        },
+        maxBodyLength: Infinity
     };
+
     if (setProgress) {
         settings.onUploadProgress = (progressEvent) => {
             const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
@@ -14,8 +23,13 @@ export const CreateDataset = async(dataset, setProgress) => {
         }
     }
 
-    const endpoint = `/datasets`;
-    return await postRequest(endpoint, formData, settings);
+    // Upload dataset to signed url
+    await signedURLPutRequest(url,  dataset, settings);
+
+    // Get temporary columns for modal
+    const headers = await getTempCols(table_name);
+
+    return { table_name, headers };
 };
 
 export const UploadDataset = async (table_name, metadata, text, embed, tags) =>  {

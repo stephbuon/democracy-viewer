@@ -62,6 +62,8 @@ CREATE TABLE dataset_metadata (
     num_records INT UNSIGNED NOT NULL DEFAULT 0,
     license VARCHAR(200),
     reprocess_start BOOLEAN DEFAULT FALSE NOT NULL,
+    num_batches INT DEFAULT 1 NOT NULL,
+    batches_done INT DEFAULT 0 NOT NULL,
     FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY(distributed) REFERENCES distributed_connections(id)
 --     FOREIGN KEY(private_group) REFERENCES private_groups(id) ON DELETE CASCADE

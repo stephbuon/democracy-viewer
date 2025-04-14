@@ -155,43 +155,29 @@ const downloadFile = async(localFile, folder, name) => {
     }
 }
 
-const submitBatchJob = async(table_name) => {
-    // Set config based on size of dataset
-    let queue, def, num_threads;
-    const local_path = `files/s3/datasets/${ table_name }.parquet`;
-    const sizeMB = util.getFileSize(local_path);
-    if (process.env.BATCH_QUEUE_LARGE && process.env.BATCH_DEF_LARGE) {
-        if (sizeMB < 250) {
-            queue = process.env.BATCH_QUEUE;
-            def = process.env.BATCH_DEF;
-            num_threads = 4;
-        } else {
-            queue = process.env.BATCH_QUEUE_LARGE;
-            def = process.env.BATCH_DEF_LARGE;
-            num_threads = 15;
+const submitBatchJob = async(table_name, batch_num = null) => {
+    let params = {
+        table_name
+    };
+    let name = `${ table_name }`
+    if (batch_num) {
+        params = {
+            ...params,
+            batch_num
         }
-    } else {
-        queue = process.env.BATCH_QUEUE;
-        def = process.env.BATCH_DEF;
-        num_threads = 4;
+        name += `-${ batch_num }`;
     }
 
     // Submit job
     const command = new SubmitJobCommand({
-        jobName: table_name,
-        jobQueue: queue,
-        jobDefinition: def,
-        parameters: {
-           table_name,
-           num_threads
-        }
+        jobName: name,
+        jobQueue: process.env.BATCH_QUEUE_LARGE,
+        jobDefinition: process.env.BATCH_START_PROCESSING_DEF,
+        parameters: params
     });
     const response = await batchClient.send(command);
     console.log("Batch job submitted:");
     console.log(response);
-
-    // Delete file when job is submitted
-    util.deleteDatasetFiles(table_name);
 }
 
 const downloadFileDirect = async(query) => {
@@ -253,10 +239,17 @@ const uploadGraph = async(name) => {
     return await getSignedUrl(s3Client, uploadCommand, { expiresIn: 3600 });
 }
 
-const uploadFileDirect = async(table_name) => {
+const uploadFileDirect = async(table_name, batch_num = null) => {
+    let name;
+    if (batch_num) {
+        name = `temp_uploads/${ table_name }-${ batch_num }.csv`;
+    } else {
+        name = `temp_uploads/${ table_name }.csv`;
+    }
+
     const command = new PutObjectCommand({
         Bucket: process.env.S3_BUCKET,
-        Key: `temp_uploads/${ table_name }.csv`,
+        Key: name,
         ContentType: "text/csv"
     });
 
@@ -275,6 +268,22 @@ const uploadFile = async(localFile, s3File) => {
         .done();
 }
 
+const deleteTempUpload = async(table, batch_num = null) => {
+    let path;
+    if (batch_num) {
+        path = `temp_uploads/${ table }-${ batch_num }.csv`;
+    } else {
+        path = `temp_uploads/${ table }.csv`;
+    }
+
+    const command = new DeleteObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: path
+    });
+
+    await s3Client.send(command);
+}
+
 module.exports = {
     checkFileExists,
     download,
@@ -284,6 +293,8 @@ module.exports = {
     uploadGraph,
     uploadFile,
     deleteFile,
-    downloadGraph
+    downloadGraph,
     uploadFileDirect,
+    uploadFile,
+    deleteTempUpload
 }

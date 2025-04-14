@@ -95,7 +95,7 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     // Upload metadata
     await model.createMetadata(name, email, metadata);
     // Upload all columns
-    const headers = await model.getTempCols(name);
+    const headers = await getTempCols(knex, name);
     await model.addCols(name, headers);
     // Upload text columns
     await model.addTextCols(name, textCols);
@@ -140,8 +140,8 @@ const reprocessDataset = async(knex, table, email) => {
     await model.updateMetadata(table, { reprocess_start: true });
 }
 
-// Add records to a dataset with a new uploaded file
-const addRecords = async(knex, table, email, path) => {
+// Create signed url to upload a new batch for a dataset
+const createBatch = async(knex, table, email) => {
     const model = new datasets(knex);
 
     // Get the current metadata for this table
@@ -152,25 +152,59 @@ const addRecords = async(knex, table, email, path) => {
         throw new Error(`User ${ email } is not the owner of this dataset`);
     }
 
-    // Get column names from current version of dataset
-    const oldHeaders = await dataQueries.columnNames(table);
+    // Get a signed url to upload the file
+    const batch = metadata.batch_num + 1;
+    const url = await aws.uploadFileDirect(table_name, batch)
 
-    // Read uploaded file and collect column names
-    const df = util.lazyLoadFile(path);
-    const newHeaders = df.columns;
+    return {
+        batch,
+        url
+    };
+}
 
-    // Throw error if new headers don't match old headers
-    const oldHeadersStr = oldHeaders.sort().toString();
-    const newHeadersStr = newHeaders.sort().toString()
-    if (oldHeadersStr !== newHeadersStr) {
-        throw new Error(`Uploaded file headers do not match existing headers.
-            Old headers: ${ oldHeadersStr }
-            New headers: ${ newHeadersStr }
+// Start processing a new batch for a dataset
+const uploadBatch = async(knex, table, batch, email) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    // Get the old column names for this dataset
+    let oldCols = await model.getColumnNames(table);
+    oldCols = oldCols.map(x => x.col);
+    // Get the new column names from the temp cols table
+    const newCols = await getTempCols(table);
+
+    // Delete temp columns as they are no longer needed
+    await model.deleteTempCols(table);
+
+    // Check if the old and new columns match
+    const columnsMatch = (cols1 = [], cols2 = []) => {
+        if (cols1.length !== cols2.length) {
+            return false;
+        }
+
+        return cols1.every(x => cols2.includes(x));
+    }
+
+    // Throw error if columns don't match and delete dataset from s3
+    if (!columnsMatch(oldCols, newCols)) {
+        await aws.deleteTempUpload(table, batch);
+        await model.deleteTempCols(table);
+        throw new Error(`
+            Column names of given file do not match existing data.
+            Old columns: ${ oldCols }
+            New columns: ${ newCols }
         `);
     }
 
-    // Upload new file to s3
-    await runPython("upload_dataset", [ name, path ], metadata.distributed);
+    // Start processing job for new data
+    await aws.submitBatchJob(table, batch);
 }
 
 // Add a tag for a dataset
@@ -722,6 +756,8 @@ module.exports = {
     reprocessDataset,
     addTag,
     addSuggestion,
+    createBatch,
+    uploadBatch,
     updateMetadata,
     incClicks,
     updateText,
