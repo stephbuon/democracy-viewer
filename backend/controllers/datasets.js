@@ -8,22 +8,15 @@ const dataQueries = require("../util/data_queries");
 const aws = require("../util/aws");
 
 // Upload a new dataset from a csv file
-const createDataset = async(path, email) => {
-    // Get the file name from the file path
-    let filepath = path.split("/");
-    const extension = filepath.pop().split(".").pop();
-    filepath = filepath.join("/");
+const createDataset = async(email) => {
+    // Get the file name from the user's email and a time stamp
     const table_name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
-    const newName = `${ filepath }/${ table_name }.${ extension }`;
-    // Rename file
-    util.renameFile(path, newName);
-
-    // Get column names
-    const headers = await util.getCsvHeaders(newName);
+    // Get a signed url to upload the file
+    const url = await aws.uploadFileDirect(table_name)
 
     return {
         table_name,
-        headers
+        url
     };
 }
 
@@ -102,8 +95,7 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     // Upload metadata
     await model.createMetadata(name, email, metadata);
     // Upload all columns
-    const path = `files/uploads/${ name }.csv`;
-    const headers = await util.getCsvHeaders(path);
+    const headers = await model.getTempCols(name);
     await model.addCols(name, headers);
     // Upload text columns
     await model.addTextCols(name, textCols);
@@ -115,9 +107,9 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     if (tags && tags.length > 0) {
         await model.addTag(name, tags);
     }
-    
-    // Upload raw data to s3
-    await runPython("upload_dataset", [ name, path ], metadata.distributed);
+
+    // Delete temp columns
+    await model.deleteTempCols(name);
 
     // Start batch preprocessing
     await aws.submitBatchJob(name);
@@ -146,6 +138,39 @@ const reprocessDataset = async(knex, table, email) => {
 
     // Update metadata to indicate reprocessing has begun
     await model.updateMetadata(table, { reprocess_start: true });
+}
+
+// Add records to a dataset with a new uploaded file
+const addRecords = async(knex, table, email, path) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    // Get column names from current version of dataset
+    const oldHeaders = await dataQueries.columnNames(table);
+
+    // Read uploaded file and collect column names
+    const df = util.lazyLoadFile(path);
+    const newHeaders = df.columns;
+
+    // Throw error if new headers don't match old headers
+    const oldHeadersStr = oldHeaders.sort().toString();
+    const newHeadersStr = newHeaders.sort().toString()
+    if (oldHeadersStr !== newHeadersStr) {
+        throw new Error(`Uploaded file headers do not match existing headers.
+            Old headers: ${ oldHeadersStr }
+            New headers: ${ newHeadersStr }
+        `);
+    }
+
+    // Upload new file to s3
+    await runPython("upload_dataset", [ name, path ], metadata.distributed);
 }
 
 // Add a tag for a dataset
@@ -596,6 +621,26 @@ const getTopWords = async(table_name, search, column, values, page, pageLength) 
     return df.getColumn("word").toArray();
 }
 
+// Check for temporary columns
+const getTempCols = async(knex, table_name) => {
+    const model = new datasets(knex);
+
+    const maxAttempts = 15;
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+        const records = await model.getTempCols(table_name);
+
+        if (records.length > 0) {
+            return records.map(x => x.col);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        attempts += 1;
+    }
+
+    throw new Error(`Failed to find temporary columns after ${ maxAttempts } attempts`);
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -700,6 +745,7 @@ module.exports = {
     getSuggestionsFrom,
     getSuggestion,
     getTopWords,
+    getTempCols,
     deleteDataset,
     deleteTag,
     deleteLike,

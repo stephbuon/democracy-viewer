@@ -23,6 +23,9 @@ const stemLanguages = [
     "Russian", "Spanish", "Swedish"
 ]
 
+// Valid extensions to upload
+const validExtensions = [".csv"];
+
 export const UploadModal = (props) => {
     const [file, setFile] = useState(undefined);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -163,7 +166,6 @@ export const UploadModal = (props) => {
     useEffect(() => {
         if (file && file.name) {
           setAlert(0);
-          const validExtensions = [".csv"];
           if (validExtensions.filter((x) => file.name.includes(x)).length === 0) {
             setAlert(1);
           } else {
@@ -266,7 +268,7 @@ export const UploadModal = (props) => {
                 severity={alert === 3 ? "success" : "error"}
                 sx={{ width: "100%" }}
                 >
-                {alert === 1 && <div>Only '.csv', '.xls', and '.xlsx' files can be uploaded</div>}
+                {alert === 1 && <div>Only { validExtensions.join(", ") } files can be uploaded</div>}
                 {alert === 2 && <div>An error occurred uploading the dataset</div>}
                 {alert === 3 && <div>Dataset successfully uploaded</div>}
                 {alert === 4 && <div>Maximum upload size is 150 MB. Reach out to us at <Link to="mailto:democracyviewerlab@gmail.com">democracyviewerlab@gmail.com</Link> to upload a larger dataset</div>}

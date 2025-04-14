@@ -1,5 +1,22 @@
 const aws = require("./aws");
 
+// Get the column names in a table
+const columnNames = async(table_name) => {
+    const query = `
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = 'democracy_viewer_athena'
+        AND table_name = 'datasets_${ table_name }';
+    `;
+
+    const df = await aws.download(query);
+    return df
+        .collectSync()
+        .getColumn("column_name")
+        .toArray()
+        .filter(x => x != "record_id");
+}
+
 const uniqueColValues = async(table_name, col) => {
     const query = `
         SELECT DISTINCT "${ col }"
@@ -242,6 +259,7 @@ const getTopWords = async(table_name, search, column, values, page, pageLength) 
 }
 
 module.exports = {
+    columnNames,
     uniqueColValues,
     subsetSearch,
     downloadSubset,
