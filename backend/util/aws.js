@@ -159,7 +159,7 @@ const submitBatchJob = async(table_name, batch_num = null) => {
     let params = {
         table_name
     };
-    let name = `${ table_name }`
+    let name = `start-${ table_name }`
     if (batch_num) {
         params = {
             ...params,
