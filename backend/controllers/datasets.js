@@ -659,7 +659,7 @@ const getTopWords = async(table_name, search, column, values, page, pageLength) 
 const getTempCols = async(knex, table_name) => {
     const model = new datasets(knex);
 
-    const maxAttempts = 15;
+    const maxAttempts = 5 * 60;
     let attempts = 0;
     while (attempts < maxAttempts) {
         const records = await model.getTempCols(table_name);
