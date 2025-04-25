@@ -55,6 +55,32 @@ export const Layout = (props) => {
         }
     }
   };
+  
+  // Helper function to find active tab for sidebar
+  const isActive = (path) => {
+    if (path === '/' && location.pathname === '/') {
+      return true;
+    } else if (path !== '/') {
+      if (path === '/graph' && (location.pathname === '/graph' || location.pathname.startsWith('/graph/') || location.pathname.includes('/graph/published/'))) {
+        return true;
+      } 
+      else if (location.pathname === path || location.pathname.startsWith(`${path}/`)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Active item styles
+  const activeStyle = {
+    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+    borderLeft: '4px solid #1976d2',
+  };
+
+  // Active icon style
+  const activeIconStyle = {
+    color: '#1976d2',
+  };
 
   return (
     <>
@@ -78,10 +104,14 @@ export const Layout = (props) => {
             <Button color="inherit" component={Link} to="/login">
               Login or register
             </Button>}
-            {props.user !== undefined && 
-            <Button color="inherit" onClick={()=>{props.logout(); navigate('/')}}>
+            {props.user !== undefined && ( <>
+            <Button color="inherit" onClick={() => { navigate(`/profile/${props.user.email}`); }} >
+                Profile
+            </Button>
+            <Button color="inherit" onClick={() => { props.logout(); navigate('/'); }}>
               Logout
-            </Button>}</>
+            </Button> </>
+          )} </>
           ) : (
             <Button color="inherit" component={Link} to="/">
               Back
@@ -103,89 +133,102 @@ export const Layout = (props) => {
           }}
         >
           <List component="nav">
-            <ListItemButton component={Link} to="/" sx = {{ height: "50px" }}>
+            <ListItemButton 
+              component={Link} 
+              to="/" 
+              sx={{ 
+                height: "50px",
+                ...(isActive('/') ? activeStyle : {})
+              }}
+            >
               <ListItemIcon>
-                <Home />
+                <Home sx={isActive('/') ? activeIconStyle : {}} />
               </ListItemIcon>
-              <ListItemText primary="Home" />
+              <ListItemText 
+                primary="Home" 
+                primaryTypographyProps={{
+                  fontWeight: isActive('/') ? 'bold' : 'normal'
+                }}
+              />
             </ListItemButton>
 
-            <ListItemButton component={Link} to="/datasets/search" sx = {{ height: "50px" }}>
+            <ListItemButton 
+              component={Link} 
+              to="/datasets/search" 
+              sx={{ 
+                height: "50px",
+                ...(isActive('/datasets/search') ? activeStyle : {})
+              }}
+            >
               <ListItemIcon>
-                <Search />
+                <Search sx={isActive('/datasets/search') ? activeIconStyle : {}} />
               </ListItemIcon>
-              <ListItemText primary="Dataset Search" />
+              <ListItemText 
+                primary="Dataset Search" 
+                primaryTypographyProps={{
+                  fontWeight: isActive('/datasets/search') ? 'bold' : 'normal'
+                }}
+              />
             </ListItemButton>
 
-            <ListItemButton component={Link} to="/datasets/subsets/search" sx = {{ height: "50px" }}>
+            <ListItemButton 
+              component={Link} 
+              to="/datasets/subsets/search" 
+              sx={{ 
+                height: "50px",
+                ...(isActive('/datasets/subsets/search') ? activeStyle : {})
+              }}
+            >
               <ListItemIcon>
-                <ScreenSearchDesktop />
+                <ScreenSearchDesktop sx={isActive('/datasets/subsets/search') ? activeIconStyle : {}} />
               </ListItemIcon>
-              <ListItemText primary="Subset Search" />
+              <ListItemText 
+                primary="Subset Search" 
+                primaryTypographyProps={{
+                  fontWeight: isActive('/datasets/subsets/search') ? 'bold' : 'normal'
+                }}
+              />
             </ListItemButton>
 
-            <ListItemButton component={Link} to='/graph' sx = {{ height: "50px" }}>
+            <ListItemButton 
+              component={Link} 
+              to='/graph' 
+              sx={{ 
+                height: "50px",
+                ...(isActive('/graph') ? activeStyle : {})
+              }}
+            >
               <ListItemIcon>
-                <ShowChartIcon/>
+                <ShowChartIcon sx={isActive('/graph') ? activeIconStyle : {}} />
               </ListItemIcon>
-              <ListItemText primary="Visualize" />
+              <ListItemText 
+                primary="Visualize" 
+                primaryTypographyProps={{
+                  fontWeight: isActive('/graph') ? 'bold' : 'normal'
+                }}
+              />
             </ListItemButton>
 
-            <ListItemButton component={Link} to="/graphs/search" sx = {{ height: "50px" }}>
+            <ListItemButton 
+              component={Link} 
+              to="/graphs/search" 
+              sx={{ 
+                height: "50px",
+                ...(isActive('/graphs/search') ? activeStyle : {})
+              }}
+            >
               <ListItemIcon>
-                <ImageSearch />
+                <ImageSearch sx={isActive('/graphs/search') ? activeIconStyle : {}} />
               </ListItemIcon>
-              <ListItemText primary="Graph Search" />
+              <ListItemText 
+                primary="Graph Search" 
+                primaryTypographyProps={{
+                  fontWeight: isActive('/graphs/search') ? 'bold' : 'normal'
+                }}
+              />
             </ListItemButton>
 
-            <ListItemButton component={Link} to='/upload' sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <UploadIcon />
-              </ListItemIcon>
-              <ListItemText primary="Dataset Upload" />
-            </ListItemButton>
-
-            <Tooltip title = "This page has been temporarily disabled" arrow>
-              <div>
-                <ListItemButton component={Link} to='/distributed' sx = {{ height: "50px" }} disabled>
-                  <ListItemIcon>
-                    <Cable />
-                  </ListItemIcon>
-                  <ListItemText primary="Create Distributed Connection" />
-                </ListItemButton>
-              </div>
-            </Tooltip>
-            
-
-            {
-              props.user !== undefined && 
-              <ListItemButton component={Link} to={`/profile/${ props.user.email }`} sx = {{ height: "50px" }}>
-                <ListItemIcon>
-                  <Person />
-                </ListItemIcon>
-                <ListItemText primary="Profile" />
-              </ListItemButton>
-            }
-            {
-              props.user === undefined && 
-              <ListItemButton component={Link} to={`/login`} sx = {{ height: "50px" }}>
-                <ListItemIcon>
-                  <Person />
-                </ListItemIcon>
-                <ListItemText primary="Profile" />
-              </ListItemButton>
-            }
-
-            <ListItemButton component={Link} to='/acknowledgements' sx = {{ height: "50px" }}>
-              <ListItemIcon>
-                <MilitaryTech />
-              </ListItemIcon>
-              <ListItemText primary="Acknowledgements" />
-            </ListItemButton>
-            
             <Divider sx={{ my: 1 }} />
-            
-
           </List>
         </Drawer>
         {/* Your main content */}

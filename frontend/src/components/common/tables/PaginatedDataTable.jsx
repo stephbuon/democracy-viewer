@@ -203,10 +203,10 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
         )}
         {
             loggedIn === true &&
-            <Tooltip arrow title="Highlight text to suggest changes to the dataset">
+            <Tooltip arrow title="Highlight text to edit the dataset">
                 <FormControlLabel
                     control={<Checkbox defaultChecked={suggest} />}
-                    label="Suggest Changes"
+                    label="Edit Dataset"
                     onChange={event => setSuggest(!suggest)}
                     style={{ marginLeft: "100px" }}
                 />
@@ -215,10 +215,10 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
 
         {
             loggedIn === false &&
-            <Tooltip arrow title="You must be logged in to suggest changes">
+            <Tooltip arrow title="You must be logged in to edit a dataset">
                 <FormControlLabel
                     control={<Checkbox defaultChecked={false} disabled />}
-                    label="Suggest Changes"
+                    label="Edit Dataset"
                     style={{ marginLeft: "100px" }}
                 />
             </Tooltip>

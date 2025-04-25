@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 //MUI Imports
 import Box from '@mui/material/Box';
@@ -16,12 +16,31 @@ import { FormattedMultiSelectField } from "../../../common";
 import { InputLabel } from "@mui/material";
 
 export const AdvancedFilter = (props) => {
-    //values
-    const [title, setTitle] = useState('');
-    const [email, setEmail] = useState('');
-    const [publicPrivate, setPublicPrivate] = useState(true);
-    const [selectedTags, setSelectedTags] = useState([]);
-    const [description, setDescription] = useState('');
+    // Retrieve values from props if provided -- user already applied filters
+    const initialValues = props.initialValues || {};
+    
+    // Initialize values from props if available
+    const [title, setTitle] = useState(initialValues.title || '');
+    const [email, setEmail] = useState(initialValues.email || '');
+    const [publicPrivate, setPublicPrivate] = useState(initialValues.type === 'private' ? false : true);
+    const [selectedTags, setSelectedTags] = useState(initialValues.tag ? 
+        initialValues.tag.map(tag => ({ value: tag, label: tag })) : []);
+    const [description, setDescription] = useState(initialValues.description || '');
+    
+    // Update state when initialValues change
+    useEffect(() => {
+        if (Object.keys(initialValues).length > 0) {
+            setTitle(initialValues.title || '');
+            setEmail(initialValues.email || '');
+            setPublicPrivate(initialValues.type === 'private' ? false : true);
+            setDescription(initialValues.description || '');
+            
+            // Handle tags if they exist
+            if (initialValues.tag && Array.isArray(initialValues.tag)) {
+                setSelectedTags(initialValues.tag.map(tag => ({ value: tag, label: tag })));
+            }
+        }
+    }, [initialValues]);
 
     const filterResults = () => {
         const filter = {
