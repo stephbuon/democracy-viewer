@@ -73,7 +73,7 @@ export const Upload = (props) => {
           color="text.primary"
           gutterBottom
         >
-          Upload either a CSV file or an API of your text-based dataset to use it on Democracy Viewer. 
+          {/* Upload either a CSV file or an API of your text-based dataset to use it on Democracy Viewer.  */}
         </Typography>
       </Container>
       

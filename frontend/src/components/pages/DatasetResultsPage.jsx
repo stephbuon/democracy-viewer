@@ -14,11 +14,11 @@ const pageLength = 5;
 
 export const DatasetResultsPage = (props) => {
     //temp values
-
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+    const [advancedFilterValues, setAdvancedFilterValues] = useState({});
 
     const [alert, setAlert] = useState(1);
 
@@ -48,11 +48,15 @@ export const DatasetResultsPage = (props) => {
             setTotalNumOfResults(res);
         })
     }
+
     const advancedFilterResults = (advancedFilter) => {
-        advancedFilter = { ...advancedFilter, pageLength };
-        setPageFilter({ ...advancedFilter });
+        // Store the filter values for future use
+        setAdvancedFilterValues({ ...advancedFilter });
+        const filterWithPageLength = { ...advancedFilter, pageLength };
+        setPageFilter(filterWithPageLength);
+
         setLoadingResults(true);
-        FilterDatasets(advancedFilter, 1).then(async res => {
+        FilterDatasets(filterWithPageLength, 1).then(async res => {
             setLoadingResults(false);
 
             if (!res) { setSearchResults([]) }
@@ -60,7 +64,7 @@ export const DatasetResultsPage = (props) => {
 
             handleAdvancedFilterClose()
         })
-        FilterDatasetsCount(advancedFilter).then(async (res) => {
+        FilterDatasetsCount(filterWithPageLength).then(async (res) => {
             setTotalNumOfResults(res);
         })
     }
@@ -219,7 +223,10 @@ export const DatasetResultsPage = (props) => {
                         </Box>
                         
                         <Modal open={advancedFilterOpen} onClose={() => handleAdvancedFilterClose()}>
-                            <AdvancedFilter advancedFilterResults={(x) => advancedFilterResults(x)} />
+                            <AdvancedFilter 
+                                advancedFilterResults={(x) => advancedFilterResults(x)} 
+                                initialValues={advancedFilterValues}
+                            />
                         </Modal>
                     </Box>
                     
