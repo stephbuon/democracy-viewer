@@ -250,7 +250,7 @@ export const Homepage = () => {
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Typography variant="subtitle1">
+                  <Typography variant="subtitle1" sx={{ textTransform: 'none' }}>
                     View Dataset
                   </Typography>
                 </Box>
@@ -272,7 +272,7 @@ export const Homepage = () => {
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Typography variant="subtitle1">
+                  <Typography variant="subtitle1" sx={{ textTransform: 'none' }}>
                     Visualize Dataset
                   </Typography>
                 </Box>

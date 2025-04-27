@@ -349,7 +349,7 @@ export const UploadModal = (props) => {
                                 <TextField
                                     margin="normal"
                                     fullWidth
-                                    label="Token"
+                                    label="Token (Optional)"
                                     value={Token}
                                     onChange={(event) => {
                                     setToken(event.target.value);

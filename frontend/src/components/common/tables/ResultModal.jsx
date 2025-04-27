@@ -54,7 +54,7 @@ export const ResultModal = (props) => {
 
         const keys = Object.keys(params).filter(x => params[x] === null);
         keys.forEach(x => delete params[x]);
-
+        console.log("Calling UpdateMetadata with table_name:", props.dataset.table_name, "and params:", params);
         UpdateMetadata(props.dataset.table_name, params).then(x => {
             const newDataset = { ...x, tags };
             props.setDataset(newDataset);
@@ -294,7 +294,7 @@ export const ResultModal = (props) => {
                                     navigate('/datasets/subsets/search');
                                 }}
                             >
-                                Subset Search
+                                View Dataset
                             </Button>
                         </div>
 
@@ -302,7 +302,7 @@ export const ResultModal = (props) => {
 
                     {
                         props.dataset.uploaded == false &&
-                        <Tooltip arrow title="Subset search for this dataset has been disabled until the dataset is fully uploaded">
+                        <Tooltip arrow title="View Dataset has been disabled until the dataset is fully uploaded">
                             <div>
                                 <Button
                                     variant="contained"
@@ -315,7 +315,7 @@ export const ResultModal = (props) => {
                                     }}
                                     disabled
                                 >
-                                    Subset Search
+                                    View Dataset
                                 </Button>
                             </div>
                         </Tooltip>

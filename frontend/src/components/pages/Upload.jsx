@@ -84,14 +84,14 @@ export const Upload = (props) => {
       }}>
           <Button
               variant="contained"
-              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }}
+              sx={{ mb: 2, mt: 3,bgcolor: 'rgb(48,48,48)', color: 'white', borderRadius: '0px', px: 4, py: 1, alignItems: 'center', width: "150px" }}
               onClick={() => OpenModal("csv")}
           >
               CSV File
           </Button>
           <Button
               variant="contained"
-              sx={{ mb: 2, mt: 3,bgcolor: 'black', color: 'white', borderRadius: '50px', px: 4, py: 1, alignItems: 'center', width: "150px" }} 
+              sx={{ mb: 2, mt: 3,bgcolor:'rgb(48,48,48)', color: 'white', borderRadius: '0px', px: 4, py: 1, alignItems: 'center', width: "150px" }} 
               onClick={() => OpenModal("api")}
           >
               API

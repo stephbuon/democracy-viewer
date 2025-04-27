@@ -131,7 +131,7 @@ export const SubsetResultsPage = (props) => {
                             flexDirection: 'column'
                         }}
                     >
-                        <h1 style={{ fontSize: '3rem' }}>Subset Search For "{ props.dataset.title }"</h1>
+                        <h1 style={{ fontSize: '3rem' }}>{ props.dataset.title }</h1>
                     </Box>
 
                     <Box

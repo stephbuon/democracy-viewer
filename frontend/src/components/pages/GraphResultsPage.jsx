@@ -180,7 +180,7 @@ export const GraphResultsPage = (props) => {
                         color: 'Black'
                     }}
                 >
-                    Find a Visualization
+                    Search Visualizations
                 </Typography>
             </Box>
             

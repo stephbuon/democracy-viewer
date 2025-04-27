@@ -30,13 +30,13 @@ export const Layout = (props) => {
       case '/graph':
         return 'Graphs';
       case '/graphs/search':
-        return 'Visualization Search';
+        return 'Search Visualizations';
       case '/login':
         return 'Login';
       case '/register':
         return 'Register';
       case '/datasets/subsets/search':
-        return 'Subset Search';
+        return 'View Dataset';
       case '/acknowledgements':
         return "Acknowledgements";
       // case "/distributed":
@@ -162,7 +162,7 @@ export const Layout = (props) => {
                 <ScreenSearchDesktop sx={isActive('/datasets/subsets/search') ? activeIconStyle : {}} />
               </ListItemIcon>
               <ListItemText 
-                primary="Subset Search" 
+                primary="View Dataset" 
                 primaryTypographyProps={{
                   fontWeight: isActive('/datasets/subsets/search') ? 'bold' : 'normal'
                 }}
@@ -186,7 +186,7 @@ export const Layout = (props) => {
                 <ImageSearch sx={isActive('/graphs/search') ? activeIconStyle : {}} />
               </ListItemIcon>
               <ListItemText 
-                primary="Graph Search" 
+                primary="Search Visualizations" 
                 primaryTypographyProps={{
                   fontWeight: isActive('/graphs/search') ? 'bold' : 'normal'
                 }}
