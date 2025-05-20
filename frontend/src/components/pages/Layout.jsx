@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItemIcon,ListItemText,Box,Tooltip} from '@mui/material';
-import {Menu as MenuIcon, Person, Home, Search, MilitaryTech, ScreenSearchDesktop, Cable, ImageSearch} from '@mui/icons-material';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import UploadIcon from '@mui/icons-material/Upload';
-import ListItemButton from '@mui/material/ListItemButton';
+import {Menu as MenuIcon} from '@mui/icons-material';
 import Divider from '@mui/material/Divider';
 import { useEffect, useState } from 'react';
 
@@ -71,145 +68,97 @@ export const Layout = (props) => {
     return false;
   };
 
-  // Active item styles
-  const activeStyle = {
-    backgroundColor: 'rgba(25, 118, 210, 0.08)',
-    borderLeft: '4px solid #1976d2',
-  };
-
-  // Active icon style
-  const activeIconStyle = {
-    color: '#1976d2',
-  };
-
   return (
     <>
-      <AppBar position="fixed" sx={{ bgcolor: '#333', color: 'white', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
-        <Toolbar>
+      <AppBar position="fixed" sx={{ bgcolor: 'white', color: 'white', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
+      <Toolbar>
           <IconButton
-            size="large"
+            size="medium"
             edge="start"
             color="black"
             aria-label="menu"
             sx={{ mr: 2 }}
             onClick={handleDrawerToggle}
           >
-            <MenuIcon sx={{ color: "white" }} />
+            <MenuIcon sx={{ color: "black" }} />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {getCurrentPage()}
           </Typography>
+          
+          {/* Navigation menu items */}
+          <Box sx={{ display: 'flex', mx: 2, flexGrow: 1, color: 'black'}}>
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/"
+              sx={{ fontWeight: isActive('/') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+            >
+              home
+            </Button>
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/datasets/search"
+              sx={{ fontWeight: isActive('/datasets/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+            >
+              search dataset
+            </Button>
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/datasets/subsets/search"
+              sx={{ fontWeight: isActive('/datasets/subsets/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+            >
+              view dataset
+            </Button>
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/graph"
+              sx={{ fontWeight: isActive('/graph') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+            >
+              visualize
+            </Button>
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/graphs/search"
+              sx={{ fontWeight: isActive('/graphs/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+            >
+              search visualizations
+            </Button>
+            <Button 
+              color="inherit" 
+              component={Link} 
+              to="/upload"
+              sx={{ fontWeight: isActive('/upload') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+            >
+              upload dataset
+            </Button>
+          </Box>
+
+          {/* User authentication buttons */}
           {location.pathname !== '/login' ? (
             <>{props.user === undefined && 
-            <Button color="inherit" component={Link} to="/login">
+            <Button sx={{ color: "black" }} component={Link} to="/login">
               Login or register
             </Button>}
             {props.user !== undefined && ( <>
-            <Button color="inherit" onClick={() => { navigate(`/profile/${props.user.email}`); }} >
-                Profile
+            <Button sx={{ color: "black" }} onClick={() => { navigate(`/profile/${props.user.email}`); }}>
+              Profile
             </Button>
-            <Button color="inherit" onClick={() => { props.logout(); navigate('/'); }}>
+            <Button sx={{ color: "black" }} onClick={() => { props.logout(); navigate('/'); }}>
               Logout
             </Button> </>
-          )} </>
+            )} </>
           ) : (
-            <Button color="inherit" component={Link} to="/">
+            <Button sx={{ color: "black" }} component={Link} to="/">
               Back
             </Button>
-          )}        </Toolbar>
+          )}
+        </Toolbar>
       </AppBar>
-      <Box component="main" sx={{ marginTop: '64px' }}>
-        <Drawer
-          variant="permanent"
-          anchor="left"
-          open={open}
-          onClose={handleDrawerToggle}
-          PaperProps={{
-            style: {
-              width: open ? 240 : 72,
-              transition: 'width 225ms cubic-bezier(0.4, 0, 0.2, 1)',
-              marginTop: '64px',
-            },
-          }}
-        >
-          <List component="nav">
-            <ListItemButton component={Link}  to="/"  sx={{  height: "50px", ...(isActive('/') ? activeStyle : {}) }}>
-              <ListItemIcon>
-                <Home sx={isActive('/') ? activeIconStyle : {}} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Home" 
-                primaryTypographyProps={{
-                  fontWeight: isActive('/') ? 'bold' : 'normal'
-                }}
-              />
-            </ListItemButton>
-
-            <ListItemButton component={Link} to="/datasets/search" sx={{height: "50px", ...(isActive('/datasets/search') ? activeStyle : {})}}>
-              <ListItemIcon>
-                <Search sx={isActive('/datasets/search') ? activeIconStyle : {}} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Dataset Search" 
-                primaryTypographyProps={{
-                  fontWeight: isActive('/datasets/search') ? 'bold' : 'normal'
-                }}
-              />
-            </ListItemButton>
-
-            <ListItemButton component={Link} to="/datasets/subsets/search" sx={{height: "50px", ...(isActive('/datasets/subsets/search') ? activeStyle : {})}}>
-              <ListItemIcon>
-                <ScreenSearchDesktop sx={isActive('/datasets/subsets/search') ? activeIconStyle : {}} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="View Dataset" 
-                primaryTypographyProps={{
-                  fontWeight: isActive('/datasets/subsets/search') ? 'bold' : 'normal'
-                }}
-              />
-            </ListItemButton>
-
-            <ListItemButton component={Link} to='/graph' sx={{height: "50px", ...(isActive('/graph') ? activeStyle : {})}}>
-              <ListItemIcon>
-                <ShowChartIcon sx={isActive('/graph') ? activeIconStyle : {}} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Visualize" 
-                primaryTypographyProps={{
-                  fontWeight: isActive('/graph') ? 'bold' : 'normal'
-                }}
-              />
-            </ListItemButton>
-
-            <ListItemButton component={Link} to="/graphs/search" sx={{height: "50px", ...(isActive('/graphs/search') ? activeStyle : {})}}>
-              <ListItemIcon>
-                <ImageSearch sx={isActive('/graphs/search') ? activeIconStyle : {}} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Search Visualizations" 
-                primaryTypographyProps={{
-                  fontWeight: isActive('/graphs/search') ? 'bold' : 'normal'
-                }}
-              />
-            </ListItemButton>
-            
-            <ListItemButton component={Link} to="/upload" sx={{height: "50px", ...(isActive('/upload') ? activeStyle : {})}}>
-                <ListItemIcon>
-                  <UploadIcon sx={isActive('/upload') ? activeIconStyle : {}} />
-                </ListItemIcon>
-                <ListItemText 
-                  primary="Dataset Upload" 
-                  primaryTypographyProps={{
-                    fontWeight: isActive('/upload') ? 'bold' : 'normal'
-                  }}
-                />
-              </ListItemButton>
-
-            <Divider sx={{ my: 1 }} />
-          </List>
-        </Drawer>
-        {/* Your main content */}
-      </Box>
     </>
   );
 }

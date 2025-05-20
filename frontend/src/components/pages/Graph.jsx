@@ -2,7 +2,7 @@
 // Imports
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Button, Grid, Snackbar, Alert, Container, Modal } from "@mui/material";
+import { Box, Button, Grid, Snackbar, Alert, Container, Modal, Typography } from "@mui/material";
 import { GraphComponent, GraphPublishModal, GraphSettings } from "./subcomponents/graphs";
 import { getGraph, getPublishedGraph } from "../../api";
 import { Settings, RotateLeft, Download, Upload } from '@mui/icons-material';
@@ -740,7 +740,15 @@ export const Graph = (props) => {
                 dataset={data.dataset}
               />
             }
+            {/* <Grid item xs={12} md={6}>
+              <Typography variant="h2" component="h1" fontWeight="bold" gutterBottom>
+                  {data.metric}
+              </Typography>
 
+                <Typography variant="h6" color="text.secondary" paragraph>
+                  {data.table_name}
+                </Typography>
+              </Grid> */}
             {
               graph === false && settings === false && loading === false &&
               <div id="test" style={{ textAlign: "center" }}>
