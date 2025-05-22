@@ -2,7 +2,7 @@
 // Imports
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Button, Grid, Snackbar, Alert, Container, Modal } from "@mui/material";
+import { Box, Button, Grid, Snackbar, Alert, Container, Modal, Typography } from "@mui/material";
 import { GraphComponent, GraphPublishModal, GraphSettings } from "./subcomponents/graphs";
 import { getGraph, getPublishedGraph } from "../../api";
 import { Settings, RotateLeft, Download, Upload } from '@mui/icons-material';
@@ -656,100 +656,154 @@ export const Graph = (props) => {
       </Modal>
 
       <Box component="div" sx={{ marginTop: "5%" }}>
-        <Grid container justifyContent="center" direction="column">
-          <Container sx={{ py: 4, maxWidth: '70%' }} maxWidth={false}>
-            <Grid container spacing={4} justifyContent="center">
-              {/* {"Open Graph settings button"} */}
-              <Grid item xs={12} sm={6} md={4}>
-                <Button variant="contained"
-                  onClick={handleOpen}
-                  className="mt-2"
-                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  disabled={loading || zoomLoading}
-                ><Settings sx={{ mr: "10px" }} />Settings</Button>
-              </Grid>
-
-              {/* {"Reset graph button"} */}
-              {/* <Grid item xs={12} sm={6} md={4}>
-                <Button variant="contained"
-                  onClick={resetGraph}
-                  className="mt-2"
-                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  disabled={loading || zoomLoading}
-                ><RotateLeft sx={{ mr: "10px" }} />Reset</Button>
-              </Grid> */}
-
-              {/* {"Download graph button"} */}
-              <Grid item xs={12} sm={6} md={4}>
-                <Button variant="contained"
-                  onClick={() => downloadGraph()}
-                  className="mt-2"
-                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  disabled={loading || zoomLoading}
-                ><Download sx={{ mr: "10px" }} />Download</Button>
-              </Grid>
-
-              {/* {"Publish graph button"} */}
-              <Grid item xs={12} sm={6} md={4}>
-                <Button variant="contained"
-                  onClick={() => setPublishOpen(true)}
-                  className="mt-2"
-                  sx={{ marginLeft: "5%", backgroundColor: "black", width: "220px" }}
-                  disabled={loading || zoomLoading || !loggedIn}
-                ><Upload sx={{ mr: "10px" }} />Publish</Button>
-              </Grid>
-            </Grid>
-          </Container>
-
-          {/* {"Graph component if graph exists"} */}
-          <Grid item xs="auto">
-            {(loading === true || zoomLoading === true) && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  mt: "50px"
-                }}
-              >
-                <div style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "60vh"
-                }}>
-                  <div class="spinner-border" style={{
-                    width: "5rem",
-                    height: "5rem"
-                  }} role="status">
-                    <span class="sr-only"></span>
-                  </div>
-                </div>
-              </Box>
-            )}
-
-            {
-              graph === true && zoomLoading === false &&
-              <GraphComponent
-                border
-                data={graphData}
-                setData={setData}
-                setZoomLoading={setZoomLoading}
-                isOverlappingScatter={isOverlappingScatter}
-                annotations={annotationData}
-                dataset={data.dataset}
-              />
-            }
-
-            {
-              graph === false && settings === false && loading === false &&
-              <div id="test" style={{ textAlign: "center" }}>
-                No Results Found
-              </div>
-            }
+    <Grid container justifyContent="center">
+      <Container sx={{ py: 4, maxWidth: '90%' }} maxWidth={false}>
+        {/* Control buttons */}
+        <Grid container spacing={4} justifyContent="center">
+          <Grid item xs={12} sm={6} md={3}>
+            <Button variant="contained"
+              onClick={handleOpen}
+              className="mt-2"
+              sx={{ backgroundColor: "black", width: "100%" }}
+              disabled={loading || zoomLoading}
+            ><Settings sx={{ mr: "10px" }} />Settings</Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Button variant="contained"
+              onClick={() => downloadGraph()}
+              className="mt-2"
+              sx={{ backgroundColor: "black", width: "100%" }}
+              disabled={loading || zoomLoading}
+            ><Download sx={{ mr: "10px" }} />Download</Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Button variant="contained"
+              onClick={() => setPublishOpen(true)}
+              className="mt-2"
+              sx={{ backgroundColor: "black", width: "100%" }}
+              disabled={loading || zoomLoading || !loggedIn}
+            ><Upload sx={{ mr: "10px" }} />Publish</Button>
           </Grid>
         </Grid>
-      </Box>
+        <Grid container spacing={4} sx={{ mt: 2 }}>
+          {/* Left column - Metadata */}
+          <Grid item xs={12} md={3}>
+            {graphData && (
+              <Box 
+                sx={{ 
+                  mt: 2, 
+                  p: 3, 
+                  backgroundColor: "#f5f5f5", 
+                  borderRadius: 2,
+                  boxShadow: "0px 2px 4px rgba(0,0,0,0.1)"
+                }}
+              >
+                <Typography variant="h5" component="h2" fontWeight="bold" color="primary" gutterBottom>
+                  Graph Information
+                </Typography>
+                
+                <Box sx={{ mt: 3 }}>
+                  {graphData.metric && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        Metric
+                      </Typography>
+                      <Typography variant="body1">
+                        {graphData.metric}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {graphData.table_name && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        Table Name
+                      </Typography>
+                      <Typography variant="body1">
+                        {graphData.table_name}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {graphData.title && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        Title
+                      </Typography>
+                      <Typography variant="body1">
+                        {graphData.title}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {graphData.xLabel && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        X-Axis Label
+                      </Typography>
+                      <Typography variant="body1">
+                        {graphData.xLabel}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  {graphData.yLabel && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
+                        Y-Axis Label
+                      </Typography>
+                      <Typography variant="body1">
+                        {graphData.yLabel}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            )}
+          </Grid>
+
+        {/* Right column - Graph */}
+        <Grid item xs={12} md={9}>
+          {(loading === true || zoomLoading === true) && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '60vh'
+              }}
+            >
+              <div className="spinner-border" style={{
+                width: "5rem",
+                height: "5rem"
+              }} role="status">
+                <span className="sr-only"></span>
+              </div>
+            </Box>
+          )}
+          
+          {graph === true && zoomLoading === false && (
+            <GraphComponent
+              border
+              data={graphData}
+              setData={setData}
+              setZoomLoading={setZoomLoading}
+              isOverlappingScatter={isOverlappingScatter}
+              annotations={annotationData}
+              dataset={data?.dataset}
+            />
+          )}
+          
+          {graph === false && settings === false && loading === false && (
+            <div id="test" style={{ textAlign: "center", height: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Typography variant="h5">No Results Found</Typography>
+            </div>
+          )}
+        </Grid>
+      </Grid>
+    </Container>
+  </Grid>
+</Box>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
 import { Box, Button, Card, Container, CssBaseline, Grid, Typography, createTheme, ThemeProvider, Modal,
   Divider, TextField, Paper, CardContent, CardActions, Avatar, Chip
@@ -12,30 +12,44 @@ import PieChartIcon from "@mui/icons-material/PieChart";
 import PublicIcon from "@mui/icons-material/Public";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import TimelineIcon from "@mui/icons-material/Timeline";
+import image1 from '../images/Network_Analysis.PNG';
+import image2 from '../images/TF-IDF.PNG';
+import image3 from '../images/Word_Embedding_Vectors_for_arthur_balfour_5410_and_benjamin_disraeli_35231.PNG'; 
 
 export const Homepage = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
-  // Modal handlers
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
+
+  const carouselImages = [
+    image1, image2, image3
+  ];
+  
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % carouselImages.length);
+    }, 3000); 
+    return () => clearInterval(interval);
+  }, []);
 
   // Custom theme
   const theme = createTheme({
     palette: {
       primary: {
-        main: "#3b82f6", 
+        main: "#3b82f6", // blue for button color
       },
       secondary: {
-        main: "#f59e0b", 
+        main: "#f59e0b", // amber-500
       },
       background: {
-        default: "#ffffff",
-        paper: "#ffffff",
-        light: "#f8fafc", 
-        dark: "#1e293b", 
+        default: "#f0f0f0", // feature visualization background 
+        paper: "#ffffff", // pop button model background
+        light: "#ffffff", // mid buttons
+        dark: "#1e293b",
       },
     },
     components: {
@@ -66,10 +80,10 @@ export const Homepage = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        {/* Top Section */}
+        {/* Hero Section */}
         <Box sx={{ 
-          background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)",
-          py: { xs: 8, md: 12 }
+          background: "linear-gradient(180deg, #f0f0f0 0%, #f1f5f9 100%)",
+          py: { xs: 8, md: 22 }
         }}>
           <Container maxWidth="lg">
             <Grid container spacing={4} alignItems="center">
@@ -85,19 +99,32 @@ export const Homepage = () => {
                 <Paper 
                   elevation={1}
                   sx={{ 
-                    height: { xs: 300, md: 400 },
+                    height: { xs: 300, md: 300 },
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     bgcolor: "#e2e8f0"
                   }}
                 >
-                  {/* Placeholder for visualization screenshot */}
-                  <Box textAlign="center">
-                    <BarChartIcon sx={{ fontSize: 64, color: "primary.main", mb: 2 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      Interactive visualization preview
-                    </Typography>
+                  {/* Placeholder for visualization demo/screenshot */}
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => navigate("/")}
+                  >
+                    <img
+                      src={carouselImages[currentImageIndex]}
+                      alt="Carousel"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        borderRadius: 0 
+                      }}
+                    />
                   </Box>
                 </Paper>
               </Grid>
@@ -105,7 +132,7 @@ export const Homepage = () => {
           </Container>
         </Box>
 
-        {/* Action Cards */}
+        {/* Main Action Cards */}
         <Box sx={{ py: 4, bgcolor: "background.light" }}>
           <Container maxWidth="lg">
             <Grid container spacing={5} justifyContent="center">
@@ -158,8 +185,8 @@ export const Homepage = () => {
               <Grid item xs={12} sm={6} md={3}>
                 <Card sx={{ height: "100%" }}>
                   <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-                    <Avatar sx={{ bgcolor: "#fef3c7", mb: 3, p: 3, width: 64, height: 64 }}>
-                      <BarChartIcon sx={{ color: "#f59e0b", fontSize: 32 }} />
+                    <Avatar sx={{ bgcolor: "#f3e8ff", mb: 3, p: 3, width: 64, height: 64 }}>
+                      <BarChartIcon sx={{ color: "#8b5cf6", fontSize: 32 }} />
                     </Avatar>
                     <Typography variant="h6" gutterBottom>Search Visualizations</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -177,11 +204,34 @@ export const Homepage = () => {
                   </CardActions>
                 </Card>
               </Grid>
+
+              {/* <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ height: "100%" }}>
+                  <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+                    <Avatar sx={{ bgcolor: "#fef3c7", mb: 3, p: 3, width: 64, height: 64 }}>
+                      <StorageIcon sx={{ color: "#f59e0b", fontSize: 32 }} />
+                    </Avatar>
+                    <Typography variant="h6" gutterBottom>Use Selected Dataset</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      Work with your currently selected dataset
+                    </Typography>
+                  </CardContent>
+                  <CardActions sx={{ p: 2, pt: 0, justifyContent: "center" }}>
+                    <Button 
+                      variant="outlined" 
+                      onClick={handleOpenModal}
+                      fullWidth
+                    >
+                      Select Options
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid> */}
             </Grid>
           </Container>
         </Box>
 
-        {/*Bottom--Additional Options*/}
+        {/*Additional Options Section*/}
         <Box sx={{ py: 4, bgcolor: "grey.900", color: "white" }}>
           <Container maxWidth="lg">
             <Grid container spacing={2} justifyContent="center">
@@ -233,6 +283,29 @@ export const Homepage = () => {
             boxShadow: 24,
             p: 4,
           }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, my: 3 }}>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => {
+                  navigate("/datasets/subsets/search");
+                  handleCloseModal();
+                }}
+              >
+                View Dataset
+              </Button>
+              
+              <Button
+                variant="contained" 
+                size="large"
+                onClick={() => {
+                  navigate("/graph");
+                  handleCloseModal();
+                }}
+              >
+                Visualize Dataset
+              </Button>
+            </Box>
             
             <Divider sx={{ my: 3 }} />
             
