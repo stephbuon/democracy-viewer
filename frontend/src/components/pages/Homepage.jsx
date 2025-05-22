@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
 import { Box, Button, Card, Container, CssBaseline, Grid, Typography, createTheme, ThemeProvider, Modal,
   Divider, TextField, Paper, CardContent, CardActions, Avatar, Chip
@@ -12,6 +12,9 @@ import PieChartIcon from "@mui/icons-material/PieChart";
 import PublicIcon from "@mui/icons-material/Public";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import TimelineIcon from "@mui/icons-material/Timeline";
+import image1 from '../images/Network_Analysis.PNG';
+import image2 from '../images/TF-IDF.PNG';
+import image3 from '../images/Word_Embedding_Vectors_for_arthur_balfour_5410_and_benjamin_disraeli_35231.PNG'; 
 
 export const Homepage = () => {
   const navigate = useNavigate();
@@ -52,12 +55,18 @@ export const Homepage = () => {
     },
   ];
 
-  const images = [
-    { id: 1, src: 'image1.jpg', category: 'nature' },
-    { id: 2, src: 'image2.jpg', category: 'city' },
-    { id: 3, src: 'image3.jpg', category: 'nature' },
-    { id: 4, src: 'image4.jpg', category: 'abstract' },
-];
+  const carouselImages = [
+    image1, image2, image3
+  ];
+  
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % carouselImages.length);
+    }, 3000); 
+    return () => clearInterval(interval);
+  }, []);
 
   // Custom theme
   const theme = createTheme({
@@ -106,7 +115,7 @@ export const Homepage = () => {
         {/* Hero Section */}
         <Box sx={{ 
           background: "linear-gradient(180deg, #f0f0f0 0%, #f1f5f9 100%)",
-          py: { xs: 8, md: 12 }
+          py: { xs: 8, md: 22 }
         }}>
           <Container maxWidth="lg">
             <Grid container spacing={4} alignItems="center">
@@ -122,7 +131,7 @@ export const Homepage = () => {
                 <Paper 
                   elevation={1}
                   sx={{ 
-                    height: { xs: 300, md: 400 },
+                    height: { xs: 300, md: 300 },
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -130,11 +139,24 @@ export const Homepage = () => {
                   }}
                 >
                   {/* Placeholder for visualization demo/screenshot */}
-                  <Box textAlign="center">
-                    <BarChartIcon sx={{ fontSize: 64, color: "primary.main", mb: 2 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      Interactive visualization preview
-                    </Typography>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => navigate("/")}
+                  >
+                    <img
+                      src={carouselImages[currentImageIndex]}
+                      alt="Carousel"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                        borderRadius: 0 
+                      }}
+                    />
                   </Box>
                 </Paper>
               </Grid>
@@ -145,7 +167,7 @@ export const Homepage = () => {
         {/* Main Action Cards */}
         <Box sx={{ py: 4, bgcolor: "background.light" }}>
           <Container maxWidth="lg">
-            <Grid container spacing={3}>
+            <Grid container spacing={5} justifyContent="center">
               <Grid item xs={12} sm={6} md={3}>
                 <Card sx={{ height: "100%" }}>
                   <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>

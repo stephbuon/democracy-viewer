@@ -4,6 +4,9 @@ import {AppBar,Toolbar,IconButton,Typography,Button,Drawer,List,ListItemIcon,Lis
 import {Menu as MenuIcon} from '@mui/icons-material';
 import Divider from '@mui/material/Divider';
 import { useEffect, useState } from 'react';
+import homeIcon from '../images/IMG_0266.jpg';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+
 
 export const Layout = (props) => {
   const navigate = useNavigate();
@@ -72,30 +75,26 @@ export const Layout = (props) => {
     <>
       <AppBar position="fixed" sx={{ bgcolor: 'white', color: 'white', boxShadow: 'none', borderBottom: '1px solid #ddd' }}>
       <Toolbar>
-          <IconButton
-            size="medium"
-            edge="start"
-            color="black"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-            onClick={handleDrawerToggle}
-          >
-            <MenuIcon sx={{ color: "black" }} />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {getCurrentPage()}
+      <IconButton
+          size="medium"
+          edge="start"
+          color="inherit"
+          aria-label="home"
+          sx={{ mr: 2 }}
+          onClick={() => navigate("/")}
+        >
+          <img 
+            src={homeIcon}
+            alt="Home"
+            style={{ width: 32, height: 32}} 
+          />
+        </IconButton>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'black' }}>
+            Democracy Viewer
           </Typography>
           
           {/* Navigation menu items */}
           <Box sx={{ display: 'flex', mx: 2, flexGrow: 1, color: 'black'}}>
-            <Button 
-              color="inherit" 
-              component={Link} 
-              to="/"
-              sx={{ fontWeight: isActive('/') ? 'bold' : 'normal', textTransform: 'capitalize' }}
-            >
-              home
-            </Button>
             <Button 
               color="inherit" 
               component={Link} 
@@ -141,15 +140,20 @@ export const Layout = (props) => {
           {/* User authentication buttons */}
           {location.pathname !== '/login' ? (
             <>{props.user === undefined && 
-            <Button sx={{ color: "black" }} component={Link} to="/login">
-              Login or register
+            <Button sx={{ color: "black", textTransform: 'capitalize'}} component={Link} to="/login">
+              login or register
             </Button>}
             {props.user !== undefined && ( <>
-            <Button sx={{ color: "black" }} onClick={() => { navigate(`/profile/${props.user.email}`); }}>
-              Profile
-            </Button>
-            <Button sx={{ color: "black" }} onClick={() => { props.logout(); navigate('/'); }}>
-              Logout
+              <Tooltip title="Profile">
+                <IconButton
+                  sx={{ color: "black" }}
+                  onClick={() => { navigate(`/profile/${props.user.email}`); }}
+                >
+                  <AccountCircle />
+                </IconButton>
+              </Tooltip>
+            <Button sx={{ color: "black", textTransform: 'capitalize' }} onClick={() => { props.logout(); navigate('/'); }}>
+              logout
             </Button> </>
             )} </>
           ) : (
