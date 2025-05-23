@@ -169,7 +169,7 @@ export const GraphResultsPage = (props) => {
             <Box sx={{ 
                 width: '100%', 
                 textAlign: 'center', 
-                mt: 4, 
+                mt: 10, 
                 mb: 2 
             }}>
                 <Typography 
