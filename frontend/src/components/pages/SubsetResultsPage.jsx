@@ -132,8 +132,8 @@ export const SubsetResultsPage = (props) => {
                         }}
                     >
                         <h1 style={{ fontSize: '3rem' }}>{ props.dataset.title }</h1>
-                    </Box>
-
+                    </Box>     
+                               
                     <Box
                         sx={{
                             display: 'flex',

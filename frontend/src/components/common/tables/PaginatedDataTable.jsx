@@ -173,7 +173,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
 
                 }}
                 onClick={() => window.open(`${window.location.origin}/download/${downloadType}`)}
-            >Download these {totalNumResults} results</Button>
+            >Download results</Button>
         </Box>
 
         {(loading === true) && (

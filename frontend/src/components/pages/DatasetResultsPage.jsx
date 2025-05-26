@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 
 //MUI Imports
-import { FormControl, MenuItem, Select, Paper, Box, Button, TextField, Modal, Snackbar, Alert, Grid, Typography } from '@mui/material';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import { Box, Button, TextField, Modal, Snackbar, Alert, Typography, InputAdornment, Chip, Divider, Link } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import DatasetIcon from '@mui/icons-material/Storage';
 import { Stack } from '@mui/system';
 
 // Other Imports
@@ -19,6 +21,7 @@ export const DatasetResultsPage = (props) => {
     const [snackBarOpen, setSnackBarOpen] = useState(false);
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
     const [advancedFilterValues, setAdvancedFilterValues] = useState({});
+    const [isFiltered, setIsFiltered] = useState(false);
 
     const [alert, setAlert] = useState(1);
 
@@ -35,6 +38,9 @@ export const DatasetResultsPage = (props) => {
         }
         if (searchTerm) {
             filter.__search__= searchTerm;
+            setIsFiltered(true);
+        } else {
+            setIsFiltered(false);
         }
         setPageFilter({ ...filter });
         setLoadingResults(true);
@@ -54,6 +60,7 @@ export const DatasetResultsPage = (props) => {
         setAdvancedFilterValues({ ...advancedFilter });
         const filterWithPageLength = { ...advancedFilter, pageLength };
         setPageFilter(filterWithPageLength);
+        setIsFiltered(true);
 
         setLoadingResults(true);
         FilterDatasets(filterWithPageLength, 1).then(async res => {
@@ -96,31 +103,62 @@ export const DatasetResultsPage = (props) => {
             }
           }
     }
+
     const openSnackbar = () => {
         if (!loggedIn()) {
             setSnackBarOpen(true)
         }
     }
+
     const handleSnackBarClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
         setSnackBarOpen(false);
     };
+
     const openAdvancedFilter = () => {
         setAdvancedFilterOpen(true);
     }
+
     const handleAdvancedFilterClose = () => {
         setAdvancedFilterOpen(false);
     }
+
     const openSnackbar1 = () => {
         setSnackBarOpen1(true)
     }
+
     const handleSnackBarClose1 = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
         setSnackBarOpen1(false);
+    };
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setAdvancedFilterValues({});
+        setIsFiltered(false);
+        
+        const filter = { pageLength };
+        setPageFilter(filter);
+        setLoadingResults(true);
+        
+        FilterDatasets(filter, 1).then((res) => {
+            setLoadingResults(false);
+            if (!res) { setSearchResults([]) }
+            else { setSearchResults(res) }
+        });
+        
+        FilterDatasetsCount(filter).then(async (res) => {
+            setTotalNumOfResults(res);
+        });
+    };
+
+    const handleConcordanceViewClick = () => {
+        // props.navigate('/concordance-view');
+        console.log('Navigating to concordance view...');
     };
 
     const onEnter = (event) => {
@@ -150,7 +188,36 @@ export const DatasetResultsPage = (props) => {
     }, []);
 
     return (
-        <div className='blue' style={{ overflow: 'hidden' }}>
+        <Box sx={{ 
+            minHeight: '100vh', 
+            backgroundColor: '#f8f9fa',
+            py: 13,
+            position: 'relative'
+        }}>
+            {/* Concordance View Link - Top Left Corner   MOVEE TO BUTTON AND FUNCTIONALITY TO DATASET RESULTs PAGE
+            <Box sx={{ 
+                position: 'absolute',
+                top: 80,
+                left: 16,
+                zIndex: 1000
+            }}>
+                <Link
+                    component="button"
+                    onClick={handleConcordanceViewClick}
+                    sx={{
+                        fontSize: '0.875rem',
+                        color: '#1976d2',
+                        textDecoration: 'none',
+                        cursor: 'pointer',
+                        '&:hover': {
+                            textDecoration: 'underline'
+                        }
+                    }}
+                >
+                    Switch to Concordance View
+                </Link>
+            </Box> */}
+
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={snackBarOpen1}
@@ -166,60 +233,120 @@ export const DatasetResultsPage = (props) => {
             <Box sx={{ 
                 width: '100%', 
                 textAlign: 'center', 
-                mt: 10, 
-                mb: 2 
+                mb: 4
             }}>
-                <Typography 
-                    component="h1" 
-                    variant="h3" 
-                    sx={{ 
-                        fontSize: '2.5rem', 
-                        color: 'Black'
-                    }}
-                >
-                    Search Datasets
-                </Typography>
-            </Box>
-            
-            <Paper elevation={6} sx={{ maxWidth: '90%', margin: '0 auto', p: 4 }}>
-                <Stack spacing={3}>
-                    {/* Search Section */}
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            py: 3
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    mb: 1
+                }}>
+                    <DatasetIcon 
+                        sx={{ 
+                            fontSize: 40, 
+                            color: '#1976d2', 
+                            mr: 2 
+                        }} 
+                    />
+                    <Typography 
+                        component="h1" 
+                        variant="h3" 
+                        sx={{ 
+                            fontSize: '2.5rem', 
+                            color: 'black',
+                            fontWeight: 500
                         }}
                     >
-                        <Box sx={{ mb: 3 }}>
+                        Search Datasets
+                    </Typography>
+                </Box>
+            </Box>
+            
+                <Stack spacing={0}>
+                    {/* Search Section */}
+                    <Box sx={{ 
+                        p: 4, 
+                        backgroundColor: '#f8f9fa'
+                    }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 3
+                            }}
+                        >
                             <TextField
-                                sx={{ width: { xs: "90%", sm: "400px" } }}
+                                sx={{ 
+                                    width: { xs: "100%", sm: "500px" },
+                                    backgroundColor: 'white'
+                                }}
                                 id="searchTerm"
-                                label="Search"
+                                placeholder="Search datasets..."
                                 variant="outlined"
-                                color="primary"
-                                focused
                                 value={searchTerm}
                                 onChange={event => { setSearchTerm(event.target.value) }}
                                 onKeyDown={onEnter}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon color="action" />
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
-                        </Box>
-                        
-                        <Box
-                            sx={{
-                                display: "flex",
-                                width: "100%",
-                                justifyContent: "center"
-                            }}
-                        >
-                            <Button
-                                onClick={() => setAdvancedFilterOpen(true)}
-                                variant="outlined"
-                                sx={{ m: 2 }}
-                            >
-                                Advanced Filter
-                            </Button>
+                            
+                            <Box sx={{ 
+                                display: "flex", 
+                                gap: 2,
+                                flexWrap: 'wrap',
+                                justifyContent: 'center'
+                            }}>
+                                <Button
+                                    onClick={() => setAdvancedFilterOpen(true)}
+                                    variant="outlined"
+                                    startIcon={<FilterListIcon />}
+                                    sx={{ minWidth: '160px' }}
+                                >
+                                    Advanced Filter
+                                </Button>
+                                
+                                {isFiltered && (
+                                    <Button
+                                        onClick={clearFilters}
+                                        variant="text"
+                                        color="secondary"
+                                    >
+                                        Clear Filters
+                                    </Button>
+                                )}
+                            </Box>
+                            
+                            {/* Filter Tags */}
+                            {Object.keys(advancedFilterValues).length > 0 && (
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    gap: 1, 
+                                    flexWrap: 'wrap',
+                                    justifyContent: 'center',
+                                    mt: 1
+                                }}>
+                                    {Object.entries(advancedFilterValues).map(([key, value]) => {
+                                        if (value && key !== 'pageLength') {
+                                            return (
+                                                <Chip 
+                                                    key={key}
+                                                    size="small"
+                                                    label={`${key}: ${value}`}
+                                                    color="primary"
+                                                    variant="outlined"
+                                                />
+                                            );
+                                        }
+                                        return null;
+                                    })}
+                                </Box>
+                            )}
                         </Box>
                         
                         <Modal open={advancedFilterOpen} onClose={() => handleAdvancedFilterClose()}>
@@ -230,8 +357,23 @@ export const DatasetResultsPage = (props) => {
                         </Modal>
                     </Box>
                     
+                    <Divider />
+                    
+                    {/* Results Summary */}
+                    <Box sx={{ 
+                        px: 4, 
+                        py: 2, 
+                        backgroundColor: '#fafafa',
+                        borderBottom: '1px solid #e0e0e0'
+                    }}>
+                        <Typography variant="body2" color="text.secondary">
+                            {loadingResults ? 'Loading results...' : 
+                             `Showing ${searchResults.length} of ${totalNumResults} results`}
+                        </Typography>
+                    </Box>
+                    
                     {/* Results Section */}
-                    <Box sx={{ width: '100%' }}>
+                    <Box sx={{ p: 3 }}>
                         <DatasetTable
                             searchResults={searchResults}
                             loadingResults={loadingResults}
@@ -243,7 +385,6 @@ export const DatasetResultsPage = (props) => {
                         />
                     </Box>
                 </Stack>
-            </Paper>
             
             {/* SnackBar to display error if not logged in */}
             <Snackbar
@@ -256,6 +397,6 @@ export const DatasetResultsPage = (props) => {
                     You must be logged in to access private datasets.
                 </Alert>
             </Snackbar>
-        </div>
+        </Box>
     );
 }

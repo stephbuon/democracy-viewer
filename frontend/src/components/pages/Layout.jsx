@@ -86,22 +86,26 @@ export const Layout = (props) => {
           <img 
             src={homeIcon}
             alt="Home"
-            style={{ width: 32, height: 32}} 
+            style={{ width: 32, height: 32 }} 
           />
         </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'black' }}>
-            Democracy Viewer
-          </Typography>
+
+        <Button
+          onClick={() => navigate("/")}
+          sx={{ textTransform: 'none', color: 'black', fontSize: '1.0rem' }}
+        >
+         Democracy Viewer
+        </Button>
           
           {/* Navigation menu items */}
-          <Box sx={{ display: 'flex', mx: 2, flexGrow: 1, color: 'black'}}>
+          <Box sx={{ display: 'flex', mx: 2, flexGrow: 1, color: 'black', justifyContent: 'center'}}>
             <Button 
               color="inherit" 
               component={Link} 
               to="/datasets/search"
               sx={{ fontWeight: isActive('/datasets/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
             >
-              search dataset
+              search datasets
             </Button>
             <Button 
               color="inherit" 

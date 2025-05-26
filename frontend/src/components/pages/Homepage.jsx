@@ -80,7 +80,7 @@ export const Homepage = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        {/* Hero Section */}
+        {/* Header Section */}
         <Box sx={{ 
           background: "linear-gradient(180deg, #f0f0f0 0%, #f1f5f9 100%)",
           py: { xs: 8, md: 22 }
@@ -92,7 +92,7 @@ export const Homepage = () => {
                   Democracy Viewer
                 </Typography>
                 <Typography variant="h6" color="text.secondary" paragraph>
-                  Democratizing text-based data analytics and data sharing across the humanities and social sciences.
+                  Democratizing text-based data analytics and data sharing across the digital humanities.
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
@@ -106,7 +106,7 @@ export const Homepage = () => {
                     bgcolor: "#e2e8f0"
                   }}
                 >
-                  {/* Placeholder for visualization demo/screenshot */}
+                  {/* Header visualization image */}
                   <Box
                     sx={{
                       width: '100%',
@@ -185,8 +185,8 @@ export const Homepage = () => {
               <Grid item xs={12} sm={6} md={3}>
                 <Card sx={{ height: "100%" }}>
                   <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-                    <Avatar sx={{ bgcolor: "#f3e8ff", mb: 3, p: 3, width: 64, height: 64 }}>
-                      <BarChartIcon sx={{ color: "#8b5cf6", fontSize: 32 }} />
+                    <Avatar sx={{ bgcolor: "#fef3c7", mb: 3, p: 3, width: 64, height: 64 }}>
+                      <BarChartIcon sx={{ color: "#f59e0b", fontSize: 32 }} />
                     </Avatar>
                     <Typography variant="h6" gutterBottom>Search Visualizations</Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -239,7 +239,7 @@ export const Homepage = () => {
                 <Button 
                   variant="text" 
                   sx={{ color: "white", '&:hover': { color: "primary.main" } }}
-                  onClick={() => window.location.href = "mailto:sbuongiorno@smu.edu"}
+                  onClick={() => window.location.href = "mailto:democracyviewerlab@gmail.com"}
                 >
                   Contact Us
                 </Button>
