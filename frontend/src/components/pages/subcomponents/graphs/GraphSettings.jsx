@@ -1,7 +1,7 @@
 // Imports
 import { useEffect, useState } from "react";
 import { getGroupNames, getColumnValues, getTopWords, getEmbedCols } from "../../../../api"
-import { Paper, Button, FormControl, InputLabel, MenuItem, Modal, Select, Tooltip, Typography } from "@mui/material";
+import { Paper, Button, FormControl, InputLabel, MenuItem, Select, Tooltip, Typography, Box } from "@mui/material";
 import { metricNames, metricSettings, posOptionalMetrics, embeddingMetrics, posOptions, metricTypes, clusteringMetrics } from "./metrics.js";
 import { FormattedMultiTextField, FormattedMultiSelectField, FormattedTextField } from "../../../common";
 import "../../../../styles/List.css";
@@ -135,38 +135,23 @@ export const GraphSettings = ( props ) => {
         setLastMetric(metric);
     }, [metric, embedCols]);
 
-    // Closes modal and updates graph data
-    const handleClose = (event, reason) => {
-        if(reason == undefined){
-            const params = {
-                table_name: props.dataset.dataset.table_name,
-                group_name: group,
-                group_list: groupList.map(x => x.value),
-                metric: metric,
-                word_list: searchTerms.map(x => x.value),
-                pos_list: posList.map(x => x.value),
-                topn: parseInt(topn),
-                num_clusters: parseInt(numClusters),
-                to_col: toCol,
-                from_col: fromCol
-            };
-            props.updateGraph(params);
-            localStorage.setItem('graph-settings', JSON.stringify(params));
-            setSavedSettings(params);
-            // setGroupList([]);
-            // setPosList([]);
-            props.setSettings(false);
-        }
-    }
-
-    // Handles cancel to close settings if a graph exists
-    const handleCancel = (event) => {
-        // setGroupList([]);
-        if (props.generated) {
-            props.setSettings(false);
-        } else {
-            navigate(-1);
-        }
+    // Updates graph data
+    const handleUpdate = () => {
+        const params = {
+            table_name: props.dataset.dataset.table_name,
+            group_name: group,
+            group_list: groupList.map(x => x.value),
+            metric: metric,
+            word_list: searchTerms.map(x => x.value),
+            pos_list: posList.map(x => x.value),
+            topn: parseInt(topn),
+            num_clusters: parseInt(numClusters),
+            to_col: toCol,
+            from_col: fromCol
+        };
+        props.updateGraph(params);
+        localStorage.setItem('graph-settings', JSON.stringify(params));
+        setSavedSettings(params);
     }
 
     // Updates column name dropdown values
@@ -242,29 +227,28 @@ export const GraphSettings = ( props ) => {
         }
     }, [metric, group, searchTerms, groupList, toCol, fromCol]);
 
-    return <>
-        <Modal open={props.show}
-            onClose={handleClose}
-            aria-labelledby="contained-modal-title-vcenter"
-            className="mx-auto"
-            style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "20px"
+    return (
+        <Paper 
+            elevation={3} 
+            sx={{ 
+                width: "100%", 
+                height: "100%", 
+                overflowY: "auto", 
+                padding: "16px",
+                py: 8
             }}
-            >
-            <Paper className="mt-0" elevation={3} sx={{ width: "90%", 
-            maxWidth: "600px", 
-            maxHeight: "80vh", 
-            overflowY: "auto", 
-            padding: "16px", 
-            position: "relative"}}>
-                {/* {"Title"} */}
-                <h2 id="child-modal-title">Graph Settings For "{ props.dataset.dataset.title }"</h2>
+        >
+            {/* Title */}
+            <Typography component="h1" variant="h3" sx={{ fontSize: '1.5rem', color: 'Black'}}>
+                Visualization Settings
+            </Typography>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
+                Data from "{ props.dataset.dataset.title }"
+            </Typography>
 
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {/* Metric select dropdown */}
-                <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                     <InputLabel>Metric</InputLabel>
                     <Select
                         value = {metric}
@@ -272,7 +256,7 @@ export const GraphSettings = ( props ) => {
                     >
                         {
                             metricOptions.map(option => (
-                                <MenuItem value = { option.value }>
+                                <MenuItem key={option.value} value = { option.value }>
                                     { option.label }
                                 </MenuItem>
                             ))
@@ -290,7 +274,6 @@ export const GraphSettings = ( props ) => {
                             setSelectedOptions={setPosList}
                             getData={posOptions}
                             id="posSelect"
-                            className="mb-3"
                             closeMenuOnSelect={false}
                         />
                     </>
@@ -300,7 +283,7 @@ export const GraphSettings = ( props ) => {
                     networkValid === false &&
                     <>
                         {/* Column select dropdown */}
-                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                        <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                             <InputLabel>Group By</InputLabel>
                             <Select
                                 value = {group}
@@ -315,7 +298,7 @@ export const GraphSettings = ( props ) => {
                                 }
                                 {
                                     groupOptions.map(option => (
-                                        <MenuItem value = { option.value }>
+                                        <MenuItem key={option.value} value = { option.value }>
                                             { option.label }
                                         </MenuItem>
                                     ))
@@ -330,7 +313,6 @@ export const GraphSettings = ( props ) => {
                             getData={params => getGroupSuggestions(params)}
                             id="valueSelect"
                             isDisabled={selectToggle}
-                            className="mb-3"
                             closeMenuOnSelect={false}
                             refresh={refreshGroupOptions}
                         />
@@ -340,10 +322,8 @@ export const GraphSettings = ( props ) => {
                             label = "Custom Search"
                             selectedOptions={searchTerms}
                             setSelectedOptions={setSearchTerms}
-                            // getData={params => getColumnValues(props.dataset.dataset.table_name, group, params)}
                             getData={getWordSuggestions}
                             id="customSearchSelect"
-                            className="mb-3"
                             closeMenuOnSelect={false}
                         />
                     </>
@@ -352,7 +332,7 @@ export const GraphSettings = ( props ) => {
                 {
                     networkValid === true &&
                     <>
-                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                        <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                             <InputLabel>To Column</InputLabel>
                             <Select
                                 value = {toCol}
@@ -363,7 +343,7 @@ export const GraphSettings = ( props ) => {
                                 <MenuItem value = ""> &nbsp;</MenuItem>
                                 {
                                     groupOptions.map(option => (
-                                        <MenuItem value = { option.value }>
+                                        <MenuItem key={option.value} value = { option.value }>
                                             { option.label }
                                         </MenuItem>
                                     ))
@@ -371,7 +351,7 @@ export const GraphSettings = ( props ) => {
                             </Select>
                         </FormControl>
 
-                        <FormControl className="mb-3" fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
+                        <FormControl fullWidth variant="filled" sx={{ background: 'rgb(255, 255, 255)' }}>
                             <InputLabel>From Column</InputLabel>
                             <Select
                                 value = {fromCol}
@@ -385,7 +365,7 @@ export const GraphSettings = ( props ) => {
                                 }
                                 {
                                     groupOptions.map(option => (
-                                        <MenuItem value = { option.value }>
+                                        <MenuItem key={option.value} value = { option.value }>
                                             { option.label }
                                         </MenuItem>
                                     ))
@@ -408,7 +388,7 @@ export const GraphSettings = ( props ) => {
                             defaultValue={topn}
                             setValue={setTopn}
                             numeric
-                            sx={{ zIndex: 0, marginTop: "10px" }}
+                            sx={{ zIndex: 0 }}
                         />
                     )
                 }
@@ -422,63 +402,52 @@ export const GraphSettings = ( props ) => {
                             defaultValue={numClusters}
                             setValue={setNumClusters}
                             numeric
-                            sx={{ zIndex: 0, marginTop: "10px" }}
+                            sx={{ zIndex: 0 }}
                         />
                     )
                 }
 
-                <div style={{display: "flex", justifyContent: "center", marginTop: "2%"}}>
-                    {/* {"Cancel button"} */}
+                {/* Update graph button */}
+                {
+                    disabled === true &&
+                    <Tooltip
+                        arrow
+                        title={disabledMessage}
+                    >
+                        <div>
+                            <Button 
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "black", 
+                                    color: "white",
+                                    width: "100%",
+                                    mt: 2
+                                }}
+                                disabled={true}
+                            >
+                                {props.generated ? 'Update Graph' : 'Create Graph'}
+                            </Button>
+                        </div>
+                    </Tooltip>
+                    
+                }
+                {
+                    disabled === false &&
                     <Button 
                         variant="contained"
-                        onClick={handleCancel}
-                        className="mt-2"
-                        sx={{marginLeft:"1%", backgroundColor: "black"}}
+                        onClick={handleUpdate}
+                        sx={{
+                            backgroundColor: "black", 
+                            color: "white",
+                            width: "100%",
+                            mt: 2
+                        }}
+                        disabled={false}
                     >
-                        Cancel
+                        {props.generated ? 'Update Graph' : 'Create Graph'}
                     </Button>
-
-                    {/* {"Generate/update graph button"} */}
-                    {
-                        disabled === true &&
-                        <Tooltip
-                            arrow
-                            title={disabledMessage}
-                        >
-                            <div style = {{ marginLeft: "2%"}}>
-                                <Button 
-                                    variant="contained"
-                                    className="mt-2"
-                                    sx={{
-                                        backgroundColor: "black", 
-                                        color: "white"
-                                    }}
-                                    disabled={true}
-                                >
-                                    {props.generated ? 'Update graph' : 'Create graph'}
-                                </Button>
-                            </div>
-                        </Tooltip>
-                        
-                    }
-                    {
-                        disabled === false &&
-                        <Button 
-                            variant="contained"
-                            onClick={handleClose}
-                            className="mt-2"
-                            sx={{
-                                marginLeft:"2%", 
-                                backgroundColor: "black", 
-                                color: "white"
-                            }}
-                            disabled={false}
-                        >
-                            {props.generated ? 'Update graph' : 'Create graph'}
-                        </Button>
-                    }
-                </div>
-            </Paper>
-        </Modal>
-    </>
+                }
+            </Box>
+        </Paper>
+    );
 }
