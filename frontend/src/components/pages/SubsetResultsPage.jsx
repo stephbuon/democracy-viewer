@@ -1,8 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react";
-// import 'react-resizable/css/styles.css';
-// MUI Imports
-import { Box, TextField } from '@mui/material';
+
+//MUI Imports
+import {Box, TextField, Typography, InputAdornment, Divider, Snackbar, Alert} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import { Stack } from '@mui/system';
+
 //Other Imports
 import { GetSubsetOfDataByPage } from '../../api';
 import { PaginatedDataTable } from '../common/tables';
@@ -21,6 +24,7 @@ export const SubsetResultsPage = (props) => {
     const [columns, setColumns] = useState([]);
     const [selected, setSelected] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [snackBarOpen, setSnackBarOpen] = useState(false);
 
     const highlight = (results) => {
         const terms = searchTerm.split(" ");
@@ -70,15 +74,17 @@ export const SubsetResultsPage = (props) => {
     }
 
     const GetNewPage = async (selectedPage) => {
+        setLoading(true);
         try {
             const res = await GetSubsetOfDataByPage(props.dataset.table_name, query, selectedPage, pageLength);
             if (res) {
-                // Correctly handle asynchronous state update
                 setPage(selectedPage);
                 highlight(res.data);
             }
         } catch (error) {
             console.error('Error fetching new page:', error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -88,11 +94,30 @@ export const SubsetResultsPage = (props) => {
         }
     };
 
+    const handleSnackBarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackBarOpen(false);
+    };
+
+    // Add debounced search effect
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (searchTerm.length > 0 && selected) {
+                fetchSubset();
+            }
+        }, 500); // 500ms delay after the user stops typing
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
     useEffect(() => {
         let demoV = JSON.parse(localStorage.getItem('democracy-viewer'));
         if (!demoV || !demoV.dataset) {
-            navigate('/datasets/search')
-            props.setNavigated(true)
+            navigate('/datasets/search');
+            props.setNavigated(true);
+            setSnackBarOpen(true);
         } else {
             fetchSubset();
             setSelected(true);
@@ -100,81 +125,120 @@ export const SubsetResultsPage = (props) => {
     }, []);
 
     if (!selected) {
-        return <></>
+        return <></>;
     }
 
-    return <>
-        <div className='blue'>
-            <Box component="main"
-                sx={{
-                    marginTop: '100px',
-                    marginLeft: "100px", //Hardcoded
+    return (
+        <Box sx={{ 
+            minHeight: '100vh', 
+            backgroundColor: '#f8f9fa',
+            py: 13,
+            position: 'relative'
+        }}>
+            {/* Error Snackbar */}
+            <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                open={snackBarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackBarClose}
+            >
+                <Alert onClose={handleSnackBarClose} severity="error" sx={{ width: '100%' }}>
+                    You must choose a dataset first
+                </Alert>
+            </Snackbar>
+            
+            {/* Title Section */}
+            <Box sx={{ 
+                width: '100%', 
+                textAlign: 'center', 
+                mb: 4
+            }}>
+                <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    mb: 1
                 }}>
-
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: "center",
-                        alignItems: "center",
-                        // marginBottom: '100px',
-                        marginLeft: '10px',
-                        flexDirection: "column", // Add this to stack the elements vertically
-                    }}
-                >
-
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginBottom: '20px',
-                            flexDirection: 'column'
+                    <Typography 
+                        component="h1" 
+                        variant="h3" 
+                        sx={{ 
+                            fontSize: '2.5rem', 
+                            color: 'black',
+                            fontWeight: 500
                         }}
                     >
-                        <h1 style={{ fontSize: '3rem' }}>{ props.dataset.title }</h1>
-                    </Box>
-
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            zIndex: 1,
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                borderRadius: '.5em',
-                                overflow: "hidden",
-                                width: '100%',
-                            }}>
-                            <TextField
-                                id="searchTerm"
-                                label="Search"
-                                variant="outlined"
-                                color='primary'
-                                focused
-                                fullWidth
-                                sx={{ marginTop: "10px" }}
-                                value={searchTerm}
-                                onChange={event => { setSearchTerm(event.target.value) }}
-                                // New Code to search with enter press
-                                onKeyDown={event => handleKeyPress(event)}
-                            />
-                        </Box>
-                    </Box>
+                        {props.dataset.title}
+                    </Typography>
                 </Box>
             </Box>
-        </div>
-
-        <PaginatedDataTable
-            searchResults={searchResults}
-            page={page}
-            GetNewPage={GetNewPage}
-            table_name={props.dataset.table_name}
-            downloadType="subset"
-            totalNumResults={totalNumResults}
-            pageLength={pageLength}
-            columns={columns}
-            extLoading={loading}
-        />
-    </>
+            
+            <Stack spacing={0}>
+                {/* Search Section */}
+                <Box sx={{ 
+                    p: 4, 
+                    backgroundColor: '#f8f9fa'
+                }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 3
+                        }}
+                    >
+                        <TextField
+                            sx={{ 
+                                width: { xs: "100%", sm: "500px" },
+                                backgroundColor: 'white'
+                            }}
+                            id="searchTerm"
+                            placeholder="Search dataset content..."
+                            variant="outlined"
+                            value={searchTerm}
+                            onChange={event => { setSearchTerm(event.target.value) }}
+                            onKeyDown={handleKeyPress}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon color="action" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    </Box>
+                </Box>
+                
+                <Divider />
+                
+                {/* Results Summary */}
+                <Box sx={{ 
+                    px: 4, 
+                    py: 2, 
+                    backgroundColor: '#fafafa',
+                    borderBottom: '1px solid #e0e0e0'
+                }}>
+                    <Typography variant="body2" color="text.secondary">
+                        {loading ? 'Loading results...' : 
+                         totalNumResults >= 0 ? `Showing ${searchResults.length} of ${totalNumResults} results` : 'Ready to search'}
+                    </Typography>
+                </Box>
+                
+                {/* Results Section */}
+                <Box sx={{ p: 3 }}>
+                    <PaginatedDataTable
+                        searchResults={searchResults}
+                        page={page}
+                        GetNewPage={GetNewPage}
+                        table_name={props.dataset.table_name}
+                        downloadType="subset"
+                        totalNumResults={totalNumResults}
+                        pageLength={pageLength}
+                        columns={columns}
+                        extLoading={loading}
+                    />
+                </Box>
+            </Stack>
+        </Box>
+    );
 }
