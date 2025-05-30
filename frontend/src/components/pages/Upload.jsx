@@ -42,7 +42,7 @@ export const Upload = (props) => {
   }, []);
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "white" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f8f9fa" }}>
       <Modal open={openModal} onClose={() => CancelUpload()}>
         <div>
             <UploadModal CancelUpload={() => CancelUpload()} uploadType={uploadModeSelected} />
@@ -55,7 +55,7 @@ export const Upload = (props) => {
           component="h1" 
           align="center" 
           sx={{ 
-            fontSize: '3.5rem', 
+            fontSize: '3.1rem', 
             color: 'black',
             fontWeight: 500,
             mb: 6
