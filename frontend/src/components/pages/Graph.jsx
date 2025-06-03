@@ -1,11 +1,10 @@
-
 // Imports
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Button, Grid, Snackbar, Alert, Container, Modal, Typography } from "@mui/material";
+import { Box, Button, Grid, Snackbar, Alert, Container, Modal, Typography, IconButton } from "@mui/material";
 import { GraphComponent, GraphPublishModal, GraphSettings } from "./subcomponents/graphs";
 import { getGraph, getPublishedGraph } from "../../api";
-import { Settings, RotateLeft, Download, Upload } from '@mui/icons-material';
+import { Settings, RotateLeft, Download, Upload, Clear, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";
 import { std } from "mathjs";
@@ -24,10 +23,55 @@ export const Graph = (props) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishDisabled, setPublishDisabled] = useState(true);
+  
+  // Panel resize states
+  const [panelWidth, setPanelWidth] = useState(350);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // variable definitions
   const navigate = useNavigate();
   const urlParams = useParams();
+
+  // Handle mouse down on resize handle
+  const handleMouseDown = useCallback((e) => {
+    setIsResizing(true);
+    e.preventDefault();
+  }, []);
+
+  // Handle mouse move for resizing
+  const handleMouseMove = useCallback((e) => {
+    if (!isResizing) return;
+    
+    const newWidth = e.clientX;
+    // Set min width to 250px and max width to 600px
+    if (newWidth >= 250 && newWidth <= 600) {
+      setPanelWidth(newWidth);
+    }
+  }, [isResizing]);
+
+  // Handle mouse up to stop resizing
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  // Toggle panel collapse
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  // Add event listeners for resize
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp]);
 
   // Function to determine if two labels overlap in a scatter plot
   const isOverlappingScatter = (x1, y1, x2, y2, rangeX, rangeY) => {
@@ -43,6 +87,14 @@ export const Graph = (props) => {
   // Close publish modal
   const handlePublishClose = () => {
     setPublishOpen(false);
+  }
+
+  // Clear the graph
+  const clearGraph = () => {
+    setGraph(false);
+    setGraphData(undefined);
+    setAnnotationData(undefined);
+    localStorage.removeItem('selected');
   }
 
   // Runs on graph settings submit
@@ -525,19 +577,6 @@ export const Graph = (props) => {
     });
   };
 
-  // Opens modal
-  const handleOpen = (event) => {
-    setSettings(true);
-  }
-
-  // Resets to blank graph
-  const resetGraph = (event) => {
-    setGraph(false);
-    localStorage.removeItem('selected');
-    localStorage.removeItem('graph-settings');
-    setSettings(true);
-  }
-
   // Downloads the plot as a png
   const downloadGraph = (format = "png") => {
     Plotly.downloadImage("graph", {
@@ -631,18 +670,6 @@ export const Graph = (props) => {
         </Alert>
       </Snackbar>
 
-      {
-        data !== undefined && 
-        <GraphSettings 
-          dataset={data} 
-          show={settings} 
-          setSettings={setSettings}
-          updateGraph={updateGraph} 
-          generated={graph} 
-          newSettings={newSettings} 
-        />
-      }
-
       <Modal open={publishOpen} onClose={() => handlePublishClose()}>
         <div>
           <GraphPublishModal
@@ -655,155 +682,182 @@ export const Graph = (props) => {
         </div>
       </Modal>
 
-      <Box component="div" sx={{ marginTop: "5%" }}>
-    <Grid container justifyContent="center">
-      <Container sx={{ py: 4, maxWidth: '90%' }} maxWidth={false}>
-        {/* Control buttons */}
-        <Grid container spacing={4} justifyContent="center">
-          <Grid item xs={12} sm={6} md={3}>
-            <Button variant="contained"
-              onClick={handleOpen}
-              className="mt-2"
-              sx={{ backgroundColor: "black", width: "100%" }}
-              disabled={loading || zoomLoading}
-            ><Settings sx={{ mr: "10px" }} />Settings</Button>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button variant="contained"
-              onClick={() => downloadGraph()}
-              className="mt-2"
-              sx={{ backgroundColor: "black", width: "100%" }}
-              disabled={loading || zoomLoading}
-            ><Download sx={{ mr: "10px" }} />Download</Button>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <Button variant="contained"
-              onClick={() => setPublishOpen(true)}
-              className="mt-2"
-              sx={{ backgroundColor: "black", width: "100%" }}
-              disabled={loading || zoomLoading || !loggedIn}
-            ><Upload sx={{ mr: "10px" }} />Publish</Button>
-          </Grid>
-        </Grid>
-        <Grid container spacing={4} sx={{ mt: 2 }}>
-          {/* Left column - Metadata */}
-          <Grid item xs={12} md={3}>
-            {graphData && (
-              <Box 
-                sx={{ 
-                  mt: 2, 
-                  p: 3, 
-                  backgroundColor: "#f5f5f5", 
-                  borderRadius: 2,
-                  boxShadow: "0px 2px 4px rgba(0,0,0,0.1)"
-                }}
-              >
-                <Typography variant="h5" component="h2" fontWeight="bold" color="primary" gutterBottom>
-                  Graph Information
-                </Typography>
-                
-                <Box sx={{ mt: 3 }}>
-                  {graphData.metric && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
-                        Metric
-                      </Typography>
-                      <Typography variant="body1">
-                        {graphData.metric}
-                      </Typography>
-                    </Box>
-                  )}
-                  
-                  {graphData.table_name && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
-                        Table Name
-                      </Typography>
-                      <Typography variant="body1">
-                        {graphData.table_name}
-                      </Typography>
-                    </Box>
-                  )}
-                  
-                  {graphData.title && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
-                        Title
-                      </Typography>
-                      <Typography variant="body1">
-                        {graphData.title}
-                      </Typography>
-                    </Box>
-                  )}
-                  
-                  {graphData.xLabel && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
-                        X-Axis Label
-                      </Typography>
-                      <Typography variant="body1">
-                        {graphData.xLabel}
-                      </Typography>
-                    </Box>
-                  )}
-                  
-                  {graphData.yLabel && (
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="text.secondary">
-                        Y-Axis Label
-                      </Typography>
-                      <Typography variant="body1">
-                        {graphData.yLabel}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
+      <Box sx={{ display: 'flex', height: '100vh', pt: 2, position: 'relative' }}>
+        {/* Left Panel - Graph Settings */}
+        <Box sx={{ 
+          width: isCollapsed ? '0px' : `${panelWidth}px`,
+          minWidth: isCollapsed ? '0px' : `${panelWidth}px`,
+          height: 'calc(100vh - 16px)',
+          overflow: 'hidden',
+          mr: isCollapsed ? 0 : 2,
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.3s ease, min-width 0.3s ease, margin-right 0.3s ease',
+          position: 'relative'
+        }}>
+          {!isCollapsed && (
+            <>
+              {data !== undefined && 
+                <GraphSettings 
+                  dataset={data} 
+                  updateGraph={updateGraph} 
+                  generated={graph} 
+                  newSettings={newSettings} 
+                />
+              }
+              
+              {/* Clear Graph Button */}
+              <Box sx={{ mt: 2, flexShrink: 0 }}>
+                <Button 
+                  variant="outlined"
+                  onClick={clearGraph}
+                  sx={{ 
+                    width: "100%",
+                    color: "red",
+                    borderColor: "red",
+                    '&:hover': {
+                      borderColor: "darkred",
+                      backgroundColor: "rgba(255, 0, 0, 0.04)"
+                    }
+                  }}
+                  disabled={loading || zoomLoading || !graph}
+                >
+                  <Clear sx={{ mr: "10px" }} />Clear Graph
+                </Button>
               </Box>
-            )}
-          </Grid>
+            </>
+          )}
+        </Box>
 
-        {/* Right column - Graph */}
-        <Grid item xs={12} md={9}>
-          {(loading === true || zoomLoading === true) && (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '60vh'
-              }}
+        {/* Resize Handle */}
+        {!isCollapsed && (
+          <Box
+            sx={{
+              width: '4px',
+              height: 'calc(100vh - 16px)',
+              backgroundColor: isResizing ? '#1976d2' : 'transparent',
+              cursor: 'col-resize',
+              position: 'relative',
+              mr: 2,
+              '&:hover': {
+                backgroundColor: '#1976d2',
+              },
+              transition: 'background-color 0.2s ease'
+            }}
+            onMouseDown={handleMouseDown}
+          />
+        )}
+
+        {/* Collapse/Expand Button */}
+        <Box
+          sx={{
+            position: 'absolute',
+            left: isCollapsed ? '8px' : `${panelWidth + 8}px`,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 1000,
+            transition: 'left 0.3s ease'
+          }}
+        >
+          <IconButton
+            onClick={toggleCollapse}
+            sx={{
+              backgroundColor: 'white',
+              border: '1px solid #ddd',
+              '&:hover': {
+                backgroundColor: '#f5f5f5'
+              },
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            size="small"
+          >
+            {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+          </IconButton>
+        </Box>
+
+        {/* Right Panel - Graph Content */}
+        <Box sx={{ 
+          flex: 1, 
+          display: 'flex', 
+          flexDirection: 'column',
+          height: 'calc(100vh - 16px)',
+          overflow: 'hidden'
+        }}>
+          {/* Control buttons */}
+          <Box
+            sx={{
+              mb: 2,
+              py: 10,
+              display: "flex",
+              justifyContent: "center", // centers the Grid container horizontally
+            }}
+          >
+            <Grid
+              container
+              spacing={2}
+              justifyContent="center" // centers the Grid items inside the container
+              sx={{ maxWidth: "800px" }} // optional: limits width to keep buttons from stretching too wide
             >
-              <div className="spinner-border" style={{
-                width: "5rem",
-                height: "5rem"
-              }} role="status">
-                <span className="sr-only"></span>
-              </div>
+              <Grid item xs={12} sm={4} md={3}>
+                <Button
+                  variant="contained"
+                  onClick={() => downloadGraph()}
+                  sx={{ backgroundColor: "black", width: "100%" }}
+                  disabled={loading || zoomLoading || !graph}
+                >
+                  <Download sx={{ mr: "10px" }} />
+                  Download
+                </Button>
+              </Grid>
+              <Grid item xs={12} sm={4} md={3}>
+                <Button
+                  variant="contained"
+                  onClick={() => setPublishOpen(true)}
+                  sx={{ backgroundColor: "black", width: "100%" }}
+                  disabled={loading || zoomLoading || !loggedIn || !graph}
+                >
+                  <Upload sx={{ mr: "10px" }} />
+                  Publish
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+
+          {/* Graph Visualization - Full Width */}
+          <Box sx={{ 
+            flex: 1, 
+            display: 'flex',
+            overflow: 'hidden'
+          }}>
+            <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {(loading === true || zoomLoading === true) && (
+                <div className="spinner-border" style={{
+                  width: "5rem",
+                  height: "5rem"
+                }} role="status">
+                  <span className="sr-only"></span>
+                </div>
+              )}
+              
+              {graph === true && zoomLoading === false && (
+                <GraphComponent
+                  border
+                  data={graphData}
+                  setData={setData}
+                  setZoomLoading={setZoomLoading}
+                  isOverlappingScatter={isOverlappingScatter}
+                  annotations={annotationData}
+                  dataset={data?.dataset}
+                />
+              )}
+              
+              {graph === false && loading === false && (
+                <Typography variant="h5">No Results Found</Typography>
+              )}
             </Box>
-          )}
-          
-          {graph === true && zoomLoading === false && (
-            <GraphComponent
-              border
-              data={graphData}
-              setData={setData}
-              setZoomLoading={setZoomLoading}
-              isOverlappingScatter={isOverlappingScatter}
-              annotations={annotationData}
-              dataset={data?.dataset}
-            />
-          )}
-          
-          {graph === false && settings === false && loading === false && (
-            <div id="test" style={{ textAlign: "center", height: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Typography variant="h5">No Results Found</Typography>
-            </div>
-          )}
-        </Grid>
-      </Grid>
-    </Container>
-  </Grid>
-</Box>
+          </Box>
+        </Box>
+      </Box>
     </>
   );
 }

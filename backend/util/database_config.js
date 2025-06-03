@@ -31,7 +31,7 @@ const mssql = (client, host, database, username, port = undefined, password = un
             port: port ? parseInt(process.env.PORT) : port,
             encrypt: true
             },
-            requestTimeout: 60000
+            requestTimeout: 3600000
         },
         pool: {
             min: 0,
@@ -50,7 +50,7 @@ const mysql = (client, host, database, username, port = undefined, password = un
             password: password,
             database: database,
             port: port,
-            requestTimeout: 60000
+            requestTimeout: 3600000
         },
         pool: {
             min: 0,

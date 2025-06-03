@@ -5,8 +5,10 @@ export const CreateDataset = async(dataset, setProgress) => {
     formData.append("file", dataset);
 
     const settings = {
-        isFileUpload: true
+        isFileUpload: true,
+        timeout: 0
     };
+    
     if (setProgress) {
         settings.onUploadProgress = (progressEvent) => {
             const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
