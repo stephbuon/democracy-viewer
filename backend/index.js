@@ -28,9 +28,25 @@ app.use(cors({
     origin: process.env.FRONTEND_ENDPOINT,
     optionsSuccessStatus: 200
 }));
+
+// Increase server timeout for large uploads (30 minutes)
+app.use((req, res, next) => {
+    req.setTimeout(1800000);
+    res.setTimeout(1800000);
+    next();
+});
+
 app.use(requestLog);
 app.use(optAuthenticateJWT);
 app.use(createDatabaseConnection);
+
+// Increase body parser limits for uploading large datasets - different limits for different routes
+app.use('/datasets', bodyParser.json({ limit: "20gb" }));
+app.use('/datasets', bodyParser.urlencoded({ 
+    limit: "20gb", 
+    extended: true, 
+    parameterLimit: 1000000 
+}));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true, parameterLimit: 50000 }));
 
@@ -57,9 +73,40 @@ app.use(`${ apiPrefix }/graphs`, graphs);
 app.use(`${ apiPrefix }/session`, session);
 app.use(`${ apiPrefix }/users`, users);
 
+// Error handling middleware for large uploads
+app.use((error, req, res, next) => {
+    if (error.type === 'entity.too.large') {
+        return res.status(413).json({
+            error: 'File too large',
+            message: 'The uploaded file exceeds the maximum allowed size'
+        });
+    }
+    
+    if (error.code === 'ECONNRESET' || error.code === 'ECONNABORTED') {
+        return res.status(408).json({
+            error: 'Upload timeout',
+            message: 'Upload took too long and was cancelled'
+        });
+    }
+    
+    // Ensure CORS headers are sent even on errors
+    res.header('Access-Control-Allow-Origin', process.env.FRONTEND_ENDPOINT);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    res.status(500).json({
+        error: 'Internal server error',
+        message: error.message
+    });
+});
+
 // Delete knex connection
 app.use(deleteDatabaseConnection);
 
-app.listen(port, () => {
-    console.log(`This app is listening on port ${ port }`);
+const server = app.listen(port, () => {
+    console.log(`This app is listening on port ${port}`);
 });
+
+// Increase server timeout globally
+server.timeout = 1800000; // 30 minutes
+server.keepAliveTimeout = 1800000;
+server.headersTimeout = 1800000;
