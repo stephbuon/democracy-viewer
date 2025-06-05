@@ -35,7 +35,7 @@ const mssql = (client, host, database, username, port = undefined, password = un
         },
         pool: {
             min: 0,
-            max: 15
+            max: 30
         }
     };
 }
@@ -54,7 +54,7 @@ const mysql = (client, host, database, username, port = undefined, password = un
         },
         pool: {
             min: 0,
-            max: 15
+            max: 30
         }
     };
 }

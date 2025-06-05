@@ -76,7 +76,7 @@ export const Graph = (props) => {
   // Function to determine if two labels overlap in a scatter plot
   const isOverlappingScatter = (x1, y1, x2, y2, rangeX, rangeY) => {
     // Adjust fraction to change how many labels to hide
-    const fraction = 0.05;
+    const fraction = 0.007;
     const xThreshold = rangeX * fraction;
     const yThreshold = rangeY * fraction;
     const xDistance = Math.abs(x1 - x2);
@@ -269,7 +269,7 @@ export const Graph = (props) => {
             return false;
           }
           // Adjust fraction to change how many labels to hide
-          const fraction = 0.1;
+          const fraction = 0.02;
           const yThreshold = rangeY * fraction;
           const yDistance = Math.abs(y1 - y2);
           return yDistance < yThreshold;
@@ -847,7 +847,7 @@ export const Graph = (props) => {
                   setZoomLoading={setZoomLoading}
                   isOverlappingScatter={isOverlappingScatter}
                   annotations={annotationData}
-                  dataset={data?.dataset}
+                  dataset={data.dataset}
                 />
               )}
               
