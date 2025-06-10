@@ -23,6 +23,38 @@ export const Homepage = () => {
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
 
+  // Featured visualizations
+  const featuredVisualizations = [
+    {
+      id: 1,
+      title: "US Congressional Discourse",
+      description: "Analysis of language patterns in congressional debates over time",
+      type: "Time Series",
+      icon: <TimelineIcon sx={{ fontSize: 40, color: "#3b82f6" }} />,
+    },
+    {
+      id: 2,
+      title: "Global Democracy Index",
+      description: "Comparative visualization of democracy metrics across countries",
+      type: "Geographic",
+      icon: <PublicIcon sx={{ fontSize: 40, color: "#10b981" }} />,
+    },
+    {
+      id: 3,
+      title: "Voter Demographics",
+      description: "Detailed breakdown of voter participation by various demographic factors",
+      type: "Multi-dimensional",
+      icon: <PieChartIcon sx={{ fontSize: 40, color: "#8b5cf6" }} />,
+    },
+    {
+      id: 4,
+      title: "Political Network Analysis",
+      description: "Network visualization of political relationships and affiliations",
+      type: "Network",
+      icon: <AccountTreeIcon sx={{ fontSize: 40, color: "#f59e0b" }} />,
+    },
+  ];
+
   const carouselImages = [
     image1, image2, image3
   ];
@@ -83,7 +115,7 @@ export const Homepage = () => {
         {/* Header Section */}
         <Box sx={{ 
           background: "linear-gradient(180deg, #f0f0f0 0%, #f1f5f9 100%)",
-          py: { xs: 8, md: 22 }
+          py: { xs: 8, md: 18 }
         }}>
           <Container maxWidth="lg">
             <Grid container spacing={4} alignItems="center">
@@ -228,6 +260,56 @@ export const Homepage = () => {
                 </Card>
               </Grid> */}
             </Grid>
+          </Container>
+        </Box>
+
+         {/* Featured Visualizations */}
+        <Box sx={{ py: 8, bgcolor: "white" }}>
+          <Container maxWidth="lg">
+            <Typography variant="h3" component="h2" align="center" fontWeight="bold" sx={{ mb: 6 }}>
+              Featured Visualizations
+            </Typography>
+            <Grid container spacing={3}>
+              {featuredVisualizations.map((viz) => (
+                <Grid item xs={12} sm={6} md={3} key={viz.id}>
+                  <Card>
+                    <CardContent>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        {viz.icon}
+                        <Chip 
+                          label={viz.type} 
+                          size="small" 
+                          variant="outlined"
+                        />
+                      </Box>
+                      <Typography variant="h6" sx={{ mt: 2 }}>{viz.title}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {viz.description}
+                      </Typography>
+                    </CardContent>
+                    <Divider />
+                    <CardActions sx={{ p: 2 }}>
+                      <Button 
+                        variant="outlined" 
+                        fullWidth
+                        onClick={() => navigate(`/graph/published/${viz.id}`)}
+                      >
+                        View Visualization
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            <Box sx={{ textAlign: "center", mt: 4 }}>
+              <Button
+                variant="outlined"
+                endIcon={<ArrowRightAltIcon />}
+                onClick={() => navigate("/graphs/search")}
+              >
+                View All Visualizations
+              </Button>
+            </Box>
           </Container>
         </Box>
 
