@@ -7,17 +7,9 @@ const util = require("../util/file_management");
 // Route to create a dataset
 router.post('/', authenticateJWT, async(req, res, next) => {
     try {
-        // Upload file to server
-        await util.uploadFile(req, res);
-
-        if (!req.file) {
-            // If file failed to upload, throw error
-            res.status(400).json({ message: "No uploaded file" });
-        } else {
-            // Create dataset in database from file
-            const result = await control.createDataset(req.file.path, req.user.email);
-            res.status(201).json(result);
-        }
+        // Create dataset in database from file
+        const result = await control.createDataset(req.user.email);
+        res.status(201).json(result);
     } catch (err) {
         console.error('Failed to create dataset:', err);
         res.status(500).json({ message: err.toString() });
@@ -101,6 +93,32 @@ router.post('/upload/stopwords/:table', authenticateJWT, async(req, res, next) =
         }
     } catch (err) {
         console.error('Failed to upload stopwords:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to create a batch
+router.post('/batch/:table_name', authenticateJWT, async(req, res, next) => {
+    try {
+        // Create dataset in database from file
+        const result = await control.createBatch(req.knex, req.params.table_name, req.user.email);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to create batch:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to upload a batch
+router.post('/batch/:table_name/upload/:batch', authenticateJWT, async(req, res, next) => {
+    try {
+        // Create dataset in database from file
+        const result = await control.uploadBatch(req.knex, req.params.table_name, req.params.batch, req.user.email);
+        res.status(201).json(result);
+    } catch (err) {
+        console.error('Failed to upload batch:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();
@@ -335,6 +353,18 @@ router.get('/columns/:table', async(req, res, next) => {
         res.status(200).json(result);
     } catch (err) {
         console.error('Failed to get dataset column names:', err);
+        res.status(500).json({ message: err.toString() });
+    }
+    next();
+});
+
+// Route to get dataset temporary column names
+router.get('/columns/:table/temp', async(req, res, next) => {
+    try {
+        const result = await control.getTempCols(req.knex, req.params.table);
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Failed to get dataset temporary column names:', err);
         res.status(500).json({ message: err.toString() });
     }
     next();

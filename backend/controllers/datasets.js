@@ -8,22 +8,15 @@ const dataQueries = require("../util/data_queries");
 const aws = require("../util/aws");
 
 // Upload a new dataset from a csv file
-const createDataset = async(path, email) => {
-    // Get the file name from the file path
-    let filepath = path.split("/");
-    const extension = filepath.pop().split(".").pop();
-    filepath = filepath.join("/");
+const createDataset = async(email) => {
+    // Get the file name from the user's email and a time stamp
     const table_name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
-    const newName = `${ filepath }/${ table_name }.${ extension }`;
-    // Rename file
-    util.renameFile(path, newName);
-
-    // Get column names
-    const headers = await util.getCsvHeaders(newName);
+    // Get a signed url to upload the file
+    const url = await aws.uploadFileDirect(table_name)
 
     return {
         table_name,
-        headers
+        url
     };
 }
 
@@ -102,8 +95,7 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     // Upload metadata
     await model.createMetadata(name, email, metadata);
     // Upload all columns
-    const path = `files/uploads/${ name }.csv`;
-    const headers = await util.getCsvHeaders(path);
+    const headers = await getTempCols(knex, name);
     await model.addCols(name, headers);
     // Upload text columns
     await model.addTextCols(name, textCols);
@@ -115,9 +107,9 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     if (tags && tags.length > 0) {
         await model.addTag(name, tags);
     }
-    
-    // Upload raw data to s3
-    await runPython("upload_dataset", [ name, path ], metadata.distributed);
+
+    // Delete temp columns
+    await model.deleteTempCols(name);
 
     // Start batch preprocessing
     await aws.submitBatchJob(name);
@@ -146,6 +138,73 @@ const reprocessDataset = async(knex, table, email) => {
 
     // Update metadata to indicate reprocessing has begun
     await model.updateMetadata(table, { reprocess_start: true });
+}
+
+// Create signed url to upload a new batch for a dataset
+const createBatch = async(knex, table, email) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    // Get a signed url to upload the file
+    const batch = metadata.num_batches + 1;
+    const url = await aws.uploadFileDirect(table, batch)
+
+    return {
+        batch,
+        url
+    };
+}
+
+// Start processing a new batch for a dataset
+const uploadBatch = async(knex, table, batch, email) => {
+    const model = new datasets(knex);
+
+    // Get the current metadata for this table
+    const metadata = await model.getMetadata(table);
+
+    // If the user of this table does not match the user, throw error
+    if (metadata.email !== email) {
+        throw new Error(`User ${ email } is not the owner of this dataset`);
+    }
+
+    // Get the old column names for this dataset
+    let oldCols = await model.getColumnNames(table);
+    oldCols = oldCols.map(x => x.col);
+    // Get the new column names from the temp cols table
+    const newCols = await getTempCols(knex, table);
+
+    // Delete temp columns as they are no longer needed
+    await model.deleteTempCols(table);
+
+    // Check if the old and new columns match
+    const columnsMatch = (cols1 = [], cols2 = []) => {
+        if (cols1.length !== cols2.length) {
+            return false;
+        }
+
+        return cols1.every(x => cols2.includes(x));
+    }
+
+    // Throw error if columns don't match and delete dataset from s3
+    if (!columnsMatch(oldCols, newCols)) {
+        await aws.deleteTempUpload(table, batch);
+        await model.deleteTempCols(table);
+        throw new Error(`
+            Column names of given file do not match existing data.
+            Old columns: ${ oldCols }
+            New columns: ${ newCols }
+        `);
+    }
+
+    // Start processing job for new data
+    await aws.submitBatchJob(table, batch);
 }
 
 // Add a tag for a dataset
@@ -596,6 +655,26 @@ const getTopWords = async(table_name, search, column, values, page, pageLength) 
     return df.getColumn("word").toArray();
 }
 
+// Check for temporary columns
+const getTempCols = async(knex, table_name) => {
+    const model = new datasets(knex);
+
+    const maxAttempts = 5 * 60;
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+        const records = await model.getTempCols(table_name);
+
+        if (records.length > 0) {
+            return records.map(x => x.col);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        attempts += 1;
+    }
+
+    throw new Error(`Failed to find temporary columns after ${ maxAttempts } attempts`);
+}
+
 // Delete a dataset and its metadata
 const deleteDataset = async(knex, user, table) => {
     const model = new datasets(knex);
@@ -677,6 +756,8 @@ module.exports = {
     reprocessDataset,
     addTag,
     addSuggestion,
+    createBatch,
+    uploadBatch,
     updateMetadata,
     incClicks,
     updateText,
@@ -700,6 +781,7 @@ module.exports = {
     getSuggestionsFrom,
     getSuggestion,
     getTopWords,
+    getTempCols,
     deleteDataset,
     deleteTag,
     deleteLike,

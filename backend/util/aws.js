@@ -155,17 +155,26 @@ const downloadFile = async(localFile, folder, name) => {
     }
 }
 
-const submitBatchJob = async(table_name, num_threads = 4) => {
-    const command = new SubmitJobCommand({
-        jobName: table_name,
-        jobQueue: process.env.BATCH_QUEUE,
-        jobDefinition: process.env.BATCH_DEF,
-        parameters: {
-           table_name,
-           num_threads
+const submitBatchJob = async(table_name, batch_num = null) => {
+    let params = {
+        table_name
+    };
+    let name = `start-${ table_name }`
+    if (batch_num) {
+        params = {
+            ...params,
+            batch_num
         }
-    });
+        name += `-${ batch_num }`;
+    }
 
+    // Submit job
+    const command = new SubmitJobCommand({
+        jobName: name,
+        jobQueue: process.env.BATCH_QUEUE_LARGE,
+        jobDefinition: process.env.BATCH_START_PROCESSING_DEF,
+        parameters: params
+    });
     const response = await batchClient.send(command);
     console.log("Batch job submitted:");
     console.log(response);
@@ -230,7 +239,24 @@ const uploadGraph = async(name) => {
     return await getSignedUrl(s3Client, uploadCommand, { expiresIn: 3600 });
 }
 
-const uploadFile = async(localFile, s3File, token = null) => {
+const uploadFileDirect = async(table_name, batch_num = null) => {
+    let name;
+    if (batch_num) {
+        name = `temp_uploads/${ table_name }-${ batch_num }.csv`;
+    } else {
+        name = `temp_uploads/${ table_name }.csv`;
+    }
+
+    const command = new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: name,
+        ContentType: "text/csv"
+    });
+
+    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+}
+
+const uploadFile = async(localFile, s3File) => {
     await new Upload({
         client: s3Client,
         params: {
@@ -242,6 +268,22 @@ const uploadFile = async(localFile, s3File, token = null) => {
         .done();
 }
 
+const deleteTempUpload = async(table, batch_num = null) => {
+    let path;
+    if (batch_num) {
+        path = `temp_uploads/${ table }-${ batch_num }.csv`;
+    } else {
+        path = `temp_uploads/${ table }.csv`;
+    }
+
+    const command = new DeleteObjectCommand({
+        Bucket: process.env.S3_BUCKET,
+        Key: path
+    });
+
+    await s3Client.send(command);
+}
+
 module.exports = {
     checkFileExists,
     download,
@@ -251,5 +293,8 @@ module.exports = {
     uploadGraph,
     uploadFile,
     deleteFile,
-    downloadGraph
+    downloadGraph,
+    uploadFileDirect,
+    uploadFile,
+    deleteTempUpload
 }
