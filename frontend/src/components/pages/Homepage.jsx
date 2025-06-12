@@ -292,7 +292,7 @@ export const Homepage = () => {
                       <Button 
                         variant="outlined" 
                         fullWidth
-                        onClick={() => navigate(`/graph/published/${viz.id}`)}
+                        onClick={() => navigate("/graphs/search")}
                       >
                         View Visualization
                       </Button>
