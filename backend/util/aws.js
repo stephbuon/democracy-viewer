@@ -168,6 +168,14 @@ const submitBatchJob = async(table_name, batch_num = null) => {
         name += `-${ batch_num }`;
     }
 
+    // DEBUG:
+    console.log('=== DEBUG ENV VARS ===');
+    console.log('BATCH_QUEUE_LARGE:', process.env.BATCH_QUEUE_LARGE);
+    console.log('BATCH_START_PROCESSING_DEF:', process.env.BATCH_START_PROCESSING_DEF);
+    console.log('typeof BATCH_START_PROCESSING_DEF:', typeof process.env.BATCH_START_PROCESSING_DEF);
+    console.log('All BATCH vars:', Object.keys(process.env).filter(k => k.includes('BATCH')));
+    console.log('=====================');
+
     // Submit job
     const command = new SubmitJobCommand({
         jobName: name,
@@ -175,8 +183,6 @@ const submitBatchJob = async(table_name, batch_num = null) => {
         jobDefinition: process.env.BATCH_START_PROCESSING_DEF,
         parameters: params
     });
-    console.log("Job queue:", process.env.BATCH_QUEUE_LARGE);
-    console.log("Job def:", process.env.BATCH_START_PROCESSING_DEF);
 
     const response = await batchClient.send(command);
     console.log("Batch job submitted:");

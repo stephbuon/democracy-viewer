@@ -14,8 +14,15 @@ services:
     # ports to map, YOU CANNOT RUN ANYTHING ELSE ON PORT 8000
     ports:
       - 8000:8000
-    env_file:
-      - .env 
+    # batch job definitions
+    environment:
+      - BATCH_ENV=democracy-viewer-processing-env
+      - BATCH_QUEUE=democracy-viewer-processing-queue
+      - BATCH_DEF=democracy-viewer-processing-def
+      - BATCH_ENV_LARGE=democracy-viewer-processing-env-large
+      - BATCH_QUEUE_LARGE=democracy-viewer-processing-queue-large
+      - BATCH_DEF_LARGE=democracy-viewer-processing-large-def
+      - BATCH_START_PROCESSING_DEF=democracy-viewer-start-processing
     # shared network
     networks:
       - api
