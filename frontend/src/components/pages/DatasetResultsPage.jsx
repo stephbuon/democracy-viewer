@@ -156,11 +156,6 @@ export const DatasetResultsPage = (props) => {
         });
     };
 
-    const handleConcordanceViewClick = () => {
-        // props.navigate('/concordance-view');
-        console.log('Navigating to concordance view...');
-    };
-
     const onEnter = (event) => {
         if (event.key === "Enter") {
             filterResults();
@@ -194,29 +189,6 @@ export const DatasetResultsPage = (props) => {
             py: 13,
             position: 'relative'
         }}>
-            {/* Concordance View Link - Top Left Corner   MOVEE TO BUTTON AND FUNCTIONALITY TO DATASET RESULTs PAGE
-            <Box sx={{ 
-                position: 'absolute',
-                top: 80,
-                left: 16,
-                zIndex: 1000
-            }}>
-                <Link
-                    component="button"
-                    onClick={handleConcordanceViewClick}
-                    sx={{
-                        fontSize: '0.875rem',
-                        color: '#1976d2',
-                        textDecoration: 'none',
-                        cursor: 'pointer',
-                        '&:hover': {
-                            textDecoration: 'underline'
-                        }
-                    }}
-                >
-                    Switch to Concordance View
-                </Link>
-            </Box> */}
 
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

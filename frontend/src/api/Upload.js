@@ -37,6 +37,7 @@ export const UploadDataset = async (table_name, metadata, text, embed, tags) => 
     const params = {
         table_name, metadata, text, embed, tags
     };
+    console.log("UploadDataset params:", params);
     
     const endpoint = `/datasets/upload`;
     return await postRequest(endpoint, params);

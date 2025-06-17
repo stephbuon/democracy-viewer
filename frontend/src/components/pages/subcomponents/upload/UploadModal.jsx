@@ -463,16 +463,16 @@ export const UploadModal = (props) => {
                                     value={language}
                                     onChange={event => setLanguage(event.target.value)}
                                 >
-                                    <MenuItem value = "Chinese"><Flag country = "CN"/>&nbsp;Chinese</MenuItem>
-                                    <MenuItem value = "English"><Flag country = "GB"/>&nbsp;English</MenuItem>
-                                    <MenuItem value = "French"><Flag country = "FR"/>&nbsp;French</MenuItem>
-                                    <MenuItem value = "German"><Flag country = "DE"/>&nbsp;German</MenuItem>
-                                    <MenuItem value = "Greek"><Flag country = "GR"/>&nbsp;Greek</MenuItem>
-                                    <MenuItem value = "Italian"><Flag country = "IT"/>&nbsp;Italian</MenuItem>
-                                    <MenuItem value = "Latin"><Flag country = "VA"/>&nbsp;Latin</MenuItem>
-                                    <MenuItem value = "Portuguese"><Flag country = "PT"/>&nbsp;Portuguese</MenuItem>
-                                    <MenuItem value = "Russian"><Flag country = "RU"/>&nbsp;Russian</MenuItem>
-                                    <MenuItem value = "Spanish"><Flag country = "ES"/>&nbsp;Spanish</MenuItem>
+                                    <MenuItem value="Chinese">Chinese</MenuItem>
+                                    <MenuItem value="English">English</MenuItem>
+                                    <MenuItem value="French">French</MenuItem>
+                                    <MenuItem value="German">German</MenuItem>
+                                    <MenuItem value="Greek">Greek</MenuItem>
+                                    <MenuItem value="Italian">Italian</MenuItem>
+                                    <MenuItem value="Latin">Latin</MenuItem>
+                                    <MenuItem value="Portuguese">Portuguese</MenuItem>
+                                    <MenuItem value="Russian">Russian</MenuItem>
+                                    <MenuItem value="Spanish">Spanish</MenuItem>
                                     {/* <MenuItem value = "Other">If your desired language isn't supported, contact us, and we'll work on adding it.</MenuItem> */}
                                 </Select>
                             </FormControl>

@@ -100,6 +100,14 @@ export const Layout = (props) => {
             <Button 
               color="inherit" 
               component={Link} 
+              to="/upload"
+              sx={{ fontWeight: isActive('/upload') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+            >
+              upload dataset
+            </Button>
+            <Button 
+              color="inherit" 
+              component={Link} 
               to="/datasets/search"
               sx={{ fontWeight: isActive('/datasets/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
             >
@@ -128,14 +136,6 @@ export const Layout = (props) => {
               sx={{ fontWeight: isActive('/graphs/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
             >
               search visualizations
-            </Button>
-            <Button 
-              color="inherit" 
-              component={Link} 
-              to="/upload"
-              sx={{ fontWeight: isActive('/upload') ? 'bold' : 'normal', textTransform: 'capitalize' }}
-            >
-              upload dataset
             </Button>
           </Box>
 
