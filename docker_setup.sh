@@ -1,4 +1,5 @@
-git pull
+git fetch
+git reset --hard origin/main
 sudo docker-compose down
 sudo docker system prune --all --force
 sudo docker-compose up -d
