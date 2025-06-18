@@ -155,43 +155,48 @@ const downloadFile = async(localFile, folder, name) => {
     }
 }
 
-const submitBatchJob = async(table_name, batch_num = null) => {
-    let params = {
-        table_name
-    };
-    let name = `start-${ table_name }`
+const submitBatchJob = async (table_name, batch_num = null) => {
+    const jobQueue = process.env.BATCH_QUEUE_LARGE || "democracy-viewer-processing-queue-large";
+    const jobDefinition = process.env.BATCH_START_PROCESSING_DEF || "democracy-viewer-start-processing";
+    const awsRegion = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-2";
+
+    let params = { table_name };
+    let name = `start-${table_name}`;
+
     if (batch_num) {
-        params = {
-            ...params,
-            batch_num
-        }
-        name += `-${ batch_num }`;
+        params.batch_num = batch_num;
+        name += `-${batch_num}`;
     }
 
-    // DEBUG:
+    // DEBUG LOGGING
     console.log('=== BATCH SUBMISSION DEBUG ===');
     console.log('jobName:', name);
-    console.log('BATCH_QUEUE_LARGE env var:', process.env.BATCH_QUEUE_LARGE);
-    console.log('BATCH_START_PROCESSING_DEF env var:', process.env.BATCH_START_PROCESSING_DEF);
+    console.log('jobQueue:', jobQueue);
+    console.log('jobDefinition:', jobDefinition);
     console.log('parameters being sent:', { batch_num: "none", ...params });
-    console.log('typeof batch_num:', typeof "none");
-    console.log('AWS region:', process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION);
+    console.log('typeof batch_num:', typeof batch_num);
+    console.log('AWS region:', awsRegion);
 
-    // Submit job
     const command = new SubmitJobCommand({
         jobName: name,
-        jobQueue: process.env.BATCH_QUEUE_LARGE,
-        jobDefinition: process.env.BATCH_START_PROCESSING_DEF,
+        jobQueue: jobQueue,
+        jobDefinition: jobDefinition,
         parameters: {
             batch_num: "none",
             ...params
         }
     });
 
-    const response = await batchClient.send(command);
-    console.log("Batch job submitted:");
-    console.log(response);
-}
+    try {
+        const response = await batchClient.send(command);
+        console.log("Batch job submitted:");
+        console.log(response);
+    } catch (err) {
+        console.error("Error submitting batch job:");
+        console.error(err);
+    }
+};
+
 
 const downloadFileDirect = async(query) => {
     const queryFilename = hashQuery(query);
