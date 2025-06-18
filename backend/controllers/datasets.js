@@ -112,6 +112,7 @@ const uploadDataset = async(knex, name, metadata, textCols, embedCols, tags, use
     await model.deleteTempCols(name);
 
     // Start batch preprocessing
+    console.log(">>> [uploadDataset] Submitting batch job for:", name);
     await aws.submitBatchJob(name);
 }
 
@@ -134,6 +135,7 @@ const reprocessDataset = async(knex, table, email) => {
     }
 
     // Start batch job to reprocess the dataset
+    console.log(">>> [reprocessDataset] Submitting batch job for:", table);
     await aws.submitBatchJob(table);
 
     // Update metadata to indicate reprocessing has begun
@@ -204,6 +206,7 @@ const uploadBatch = async(knex, table, batch, email) => {
     }
 
     // Start processing job for new data
+    console.log(">>> [uploadBatch] Submitting batch job for:", table, "Batch:", batch);
     await aws.submitBatchJob(table, batch);
 }
 

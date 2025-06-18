@@ -177,6 +177,10 @@ const submitBatchJob = async (table_name, batch_num = null) => {
     console.log('typeof batch_num:', typeof batch_num);
     console.log('AWS region:', awsRegion);
 
+    if (!jobDefinition) {
+    throw new Error("Missing AWS Batch job definition!");
+    }
+
     const command = new SubmitJobCommand({
         jobName: name,
         jobQueue: jobQueue,

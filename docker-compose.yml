@@ -22,7 +22,7 @@ services:
       - BATCH_ENV_LARGE=democracy-viewer-processing-env-large
       - BATCH_QUEUE_LARGE=democracy-viewer-processing-queue-large
       - BATCH_DEF_LARGE=democracy-viewer-processing-large-def
-      - BATCH_START_PROCESSING_DEF=democracy-viewer-start-processing
+      - BATCH_START_PROCESSING_DEF=democracy-viewer-start-processing:3
     # shared network
     networks:
       - api
