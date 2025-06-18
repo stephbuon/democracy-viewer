@@ -169,19 +169,23 @@ const submitBatchJob = async(table_name, batch_num = null) => {
     }
 
     // DEBUG:
-    console.log('=== DEBUG ENV VARS ===');
-    console.log('BATCH_QUEUE_LARGE:', process.env.BATCH_QUEUE_LARGE);
-    console.log('BATCH_START_PROCESSING_DEF:', process.env.BATCH_START_PROCESSING_DEF);
-    console.log('typeof BATCH_START_PROCESSING_DEF:', typeof process.env.BATCH_START_PROCESSING_DEF);
-    console.log('All BATCH vars:', Object.keys(process.env).filter(k => k.includes('BATCH')));
-    console.log('=====================');
+    console.log('=== BATCH SUBMISSION DEBUG ===');
+    console.log('jobName:', name);
+    console.log('BATCH_QUEUE_LARGE env var:', process.env.BATCH_QUEUE_LARGE);
+    console.log('BATCH_START_PROCESSING_DEF env var:', process.env.BATCH_START_PROCESSING_DEF);
+    console.log('parameters being sent:', { batch_num: "none", ...params });
+    console.log('typeof batch_num:', typeof "none");
+    console.log('AWS region:', process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION);
 
     // Submit job
     const command = new SubmitJobCommand({
         jobName: name,
         jobQueue: process.env.BATCH_QUEUE_LARGE,
         jobDefinition: process.env.BATCH_START_PROCESSING_DEF,
-        parameters: params
+        parameters: {
+            batch_num: "none",
+            ...params
+        }
     });
 
     const response = await batchClient.send(command);
