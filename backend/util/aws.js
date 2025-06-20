@@ -224,7 +224,7 @@ const downloadFileDirect = async(query) => {
         Key: `athena/${ queryFilename }.csv`
     });
 
-    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    return await getSignedUrl(s3Client, command, { expiresIn: 7200 });
 }
 
 const downloadGraph = async(name) => {
@@ -235,7 +235,7 @@ const downloadGraph = async(name) => {
     });
 
     // Return signed url
-    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    return await getSignedUrl(s3Client, command, { expiresIn: 7200 });
 }
 
 const uploadGraph = async(name) => {
@@ -258,7 +258,7 @@ const uploadGraph = async(name) => {
     });
 
     // Get upload API URL
-    return await getSignedUrl(s3Client, uploadCommand, { expiresIn: 3600 });
+    return await getSignedUrl(s3Client, uploadCommand, { expiresIn: 7200 });
 }
 
 const uploadFileDirect = async(table_name, batch_num = null) => {
@@ -275,7 +275,7 @@ const uploadFileDirect = async(table_name, batch_num = null) => {
         ContentType: "text/csv"
     });
 
-    return await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    return await getSignedUrl(s3Client, command, { expiresIn: 7200 });
 }
 
 const uploadFile = async(localFile, s3File) => {
