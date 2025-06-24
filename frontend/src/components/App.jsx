@@ -5,9 +5,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { 
   Acknowledgements, DatasetResultsPage, 
   DownloadStarted, Graph, GraphResultsPage, Homepage, Layout, Login, Profile, Register, 
-  SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom, 
+  SubsetResultsPage, SubsetSuggestion, Upload, UploadComplete, Zoom,
   SelectedDataSet  
 } from "./pages";
+import ConcordanceView from "./pages/ConcordanceView";
 
 
 export const App = () => {
@@ -57,30 +58,31 @@ export const App = () => {
 
   return (
     <div className="App" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <BrowserRouter>
-        <Layout user={user} logout={logout} />
-        <div style={{ flex: 1 }}>
-          <Routes>
-            <Route path="/" element={<Homepage />} />
-            <Route path="/acknowledgements" element={<Acknowledgements />} />
-            <Route path="/datasets/search" element={<DatasetResultsPage login={login} currUser={user} setUser={setUser} setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated} />} />
-            <Route path="/datasets/subsets/search" element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={setNavigated} />} />
-            <Route path="/datasets/subsets/suggestion/:id" element={<SubsetSuggestion />} />
-            <Route path="/download/:type" element={<DownloadStarted />} />
-            <Route path="/graph" element={<Graph navigated={navigated} setNavigated={setNavigated} />} />
-            <Route path="/graph/published/:id" element={<Graph navigated={navigated} setNavigated={setNavigated} setDataset={setDataset} />} />
-            <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={setNavigated} />} />
-            <Route path="/graphs/search" element={<GraphResultsPage login={login} currUser={user} setUser={setUser} setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated} />} />
-            <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={setNavigated} />} />
-            <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout} />} />
-            <Route path="/register" element={<Register currUser={user} login={login} />} />
-            <Route path="/upload" element={<Upload currUser={user} setNavigated={setNavigated} />} />
-            <Route path="/upload/complete" element={<UploadComplete />} />
-            {/* <Route path="/selected-dataset" element={<SelectedDataSet dataset={dataset} />} /> */}
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </div>
+    <BrowserRouter>
+      <Layout user={user} logout={logout} />
+      <div style={{ flex: 1 }}>
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/acknowledgements" element={<Acknowledgements />} />
+          <Route path="/datasets/search" element={<DatasetResultsPage login={login} currUser={user} setUser={setUser} setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated} />} />
+          <Route path="/datasets/subsets/search" element={<SubsetResultsPage dataset={dataset} navigated={navigated} setNavigated={setNavigated} />} />
+          <Route path="/concordanceview" element={<ConcordanceView dataset={dataset} />} /> 
+          <Route path="/datasets/subsets/suggestion/:id" element={<SubsetSuggestion />} />
+          <Route path="/download/:type" element={<DownloadStarted />} />
+          <Route path="/graph" element={<Graph navigated={navigated} setNavigated={setNavigated} />} />
+          <Route path="/graph/published/:id" element={<Graph navigated={navigated} setNavigated={setNavigated} setDataset={setDataset} />} />
+          <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={setNavigated} />} />
+          <Route path="/graphs/search" element={<GraphResultsPage login={login} currUser={user} setUser={setUser} setDataset={chooseDataset} navigated={navigated} setNavigated={setNavigated} />} />
+          <Route path="/login" element={<Login currUser={user} login={login} navigated={navigated} setNavigated={setNavigated} />} />
+          <Route path="/profile/:email" element={<Profile currUser={user} setDataset={chooseDataset} logout={logout} />} />
+          <Route path="/register" element={<Register currUser={user} login={login} />} />
+          <Route path="/upload" element={<Upload currUser={user} setNavigated={setNavigated} />} />
+          <Route path="/upload/complete" element={<UploadComplete />} />
+          {/* <Route path="/selected-dataset" element={<SelectedDataSet dataset={dataset} />} /> */}
+        </Routes>
+      </div>
+    </BrowserRouter>
+  </div>
   );
 };
 

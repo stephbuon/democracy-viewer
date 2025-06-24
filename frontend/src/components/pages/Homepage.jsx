@@ -263,7 +263,7 @@ export const Homepage = () => {
           </Container>
         </Box>
 
-         {/* Featured Visualizations */}
+        {/* Featured Visualizations */}
         <Box sx={{ py: 8, bgcolor: "white" }}>
           <Container maxWidth="lg">
             <Typography variant="h3" component="h2" align="center" fontWeight="bold" sx={{ mb: 6 }}>
@@ -272,8 +272,8 @@ export const Homepage = () => {
             <Grid container spacing={3}>
               {featuredVisualizations.map((viz) => (
                 <Grid item xs={12} sm={6} md={3} key={viz.id}>
-                  <Card>
-                    <CardContent>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <CardContent sx={{ flexGrow: 1 }}>
                       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         {viz.icon}
                         <Chip 
