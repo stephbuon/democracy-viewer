@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {AppBar,Toolbar,IconButton,Button,Box,Tooltip} from '@mui/material';
+import {AppBar,Toolbar,IconButton,Button,Box,Tooltip,Menu,MenuItem} from '@mui/material';
 import { useEffect, useState } from 'react';
 import homeIcon from '../images/IMG_0266.jpg';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export const Layout = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const menuOpen = Boolean(anchorEl);
 
   useEffect(() => {
     setOpen(false);
@@ -17,6 +19,14 @@ export const Layout = (props) => {
 
   const handleDrawerToggle = () => {
     setOpen(!open);
+  };
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
   const getCurrentPage = () => {
@@ -90,18 +100,18 @@ export const Layout = (props) => {
 
         <Button
           onClick={() => navigate("/")}
-          sx={{ textTransform: 'none', color: 'black', fontSize: '1.0rem' }}
+          sx={{ textTransform: 'none', color: 'black', fontSize: '1.2rem' }}
         >
          Democracy Viewer
         </Button>
           
           {/* Navigation menu items */}
-          <Box sx={{ display: 'flex', mx: 2, flexGrow: 1, color: 'black', justifyContent: 'center'}}>
+          <Box sx={{ display: 'flex', mx: 2, flexGrow: 1, color: 'black', justifyContent: 'center', fontSize: '1.1rem'}}>
             <Button 
               color="inherit" 
               component={Link} 
               to="/upload"
-              sx={{ fontWeight: isActive('/upload') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+              sx={{ fontWeight: isActive('/upload') ? 'bold' : 'normal', textTransform: 'capitalize', fontSize: '1.05rem' }}
             >
               upload dataset
             </Button>
@@ -109,31 +119,70 @@ export const Layout = (props) => {
               color="inherit" 
               component={Link} 
               to="/datasets/search"
-              sx={{ fontWeight: isActive('/datasets/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+              sx={{ fontWeight: isActive('/datasets/search') ? 'bold' : 'normal', textTransform: 'capitalize', fontSize: '1.05rem' }}
             >
               search datasets
             </Button>
+            
+            {/* View Dataset with Dropdown */}
             <Button 
               color="inherit" 
-              component={Link} 
-              to="/datasets/subsets/search"
-              sx={{ fontWeight: isActive('/datasets/subsets/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+              onMouseEnter={handleMenuOpen}
+              sx={{ 
+                fontWeight: isActive('/datasets/subsets/search') ? 'bold' : 'normal', 
+                textTransform: 'capitalize',
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '1.05rem'
+              }}
             >
               view dataset
+              <ExpandMoreIcon sx={{ ml: 0.5, fontSize: '1.1rem' }} />
             </Button>
+            
+            <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}
+              MenuListProps={{ onMouseLeave: handleMenuClose }} sx={{ mt: 1 }} >
+              <MenuItem 
+                component={Link} 
+                to="/datasets/subsets/search" 
+                onClick={handleMenuClose}
+                sx={{ fontSize: '1.05rem' }}
+              >
+                Table View
+              </MenuItem>
+              <MenuItem 
+                component={Link} 
+                to="/concordanceview" 
+                onClick={handleMenuClose}
+                sx={{ fontSize: '1.05rem' }}
+              >
+                Concordance View
+              </MenuItem>
+            </Menu>
+
             <Button 
               color="inherit" 
               component={Link} 
               to="/graph"
-              sx={{ fontWeight: isActive('/graph') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+              sx={{ fontWeight: isActive('/graph') ? 'bold' : 'normal', textTransform: 'capitalize', fontSize: '1.05rem' }}
             >
               visualize
             </Button>
+
+            {/* <Button 
+              color="inherit" 
+              component={Link} 
+              to="/wordsimilarity"
+              sx={{ fontWeight: isActive('/wordsimilarity') ? 'bold' : 'normal', textTransform: 'capitalize', fontSize: '1.05rem' }}
+            >
+              WordSimilarity
+            </Button> */}
+
             <Button 
               color="inherit" 
               component={Link} 
               to="/graphs/search"
-              sx={{ fontWeight: isActive('/graphs/search') ? 'bold' : 'normal', textTransform: 'capitalize' }}
+              sx={{ fontWeight: isActive('/graphs/search') ? 'bold' : 'normal', textTransform: 'capitalize', fontSize: '1.05rem' }}
             >
               search visualizations
             </Button>
@@ -142,7 +191,7 @@ export const Layout = (props) => {
           {/* User authentication buttons */}
           {location.pathname !== '/login' ? (
             <>{props.user === undefined && 
-            <Button sx={{ color: "black", textTransform: 'capitalize'}} component={Link} to="/login">
+            <Button sx={{ color: "black", textTransform: 'capitalize', fontSize: '1.05rem'}} component={Link} to="/login">
               login or register
             </Button>}
             {props.user !== undefined && ( <>
@@ -151,15 +200,15 @@ export const Layout = (props) => {
                   sx={{ color: "black" }}
                   onClick={() => { navigate(`/profile/${props.user.email}`); }}
                 >
-                  <AccountCircle />
+                  <AccountCircle sx={{ fontSize: '1.8rem' }} />
                 </IconButton>
               </Tooltip>
-            <Button sx={{ color: "black", textTransform: 'capitalize' }} onClick={() => { props.logout(); navigate('/'); }}>
+            <Button sx={{ color: "black", textTransform: 'capitalize', fontSize: '1.05rem' }} onClick={() => { props.logout(); navigate('/'); }}>
               logout
             </Button> </>
             )} </>
           ) : (
-            <Button sx={{ color: "black" }} component={Link} to="/">
+            <Button sx={{ color: "black", fontSize: '1.05rem' }} component={Link} to="/">
               Back
             </Button>
           )}

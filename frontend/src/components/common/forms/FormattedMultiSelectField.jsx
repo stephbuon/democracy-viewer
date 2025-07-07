@@ -10,6 +10,80 @@ export const FormattedMultiSelectField = (props) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  // Helper function to detect if a string is a valid date
+  const isValidDate = (dateString) => {
+    if (typeof dateString !== 'string') return false;
+    
+    // Common date patterns
+    const datePatterns = [
+      /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
+      /^\d{2}\/\d{2}\/\d{4}$/, // MM/DD/YYYY
+      /^\d{2}-\d{2}-\d{4}$/, // MM-DD-YYYY
+      /^\d{4}\/\d{2}\/\d{2}$/, // YYYY/MM/DD
+      /^\d{1,2}\/\d{1,2}\/\d{4}$/, // M/D/YYYY or MM/D/YYYY etc
+    ];
+    
+    // Check if it matches common date patterns
+    const matchesPattern = datePatterns.some(pattern => pattern.test(dateString.trim()));
+    if (!matchesPattern) return false;
+    
+    // Verify it's actually a valid date
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date) && date.getFullYear() > 1900;
+  };
+
+  // Helper function to determine sort type based on data
+  const detectSortType = (options) => {
+    if (options.length === 0) return 'alphabetical';
+    
+    // Sample first few options to determine type
+    const sampleSize = Math.min(5, options.length);
+    const sample = options.slice(0, sampleSize);
+    
+    // Check if majority of samples are dates
+    const dateCount = sample.filter(option => {
+      const label = String(option.label || '');
+      return isValidDate(label);
+    }).length;
+    const threshold = Math.ceil(sampleSize * 0.6); // 60% threshold
+    
+    return dateCount >= threshold ? 'date' : 'alphabetical';
+  };
+
+  // Helper function to sort options
+  const sortOptions = (options) => {
+    if (options.length === 0) return options;
+    
+    const sortType = detectSortType(options);
+    
+    return [...options].sort((a, b) => {
+      // Ensure labels are strings
+      const labelA = String(a.label || '');
+      const labelB = String(b.label || '');
+      
+      if (sortType === 'date') {
+        const dateA = new Date(labelA);
+        const dateB = new Date(labelB);
+        
+        // If either date is invalid, fall back to alphabetical
+        if (isNaN(dateA) || isNaN(dateB)) {
+          return labelA.localeCompare(labelB, undefined, { 
+            numeric: true, 
+            sensitivity: 'base' 
+          });
+        }
+        
+        return dateA - dateB;
+      } else {
+        // Alphabetical sort with numeric awareness (so "Item 2" comes before "Item 10")
+        return labelA.localeCompare(labelB, undefined, { 
+          numeric: true, 
+          sensitivity: 'base' 
+        });
+      }
+    });
+  };
+
   const fetchOptions = async (search = '', page = 1) => {
     setIsLoading(true);
     try {
@@ -35,7 +109,10 @@ export const FormattedMultiSelectField = (props) => {
           setOptions(prevOptions => {
             const uniqueOptions = new Set(prevOptions.map(option => option.value));
             const newOptions = fetchedOptions.filter(option => !uniqueOptions.has(option.value));
-            return [...prevOptions, ...newOptions];
+            const allOptions = [...prevOptions, ...newOptions];
+            
+            // Sort the combined options
+            return sortOptions(allOptions);
           });
         }
       } else {
@@ -49,7 +126,9 @@ export const FormattedMultiSelectField = (props) => {
             }
           }
         });
-        setOptions(data);
+        
+        // Sort the static data
+        setOptions(sortOptions(data));
         setHasMore(false);
       }
     } catch (error) {
@@ -88,7 +167,7 @@ export const FormattedMultiSelectField = (props) => {
       <Autocomplete
         multiple
         options={options}
-        getOptionLabel={(option) => option.label}
+        getOptionLabel={(option) => String(option.label || '')}
         value={props.selectedOptions}
         onChange={(event, newValues) => props.setSelectedOptions(newValues)}
         renderInput={(params) => {

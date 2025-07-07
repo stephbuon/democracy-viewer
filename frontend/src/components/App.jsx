@@ -9,6 +9,7 @@ import {
   SelectedDataSet  
 } from "./pages";
 import ConcordanceView from "./pages/ConcordanceView";
+import WordSimilarity from "./pages/WordSimilarity";
 
 
 export const App = () => {
@@ -69,6 +70,7 @@ export const App = () => {
           <Route path="/concordanceview" element={<ConcordanceView dataset={dataset} />} /> 
           <Route path="/datasets/subsets/suggestion/:id" element={<SubsetSuggestion />} />
           <Route path="/download/:type" element={<DownloadStarted />} />
+          <Route path="/wordsimilarity" element={<WordSimilarity dataset={dataset} navigated={navigated} setNavigated={setNavigated} />} />
           <Route path="/graph" element={<Graph navigated={navigated} setNavigated={setNavigated} />} />
           <Route path="/graph/published/:id" element={<Graph navigated={navigated} setNavigated={setNavigated} setDataset={setDataset} />} />
           <Route path="/graph/zoom" element={<Zoom data={data} navigated={navigated} setNavigated={setNavigated} />} />

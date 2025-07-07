@@ -1,7 +1,7 @@
 // Imports
 import { useRef, useEffect, useState } from "react";
 import Plotly from "plotly.js-dist";
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { metricTypes, metricNames } from "./metrics";
 import { getZoomIds } from "../../../../api";
@@ -9,6 +9,7 @@ import { getZoomIds } from "../../../../api";
 export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter, annotations, dataset }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
+    const [showLabels, setShowLabels] = useState(true);
     const [layout, setLayout] = useState({
         // title: data.title,
         title: `${ metricNames[data.metric] } For "${ dataset.title }"`,
@@ -75,6 +76,63 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
 
         return labels;
     }
+
+    // Function to apply scatter plot labels based on current state
+    const applyScatterLabels = () => {
+        if (!metricTypes.scatter.includes(data.metric)) return;
+
+        let xRange, yRange;
+        
+        // Get current x range
+        let min = Infinity;
+        let max = -Infinity;
+        data.graph.forEach(trace => {
+            if (Array.isArray(trace.x)) {
+                trace.x.forEach(x => {
+                    if (x < min) {
+                        min = x;
+                    }
+                    if (x > max) {
+                        max = x;
+                    }
+                });
+            }
+        });
+        if (min == Infinity || max == Infinity) {
+            xRange = [0, 1];
+        } else {
+            xRange = [min, max];
+        }
+
+        // Get current y range
+        min = Infinity;
+        max = -Infinity;
+        data.graph.forEach(trace => {
+            if (Array.isArray(trace.y)) {
+                trace.y.forEach(y => {
+                    if (y < min) {
+                        min = y;
+                    }
+                    if (y > max) {
+                        max = y;
+                    }
+                });
+            }
+        });
+        if (min == Infinity || max == Infinity) {
+            yRange = [0, 1];
+        } else {
+            yRange = [min, max];
+        }
+
+        const updatedLabels = showLabels
+            ? chooseLabels(data.graph, xRange, yRange)
+            : data.graph.map(() => []);
+
+        updatedLabels.forEach((labels, index) => {
+            Plotly.restyle("graph", { text: [labels] }, index);
+        });
+    };
 
     // UseEffect: Generates graph object with zoom click event definition
     useEffect(() => {
@@ -160,7 +218,9 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
 
     useEffect(() => {
         if (foundData) {
-            Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" });
+            Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" }).then(() => {
+                applyScatterLabels(); // Apply labels immediately after rendering
+            });
 
             // Relayout event to handle labels on a scatter plot
             graph.current.on("plotly_relayout", event => {
@@ -214,7 +274,9 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                         }
                     }
 
-                    const updatedLabels = chooseLabels(data.graph, xRange, yRange);
+                    const updatedLabels = showLabels
+                        ? chooseLabels(data.graph, xRange, yRange)
+                        : data.graph.map(() => []);
                     updatedLabels.forEach((labels, index) => {
                         Plotly.restyle("graph", { text: [labels] }, index);
                     });
@@ -280,12 +342,31 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                 });
             });
         }
-    }, [foundData]);
+    }, [foundData, layout, showLabels]);
 
-    return <>
-        {/* Graph */}
-        <Box className="d-flex" sx={{ margin: "8px" }}>
-            <div id='graph' style={{ margin: "0 auto" }} ref={graph} hidden={data.graph == undefined}></div>
+    return (
+        <Box sx={{ position: 'relative', minHeight: '550px' }}>
+            {/* Toggle Button */}
+            <Box sx={{ position: 'absolute',
+                    top: 10,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 10
+                }}
+            >
+            <Button variant="outlined" onClick={() => setShowLabels(prev => !prev)} sx={{ textTransform: 'none' }} >
+                {showLabels ? "Hide Labels" : "Show Labels"}
+            </Button>
+            </Box>
+
+            {/* Graph container */}
+            <Box className="d-flex" sx={{ marginTop: '48px', px: 2 }}>
+                <div id="graph"
+                    style={{ margin: "0 auto" }}
+                    ref={graph}
+                    hidden={!data.graph}
+                ></div>
+            </Box>
         </Box>
-    </>
+    );
 }
