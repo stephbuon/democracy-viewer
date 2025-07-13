@@ -318,5 +318,6 @@ module.exports = {
     downloadGraph,
     uploadFileDirect,
     uploadFile,
-    deleteTempUpload
+    deleteTempUpload,
+    s3Client
 }

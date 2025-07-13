@@ -1,6 +1,6 @@
 import { 
   Box, CssBaseline, createTheme, ThemeProvider,
-  Typography, Container, List, ListItem, ListItemText, Divider
+  Typography, Container, Grid, Card, CardContent, Avatar, Link as MuiLink
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 
@@ -10,8 +10,9 @@ const theme = createTheme({
       main: "#3b82f6",
     },
     background: {
-      default: "#f0f0f0",
+      default: "#f8fafc",
       paper: "#ffffff",
+      light: "#f1f5f9"
     },
   },
   typography: {
@@ -20,10 +21,10 @@ const theme = createTheme({
     },
     h4: {
       fontWeight: 600,
-      marginBottom: '1rem',
+      marginBottom: '2rem',
     },
     h6: {
-      fontWeight: 500,
+      fontWeight: 600,
     },
   },
 });
@@ -133,35 +134,66 @@ export const Acknowledgements = () => {
     }
   ];
 
-  const PersonListItem = ({ person }) => (
-    <ListItem sx={{ py: 1, px: 0 }}>
-      <ListItemText>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 500, mb: 0.25 }}>
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const PersonCard = ({ person }) => (
+    <Card sx={{ 
+      height: "100%", 
+      transition: "all 0.2s ease-in-out",
+      "&:hover": {
+        transform: "translateY(-2px)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.1)"
+      }
+    }}>
+      <CardContent sx={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        textAlign: "center",
+        p: 3
+      }}>
+        <Avatar sx={{ 
+          bgcolor: "#e0f2fe", 
+          mb: 2, 
+          width: 56, 
+          height: 56,
+          fontSize: "1.1rem",
+          fontWeight: 600,
+          color: "#0369a1"
+        }}>
+          {getInitials(person.name)}
+        </Avatar>
+        <Typography variant="h6" gutterBottom sx={{ fontSize: "1rem", mb: 1 }}>
           {person.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.25 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: "0.875rem" }}>
           {person.role}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.25, fontSize: '0.875rem' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "0.8rem", fontStyle: "italic" }}>
           {person.institution}
         </Typography>
         {person.link && (
-          <Link 
-            to={person.link} 
-            target="_blank" 
+          <MuiLink
+            href={person.link}
+            target="_blank"
             rel="noopener noreferrer"
-            style={{ 
-              color: "#3b82f6", 
+            sx={{
+              color: "#3b82f6",
               textDecoration: "none",
-              fontSize: "13px",
-              fontWeight: 500
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              "&:hover": {
+                textDecoration: "underline"
+              }
             }}
           >
             {person.linkType} →
-          </Link>
+          </MuiLink>
         )}
-      </ListItemText>
-    </ListItem>
+      </CardContent>
+    </Card>
   );
 
   return (
@@ -170,62 +202,87 @@ export const Acknowledgements = () => {
       
       {/* Header Section */}
       <Box sx={{ 
-        background: "white",
-        py: { xs: 4, md: 8}
+        background: "#f8f9fa",
+        pt: { xs: 6, md: 12 }, 
+        pb: { xs: 2, md: 4 },
+        borderBottom: "1px solid #e2e8f0"
       }}>
-        <Container maxWidth="md">
-          <Typography variant="h2" component="h1" align="center" sx={{ mt: 4 }}>
+        <Container maxWidth="lg">
+          <Typography variant="h2" component="h1" align="center"  sx={{ mb: 1 }}>
             Acknowledgements
           </Typography>
-          <Typography variant="h6" color="text.secondary" align="center" >
+          <Typography  variant="h6"  color="text.secondary" align="center" sx={{ fontWeight: 400 }}>
             Meet the team behind Democracy Viewer
           </Typography>
         </Container>
       </Box>
 
-      {/* Content Section */}
-      <Box sx={{ bgcolor: "white" }}>
-        <Container maxWidth="md">
-          
-          {/* Directors */}
-          <Typography variant="h4" component="h2" gutterBottom>
-            Directors
+      {/* Directors Section */}
+      <Box sx={{ py: 6, bgcolor: "white" }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" component="h2" align="center" gutterBottom>
+            Team Directors
           </Typography>
-          <List sx={{ mb: 4 }}>
+          <Box sx={{ 
+            width: "60px", 
+            height: "4px", 
+            bgcolor: "#fbbf24", 
+            mx: "auto", 
+            mb: 4 
+          }} />
+          <Grid container spacing={4} justifyContent="center">
             {directors.map((person, index) => (
-              <div key={index}>
-                <PersonListItem person={person} />
-                {index < directors.length - 1 && <Divider sx={{ my: 0.5 }} />}
-              </div>
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <PersonCard person={person} />
+              </Grid>
             ))}
-          </List>
+          </Grid>
+        </Container>
+      </Box>
 
-          {/* Current Lab Members */}
-          <Typography variant="h4" component="h2" gutterBottom>
+      {/* Current Lab Members Section */}
+      <Box sx={{ py: 6, bgcolor: "white" }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" component="h2" align="center" gutterBottom>
             Lab Members
           </Typography>
-          <List sx={{ mb: 4 }}>
+          <Box sx={{ 
+            width: "60px", 
+            height: "4px", 
+            bgcolor: "#fbbf24", 
+            mx: "auto", 
+            mb: 4 
+          }} />
+          <Grid container spacing={3} justifyContent="center">
             {currentMembers.map((person, index) => (
-              <div key={index}>
-                <PersonListItem person={person} />
-                {index < currentMembers.length - 1 && <Divider sx={{ my: 0.5 }} />}
-              </div>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <PersonCard person={person} />
+              </Grid>
             ))}
-          </List>
+          </Grid>
+        </Container>
+      </Box>
 
-          {/* Former Lab Members */}
-          <Typography variant="h4" component="h2" gutterBottom>
+      {/* Former Lab Members Section */}
+      <Box sx={{ py: 6, bgcolor: "white" }}>
+        <Container maxWidth="lg">
+          <Typography variant="h4" component="h2" align="center" gutterBottom>
             Former Lab Members
           </Typography>
-          <List>
+          <Box sx={{ 
+            width: "60px", 
+            height: "4px", 
+            bgcolor: "#fbbf24", 
+            mx: "auto", 
+            mb: 4 
+          }} />
+          <Grid container spacing={3} justifyContent="center">
             {formerMembers.map((person, index) => (
-              <div key={index}>
-                <PersonListItem person={person} />
-                {index < formerMembers.length - 1 && <Divider sx={{ my: 0.5 }} />}
-              </div>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <PersonCard person={person} />
+              </Grid>
             ))}
-          </List>
-
+          </Grid>
         </Container>
       </Box>
     </ThemeProvider>

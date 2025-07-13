@@ -6,6 +6,8 @@ const { getName } = require("../util/user_name");
 const emails = require("../util/email_management");
 const dataQueries = require("../util/data_queries");
 const aws = require("../util/aws");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const { s3Client } = require("../util/aws");
 
 // Upload a new dataset from a csv file
 const createDataset = async(email) => {
@@ -41,43 +43,78 @@ const createDatasetAPI = async(endpoint, email, token = null) => {
     // If the request succeeded, store data
     const data = res.data;
 
-    // Create table name and file name using user's email
-    const name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
-    const filename = `files/uploads/${ name }.csv`;
+    // Create table name using user's email
+    const table_name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
     
-    let output = {};
+    let csvData = '';
+    let headers = [];
+    
     if (typeof data === "string") {
-        // Export data to csv using a string
-        util.generateFile(filename, data);
-        // Parse file to read first 5 records and return
-        const records = await util.readCSV(filename, false);
-        // Throw error if no records found
-        if (records.length === 0) {
+        // Data is already a CSV string
+        csvData = data;
+        
+        // Parse the CSV string to extract headers for validation
+        const lines = data.trim().split('\n');
+        if (lines.length === 0) {
             throw new Error("No records retrieved from API");
         }
-        // Slice first 5 records to return
-        output = {
-            table_name: name,
-            headers: Object.keys(records[0])
-        }
-    } else if (typeof data === "object") {
-        // Export data to csv file using an object
-        await util.generateCSV(filename, data);
-        // Throw error if no records found
+        
+        // Extract headers from first line
+        const firstLine = lines[0];
+        headers = firstLine.split(',').map(header => header.trim().replace(/"/g, ''));
+        
+    } else if (typeof data === "object" && Array.isArray(data)) {
+        // Data is an array of objects, convert to CSV
         if (data.length === 0) {
             throw new Error("No records retrieved from API");
         }
-        // Slice first 5 records to return
-        output = {
-            table_name: name,
-            headers: Object.keys(data[0])
-        }
+        
+        // Get headers from first object
+        headers = Object.keys(data[0]);
+        
+        // Convert to CSV format
+        const csvRows = [];
+        // Add header row
+        csvRows.push(headers.join(','));
+        
+        // Add data rows
+        data.forEach(row => {
+            const values = headers.map(header => {
+                const value = row[header];
+                // Handle values that might contain commas or quotes
+                if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                    return `"${value.replace(/"/g, '""')}"`;
+                }
+                return value || '';
+            });
+            csvRows.push(values.join(','));
+        });
+        
+        csvData = csvRows.join('\n');
+        
     } else {
         // If the request data is not in the correct format, throw an error
         throw new Error(`Type ${ typeof data } is not valid`);
     }
 
-    return output;
+    // Upload CSV data directly to S3
+    try {
+        const uploadCommand = new PutObjectCommand({
+            Bucket: process.env.S3_BUCKET,
+            Key: `temp_uploads/${ table_name }.csv`,
+            Body: csvData,
+            ContentType: "text/csv"
+        });
+        
+        await s3Client.send(uploadCommand);
+    } catch (error) {
+        throw new Error(`Failed to upload data to S3: ${error.message}`);
+    }
+
+    return {
+        table_name,
+        headers
+    };
 }
 
 // Upload dataset records using Python
