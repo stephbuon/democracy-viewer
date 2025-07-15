@@ -348,7 +348,7 @@ export const DatasetResultsPage = (props) => {
                     <Box sx={{ p: 3 }}>
                         <DatasetTable
                             searchResults={searchResults}
-                            loadingResults={loadingResults}
+                            //loadingResults={loadingResults}
                             setDataset={props.setDataset}
                             GetNewPage={GetNewPage}
                             editable={false}
