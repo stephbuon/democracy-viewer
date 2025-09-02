@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 // MUI Imports
-import { Box, Button, TextField, Modal, Snackbar, Alert, Typography, InputAdornment, Chip, Divider } from '@mui/material';
+import { Box, Button, TextField, Modal, Snackbar, Alert, Typography, InputAdornment, Chip, Divider, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
@@ -10,9 +10,7 @@ import { Stack } from '@mui/system';
 // Other Imports
 import { filterGraphs, filterGraphsCount } from '../../api';
 import { GraphTable } from "../common/tables";
-import { AdvancedFilter } from './subcomponents/dataset-search'; // Assuming this is the same component or you have an equivalent
-
-const pageLength = 5;
+import { AdvancedFilter } from './subcomponents/dataset-search';
 
 export const GraphResultsPage = (props) => {
     // temp values
@@ -23,6 +21,7 @@ export const GraphResultsPage = (props) => {
     const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false);
     const [advancedFilterValues, setAdvancedFilterValues] = useState({});
     const [isFiltered, setIsFiltered] = useState(false);
+    const [pageLength, setPageLength] = useState(5); // Made dynamic instead of constant
     const [alert, setAlert] = useState(1);
     
     // pagination
@@ -160,6 +159,26 @@ export const GraphResultsPage = (props) => {
         });
     };
 
+    const handlePageLengthChange = (event) => {
+        const newPageLength = event.target.value;
+        setPageLength(newPageLength);
+        
+        // Update the current filter with the new page length and re-run the search
+        const updatedFilter = { ...pageFilter, pageLength: newPageLength };
+        setPageFilter(updatedFilter);
+        setLoadingResults(true);
+        
+        filterGraphs(updatedFilter, 1).then((res) => {
+            setLoadingResults(false);
+            if (!res) { setSearchResults([]) }
+            else { setSearchResults(res) }
+        });
+        
+        filterGraphsCount(updatedFilter).then(async (res) => {
+            setTotalNumOfResults(res);
+        });
+    };
+
     const onEnter = (event) => {
         if (event.key === "Enter") {
             filterResults();
@@ -274,7 +293,8 @@ export const GraphResultsPage = (props) => {
                             display: "flex", 
                             gap: 2,
                             flexWrap: 'wrap',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            alignItems: 'center'
                         }}>
                             <Button
                                 onClick={() => setAdvancedFilterOpen(true)}
@@ -284,6 +304,24 @@ export const GraphResultsPage = (props) => {
                             >
                                 Advanced Filter
                             </Button>
+                            
+                            {/* Page Length Selector */}
+                            <FormControl sx={{ minWidth: 120 }}>
+                                <InputLabel id="page-length-label">Results per page</InputLabel>
+                                <Select
+                                    labelId="page-length-label"
+                                    id="page-length-select"
+                                    value={pageLength}
+                                    label="Results per page"
+                                    onChange={handlePageLengthChange}
+                                    size="small"
+                                    sx={{ backgroundColor: 'white' }}
+                                >
+                                    <MenuItem value={5}>5</MenuItem>
+                                    <MenuItem value={10}>10</MenuItem>
+                                    <MenuItem value={20}>20</MenuItem>
+                                </Select>
+                            </FormControl>
                             
                             {isFiltered && (
                                 <Button

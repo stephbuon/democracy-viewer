@@ -9,16 +9,14 @@ export const postRequest = async(endpoint, body = {}, settings = {}) => {
         ...settings,
         ...apiConfig(settings.isFileUpload)
     };
-    const res = await axios.post(fullURL, body, config);
 
-    // Handle error
-    if (res.status !== 201) {
-        console.error(`API request "POST ${ fullURL }" failed with status code ${ res.status }`);
-        throw new Error(res.statusText);
+    try {
+        const res = await axios.post(fullURL, body, config);
+        return res.data;
+    } catch (error) {
+        console.error(`API request "POST ${fullURL}" failed:`, error.message || error);
+        throw error;
     }
-
-    // Return output
-    return res.data;
 }
 
 export const putRequest = async(endpoint, body = {}, settings = {}) => {

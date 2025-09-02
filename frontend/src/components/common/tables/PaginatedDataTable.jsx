@@ -41,7 +41,7 @@ export const PaginatedDataTable = ({ searchResults, pageLength, GetNewPage, down
     // Get global search terms for yellow highlighting
     const getGlobalSearchTerms = () => {
         return globalSearchTerm.trim() ? 
-            globalSearchTerm.trim().split(/\s+/).filter(word => word.length > 0) : [];
+            [globalSearchTerm.trim()] : [];
     };
 
     // Get column-specific search terms for a specific column

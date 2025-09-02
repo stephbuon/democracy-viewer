@@ -267,7 +267,7 @@ export const Homepage = () => {
         <Box sx={{ py: 8, bgcolor: "white" }}>
           <Container maxWidth="lg">
             <Typography variant="h3" component="h2" align="center" fontWeight="bold" sx={{ mb: 6 }}>
-              Featured Gallery
+              Gallery
             </Typography>
             <Grid container spacing={3}>
               {featuredVisualizations.map((viz) => (

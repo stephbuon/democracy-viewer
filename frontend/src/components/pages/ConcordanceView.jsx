@@ -73,7 +73,7 @@ export default function ConcordanceView(props) {
         if (!searchTerm.trim() || allData.length === 0) return;
 
         setLoading(true);
-        const searchWords = searchTerm.trim().toLowerCase().split(/\s+/);
+        const searchPhrase = searchTerm.trim().toLowerCase();
         const results = [];
 
         // Process each row in the dataset
@@ -86,58 +86,42 @@ export default function ConcordanceView(props) {
                 if (!cellValue || typeof cellValue !== 'string') return;
                 
                 const text = cellValue.toString();
-                const tokens = text.split(/(\s+|[.,!?;:])/); // Split on whitespace and punctuation
-                const words = tokens.filter(token => /\w/.test(token)); // Filter to actual words
+                const textLower = text.toLowerCase();
                 
-                words.forEach((word, wordIndex) => {
-                    const cleanWord = word.toLowerCase().replace(/[^\w]/g, '');
+                // Find all occurrences of the search phrase
+                let startIndex = 0;
+                let phraseIndex;
+                
+                while ((phraseIndex = textLower.indexOf(searchPhrase, startIndex)) !== -1) {
+                    // Calculate word positions for context window
+                    const beforeText = text.substring(0, phraseIndex);
+                    const afterText = text.substring(phraseIndex + searchPhrase.length);
                     
-                    // Check if this word exactly matches any of our search terms (whole word matching)
-                    const matchesSearch = searchWords.some(searchWord => {
-                        const cleanSearchWord = searchWord.toLowerCase().replace(/[^\w]/g, '');
-                        // Use word boundary matching to avoid partial matches
-                        return cleanWord === cleanSearchWord || 
-                               (cleanWord.length >= 3 && cleanSearchWord.length >= 3 && 
-                                cleanWord.includes(cleanSearchWord));
+                    // Split into words for context calculation
+                    const beforeWords = beforeText.trim().split(/\s+/).filter(w => w.length > 0);
+                    const afterWords = afterText.trim().split(/\s+/).filter(w => w.length > 0);
+                    
+                    // Extract context window
+                    const contextBefore = beforeWords.slice(-windowSize).join(' ');
+                    const contextAfter = afterWords.slice(0, windowSize).join(' ');
+                    
+                    // Get the actual matched phrase from original text (preserves case)
+                    const matchedPhrase = text.substring(phraseIndex, phraseIndex + searchPhrase.length);
+                    
+                    results.push({
+                        id: `${rowIndex}-${columnName}-${phraseIndex}`,
+                        recordId: row.record_id || rowIndex,
+                        column: columnName,
+                        before: contextBefore,
+                        keyword: matchedPhrase,
+                        after: contextAfter,
+                        fullText: text,
+                        rowData: row
                     });
                     
-                    if (matchesSearch) {
-                        // Find the position of this word in the original tokens array
-                        let tokenIndex = 0;
-                        let wordCount = 0;
-                        for (let i = 0; i < tokens.length; i++) {
-                            if (/\w/.test(tokens[i])) {
-                                if (wordCount === wordIndex) {
-                                    tokenIndex = i;
-                                    break;
-                                }
-                                wordCount++;
-                            }
-                        }
-                        
-                        // Extract context window
-                        const contextStart = Math.max(0, tokenIndex - (windowSize * 2)); // Account for spaces
-                        const contextEnd = Math.min(tokens.length, tokenIndex + (windowSize * 2) + 1);
-                        
-                        const beforeTokens = tokens.slice(contextStart, tokenIndex);
-                        const keywordToken = tokens[tokenIndex];
-                        const afterTokens = tokens.slice(tokenIndex + 1, contextEnd);
-                        
-                        const before = beforeTokens.join('').trim();
-                        const after = afterTokens.join('').trim();
-                        
-                        results.push({
-                            id: `${rowIndex}-${columnName}-${wordIndex}`,
-                            recordId: row.record_id || rowIndex,
-                            column: columnName,
-                            before,
-                            keyword: keywordToken,
-                            after,
-                            fullText: text,
-                            rowData: row
-                        });
-                    }
-                });
+                    // Move to next potential match
+                    startIndex = phraseIndex + 1;
+                }
             });
         });
 
@@ -387,7 +371,7 @@ export default function ConcordanceView(props) {
                                                 <Box sx={{ textAlign: 'center' }}>
                                                     <Box sx={{ fontSize: '0.95rem', fontWeight: 'bold', backgroundColor: '#ffeb3b', px: 1, py: 0.5, borderRadius: 1, display: 'inline-block' }}>
                                                         <Highlighter
-                                                            searchWords={searchTerm.split(" ")}
+                                                            searchWords={[searchTerm.trim()]}
                                                             textToHighlight={result.keyword}
                                                             highlightStyle={{ backgroundColor: '#ffe27e', padding: '2px', borderRadius: '2px' }}
                                                         />
@@ -408,7 +392,7 @@ export default function ConcordanceView(props) {
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem', fontStyle: 'italic', lineHeight: 1.4 }}>
                                                 <Highlighter
-                                                    searchWords={searchTerm.split(" ")}
+                                                    searchWords={[searchTerm.trim()]}
                                                     textToHighlight={expandedResults.has(result.id) ? result.fullText : truncateText(result.fullText)}
                                                     highlightStyle={{ backgroundColor: expandedResults.has(result.id) ? '#ffe27e' : '#ffeb3b', color: '#333333', padding: '2px', borderRadius: '2px' }}
                                                 />

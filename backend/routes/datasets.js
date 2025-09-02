@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
 const control = require("../controllers/datasets");
 const { authenticateJWT } = require("../middleware/authentication");
@@ -39,6 +40,131 @@ router.post('/upload', authenticateJWT, async(req, res, next) => {
         res.status(500).json({ message: err.toString() });
     }
     next();
+});
+
+// Configure multer for chunk uploads (in-memory storage)
+const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 80 * 1024 * 1024, // 80MB limit
+        fieldSize: 80 * 1024 * 1024
+    }
+});
+
+// Route to initialize chunked upload session
+router.post('/initialize-chunked-upload', authenticateJWT, async (req, res) => {
+    try {
+        const { totalChunks, originalFileName } = req.body;
+        const email = req.user.email;
+        
+        if (!totalChunks || !originalFileName) {
+            return res.status(400).json({ 
+                error: 'totalChunks and originalFileName are required' 
+            });
+        }
+        
+        const result = await control.initializeChunkedUpload(email, totalChunks, originalFileName);
+        
+        res.json({
+            success: true,
+            sessionId: result.sessionId,
+            table_name: result.table_name,
+            totalChunks: result.totalChunks,
+            message: 'Chunked upload session initialized'
+        });
+        
+    } catch (error) {
+        console.error('Error initializing chunked upload:', error);
+        res.status(500).json({ 
+            error: 'Failed to initialize chunked upload',
+            message: error.message 
+        });
+    }
+});
+
+router.post('/upload-chunk', authenticateJWT, upload.single('chunk'), async (req, res) => {
+    console.log('AUTH PASSED + MULTER APPLIED');
+    console.log('Body keys:', Object.keys(req.body));
+    console.log('File info:', req.file ? {
+        originalname: req.file.originalname,
+        size: req.file.size,
+        fieldname: req.file.fieldname
+    } : 'No file received');
+    console.log('Body values:', req.body);
+    
+    if (!req.body.sessionId || req.body.chunkIndex === undefined) {
+        return res.status(400).json({ 
+            error: 'Missing required fields',
+            received: {
+                bodyKeys: Object.keys(req.body),
+                body: req.body,
+                hasFile: !!req.file
+            }
+        });
+    }
+
+    try {
+        const result = await control.uploadChunk(req.body.sessionId, parseInt(req.body.chunkIndex), req.file.buffer);
+        res.json({ 
+            message: 'Chunk uploaded successfully',
+            chunkIndex: req.body.chunkIndex,
+            sessionId: req.body.sessionId
+        });
+    } catch (error) {
+        console.error('Error uploading chunk:', error);
+        res.status(500).json({ error: 'Failed to upload chunk' });
+    }
+});
+
+// Route to finalize chunked upload
+router.post('/finalize-chunked-upload', authenticateJWT, async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        
+        if (!sessionId) {
+            return res.status(400).json({ 
+                error: 'sessionId is required' 
+            });
+        }
+        
+        const result = await control.finalizeChunkedUpload(sessionId);
+        
+        res.json({
+            success: true,
+            table_name: result.table_name,
+            headers: result.headers,
+            fileSize: result.fileSize,
+            chunksProcessed: result.chunksProcessed,
+            message: 'File uploaded and assembled successfully'
+        });
+        
+    } catch (error) {
+        console.error('Error finalizing chunked upload:', error);
+        res.status(500).json({ 
+            error: 'Failed to finalize upload',
+            message: error.message 
+        });
+    }
+});
+
+// Route to get chunked upload status
+router.get('/chunked-upload-status/:sessionId', authenticateJWT, async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        
+        // GO BACK TO ADD function to check session status
+        res.json({
+            success: true,
+            message: 'Status check endpoint - implement as needed'
+        });
+        
+    } catch (error) {
+        console.error('Error checking upload status:', error);
+        res.status(500).json({ 
+            error: 'Failed to check upload status',
+            message: error.message 
+        });
+    }
 });
 
 // Route to add a tag for a dataset

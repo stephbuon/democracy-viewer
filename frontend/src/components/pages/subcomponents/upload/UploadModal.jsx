@@ -101,21 +101,23 @@ export const UploadModal = (props) => {
         setUploadProgress(0);
         setDisableButtons(true);
         CreateDataset(file, setUploadProgress).then(res => {
-          settableName(res.table_name)
-          setHeaders(res.headers)
-          setFileUploaded(true);
-          setAlert(3);
+            settableName(res.table_name)
+            setHeaders(res.headers)
+            setFileUploaded(true);
+            setAlert(3);
         }).catch(res => {
-          if (res.response && res.response.data.message === "MulterError: File too large") {
-            setAlert(4);
-          } else {
-            setAlert(2);
-          }
-          
-          setFile(undefined);
-          setUploadProgress(0);
+            if (res.response && res.response.data.message === "MulterError: File too large") {
+                setAlert(4);
+            } else if (res.response && res.response.data.message && res.response.data.message.includes("chunked upload")) {
+                setAlert(5);
+            } else {
+                setAlert(2);
+            }
+            
+            setFile(undefined);
+            setUploadProgress(0);
         }).finally(() => setDisableButtons(false));
-      };
+    };
 
       const APIcsv = () => {
         setAlert(0);
@@ -271,7 +273,8 @@ export const UploadModal = (props) => {
                 {alert === 1 && <div>Only { validExtensions.join(", ") } files can be uploaded</div>}
                 {alert === 2 && <div>An error occurred uploading the dataset</div>}
                 {alert === 3 && <div>Dataset successfully uploaded</div>}
-                {alert === 4 && <div>Maximum upload size is 150 MB. Reach out to us at <Link to="mailto:democracyviewerlab@gmail.com">democracyviewerlab@gmail.com</Link> to upload a larger dataset</div>}
+                {alert === 4 && <div>Maximum upload size is 2.5 GB for standard upload. Files over 2.5 GB will use chunked upload automatically.</div>}
+                {alert === 5 && <div>An error occurred during chunked upload. Please try again or contact support.</div>}
                 </Alert>
             </Snackbar>
 

@@ -29,10 +29,10 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-// Increase server timeout for large uploads (120 minutes)
+// Increase server timeout for large uploads (12 hours)
 app.use((req, res, next) => {
-    req.setTimeout(7200000);
-    res.setTimeout(7200000);
+    req.setTimeout(43200000);
+    res.setTimeout(43200000);
     next();
 });
 
@@ -107,6 +107,6 @@ const server = app.listen(port, () => {
 });
 
 // Increase server timeout globally
-server.timeout = 7200000; // 120 minutes
-server.keepAliveTimeout = 7200000;
-server.headersTimeout = 7200000;
+server.timeout = 43200000; // 12 hours
+server.keepAliveTimeout = 43200000;
+server.headersTimeout = 43200000;

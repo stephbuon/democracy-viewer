@@ -1,10 +1,10 @@
 // Imports
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Box, Button, Grid, Snackbar, Alert, Container, Modal, Typography, IconButton } from "@mui/material";
+import { Box, Button, Grid, Snackbar, Alert, Modal, Typography, IconButton } from "@mui/material";
 import { GraphComponent, GraphPublishModal, GraphSettings } from "./subcomponents/graphs";
 import { getGraph, getPublishedGraph } from "../../api";
-import { Settings, RotateLeft, Download, Upload, Clear, ChevronLeft, ChevronRight } from '@mui/icons-material';
+import { Download, Upload, Clear, ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { metricTypes, metricNames } from "./subcomponents/graphs/metrics.js";
 import Plotly from "plotly.js-dist";
 import { std } from "mathjs";
@@ -154,31 +154,15 @@ export const Graph = (props) => {
           tempData.titleList.push(keys[0], keys[1]);
         }
 
-        // Get the range of x and y axes
-        const maxX = res.reduce((max, dataPoint) => Math.max(max, dataPoint.x), -Infinity);
-        const minX = res.reduce((min, dataPoint) => Math.min(min, dataPoint.x), Infinity);
-        const rangeX = maxX - minX;
-        const maxY = res.reduce((max, dataPoint) => Math.max(max, dataPoint.y), -Infinity);
-        const minY = res.reduce((min, dataPoint) => Math.min(min, dataPoint.y), Infinity);
-        const rangeY = maxY - minY;
-
-        // Array to store non-overlapping labels
-        const nonOverlappingLabels = [];
-        // Populate data array with request output
+        // Populate data array with request output - NO OVERLAP FILTERING HERE
         res.forEach(dataPoint => {
-          // Check for overlap with previously added labels
-          const overlap = nonOverlappingLabels.some((existingPoint) =>
-            isOverlappingScatter(existingPoint.x, existingPoint.y, dataPoint.x, dataPoint.y, rangeX, rangeY)
-          );
-
-          // Add point to the graph regardless of overlap
           let index = tempData.graph.findIndex(x => x.name === dataPoint.group);
           if (index === -1) {
             index = tempData.graph.length;
             tempData.graph.push({
               x: [dataPoint.x],
               y: [dataPoint.y],
-              text: [],
+              text: [dataPoint.word], // Always include the label
               hovertext: [dataPoint.word],
               name: dataPoint.group,
               mode: "markers+text",
@@ -194,16 +178,8 @@ export const Graph = (props) => {
           } else {
             tempData.graph[index].x.push(dataPoint.x);
             tempData.graph[index].y.push(dataPoint.y);
-            tempData.graph[index].hovertext.push(dataPoint.word); // Show on hover
-          }
-
-          if (!overlap) {
-            // If no overlap, display the text on the graph
-            nonOverlappingLabels.push(dataPoint);
-            tempData.graph[index].text.push(dataPoint.word);
-          } else {
-            // If overlapping, hide the text on the graph
-            tempData.graph[index].text.push(''); // Empty string for hidden text
+            tempData.graph[index].text.push(dataPoint.word); // Always include the label
+            tempData.graph[index].hovertext.push(dataPoint.word);
           }
         });
 
@@ -434,12 +410,12 @@ export const Graph = (props) => {
 
           // Get two points
           let x0, x1, y0, y1;
-          if (direction == "front") {
+          if (direction === "front") {
             x0 = curveX[1];
             y0 = curveY[1];
             x1 = curveX[0];
             y1 = curveY[0];
-          } else if (direction == "back") {
+          } else if (direction === "back") {
             x0 = curveX[n - 2];
             y0 = curveY[n - 2];
             x1 = curveX[n - 1];
@@ -781,7 +757,7 @@ export const Graph = (props) => {
           display: 'flex', 
           flexDirection: 'column',
           height: 'calc(100vh - 16px)',
-          overflow: 'hidden'
+          overflow: 'auto'
         }}>
           {/* Control buttons */}
           <Box
@@ -789,14 +765,15 @@ export const Graph = (props) => {
               mb: 2,
               py: 10,
               display: "flex",
-              justifyContent: "center", // centers the Grid container horizontally
+              justifyContent: "center", 
+              flexShrink: 0 
             }}
           >
             <Grid
               container
               spacing={2}
-              justifyContent="center" // centers the Grid items inside the container
-              sx={{ maxWidth: "800px" }} // optional: limits width to keep buttons from stretching too wide
+              justifyContent="center"
+              sx={{ maxWidth: "800px" }} 
             >
               <Grid item xs={12} sm={4} md={3}>
                 <Button
@@ -823,13 +800,20 @@ export const Graph = (props) => {
             </Grid>
           </Box>
 
-          {/* Graph Visualization - Full Width */}
+          {/* Graph Visualization */}
           <Box sx={{ 
-            flex: 1, 
+            flex: 1,
             display: 'flex',
-            overflow: 'hidden'
+            flexDirection: 'column',
+            minHeight: 0
           }}>
-            <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ 
+              flex: 1,
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              minHeight: '500px'
+            }}>
               {(loading === true || zoomLoading === true) && (
                 <div className="spinner-border" style={{
                   width: "5rem",
@@ -845,7 +829,7 @@ export const Graph = (props) => {
                   data={graphData}
                   setData={setData}
                   setZoomLoading={setZoomLoading}
-                  isOverlappingScatter={isOverlappingScatter}
+                  //isOverlappingScatter={isOverlappingScatter}
                   annotations={annotationData}
                   dataset={data.dataset}
                 />
@@ -855,6 +839,44 @@ export const Graph = (props) => {
                 <Typography variant="h5">No Results Found</Typography>
               )}
             </Box>
+
+           {/* Tips box - Only show when graph is displayed */}
+            {graph === true && zoomLoading === false && (
+              <Box sx={{ 
+                mt: 3, 
+                mb: 3,
+                mx: 3, 
+                p: 2.5, 
+                backgroundColor: '#f8f9fa',
+                borderRadius: 2,
+                border: '1px solid #e9ecef',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                flexShrink: 0 // Prevent tips box from shrinking
+              }}>
+                <Typography variant="body2" sx={{ 
+                  color: '#495057',
+                  lineHeight: 1.6,
+                  fontSize: '0.875rem',
+                  textAlign: 'left',
+                  mb: 1
+                }}>
+                <strong>Graphing Tips:</strong>
+                </Typography>
+                <Typography variant="body2" sx={{ 
+                  color: '#495057',
+                  lineHeight: 1.8,
+                  fontSize: '0.875rem',
+                  textAlign: 'left'
+                }}>
+                  • Click on data points to view detailed records<br/>
+                  • Use the toolbar options in the top-right corner of the graph to customize, zoom, or select an area<br/>
+                  • Try the Download and Publish buttons above for easy sharing<br/>
+                  {graphData && graphData.graph && graphData.graph.some(trace => trace.text && Array.isArray(trace.text)) && 
+                    "• Use the Labels dropdown above the graph to control text visibility\n"
+                  }
+                </Typography>
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>

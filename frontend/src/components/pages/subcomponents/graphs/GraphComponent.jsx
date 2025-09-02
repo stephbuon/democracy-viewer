@@ -1,15 +1,54 @@
 // Imports
 import { useRef, useEffect, useState } from "react";
 import Plotly from "plotly.js-dist";
-import { Box, Button } from "@mui/material";
+import { Box, Button, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { metricTypes, metricNames } from "./metrics";
 import { getZoomIds } from "../../../../api";
 
-export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingScatter, annotations, dataset }) => {
+export const GraphComponent = ({ data, setData, setZoomLoading, annotations, dataset }) => {
     // UseState definitions
     const [foundData, setFoundData] = useState(false);
-    const [showLabels, setShowLabels] = useState(true);
+    const [labelMode, setLabelMode] = useState("dynamic"); // "none", "all", "dynamic"
+    const [plotInitialized, setPlotInitialized] = useState(false);
+
+    const isOverlappingScatter = (x1, y1, x2, y2, rangeX, rangeY) => {
+        // Adjust fraction to change how many labels to hide
+        const fraction = 0.007;
+        const xThreshold = rangeX * fraction;
+        const yThreshold = rangeY * fraction;
+        const xDistance = Math.abs(x1 - x2);
+        const yDistance = Math.abs(y1 - y2);
+        return xDistance < xThreshold && yDistance < yThreshold;
+    };
+
+    // Helper function to check if current metric supports dynamic labels
+    const supportsDynamicLabels = () => {
+        return metricTypes.scatter.includes(data.metric);
+    };
+
+    // Helper function to get available label modes based on graph type
+    const getAvailableLabelModes = () => {
+        const baseModes = [
+            { value: "none", label: "No Labels" },
+            { value: "all", label: "All Labels" }
+        ];
+        
+        if (supportsDynamicLabels()) {
+            baseModes.push({ value: "dynamic", label: "Dynamic Labels" });
+        }
+        
+        return baseModes;
+    };
+
+    // Helper function to get default label mode based on graph type
+    const getDefaultLabelMode = () => {
+        if (supportsDynamicLabels()) {
+            return "dynamic";
+        }
+        return "all"; // Default to showing all labels for non-scatter plots
+    };
+
     const [layout, setLayout] = useState({
         // title: data.title,
         title: `${ metricNames[data.metric] } For "${ dataset.title }"`,
@@ -45,13 +84,19 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
     const graph = useRef(null);
 
     // Function to choose which labels to show in a scatter plot
-    const chooseLabels = (data, xRange, yRange) => {
+    const chooseLabels = (traces, xRange, yRange) => {
         const rangeX = xRange[1] - xRange[0];
         const rangeY = yRange[1] - yRange[0];
         const nonOverlappingLabels = [];
         const labels = [];
 
-        data.forEach(trace => {
+        traces.forEach(trace => {
+            // Check if trace has text labels
+            if (!trace.text || !Array.isArray(trace.text)) {
+                labels.push([]); // Push empty array for traces without text
+                return;
+            }
+
             const traceLabels = [];
             for (let i = 0; i < trace.x.length; i++) {
                 const x = trace.x[i];
@@ -64,7 +109,7 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                     if (overlap) {
                         traceLabels.push("");
                     } else {
-                        traceLabels.push(trace.hovertext[i]);
+                        traceLabels.push(trace.text[i]); // Use original text, not hovertext
                         nonOverlappingLabels.push({ x, y });
                     }
                 } else {
@@ -77,68 +122,126 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
         return labels;
     }
 
-    // Function to apply scatter plot labels based on current state
-    const applyScatterLabels = () => {
-        if (!metricTypes.scatter.includes(data.metric)) return;
-
+    // Function to get current axis ranges from the plot
+    const getCurrentRanges = () => {
+        const plotElement = document.getElementById("graph");
         let xRange, yRange;
         
-        // Get current x range
-        let min = Infinity;
-        let max = -Infinity;
-        data.graph.forEach(trace => {
-            if (Array.isArray(trace.x)) {
-                trace.x.forEach(x => {
-                    if (x < min) {
-                        min = x;
-                    }
-                    if (x > max) {
-                        max = x;
-                    }
-                });
-            }
-        });
-        if (min == Infinity || max == Infinity) {
-            xRange = [0, 1];
+        if (plotElement && plotElement.layout && plotElement.layout.xaxis && plotElement.layout.yaxis) {
+            // Try to get current ranges from plot layout
+            xRange = plotElement.layout.xaxis.range || [
+                Math.min(...data.graph.flatMap(trace => trace.x)),
+                Math.max(...data.graph.flatMap(trace => trace.x))
+            ];
+            yRange = plotElement.layout.yaxis.range || [
+                Math.min(...data.graph.flatMap(trace => trace.y)),
+                Math.max(...data.graph.flatMap(trace => trace.y))
+            ];
         } else {
-            xRange = [min, max];
+            // Fallback to data ranges
+            xRange = [
+                Math.min(...data.graph.flatMap(trace => trace.x)),
+                Math.max(...data.graph.flatMap(trace => trace.x))
+            ];
+            yRange = [
+                Math.min(...data.graph.flatMap(trace => trace.y)),
+                Math.max(...data.graph.flatMap(trace => trace.y))
+            ];
         }
 
-        // Get current y range
-        min = Infinity;
-        max = -Infinity;
-        data.graph.forEach(trace => {
-            if (Array.isArray(trace.y)) {
-                trace.y.forEach(y => {
-                    if (y < min) {
-                        min = y;
-                    }
-                    if (y > max) {
-                        max = y;
-                    }
-                });
-            }
-        });
-        if (min == Infinity || max == Infinity) {
-            yRange = [0, 1];
+        return { xRange, yRange };
+    };
+
+    // Function to apply labels based on current state (works for all graph types)
+    const applyLabels = () => {
+        // Apply labels based on current labelMode
+        let updatedLabels;
+        if (labelMode === "none") {
+            updatedLabels = data.graph.map(trace => {
+                if (!trace.text || !Array.isArray(trace.text)) {
+                    return []; // Return empty array if no text property
+                }
+                return trace.text.map(() => "");
+            });
+        } else if (labelMode === "all") {
+            // Use the original text array which contains all labels
+            updatedLabels = data.graph.map(trace => {
+                if (!trace.text || !Array.isArray(trace.text)) {
+                    return []; // Return empty array if no text property
+                }
+                return [...trace.text];
+            });
+        } else if (labelMode === "dynamic" && supportsDynamicLabels()) {
+            // Set dynamic labels with function (only for scatter plots)
+            const { xRange, yRange } = getCurrentRanges();
+            updatedLabels = chooseLabels(data.graph, xRange, yRange);
         } else {
-            yRange = [min, max];
+            // Fallback to all labels if dynamic is not supported
+            updatedLabels = data.graph.map(trace => {
+                if (!trace.text || !Array.isArray(trace.text)) {
+                    return []; // Return empty array if no text property
+                }
+                return [...trace.text];
+            });
         }
 
-        const updatedLabels = showLabels
-            ? chooseLabels(data.graph, xRange, yRange)
-            : data.graph.map(() => []);
+        console.log("Updated labels:", updatedLabels.map((labels, i) => `Trace ${i}: ${labels.filter(l => l !== "").length} visible labels`));
 
-        updatedLabels.forEach((labels, index) => {
-            Plotly.restyle("graph", { text: [labels] }, index);
+        // Update the plot with new labels - only update traces that have text
+        try {
+            updatedLabels.forEach((labels, index) => {
+                if (labels.length > 0) {
+                    Plotly.restyle("graph", { text: [labels] }, index);
+                }
+            });
+        } catch (error) {
+            console.error("Error updating labels:", error);
+        }
+    };
+
+    // Function to create initial graph data with appropriate labels
+    const getInitialGraphData = () => {
+        return data.graph.map(trace => {
+            // Check if trace has a text property that's iterable
+            if (!trace.text || !Array.isArray(trace.text)) {
+                // Return trace as-is if no text labels
+                return { ...trace };
+            }
+
+            let initialText;
+            if (labelMode === "none") {
+                initialText = trace.text.map(() => "");
+            } else if (labelMode === "all") {
+                initialText = [...trace.text];
+            } else if (labelMode === "dynamic" && supportsDynamicLabels()) {
+                // For dynamic on scatter plots, apply labels after the plot is created
+                initialText = [...trace.text];
+            } else {
+                // Default to all labels
+                initialText = [...trace.text];
+            }
+
+            return {
+                ...trace,
+                text: initialText
+            };
         });
     };
+
+    // UseEffect: Reset label mode when metric changes
+    useEffect(() => {
+        if (data && data.metric) {
+            const defaultMode = getDefaultLabelMode();
+            setLabelMode(defaultMode);
+        }
+    }, [data?.metric]);
 
     // UseEffect: Generates graph object with zoom click event definition
     useEffect(() => {
         if (!data || !data.graph || data.graph.length === 0) {
             // Hide graph if no data
             setFoundData(false);
+            setPlotInitialized(false);
         } else {
             // Generate graph if there is data
             setFoundData(true);
@@ -216,70 +319,40 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
         }
     }, [data, annotations]);
 
+    // UseEffect to handle label mode changes
+    useEffect(() => {
+        if (foundData && plotInitialized) {
+            // Small delay to ensure any plot updates are complete
+            setTimeout(() => {
+                applyLabels();
+            }, 50);
+        }
+    }, [labelMode, plotInitialized]);
+
+    // UseEffect to create and manage the plot
     useEffect(() => {
         if (foundData) {
-            Plotly.newPlot('graph', data.graph, layout, { displayModeBar: "hover" }).then(() => {
-                applyScatterLabels(); // Apply labels immediately after rendering
+            setPlotInitialized(false);
+            
+            const initialGraphData = getInitialGraphData();
+            
+            Plotly.newPlot('graph', initialGraphData, layout, { displayModeBar: "hover" }).then(() => {
+                setPlotInitialized(true);
+                
+                // Apply initial labels after plot creation
+                setTimeout(() => {
+                    applyLabels();
+                }, 100);
             });
 
-            // Relayout event to handle labels on a scatter plot
+            // Relayout event to handle dynamic labels on scatter plots
             graph.current.on("plotly_relayout", event => {
-                if (metricTypes.scatter.includes(data.metric)) {
-                    let xRange, yRange;
-                    if (event["xaxis.range[0]"] && event["xaxis.range[1]"]) {
-                        xRange = [event["xaxis.range[0]"], event["xaxis.range[1]"]];
-                    } else {
-                        let min = Infinity;
-                        let max = -Infinity;
-                        data.graph.forEach(trace => {
-                            if (Array.isArray(trace.x)) {
-                                trace.x.forEach(x => {
-                                    if (x < min) {
-                                        min = x;
-                                    }
-                                    if (x > max) {
-                                        max = x;
-                                    }
-                                });
-                            }
-                        });
-                        if (min == Infinity || max == Infinity) {
-                            xRange = [0, 1];
-                        } else {
-                            xRange = [min, max];
-                        }
-                    }
-
-                    if (event["yaxis.range[0]"] && event["yaxis.range[1]"]) {
-                        yRange = [event["yaxis.range[0]"], event["yaxis.range[1]"]];
-                    } else {
-                        let min = Infinity;
-                        let max = -Infinity;
-                        data.graph.forEach(trace => {
-                            if (Array.isArray(trace.y)) {
-                                trace.y.forEach(y => {
-                                    if (y < min) {
-                                        min = y;
-                                    }
-                                    if (y > max) {
-                                        max = y;
-                                    }
-                                });
-                            }
-                        });
-                        if (min == Infinity || max == Infinity) {
-                            yRange = [0, 1];
-                        } else {
-                            yRange = [min, max];
-                        }
-                    }
-
-                    const updatedLabels = showLabels
-                        ? chooseLabels(data.graph, xRange, yRange)
-                        : data.graph.map(() => []);
-                    updatedLabels.forEach((labels, index) => {
-                        Plotly.restyle("graph", { text: [labels] }, index);
-                    });
+                console.log("🔄 Plotly relayout event triggered:", event);
+                
+                if (supportsDynamicLabels() && labelMode === "dynamic" && plotInitialized) {
+                    setTimeout(() => {
+                        applyLabels();
+                    }, 50);
                 }
             });
 
@@ -342,31 +415,44 @@ export const GraphComponent = ({ data, setData, setZoomLoading, isOverlappingSca
                 });
             });
         }
-    }, [foundData, layout, showLabels]);
+    }, [foundData, layout, labelMode]); // Added labelMode here so plot recreates with correct initial labels
 
     return (
-        <Box sx={{ position: 'relative', minHeight: '550px' }}>
-            {/* Toggle Button */}
-            <Box sx={{ position: 'absolute',
-                    top: 10,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 10
-                }}
-            >
-            <Button variant="outlined" onClick={() => setShowLabels(prev => !prev)} sx={{ textTransform: 'none' }} >
-                {showLabels ? "Hide Labels" : "Show Labels"}
-            </Button>
-            </Box>
-
-            {/* Graph container */}
-            <Box className="d-flex" sx={{ marginTop: '48px', px: 2 }}>
-                <div id="graph"
-                    style={{ margin: "0 auto" }}
-                    ref={graph}
-                    hidden={!data.graph}
-                ></div>
-            </Box>
+    <Box sx={{ width: '100%', pb: 3 }}>
+        {/* Graph container */}
+        <Box className="d-flex" sx={{ px: 2, overflow: 'visible' }}>
+            <div id="graph"
+                style={{ margin: "0 auto" }}
+                ref={graph}
+                hidden={!data.graph}
+            ></div>
         </Box>
-    );
+
+        {/* Dropdown for Label Mode - Only show if at least one trace has text labels */}
+        {foundData && data.graph && data.graph.some(trace => trace.text && Array.isArray(trace.text)) && (
+            <Box sx={{ 
+                display: 'flex',
+                justifyContent: 'center'
+            }}>
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <InputLabel id="label-mode-select-label">Labels</InputLabel>
+                    <Select
+                        labelId="label-mode-select-label"
+                        value={labelMode}
+                        onChange={(e) => {
+                            setLabelMode(e.target.value);
+                        }}
+                        label="Labels"
+                    >
+                        {getAvailableLabelModes().map(mode => (
+                            <MenuItem key={mode.value} value={mode.value}>
+                                {mode.label}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Box>
+        )}
+    </Box>
+);
 }

@@ -2,12 +2,69 @@ const util = require("../util/file_management");
 const axios = require("axios").default;
 const runPython = require("../util/python_config");
 const datasets = require("../models/datasets");
+const knex = require('knex')(require("../util/database_config").defaultConfig());
 const { getName } = require("../util/user_name");
 const emails = require("../util/email_management");
 const dataQueries = require("../util/data_queries");
 const aws = require("../util/aws");
 const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const { s3Client } = require("../util/aws");
+const { GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+
+// Add simple file storage functions to track session info
+const getSessionPath = (sessionId) => {
+    return path.join(os.tmpdir(), `upload_session_${sessionId}.json`);
+};
+
+const saveSession = (sessionId, sessionData) => {
+    const filePath = getSessionPath(sessionId);
+    const dataToStore = {
+        ...sessionData,
+        uploadedChunks: Array.from(sessionData.uploadedChunks)
+    };
+    fs.writeFileSync(filePath, JSON.stringify(dataToStore));
+};
+
+const loadSession = (sessionId) => {
+    const filePath = getSessionPath(sessionId);
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        const sessionData = JSON.parse(data);
+        sessionData.uploadedChunks = new Set(sessionData.uploadedChunks);
+        return sessionData;
+    } catch (error) {
+        return null; // Session doesn't exist or expired
+    }
+};
+
+const deleteSessionFile = (sessionId) => {
+    const filePath = getSessionPath(sessionId);
+    try {
+        fs.unlinkSync(filePath);
+    } catch (error) {
+    }
+};
+
+// Update createChunkSession
+const createChunkSession = (tableName, totalChunks, email) => {
+    const sessionId = `${tableName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const session = {
+        sessionId,
+        tableName,
+        totalChunks: parseInt(totalChunks),
+        email,
+        uploadedChunks: new Set(),
+        createdAt: Date.now(),
+        s3ChunkKeys: []
+    };
+    
+    // Save chuncked info to file -- DO NOT store full chunck in memory
+    saveSession(sessionId, session);
+    return session;
+};
 
 // Upload a new dataset from a csv file
 const createDataset = async(email) => {
@@ -21,6 +78,268 @@ const createDataset = async(email) => {
         url
     };
 }
+
+// Initialize chunked upload session
+const initializeChunkedUpload = async(email, totalChunks, originalFileName) => {
+    console.log('Chunked upload initialization hit');
+    const table_name = `${ email.replace(/\W+/g, "_") }_${ Date.now() }`;
+    const session = createChunkSession(table_name, totalChunks, email);
+    
+    console.log(`Initialized chunked upload session: ${session.sessionId} for ${originalFileName}`);
+    
+    return {
+        sessionId: session.sessionId,
+        table_name,
+        totalChunks: parseInt(totalChunks)
+    };
+};
+
+// Goes through each chunck, uploads it to s3, and saves info to session storage
+const uploadChunk = async(sessionId, chunkIndex, chunkBuffer) => {
+    const session = loadSession(sessionId);
+    
+    if (!session) {
+        throw new Error('Upload session not found or expired');
+    }
+    
+    const chunkKey = `temp_chunks/${session.tableName}/chunk_${chunkIndex}`;
+    
+    try {
+        // Upload chunk directly to S3
+        const uploadCommand = new PutObjectCommand({
+            Bucket: process.env.S3_BUCKET,
+            Key: chunkKey,
+            Body: chunkBuffer,
+            ContentType: "application/octet-stream"
+        });
+        
+        await s3Client.send(uploadCommand);
+        
+        // Track uploaded chunk
+        session.uploadedChunks.add(parseInt(chunkIndex));
+        session.s3ChunkKeys[parseInt(chunkIndex)] = chunkKey;
+        
+        // Save updated session to file
+        saveSession(sessionId, session);
+        
+        console.log(`Uploaded chunk ${chunkIndex}/${session.totalChunks - 1} for session ${sessionId}`);
+        
+        return {
+            chunkIndex: parseInt(chunkIndex),
+            uploaded: true,
+            totalReceived: session.uploadedChunks.size,
+            totalExpected: session.totalChunks
+        };
+        
+    } catch (error) {
+        console.error(`Failed to upload chunk ${chunkIndex}:`, error);
+        throw new Error(`Failed to upload chunk: ${error.message}`);
+    }
+};
+
+// Checks for all chunks, puts them together in S3, and moves them into temp-uploads folder in AWS 
+const finalizeChunkedUpload = async(sessionId) => {
+    console.log('=== STARTING finalizeChunkedUpload ===');
+    console.log('SessionId:', sessionId);
+
+    const session = loadSession(sessionId);
+    console.log('Session loaded:', session ? '✅ SUCCESS' : '❌ FAILED');
+    console.log(`Session totalChunks: ${session.totalChunks}, uploadedChunks size: ${session.uploadedChunks.size}`);
+    console.log('Uploaded chunks:', Array.from(session.uploadedChunks).sort((a,b) => a-b));
+    
+    if (!session) {
+        throw new Error('Upload session not found or expired');
+    }
+
+    console.log('Session details:');
+    console.log(`  - totalChunks: ${session.totalChunks}`);
+    console.log(`  - uploadedChunks.size: ${session.uploadedChunks.size}`);
+    console.log(`  - tableName: ${session.tableName}`);
+    console.log(`  - Uploaded chunks: [${Array.from(session.uploadedChunks).sort((a,b) => a-b).join(', ')}]`);
+    
+    // Verify all chunks are uploaded
+    if (session.uploadedChunks.size !== session.totalChunks) {
+        console.log('CHUNK COUNT MISMATCH!');
+        console.log(`Expected: ${session.totalChunks}, Got: ${session.uploadedChunks.size}`);
+        
+        // Find missing chunks
+        const expectedChunks = new Set(Array.from({length: session.totalChunks}, (_, i) => i));
+        const missingChunks = [...expectedChunks].filter(chunk => !session.uploadedChunks.has(chunk));
+        console.log('Missing chunks:', missingChunks);
+
+        throw new Error(`Missing chunks. Expected ${session.totalChunks}, got ${session.uploadedChunks.size}`);
+    }
+
+    console.log('All chunks verified, starting S3 assembly...');
+    
+    try {
+        // Use streaming upload to avoid memory issues with large files
+        const { Upload } = require('@aws-sdk/lib-storage');
+        const { Readable } = require('stream');
+        
+        const finalKey = `temp_uploads/${session.tableName}.csv`;
+        console.log('Final S3 key will be:', finalKey);
+
+        let currentChunk = 0;
+        let headers = null;
+        
+        // Create a stream that reads chunks one by one
+        const combinedStream = new Readable({
+            async read() {
+                if (currentChunk >= session.totalChunks) {
+                    this.push(null); // End of stream
+                    return;
+                }
+                
+                try {
+                    const chunkKey = session.s3ChunkKeys[currentChunk];
+                    
+                    const getCommand = new GetObjectCommand({
+                        Bucket: process.env.S3_BUCKET,
+                        Key: chunkKey
+                    });
+                    
+                    const chunkResponse = await s3Client.send(getCommand);
+                    const chunkBuffer = await streamToBuffer(chunkResponse.Body);
+                    
+                    // Get headers from first chunk
+                    if (currentChunk === 0) {
+                        const csvString = chunkBuffer.toString('utf8');
+                        const lines = csvString.trim().split('\n');
+                        headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+
+                        // Insert headers into temp_cols table
+                        console.log('Inserting headers into dataset_temp_cols:', headers);
+                        
+                        try {
+                            // Insert each header as a temporary column
+                            const tempColInserts = headers.map(header => ({
+                                table_name: session.tableName,
+                                col: header
+                            }));
+                            
+                            await knex('dataset_temp_cols').insert(tempColInserts);
+                            console.log(' Headers successfully inserted into database');
+                        } catch (dbError) {
+                            console.error('Failed to insert headers into database:', dbError);
+                            throw new Error(`Database insertion failed: ${dbError.message}`);
+                        }
+                    }
+                    
+                    this.push(chunkBuffer);
+                    currentChunk++;
+                    
+                } catch (error) {
+                    this.emit('error', error);
+                }
+            }
+        });
+        
+        // Upload the combined stream
+        const upload = new Upload({
+            client: s3Client,
+            params: {
+                Bucket: process.env.S3_BUCKET,
+                Key: finalKey,
+                Body: combinedStream,
+                ContentType: "text/csv"
+            }
+        });
+        
+        await upload.done();
+        
+        // Clean up chunk files from S3
+        await cleanupChunkFiles(session);
+        
+        // Remove session file
+        deleteSessionFile(sessionId);
+        
+        console.log(`Successfully assembled chunked upload for ${session.tableName}`);
+        
+        return {
+            table_name: session.tableName,
+            headers,
+            fileSize: 'streamed',
+            chunksProcessed: session.totalChunks
+        };
+        
+    } catch (error) {
+        console.error(`Failed to finalize chunked upload:`, error);
+        
+        // Clean up on error
+        await cleanupChunkFiles(session);
+        deleteSessionFile(sessionId);
+        
+        throw new Error(`Failed to finalize upload: ${error.message}`);
+    }
+};
+
+// Helper function to convert stream to buffer
+const streamToBuffer = async (stream) => {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        stream.on('data', chunk => chunks.push(chunk));
+        stream.on('end', () => resolve(Buffer.concat(chunks)));
+        stream.on('error', reject);
+    });
+};
+
+// Helper function to clean up chunk files from S3
+const cleanupChunkFiles = async (session) => {
+    try {
+        const deletePromises = session.s3ChunkKeys.map(async (chunkKey) => {
+            if (chunkKey) {
+                const deleteCommand = new DeleteObjectCommand({
+                    Bucket: process.env.S3_BUCKET,
+                    Key: chunkKey
+                });
+                await s3Client.send(deleteCommand);
+            }
+        });
+        
+        await Promise.all(deletePromises);
+        console.log(`Cleaned up ${session.s3ChunkKeys.length} chunk files`);
+    } catch (error) {
+        console.error('Error cleaning up chunk files:', error);
+    }
+};
+
+// Cleans up expired chunck in temp-chunk AWS folder (protects storage incase upload fails)
+const cleanupExpiredSessions = () => {
+    try {
+        const tmpDir = os.tmpdir();
+        const files = fs.readdirSync(tmpDir);
+        const sessionFiles = files.filter(f => f.startsWith('upload_session_'));
+        const now = Date.now();
+        const MAX_SESSION_AGE = 12 * 60 * 60 * 1000; // 12 hours
+        
+        sessionFiles.forEach(async (file) => {
+            const filePath = path.join(tmpDir, file);
+            const stats = fs.statSync(filePath);
+            
+            if (now - stats.mtime.getTime() > MAX_SESSION_AGE) {
+                const sessionId = file.replace('upload_session_', '').replace('.json', '');
+                console.log(`Cleaning up expired session: ${sessionId}`);
+                
+                try {
+                    const session = loadSession(sessionId);
+                    if (session) {
+                        await cleanupChunkFiles(session);
+                    }
+                } catch (error) {
+                    console.error('Error during session cleanup:', error);
+                }
+                
+                deleteSessionFile(sessionId);
+            }
+        });
+    } catch (error) {
+        console.error('Error during expired session cleanup:', error);
+    }
+};
+
+// Run cleanup every hour
+setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
 
 // Import a new dataset from an api
 const createDatasetAPI = async(endpoint, email, token = null) => {
@@ -791,6 +1110,9 @@ const deleteSuggestionById = async(knex, user, id) => {
 
 module.exports = {
     createDataset,
+    initializeChunkedUpload,
+    uploadChunk,
+    finalizeChunkedUpload,
     createDatasetAPI,
     uploadDataset,
     reprocessDataset,
